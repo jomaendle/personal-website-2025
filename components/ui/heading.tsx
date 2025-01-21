@@ -18,7 +18,10 @@ const H2 = ({
   children: React.ReactNode;
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
-    <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-6">
+    <h2
+      className="text-sm uppercase tracking-wider text-muted-foreground mb-6"
+      {...props}
+    >
       {children}
     </h2>
   );
