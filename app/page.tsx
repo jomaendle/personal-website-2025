@@ -3,6 +3,7 @@ import { JobPositions } from "@/components/job-positions";
 import BlogPosts from "@/components/blog-posts";
 import { WorkExperience } from "@/components/work-experience";
 import { MoreLinks } from "@/components/more-links";
+import { Footer } from "@/components/ui/footer";
 
 export default function Home() {
   return (
@@ -55,9 +56,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="mt-16 text-xs text-muted-foreground">
-          <p>© Jo Maendle</p>
-        </footer>
+        <Footer />
       </div>
     </main>
   );

@@ -32,7 +32,7 @@ const H3 = ({
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
     <h3
-      className="text-foreground group-hover:text-primary transition-colors"
+      className="text-foreground group-hover:text-white/75 transition-colors"
       {...props}
     >
       {children}

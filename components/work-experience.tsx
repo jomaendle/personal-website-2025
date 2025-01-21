@@ -30,7 +30,7 @@ export function WorkExperience() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <H3 className="flex items-center group-hover:text-white/75">
+            <H3 className="flex items-center">
               {experience.title}
               {experience.isExternal && (
                 <ExternalLinkIcon className="inline-block size-3 ml-2" />

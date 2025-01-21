@@ -9,8 +9,8 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   return (
-    <div className="relative rounded-lg overflow-hidden code-block my-12">
-      <div className="absolute top-0 right-0 bg-gray-800 text-gray-400 px-2 py-1 text-xs font-mono rounded-bl">
+    <div className="relative rounded-[0.25rem] overflow-hidden code-block my-6">
+      <div className="absolute top-0 right-0 bg-neutral-800 text-gray-300 px-2 py-1 text-xs font-mono rounded-bl">
         {language}
       </div>
       <SyntaxHighlighter

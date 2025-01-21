@@ -3,6 +3,11 @@ import Link from "next/link";
 
 const blogPosts = [
   {
+    title: "Working with Animations",
+    date: "Jan 20, 2025",
+    link: "/blog/animations",
+  },
+  {
     title: "Making Responsive UI Components with display: contents",
     date: "Sep 15, 2024",
     link: "/blog/responsive-ui-components",
