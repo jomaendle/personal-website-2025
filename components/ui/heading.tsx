@@ -1,5 +1,18 @@
 import { cn } from "@/lib/utils";
 
+const BlogH1 = ({
+  children,
+  ...props
+}: {
+  children: React.ReactNode;
+} & React.HTMLAttributes<HTMLHeadingElement>) => {
+  return (
+    <h1 className="text-2xl font-normal tracking-tight mb-8" {...props}>
+      {children}
+    </h1>
+  );
+};
+
 const H1 = ({
   children,
   ...props
@@ -48,4 +61,4 @@ const H3 = ({
   );
 };
 
-export { H1, H2, H3 };
+export { H1, H2, H3, BlogH1 };

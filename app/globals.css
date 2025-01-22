@@ -69,6 +69,10 @@
         @apply text-xs text-muted-foreground text-center block mt-2;
     }
 
+    .prose figure img {
+        @apply rounded-[0.2rem];
+    }
+
     .prose pre {
         @apply bg-secondary text-foreground rounded-none border border-border overflow-x-auto my-8;
     }
@@ -79,5 +83,11 @@
 
     .prose pre code {
         @apply bg-transparent p-0;
+    }
+
+    .prose {
+        ul, ol {
+            @apply list-disc pl-6 text-[currentColor];
+        }
     }
 }

@@ -32,7 +32,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
         <div className="fixed hidden xl:flex top-[100px] left-12 flex-col gap-6 max-w-[240px]">
           <BackLink />
 
-          <BlogPostList />
+          <BlogPostList currentSlug={slug} />
         </div>
 
         <div className="prose">

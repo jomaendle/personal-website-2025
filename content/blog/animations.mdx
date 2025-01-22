@@ -1,1 +1,131 @@
-<video tabIndex="-1" preload="metadata" muted="muted" poster="https://media.licdn.com/dms/image/v2/D4E05AQGDhf-H1eIYZQ/videocover-high/B4EZSIunVJGYBs-/0/1737460710493?e=1738101600&amp;v=beta&amp;t=QOn1Q7faWe33mIr5_XvDHgVaB6oHSL9r11KB1Zzb0n8" src="blob:https://www.linkedin.com/3738fc65-7b63-469b-a41c-2b4fc74da9b7" autoplay></video>
+import {CodeBlock} from "../../components/code-block";
+import {BlogH1, H2} from "../../components/ui/heading";
+import {BlogImage} from "../../components/blog-image";
+
+<BlogH1>Animating Gradients in CSS</BlogH1>
+
+Have you ever tried to animate a background in CSS with a linear-gradient? If so, then you most likely stumbled upon the same issue as I did.
+
+The following code show’s the most simple approach I would start with, when it comes to animate the background.
+
+
+<CodeBlock language="css" code={`
+body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: animate-bg 2s infinite;
+}
+
+@keyframes animate-bg {
+      from {
+            background: linear-gradient(black, white);
+      }
+      to {
+            background: linear-gradient(white, black);
+      }
+}
+`}/>
+
+We define an animation on the body element which changes the gradient background from black-white to white-black.
+
+However, we can see that it doesn’t work as expected. The color changes immediately, without any animation or smooth transition.
+
+<BlogImage src="https://miro.medium.com/v2/resize:fit:1332/format:webp/1*nvQURWW56-rIIBn5wmURoA.gif" caption="Figure 1: What we see on the screen with the styles from above" />
+
+<H2>How to solve it</H2>
+
+Some solutions to this are animating the `background-position` which generates the same effect. We can see it in the following code:
+
+<CodeBlock language="css" code={`
+body {
+      background: linear-gradient(-45deg, #EA225E, #C22286, #612E8D);
+      background-size: 200% 200%;
+      animation: GradientBackground 10s ease infinite;
+}
+
+@keyframes GradientBackground {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+};
+`}/>
+
+However, it somehow feels hacky to me, as we need to define an extra large background of which we then animate a changing position. Why can’t we just flip the colors of the gradient? 🤔
+
+<H2>A better approach — using modern CSS @property</H2>
+
+With the release of the CSS Properties and Values API, we actually can do this! This API exposes low-level functionality of the CSS rendering engine, enabling developers with more powerful styling.
+
+In our case, we define a new CSS Custom Property. However, we use the @property syntax to declare it.
+
+By setting the syntax property, we can specify the exact type of property, such as color,number,length, and many more.
+
+<CodeBlock language="css" code={`
+@property --gradPoint {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
+}
+`}/>
+
+Instead of changing the background property in our animation, we change the value of the colors of it. To make it work, we define two color variables using the @-property syntax.
+
+Then, we define an animation which changes their color from black to white and vice versa.
+
+Finally, we apply this animation to our body element.
+
+<CodeBlock language="css" code={`
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: animate-color 3s ease-in-out infinite;
+    background: linear-gradient(var(--color), var(--color-second) );
+}
+
+@keyframes animate-color {
+    0% {
+        --color: #fff;
+        --color-second: #000;
+    }
+    50% {
+        --color: #000;
+        --color-second: #fff;
+    }
+    100% {
+        --color: #fff;
+        --color-second: #000;
+    }
+}
+
+@property --color {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: #ffffff;
+}
+
+@property --color-second {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: #000;
+}
+`}/>
+
+<H2>And this is what we get</H2>
+
+<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*-DCI2Og7dN9TAhLEgccKgg.gif" caption=" Figure 2: A smooth transition between the colors of the gradient" />
+
+
+A smooth transition between the color changes. It might look distorted due to the GIF and its compression, so I encourage you to try it in your own browser!

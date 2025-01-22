@@ -1,7 +1,8 @@
 import {CodeBlock} from "../../components/code-block";
-import {H2} from "../../components/ui/heading";
+import {BlogH1, H2} from "../../components/ui/heading";
+import {BlogImage} from "../../components/blog-image";
 
-<h1 className="text-2xl font-normal tracking-tight mb-8">Making Responsive UI Components with display: contents</h1>
+<BlogH1>Making Responsive UI Components with display: contents</BlogH1>
 
 Recently, I revisited the `display: contents` property and was amazed by the possibilities it offers for responsive web design.
 
@@ -21,11 +22,7 @@ Let’s take a common use case: a responsive card component that changes layout 
 
 On larger screens, we might want the call-to-action (CTA) to be on the same row as the title. On smaller screens, we want the CTA to move below the content.
 
-<figure>
-    <img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*L8pxygaGeA2JzaG750XlcA.png"
-         alt="Responsive Card Layout"/>
-    <figcaption>Figure 1: Mobile and desktop layouts of the card component.</figcaption>
-</figure>
+<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*L8pxygaGeA2JzaG750XlcA.png" caption="Figure 1: Mobile and desktop layouts of the card component." />
 
 <H2>What problem does `display: contents` solve?</H2>
 
@@ -79,12 +76,7 @@ Now let’s add some basic CSS:
 
 Note that I only added the required layout styles in the following code snippets. To see the full styles, check out the code at the end.
 
-<figure>
-    <img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*K7It3-ar-rVJID995bUevg.gif"
-         alt="Responsive Card Layout"/>
-    <figcaption>Figure 2: Responsive Card component which changes the CTA position, based on the screen size.</figcaption>
-</figure>
-
+<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*K7It3-ar-rVJID995bUevg.gif" caption="Figure 2: Responsive Card component which changes the CTA position, based on the screen size." />
 
 <H2>How Does It Work?</H2>
 

@@ -10,8 +10,12 @@ const links = [
     text: "GitHub",
   },
   {
-    href: "mailto:hello@jomaendle.com",
-    text: "Email",
+    text: "Unsplash",
+    href: "@https://unsplash.com/@leonardo_64",
+  },
+  {
+    text: "YouTube",
+    href: "https://www.youtube.com/@jo.maendle/videos",
   },
 ];
 
