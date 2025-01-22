@@ -2,41 +2,66 @@
 
 import { H3 } from "@/components/ui/heading";
 import Link from "next/link";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { Loader2 } from "lucide-react";
 
-const blogPosts = [
+export const blogPosts = [
   {
     title: "Working with Animations",
     date: "Jan 20, 2025",
     link: "/blog/animations",
+    slug: "animations",
   },
   {
     title: "Making Responsive UI Components with display: contents",
     date: "Sep 15, 2024",
     link: "/blog/responsive-ui-components",
-  },
-  {
-    title: "A Primer on Scroll-Driven Animations",
-    date: "Jul 25, 2024",
-    link: "/blog/scroll-driven-animations",
-  },
-  {
-    title: "Building a Customizable SVG Progress Indicator with Angular",
-    date: "Jul 15, 2024",
-    link: "/blog/svg-progress",
+    slug: "responsive-ui-components",
   },
 ];
 
-export default function BlogPosts() {
+export function BlogPosts() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["blogPostsViews"],
+    queryFn: () =>
+      fetch("/api/list-view-count").then(
+        (res): Promise<{ slug: string; views: number }[]> => res.json(),
+      ),
+    staleTime: 60 * 1000 * 5,
+  });
+
   return (
     <>
       {blogPosts.map((post, index) => (
         <article key={index}>
-          <Link href={post.link} className="block group" prefetch={false}>
-            <H3>{post.title}</H3>
-            <p className="text-muted-foreground">{post.date} • Medium</p>
+          <Link
+            href={post.link}
+            className="block group flex gap-4 items-center"
+            prefetch={false}
+          >
+            <div className="flex-1">
+              <H3>{post.title}</H3>
+              <p className="text-muted-foreground">{post.date} • Medium</p>
+            </div>
+            {isLoading && <Loader2 className="animate-spin size-4" />}
+            {data && (
+              <p className="text-muted-foreground text-sm">
+                {data?.find((item) => item.slug === post.slug)?.views ?? 0}{" "}
+                views
+              </p>
+            )}
           </Link>
         </article>
       ))}
     </>
+  );
+}
+
+export function BlogPostsWithProvider() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BlogPosts />
+    </QueryClientProvider>
   );
 }

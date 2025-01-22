@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 export const ViewCounter = ({ slug }: { slug: string }) => {
   const { data, isLoading, error } = useQuery({
@@ -18,12 +19,12 @@ export const ViewCounter = ({ slug }: { slug: string }) => {
   });
 
   if (isLoading) {
-    return <p>Loading views...</p>;
+    return <Loader2 className="animate-spin size-4" />;
   }
 
   if (error) {
-    return <p>Error loading views: {error.message}</p>;
+    return <p>-</p>;
   }
 
-  return <p>{data?.views} views</p>;
+  return <p className="text-muted-foreground">{data?.views} views</p>;
 };

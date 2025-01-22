@@ -1,20 +1,20 @@
-import { H1, H2 } from "@/components/ui/heading";
+import { H2 } from "@/components/ui/heading";
 import { JobPositions } from "@/components/job-positions";
-import BlogPosts from "@/components/blog-posts";
+import { BlogPostsWithProvider } from "@/components/blog-posts";
 import { WorkExperience } from "@/components/work-experience";
 import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
+import { NameHeading } from "@/components/name-heading";
 
 export default function Home() {
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
-      <div className="max-w-2xl mx-auto">
-        <section className="mb-16">
-          <H1>Jo Maendle</H1>
-          <p className="text-muted-foreground">Full-Stack Developer</p>
+      <div className="max-w-2xl mx-auto flex flex-col gap-16">
+        <section>
+          <NameHeading />
         </section>
 
-        <section className="mb-16">
+        <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
             I&apos;m a full-stack JavaScript/TypeScript developer based in
@@ -28,21 +28,21 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="mb-16">
+        <section>
           <H2>Selected Work</H2>
           <div className="space-y-6">
             <WorkExperience />
           </div>
         </section>
 
-        <section className="mb-16">
+        <section>
           <H2>Articles</H2>
           <div className="space-y-6">
-            <BlogPosts />
+            <BlogPostsWithProvider />
           </div>
         </section>
 
-        <section className="mb-16">
+        <section>
           <H2>Experience</H2>
           <div className="space-y-6">
             <JobPositions />

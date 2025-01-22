@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Footer } from "@/components/ui/footer";
 import { ViewCounter } from "@/components/view-counter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { blogPosts } from "@/components/blog-posts";
+import { queryClient } from "@/lib/queryClient";
 
 interface BlogPostProps {
   params: {
@@ -12,8 +14,6 @@ interface BlogPostProps {
 }
 
 export const dynamicParams = false;
-
-const queryClient = new QueryClient();
 
 export default async function BlogPost({ params }: BlogPostProps) {
   const slug = (await params).slug;
@@ -25,12 +25,15 @@ export default async function BlogPost({ params }: BlogPostProps) {
         <div className="max-w-2xl mx-auto">
           <Link
             href="/"
-            className="inline-block text-sm text-muted-foreground hover:text-primary transition-colors mb-16"
+            className="inline-block text-sm text-muted-foreground hover:text-primary transition-colors mb-12"
           >
             ← Back
           </Link>
 
-          <ViewCounter slug={slug} />
+          <div className="flex justify-between items-center gap-3 mb-12">
+            {blogPosts.find((blogPost) => blogPost.slug === slug)?.date}
+            <ViewCounter slug={slug} />
+          </div>
 
           <div className="prose">
             <Post />
