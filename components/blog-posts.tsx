@@ -1,5 +1,8 @@
+"use client";
+
 import { H3 } from "@/components/ui/heading";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const blogPosts = [
   {
@@ -25,11 +28,13 @@ const blogPosts = [
 ];
 
 export default function BlogPosts() {
+  const router = useRouter();
+
   return (
     <>
       {blogPosts.map((post, index) => (
         <article key={index}>
-          <Link href={post.link} className="block group">
+          <Link href={post.link} className="block group" prefetch={false}>
             <H3>{post.title}</H3>
             <p className="text-muted-foreground">{post.date} • Medium</p>
           </Link>
