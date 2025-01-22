@@ -52,7 +52,7 @@ export function ViewCounter({
   }
 
   return (
-    <p className="text-muted-foreground">
+    <p className="text-muted-foreground text-sm">
       <NumberFlow value={data?.views} /> views
     </p>
   );

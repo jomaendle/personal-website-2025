@@ -1,9 +1,8 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { Footer } from "@/components/ui/footer";
-import { BlogPostList, blogPosts } from "@/components/blog-posts";
+import { BlogPostList } from "@/components/blog-posts";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
+import { blogPosts } from "@/lib/state/blog";
 
 interface BlogPostProps {
   params: {
@@ -11,11 +10,22 @@ interface BlogPostProps {
   };
 }
 
+export async function generateStaticParams() {
+  return blogPosts.map((p) => ({ params: { slug: p.slug } }));
+}
+
 export const dynamicParams = false;
 
 export default async function BlogPost({ params }: BlogPostProps) {
-  const slug = (await params).slug;
-  const { default: Post } = await import(`@/content/blog/${slug}.mdx`);
+  const slug = params.slug;
+
+  const { default: Post, metadata } = await import(
+    `@/content/blog/${slug}.mdx`
+  );
+
+  if (!metadata || !metadata.date) {
+    throw new Error(`Metadata is missing for blog post: ${slug}`);
+  }
 
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
@@ -25,7 +35,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
         </div>
 
         <div className="flex justify-between items-center gap-3 mb-12">
-          {blogPosts.find((blogPost) => blogPost.slug === slug)?.date}
+          {metadata.date}
           <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
         </div>
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
 
@@ -26,7 +26,7 @@ export function WorkExperience() {
         <article key={index}>
           <Link
             href={experience.link}
-            className="block group"
+            className="block group px-3 py-2 -mx-3 hover:bg-white/[0.03] rounded-[.25rem] transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >

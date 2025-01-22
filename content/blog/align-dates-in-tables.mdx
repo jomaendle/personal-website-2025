@@ -1,25 +1,35 @@
-import {BlogH1, H2, H3} from "../../components/ui/heading";
-import {BlogImage} from "../../components/blog-image";
-import {CodeBlock} from "../../components/code-block";
+import { BlogImage } from "../../components/blog-image";
+import { CodeBlock } from "../../components/code-block";
 
-<BlogH1>Align Dates in Tabular Data</BlogH1>
+export const metadata = {
+  title: "Align Dates in Tabular Data",
+  date: "Sep 29, 2024",
+};
+
+# Align Dates in Tabular Data
 
 Have you ever had the issue when working with tabular data that the dates aren’t aligned across the entire column? This can create visual inconsistency, making it harder to read and compare values quickly.
 
-<H2>When Does This Happen?</H2>
-The misalignment often occurs when the characters in a column have different widths, making the data appear jagged. It is interesting to note that this problem only occurs with non-monospace fonts.
+## When Does This Happen?
+
+The misalignment often occurs when the characters in a column have different
+widths, making the data appear jagged. It is interesting to note that this
+problem only occurs with non-monospace fonts.
 
 Monospace fonts have uniform character widths, meaning every character, whether it’s a “1” or an “8,” occupies the same amount of space. This uniformity ensures that numbers line up perfectly.
 
 In contrast, many sans-serif or serif fonts, such as Arial or Times New Roman have proportional character widths, where each character has a different width depending on its shape. This can cause numbers to appear misaligned.
 
-<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*q3Bb46brRSHGAo76UdDT-A.png" caption="Figure 1: Using the Inter font by Google, we can reproduce the visual disharmony in the “Creation Date” column." />
+<BlogImage
+  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*q3Bb46brRSHGAo76UdDT-A.png"
+  caption="Figure 1: Using the Inter font by Google, we can reproduce the visual disharmony in the “Creation Date” column."
+/>
 
 Another font that illustrates this issue is Google’s Inter font.
 
 When applied to tabular data, you might notice that the digits in the “Creation Date” column do not align consistently, causing visual disharmony.
 
-<H2>Why Is This Important?</H2>
+## Why Is This Important?
 
 In data visualization, readability is key. Misaligned numbers make it harder to scan through the data efficiently, especially in larger datasets, leading to a frustrating user experience.
 
@@ -27,11 +37,11 @@ A clean, well-aligned layout not only enhances readability but also improves the
 
 It helps users quickly interpret and interact with the data, making your tables more effective and user-friendly.
 
-<H2>How to Improve Readability: A Two-Step Solution</H2>
+## How to Improve Readability: A Two-Step Solution
 
 To ensure that your dates are aligned and readable, there are two main things we need to address:
 
-<H3>1. Ensure Consistent Date Characters</H3>
+### 1. Ensure Consistent Date Characters
 
 First, all dates should have the same number of characters.
 
@@ -40,23 +50,33 @@ By formatting the date in DD.MM.YYYY, HH:MM:SS, you ensure that days and months 
 This way, every entry in your date column will maintain a consistent length.
 
 For example:
+
 - “1/9/2024” becomes “01.09.2024”
 - “9/10/2024” remains “09.10.2024”
 
 By having consistent character lengths, the dates become more predictable, and each entry starts and ends at the same positions, improving readability.
 
-<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*PJXyqfKmGSuz7r9rIdIGkA.png" caption="Figure 2: A consistent date format already improves the readability, but it is still not perfect yet." />
+<BlogImage
+  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*PJXyqfKmGSuz7r9rIdIGkA.png"
+  caption="Figure 2: A consistent date format already improves the readability, but it is still not perfect yet."
+/>
 
-<H3>2. Align the Spacing of the Digits</H3>
+### 2. Align the Spacing of the Digits
 
 The second issue is ensuring that all digits in the dates have uniform spacing. This can be challenging because fonts typically use proportional spacing, but we can address this with a CSS property called `font-variant-numeric`.
 
-<BlogImage src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*ISG9gJMNawgKIZe-yFipVA.png" caption="Figure 3: Applying the CSS font-variant-numeric style ensures consistent widths for each of the digits." />
+<BlogImage
+  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*ISG9gJMNawgKIZe-yFipVA.png"
+  caption="Figure 3: Applying the CSS font-variant-numeric style ensures consistent widths for each of the digits."
+/>
 
-<H2>Implementing the Solution</H2>
+## Implementing the Solution
+
 First, let’s build the basic HTML structure for our table:
 
-<CodeBlock language="html" code={`
+<CodeBlock
+  language="html"
+  code={`
 <table>
     <thead>
         <tr>
@@ -83,7 +103,8 @@ First, let’s build the basic HTML structure for our table:
         </tr>
     </tbody>
 </table>
-`}/>
+`}
+/>
 
 Next, we’ll use JavaScript to populate the dates dynamically in a consistent `DD.MM.YYYY, HH:MM:SS` format.
 
@@ -99,21 +120,21 @@ const today = new Date();
 
 // Format the date to 'DD.MM.YYYY'
 const formattedDate = today.toLocaleDateString(locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+year: 'numeric',
+month: '2-digit',
+day: '2-digit'
 });
 
 // Format the time to 'HH:MM:SS'
 const formattedTime = today.toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+hour: '2-digit',
+minute: '2-digit',
+second: '2-digit'
 });
 
 // Set the cell text to the formatted date and time
 dateCells.forEach(cell => {
-    cell.textContent = formattedDate + ',' + formattedTime;
+cell.textContent = formattedDate + ',' + formattedTime;
 });
 `}/>
 
@@ -125,9 +146,12 @@ This value ensures that each digit occupies the same amount of space, similar to
 
 Additionally, we reduce the letter spacing to improve the visual balance.
 
-<CodeBlock language="css" code={`
+<CodeBlock
+  language="css"
+  code={`
 .date {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.045rem; /* Adjust this value as needed for visual balance */
 }
-`}/>
+`}
+/>

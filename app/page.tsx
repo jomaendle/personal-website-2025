@@ -17,27 +17,27 @@ export default function Home() {
         <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
-            I&apos;m a full-stack JavaScript/TypeScript developer based in
-            Bremen, Germany, with over 5 years of experience building reliable
-            web applications. While I specialize in Angular and UX, I&apos;ve
-            also worked with React and Next.js.
+            I&apos;m a full-stack JavaScript/TypeScript developer with a passion
+            for frontend, design, animations, and user experience.
           </p>
           <p className="text-muted-foreground mt-4">
-            I enjoy creating efficient and user-friendly solutions, and I share
-            my knowledge by writing articles about web development.
+            I enjoy building web applications and websites and to share my
+            knowledge with the community.
           </p>
         </section>
 
         <section>
           <H2>Selected Work</H2>
-          <div className="space-y-6">
+          {/* use reduced space because items have padding for hover effect */}
+          <div className="space-y-3">
             <WorkExperience />
           </div>
         </section>
 
         <section>
           <H2>Articles</H2>
-          <div className="space-y-6">
+          {/* use reduced space because items have padding for hover effect */}
+          <div className="space-y-3">
             <BlogPosts />
           </div>
         </section>

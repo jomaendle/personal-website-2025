@@ -1,34 +1,9 @@
 "use client";
 
 import { H2, H3 } from "@/components/ui/heading";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
-
-export const blogPosts: {
-  title: string;
-  date: string;
-  link: string;
-  slug: string;
-}[] = [
-  {
-    title: "Animating Gradients in CSS",
-    date: "Dec 5, 2023",
-    link: "/blog/animations",
-    slug: "animations",
-  },
-  {
-    title: "Making Responsive UI Components with display: contents",
-    date: "Sep 15, 2024",
-    link: "/blog/responsive-ui-components",
-    slug: "responsive-ui-components",
-  },
-  {
-    title: "Aligning Dates in Tabular Data",
-    date: "Sep 29, 2024",
-    link: "/blog/align-dates-in-tables",
-    slug: "align-dates-in-tables",
-  },
-].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+import { blogPosts } from "@/lib/state/blog";
 
 export function BlogPosts() {
   return (
@@ -37,12 +12,12 @@ export function BlogPosts() {
         <article key={index}>
           <Link
             href={post.link}
-            className="block group flex gap-4 items-center"
+            className="group flex gap-4 items-center px-3 py-2 -mx-3 hover:bg-white/[0.03] rounded-[.25rem] transition-colors"
             prefetch={false}
           >
             <div className="flex-1">
               <H3>{post.title}</H3>
-              <p className="text-muted-foreground">{post.date} • Medium</p>
+              <p className="text-muted-foreground text-sm">{post.date}</p>
             </div>
             <ViewCounterWithProvider slug={post.slug} />
           </Link>
@@ -64,7 +39,7 @@ export function BlogPostList({ currentSlug }: { currentSlug: string }) {
             <article key={index}>
               <Link
                 href={post.link}
-                className="block group flex gap-4 items-center"
+                className="group flex gap-4 items-center"
                 prefetch={false}
               >
                 <H3 className="line-clamp-2">{post.title}</H3>
