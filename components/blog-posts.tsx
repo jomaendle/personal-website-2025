@@ -2,7 +2,6 @@
 
 import { H3 } from "@/components/ui/heading";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 const blogPosts = [
   {
@@ -28,8 +27,6 @@ const blogPosts = [
 ];
 
 export default function BlogPosts() {
-  const router = useRouter();
-
   return (
     <>
       {blogPosts.map((post, index) => (
