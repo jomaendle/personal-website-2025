@@ -1,10 +1,8 @@
 "use client";
 
-import { H3 } from "@/components/ui/heading";
+import { H2, H3 } from "@/components/ui/heading";
 import Link from "next/link";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { Loader2 } from "lucide-react";
+import { ViewCounterWithProvider } from "@/components/view-counter-provider";
 
 export const blogPosts = [
   {
@@ -22,15 +20,6 @@ export const blogPosts = [
 ];
 
 export function BlogPosts() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["blogPostsViews"],
-    queryFn: () =>
-      fetch("/api/list-view-count").then(
-        (res): Promise<{ slug: string; views: number }[]> => res.json(),
-      ),
-    staleTime: 60 * 1000 * 5,
-  });
-
   return (
     <>
       {blogPosts.map((post, index) => (
@@ -44,13 +33,7 @@ export function BlogPosts() {
               <H3>{post.title}</H3>
               <p className="text-muted-foreground">{post.date} • Medium</p>
             </div>
-            {isLoading && <Loader2 className="animate-spin size-4" />}
-            {data && (
-              <p className="text-muted-foreground text-sm">
-                {data?.find((item) => item.slug === post.slug)?.views ?? 0}{" "}
-                views
-              </p>
-            )}
+            <ViewCounterWithProvider slug={post.slug} />
           </Link>
         </article>
       ))}
@@ -58,10 +41,24 @@ export function BlogPosts() {
   );
 }
 
-export function BlogPostsWithProvider() {
+export function BlogPostList() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BlogPosts />
-    </QueryClientProvider>
+    <aside className="flex flex-col gap-6 text-sm">
+      <H2 className="mb-0">Recent Posts</H2>
+
+      <div className="flex flex-col gap-4">
+        {blogPosts.map((post, index) => (
+          <article key={index}>
+            <Link
+              href={post.link}
+              className="block group flex gap-4 items-center"
+              prefetch={false}
+            >
+              <H3 className="line-clamp-2">{post.title}</H3>
+            </Link>
+          </article>
+        ))}
+      </div>
+    </aside>
   );
 }

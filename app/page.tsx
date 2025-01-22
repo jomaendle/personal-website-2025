@@ -1,6 +1,6 @@
 import { H2 } from "@/components/ui/heading";
 import { JobPositions } from "@/components/job-positions";
-import { BlogPostsWithProvider } from "@/components/blog-posts";
+import { BlogPosts } from "@/components/blog-posts";
 import { WorkExperience } from "@/components/work-experience";
 import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
@@ -38,7 +38,7 @@ export default function Home() {
         <section>
           <H2>Articles</H2>
           <div className="space-y-6">
-            <BlogPostsWithProvider />
+            <BlogPosts />
           </div>
         </section>
 

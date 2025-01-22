@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 const H1 = ({
   children,
   ...props
@@ -19,8 +21,11 @@ const H2 = ({
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
     <h2
-      className="text-sm uppercase tracking-wider text-muted-foreground mb-6"
       {...props}
+      className={cn(
+        "text-sm uppercase tracking-wider text-muted-foreground mb-6",
+        props.className,
+      )}
     >
       {children}
     </h2>

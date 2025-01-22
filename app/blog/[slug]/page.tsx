@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { Footer } from "@/components/ui/footer";
-import { ViewCounter } from "@/components/view-counter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { blogPosts } from "@/components/blog-posts";
-import { queryClient } from "@/lib/queryClient";
+import { BlogPostList, blogPosts } from "@/components/blog-posts";
+import { ViewCounterWithProvider } from "@/components/view-counter-provider";
 
 interface BlogPostProps {
   params: {
@@ -20,28 +18,40 @@ export default async function BlogPost({ params }: BlogPostProps) {
   const { default: Post } = await import(`@/content/blog/${slug}.mdx`);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
-        <div className="max-w-2xl mx-auto">
-          <Link
-            href="/"
-            className="inline-block text-sm text-muted-foreground hover:text-primary transition-colors mb-12"
-          >
-            ← Back
-          </Link>
-
-          <div className="flex justify-between items-center gap-3 mb-12">
-            {blogPosts.find((blogPost) => blogPost.slug === slug)?.date}
-            <ViewCounter slug={slug} />
-          </div>
-
-          <div className="prose">
-            <Post />
-          </div>
-
-          <Footer />
+    <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
+      <div className="max-w-2xl mx-auto">
+        <div className="xl:hidden">
+          <BackLink />
         </div>
-      </main>
-    </QueryClientProvider>
+
+        <div className="flex justify-between items-center gap-3 mb-12">
+          {blogPosts.find((blogPost) => blogPost.slug === slug)?.date}
+          <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
+        </div>
+
+        <div className="fixed hidden xl:flex top-[100px] left-12 flex-col gap-6 max-w-[240px]">
+          <BackLink />
+
+          <BlogPostList />
+        </div>
+
+        <div className="prose">
+          <Post />
+        </div>
+
+        <Footer />
+      </div>
+    </main>
+  );
+}
+
+function BackLink() {
+  return (
+    <Link
+      href="/"
+      className="inline-block text-sm text-muted-foreground hover:text-primary transition-colors mb-12"
+    >
+      ← Back
+    </Link>
   );
 }
