@@ -6,6 +6,10 @@ const links = [
     text: "LinkedIn",
   },
   {
+    href: "https://medium.com/@johannes.maendle",
+    text: "Medium",
+  },
+  {
     href: "https://github.com/jomaendle",
     text: "GitHub",
   },

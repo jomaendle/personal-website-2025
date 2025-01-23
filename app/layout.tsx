@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Jo Maendle | Digital craftsman and interaction designer",
+  title: "Jo Mändle | Building for the Web.",
   description: "Frontend developer based in Bremen, Germany.",
 };
 
@@ -21,6 +21,10 @@ export default function RootLayout({
   return (
     <ViewTransitions>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+          <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+        </head>
         <body
           className={`${inter.variable} font-sans min-h-screen bg-background text-foreground antialiased`}
         >

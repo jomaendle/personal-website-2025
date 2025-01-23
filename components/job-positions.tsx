@@ -18,7 +18,7 @@ const jobPositions = [
     endDate: "Jul 2023",
   },
   {
-    company: "Micro Focus (formerly HPE Software, now OpenText)",
+    company: "Micro Focus (now OpenText)",
     role: "Software Developer",
     startDate: "Oct 2019",
     endDate: "Nov 2021",

@@ -1,5 +1,9 @@
-import { CodeBlock } from "../../components/code-block";
-import { BlogImage } from "../../components/blog-image";
+import MdxLayout from "../../../components/mdx-layout";
+import {BlogImage} from "../../../components/blog-image";
+import {CodeBlock} from "../../../components/code-block";
+
+import img1 from "./1.webp";
+import img2 from "./2.gif";
 
 export const metadata = {
   title: "Making Responsive UI Components with display: contents",
@@ -27,7 +31,7 @@ Let’s take a common use case: a responsive card component that changes layout 
 On larger screens, we might want the call-to-action (CTA) to be on the same row as the title. On smaller screens, we want the CTA to move below the content.
 
 <BlogImage
-  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*L8pxygaGeA2JzaG750XlcA.png"
+  src={img1.src}
   caption="Figure 1: Mobile and desktop layouts of the card component."
 />
 
@@ -46,12 +50,11 @@ We begin with a .card wrapper element that contains .card-title and .card-conten
     <div class="card-title">
         <p>Profile Card</p>
         <button>View More</button>
-      </div>
+    </div>
 
-      <p class="card-content">
+    <p class="card-content">
         Displays user information like name, photo, and bio.
-      </p>
-
+    </p>
 </div>
 `}/>
 
@@ -59,33 +62,33 @@ Now let’s add some basic CSS:
 
 <CodeBlock language="css" code={`
 .card {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .card-title {
-display: flex;
-flex-direction: row;
-justify-content: space-between;
-align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .card-title > button {
-order: 1;
+    order: 1;
 }
 
 @media only screen and (max-width: 400px) {
-.card-title {
-display: contents;
-}
+    .card-title {
+        display: contents;
+    }
 }
 `}/>
 
 Note that I only added the required layout styles in the following code snippets. To see the full styles, check out the code at the end.
 
 <BlogImage
-  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*K7It3-ar-rVJID995bUevg.gif"
+  src={img2.src}
   caption="Figure 2: Responsive Card component which changes the CTA position, based on the screen size."
 />
 
@@ -97,15 +100,14 @@ This results in that the contents inside .card-title (the title and button) are 
 
 <CodeBlock language="html" code={`
 <div class="card">
-      <!-- div class="card-title"-->
-      <p>Profile Card</p>
-      <button>View More</button>
-      <!-- /div -->
+    <!-- div class="card-title"-->
+    <p>Profile Card</p>
+    <button>View More</button>
+    <!-- /div -->
 
-      <p class="card-content">
+    <p class="card-content">
         Displays user information like name, photo, and bio.
-      </p>
-
+    </p>
 </div>
 `}/>
 
@@ -118,3 +120,11 @@ By setting the order of the button to 1 on small screens and 0 (default value) o
 ## Conclusion
 
 `display: contents` is a powerful tool for breaking out of typical DOM hierarchies and achieving clean, responsive layouts. Combined with Flexbox, it enables us to easily build flexible components that adapt to screen size changes.
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug="responsive-ui-components">
+      {children}
+    </MdxLayout>
+  );
+}

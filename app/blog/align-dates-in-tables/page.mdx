@@ -1,6 +1,9 @@
-import { BlogImage } from "../../../components/blog-image";
-import { CodeBlock } from "../../../components/code-block";
+import {BlogImage} from "../../../components/blog-image";
+import {CodeBlock} from "../../../components/code-block";
 import MdxLayout from "../../../components/mdx-layout";
+import img1 from "./1.webp";
+import img2 from "./2.webp";
+import img3 from "./3.webp";
 
 export const metadata = {
   title: "Align Dates in Tabular Data",
@@ -17,10 +20,10 @@ The misalignment often occurs when the characters in a column have different wid
 
 Monospace fonts have uniform character widths, meaning every character, whether it’s a “1” or an “8,” occupies the same amount of space. This uniformity ensures that numbers line up perfectly.
 
-In contrast, many sans-serif or serif fonts, such as Arial or Times New Roman have proportional character widths, where each character has a different width depending on its shape. This can cause numbers to appear misaligned.
+In contrast, many sans-serif or serif fonts, such as Arial or T2imes New Roman have proportional character widths, where each character has a different width depending on its shape. This can cause numbers to appear misaligned.
 
 <BlogImage
-  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*q3Bb46brRSHGAo76UdDT-A.png"
+  src={img1.src}
   caption="Figure 1: Using the Inter font by Google, we can reproduce the visual disharmony in the “Creation Date” column."
 />
 
@@ -56,7 +59,7 @@ For example:
 By having consistent character lengths, the dates become more predictable, and each entry starts and ends at the same positions, improving readability.
 
 <BlogImage
-  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*PJXyqfKmGSuz7r9rIdIGkA.png"
+  src={img2.src}
   caption="Figure 2: A consistent date format already improves the readability, but it is still not perfect yet."
 />
 
@@ -65,7 +68,7 @@ By having consistent character lengths, the dates become more predictable, and e
 The second issue is ensuring that all digits in the dates have uniform spacing. This can be challenging because fonts typically use proportional spacing, but we can address this with a CSS property called `font-variant-numeric`.
 
 <BlogImage
-  src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*ISG9gJMNawgKIZe-yFipVA.png"
+  src={img3.src}
   caption="Figure 3: Applying the CSS font-variant-numeric style ensures consistent widths for each of the digits."
 />
 
@@ -76,34 +79,32 @@ First, let’s build the basic HTML structure for our table:
 <CodeBlock
     language="html"
     code={`
-
-    <table>
-      <thead>
+<table>
+    <thead>
         <tr>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Creation Date</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Creation Date</th>
         </tr>
-      </thead>
-      <tbody>
+    </thead>
+    <tbody>
         <tr>
-          <td>John Doe</td>
-          <td>Administrator</td>
-          <td class="date"></td>
-        </tr>
-        <tr>
-          <td>Jane Smith</td>
-          <td>Editor</td>
-          <td class="date"></td>
+            <td>John Doe</td>
+            <td>Administrator</td>
+            <td class="date"></td>
         </tr>
         <tr>
-          <td>Michael Brown</td>
-          <td>Viewer</td>
-          <td class="date"></td>
+            <td>Jane Smith</td>
+            <td>Editor</td>
+            <td class="date"></td>
         </tr>
-      </tbody>
-    </table>
-
+        <tr>
+            <td>Michael Brown</td>
+            <td>Viewer</td>
+            <td class="date"></td>
+        </tr>
+    </tbody>
+</table>
 `} />
 
 Next, we’ll use JavaScript to populate the dates dynamically in a consistent `DD.MM.YYYY, HH:MM:SS` format.
@@ -121,21 +122,21 @@ const today = new Date();
 
 // Format the date to 'DD.MM.YYYY'
 const formattedDate = today.toLocaleDateString(locale, {
-year: 'numeric',
-month: '2-digit',
-day: '2-digit'
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
 });
 
 // Format the time to 'HH:MM:SS'
 const formattedTime = today.toLocaleTimeString(locale, {
-hour: '2-digit',
-minute: '2-digit',
-second: '2-digit'
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
 });
 
 // Set the cell text to the formatted date and time
 dateCells.forEach(cell => {
-cell.textContent = formattedDate + ',' + formattedTime;
+    cell.textContent = formattedDate + ',' + formattedTime;
 });
 `}/>
 
@@ -150,12 +151,10 @@ Additionally, we reduce the letter spacing to improve the visual balance.
 <CodeBlock
     language="css"
     code={`
-
-    .date {
+.date {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.045rem; /_ Adjust this value as needed for visual balance _/
-    }
-
+    letter-spacing: -0.045rem;
+}
 `}
 />
 
