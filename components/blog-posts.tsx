@@ -16,7 +16,7 @@ export function BlogPosts() {
             prefetch={false}
           >
             <div className="flex-1">
-              <H3>{post.title}</H3>
+              <H3 className="line-clamp-2">{post.title}</H3>
               <p className="text-muted-foreground text-sm">{post.date}</p>
             </div>
             <ViewCounterWithProvider slug={post.slug} />
