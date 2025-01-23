@@ -56,6 +56,27 @@ export default function Home() {
           </div>
         </section>
 
+        <section>
+          <H2>Get in Touch</H2>
+          <p className="text-muted-foreground">
+            I&apos;m always open to new opportunities and collaborations. If you
+            have a project in mind, want to chat, or just want to say hi, feel
+            free to reach out.
+          </p>
+
+          <div className="flex justify-start">
+            <a
+              href="https://cal.com/jomaendle"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary mt-4 px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 rounded-[.25rem] flex gap-2 items-center"
+            >
+              <span className="inline-block">📅</span>
+              Schedule a Call
+            </a>
+          </div>
+        </section>
+
         <Footer />
       </div>
     </main>
