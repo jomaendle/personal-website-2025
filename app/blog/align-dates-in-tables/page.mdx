@@ -1,9 +1,7 @@
 import {BlogImage} from "../../../components/blog-image";
 import {CodeBlock} from "../../../components/code-block";
 import MdxLayout from "../../../components/mdx-layout";
-import img1 from "../../../public/align-dates-in-tables/1.webp";
-import img2 from "../../../public/align-dates-in-tables/2.webp";
-import img3 from "../../../public/align-dates-in-tables/3.webp";
+
 
 export const metadata = {
   title: "Align Dates in Tabular Data",
@@ -23,7 +21,7 @@ Monospace fonts have uniform character widths, meaning every character, whether 
 In contrast, many sans-serif or serif fonts, such as Arial or Times New Roman have proportional character widths, where each character has a different width depending on its shape. This can cause numbers to appear misaligned.
 
 <BlogImage
-  src={img1.src}
+  src="/align-dates-in-tables/1.webp"
   caption="Figure 1: Using the Inter font by Google, we can reproduce the visual disharmony in the “Creation Date” column."
 />
 
@@ -59,7 +57,7 @@ For example:
 By having consistent character lengths, the dates become more predictable, and each entry starts and ends at the same positions, improving readability.
 
 <BlogImage
-  src={img2.src}
+  src="/align-dates-in-tables/2.webp"
   caption="Figure 2: A consistent date format already improves the readability, but it is still not perfect yet."
 />
 
@@ -68,7 +66,7 @@ By having consistent character lengths, the dates become more predictable, and e
 The second issue is ensuring that all digits in the dates have uniform spacing. This can be challenging because fonts typically use proportional spacing, but we can address this with a CSS property called `font-variant-numeric`.
 
 <BlogImage
-  src={img3.src}
+  src="/align-dates-in-tables/3.webp"
   caption="Figure 3: Applying the CSS font-variant-numeric style ensures consistent widths for each of the digits."
 />
 

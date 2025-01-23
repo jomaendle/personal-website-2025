@@ -2,9 +2,6 @@ import MdxLayout from "../../../components/mdx-layout";
 import {BlogImage} from "../../../components/blog-image";
 import {CodeBlock} from "../../../components/code-block";
 
-import img1 from "../../../public/responsive-ui-components/1.webp";
-import img2 from "../../../public/responsive-ui-components/2.gif";
-
 export const metadata = {
   title: "Making Responsive UI Components with display: contents",
   date: "Sep 15, 2024",
@@ -31,7 +28,7 @@ Let’s take a common use case: a responsive card component that changes layout 
 On larger screens, we might want the call-to-action (CTA) to be on the same row as the title. On smaller screens, we want the CTA to move below the content.
 
 <BlogImage
-  src={img1}
+  src="/responsive-ui-components/1.webp"
   caption="Figure 1: Mobile and desktop layouts of the card component."
 />
 
@@ -88,7 +85,7 @@ Now let’s add some basic CSS:
 Note that I only added the required layout styles in the following code snippets. To see the full styles, check out the code at the end.
 
 <BlogImage
-  src={img2}
+  src="/responsive-ui-components/2.gif"
   caption="Figure 2: Responsive Card component which changes the CTA position, based on the screen size."
 />
 
