@@ -1,5 +1,6 @@
-import { BlogImage } from "../../components/blog-image";
-import { CodeBlock } from "../../components/code-block";
+import { BlogImage } from "../../../components/blog-image";
+import { CodeBlock } from "../../../components/code-block";
+import MdxLayout from "../../../components/mdx-layout";
 
 export const metadata = {
   title: "Align Dates in Tabular Data",
@@ -12,9 +13,7 @@ Have you ever had the issue when working with tabular data that the dates aren�
 
 ## When Does This Happen?
 
-The misalignment often occurs when the characters in a column have different
-widths, making the data appear jagged. It is interesting to note that this
-problem only occurs with non-monospace fonts.
+The misalignment often occurs when the characters in a column have different widths, making the data appear jagged. It is interesting to note that this problem only occurs with non-monospace fonts.
 
 Monospace fonts have uniform character widths, meaning every character, whether it’s a “1” or an “8,” occupies the same amount of space. This uniformity ensures that numbers line up perfectly.
 
@@ -75,40 +74,42 @@ The second issue is ensuring that all digits in the dates have uniform spacing. 
 First, let’s build the basic HTML structure for our table:
 
 <CodeBlock
-  language="html"
-  code={`
-<table>
-    <thead>
+    language="html"
+    code={`
+
+    <table>
+      <thead>
         <tr>
           <th>Name</th>
           <th>Role</th>
           <th>Creation Date</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         <tr>
-              <td>John Doe</td>
-              <td>Administrator</td>
-              <td class="date"></td>
+          <td>John Doe</td>
+          <td>Administrator</td>
+          <td class="date"></td>
         </tr>
         <tr>
-              <td>Jane Smith</td>
-              <td>Editor</td>
-              <td class="date"></td>
+          <td>Jane Smith</td>
+          <td>Editor</td>
+          <td class="date"></td>
         </tr>
         <tr>
-              <td>Michael Brown</td>
-              <td>Viewer</td>
-              <td class="date"></td>
+          <td>Michael Brown</td>
+          <td>Viewer</td>
+          <td class="date"></td>
         </tr>
-    </tbody>
-</table>
-`}
-/>
+      </tbody>
+    </table>
+
+`} />
 
 Next, we’ll use JavaScript to populate the dates dynamically in a consistent `DD.MM.YYYY, HH:MM:SS` format.
 
 <CodeBlock language="js" code={`
+
 // Use your preferred locale, using German locale
 const locale = 'de-DE'
 
@@ -147,11 +148,21 @@ This value ensures that each digit occupies the same amount of space, similar to
 Additionally, we reduce the letter spacing to improve the visual balance.
 
 <CodeBlock
-  language="css"
-  code={`
-.date {
+    language="css"
+    code={`
+
+    .date {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.045rem; /* Adjust this value as needed for visual balance */
-}
+    letter-spacing: -0.045rem; /_ Adjust this value as needed for visual balance _/
+    }
+
 `}
 />
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug="align-dates-in-tables">
+      {children}
+    </MdxLayout>
+  );
+}

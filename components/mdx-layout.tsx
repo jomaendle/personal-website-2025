@@ -1,33 +1,17 @@
-import { Link } from "next-view-transitions";
-import { Footer } from "@/components/ui/footer";
-import { BlogPostList } from "@/components/blog-posts";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
-import { blogPosts } from "@/lib/state/blog";
+import { BlogPostList } from "@/components/blog-posts";
+import { Footer } from "@/components/ui/footer";
+import { Link } from "next-view-transitions";
 
-interface BlogPostProps {
-  params: Promise<{
-    slug: string;
-  }>;
-}
-
-export async function generateStaticParams() {
-  return blogPosts.map((p) => ({ params: { slug: p.slug } }));
-}
-
-export const dynamicParams = false;
-
-export default async function BlogPost(props: BlogPostProps) {
-  const params = await props.params;
-  const slug = params.slug;
-
-  const { default: Post, metadata } = await import(
-    `@/content/blog/${slug}.mdx`
-  );
-
-  if (!metadata || !metadata.date) {
-    throw new Error(`Metadata is missing for blog post: ${slug}`);
-  }
-
+export default function MdxLayout({
+  children,
+  metadata,
+  slug,
+}: {
+  children: React.ReactNode;
+  slug: string;
+  metadata: { date: string };
+}) {
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
       <div className="max-w-2xl mx-auto">
@@ -46,10 +30,7 @@ export default async function BlogPost(props: BlogPostProps) {
           <BlogPostList currentSlug={slug} />
         </div>
 
-        <div className="prose">
-          <Post />
-        </div>
-
+        <div className="prose">{children}</div>
         <Footer />
       </div>
     </main>
