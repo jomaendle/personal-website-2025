@@ -17,7 +17,7 @@ const incrementRequest = async (slug: string) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ slug }),
-  }).then(async (res): Promise<ViewsResponse> => await res.json());
+  }).then((res): Promise<ViewsResponse> => res.json());
 };
 
 const listAllViewsRequest = async (slug: string) => {
@@ -52,7 +52,7 @@ export function ViewCounter({
   }
 
   return (
-    <p className="text-muted-foreground text-sm">
+    <p className="text-muted-foreground text-sm flex items-center gap-1">
       <NumberFlow value={data?.views} /> views
     </p>
   );
