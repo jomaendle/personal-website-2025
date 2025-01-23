@@ -10,6 +10,7 @@ export function BlogImage({ src, caption }: { src: string; caption: string }) {
         className="w-full h-auto object-contain"
         width={800}
         height={800}
+        unoptimized
       />
       <figcaption>{caption}</figcaption>
     </figure>
