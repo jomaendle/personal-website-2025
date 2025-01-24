@@ -3,6 +3,8 @@ import { BlogPostList } from "@/components/blog-posts";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 
+import "./layout.css";
+
 export default function MdxLayout({
   children,
   metadata,
@@ -14,12 +16,12 @@ export default function MdxLayout({
 }) {
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
-      <div className="max-w-2xl mx-auto">
+      <div className="container w-full grid">
         <div className="xl:hidden">
           <BackLink />
         </div>
 
-        <div className="flex justify-between items-center gap-3 mb-12">
+        <div className="flex justify-between items-center gap-3 mb-12 text-content">
           {metadata.date}
           <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
         </div>
@@ -30,8 +32,8 @@ export default function MdxLayout({
           <BlogPostList currentSlug={slug} />
         </div>
 
-        <div className="prose">{children}</div>
-        <Footer />
+        <div className="prose full-content grid">{children}</div>
+        <Footer className="text-content" />
       </div>
     </main>
   );

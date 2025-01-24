@@ -1,0 +1,23 @@
+.container {
+    display: grid;
+    grid-template-columns: [full-start] 0.5fr [main-start] 2fr [main-end] 0.5fr [full-end];
+    gap: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.text-content {
+    grid-column: main-start / main-end;
+}
+
+.full-content {
+    grid-column: full-start / full-end;
+}
+
+.prose {
+    grid-template-columns: subgrid;
+}
+
+.prose > *:not(.full-content) {
+    grid-column: main-start / main-end;
+}

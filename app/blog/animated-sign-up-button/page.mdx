@@ -1,0 +1,25 @@
+import MdxLayout from "../../../components/mdx-layout";
+import {AnimatedSignUpButton} from "./animated-sign-up-button";
+
+export const metadata = {
+    title: "Animated Sign-Up Button",
+    date: "Jan 24, 2025",
+};
+
+# Creating an Animated Sing-Up Button
+
+Today, I'd like to share my recent learnings about animations combined with Framer Motion.
+
+<div className="w-full aspect-video bg-neutral-950 border border-neutral-800 rounded-sm flex items-center justify-center">
+    <AnimatedSignUpButton />
+</div>
+
+{/* <CodeSandbox className="col-start-[full-start] col-end-[full-end] full-content" src="https://codesandbox.io/p/sandbox/button-animation-f7pv7f" /> */}
+
+export default function Page({ children }) {
+    return (
+        <MdxLayout metadata={metadata} slug="animated-sign-up-button">
+            {children}
+        </MdxLayout>
+    );
+}
