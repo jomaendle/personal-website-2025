@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
+import PlausibleProvider from "next-plausible";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
           className={`${inter.variable} font-sans min-h-screen bg-background text-foreground antialiased`}
         >
           <ThemeProvider attribute="class" defaultTheme="system">
-            {children}
+            <PlausibleProvider domain="jomaendle.com">
+              {children}
+            </PlausibleProvider>
           </ThemeProvider>
         </body>
       </html>
