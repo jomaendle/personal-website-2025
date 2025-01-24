@@ -4,12 +4,13 @@ import { JSX, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import styles from "./Styles.module.css";
+import { Slider } from "@/components/ui/slider";
 
 type ButtonState = "idle" | "loading" | "success";
 
 export function AnimatedSignUpButton() {
   const [buttonState, setButtonState] = useState<ButtonState>("idle");
-  const [duration, setDuration] = useState(0.3);
+  const [duration, setDuration] = useState<number>(0.3);
   const [bounce, setBounce] = useState(0);
 
   const buttonStates: {
@@ -25,6 +26,10 @@ export function AnimatedSignUpButton() {
   };
 
   const handleSubmit = () => {
+    if (buttonState !== "idle") {
+      return;
+    }
+
     setButtonState("loading");
 
     setTimeout(() => {
@@ -68,28 +73,28 @@ export function AnimatedSignUpButton() {
         </button>
       </div>
 
-      <div className={styles.sliderContainer}>
-        <label>
+      <div className="flex flex-col md:flex-row gap-8">
+        <label className="min-w-[200px]">
           Duration: {duration}s
-          <input
-            type="range"
-            min="0.1"
-            max="2"
-            step="0.1"
-            value={duration}
-            onChange={(e) => setDuration(parseFloat(e.target.value))}
-          />
+          <Slider
+            min={0.1}
+            max={2}
+            step={0.1}
+            defaultValue={[duration]}
+            value={[duration]}
+            onValueChange={(e) => setDuration(e[0])}
+          ></Slider>
         </label>
-        <label>
+        <label className="min-w-[200px]">
           Bounce: {bounce}
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={bounce}
-            onChange={(e) => setBounce(parseFloat(e.target.value))}
-          />
+          <Slider
+            min={0}
+            max={1}
+            step={0.1}
+            defaultValue={[bounce]}
+            value={[bounce]}
+            onValueChange={(e) => setBounce(e[0])}
+          ></Slider>
         </label>
       </div>
     </div>

@@ -21,10 +21,17 @@ export default function RootLayout({
 }) {
   return (
     <ViewTransitions>
-      <html lang="en" suppressHydrationWarning>
+      <html
+        lang="en"
+        suppressHydrationWarning
+        style={{
+          scrollbarGutter: "stable",
+        }}
+      >
         <head>
           <link rel="icon" type="image/x-icon" href="/favicon.ico" />
           <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+          <link rel="stylesheet" href="/index.css" />
         </head>
         <body
           className={`${inter.variable} font-sans min-h-screen bg-background text-foreground antialiased`}
