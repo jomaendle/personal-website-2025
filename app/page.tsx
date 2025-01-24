@@ -5,6 +5,7 @@ import { WorkExperience } from "@/components/work-experience";
 import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
+import { CalendarIcon } from "lucide-react";
 
 export default function Home() {
   return (
@@ -18,7 +19,7 @@ export default function Home() {
           <H2>Today</H2>
           <p className="text-muted-foreground">
             I&apos;m a full-stack JavaScript/TypeScript developer with a passion
-            for frontend, design, animations, and user experience.
+            for frontend, design, and animations.
           </p>
           <p className="text-muted-foreground mt-4">
             I enjoy building web applications and websites and to share my
@@ -64,14 +65,16 @@ export default function Home() {
             free to reach out.
           </p>
 
-          <div className="flex justify-start">
+          <div className="flex justify-start mt-8">
             <a
               href="https://cal.com/jomaendle"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary mt-4 px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 rounded-[.25rem] flex gap-2 items-center"
+              className="btn-primary px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 rounded-[.25rem] flex gap-2 items-center"
             >
-              <span className="inline-block">📅</span>
+              <span className="inline-block">
+                <CalendarIcon className="size-4" />
+              </span>
               Schedule a Call
             </a>
           </div>
