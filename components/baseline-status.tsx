@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-const BaselineStatus = ({ featureId }) => {
+const BaselineStatus = ({ featureId }: { featureId: string }) => {
   useEffect(() => {
     // Dynamically import and define the custom element
     import("baseline-status").then((module) => {
