@@ -39,7 +39,7 @@ export function AnimatedSignUpButton() {
   return (
     <div className={styles.animatedSignUpButton}>
       <div className="animated-sign-up-button">
-        <button onClick={handleSubmit}>
+        <button className={styles.button} onClick={handleSubmit}>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               className={styles.span}
