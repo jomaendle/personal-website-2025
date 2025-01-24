@@ -13,10 +13,12 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
   }, []);
 
   return (
-    <baseline-status
-      featureid={featureId}
-      className="bg-neutral-950 pb-2"
-    ></baseline-status>
+    <div className="min-h-[200px] sm:min-h-[160px]  md:min-h-[128px] bg-neutral-950 border rounded-[.25rem] border-neutral-800">
+      <baseline-status
+        featureid={featureId}
+        className="bg-inherit pb-2"
+      ></baseline-status>
+    </div>
   );
 };
 
