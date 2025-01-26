@@ -17,7 +17,7 @@ export function BlogPosts() {
               <H3 className="line-clamp-2">{post.title}</H3>
               <p className="text-muted-foreground text-sm">{post.date}</p>
             </div>
-            <ViewCounterWithProvider slug={post.slug} />
+            <ViewCounterWithProvider slug={post.slug} shouldIncrement={false} />
           </Link>
         </article>
       ))}

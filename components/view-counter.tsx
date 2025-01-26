@@ -1,19 +1,19 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { DEFAULT_STALE_TIME } from "@/lib/queryClient";
+import { DEFAULT_STALE_TIME, queryClient } from "@/lib/queryClient";
 import NumberFlow from "@number-flow/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface ViewsResponse {
   views: number;
   slug?: string;
 }
 
-// Fetch all views at once
-const listAllViewsRequest = async () =>
-  fetch("/api/list-view-count").then(
+const listAllViewsRequest = async () => {
+  return fetch("/api/list-view-count").then(
     (res): Promise<ViewsResponse[]> => res.json(),
   );
+};
 
 export function ViewCounter({
   slug,
@@ -22,55 +22,53 @@ export function ViewCounter({
   slug: string;
   shouldIncrement?: boolean;
 }) {
-  // Prevent multiple increments per component mount
-  const [hasIncremented, setHasIncremented] = useState(false);
-
+  // Fetch all views once
   const {
     data: allViews,
     isLoading,
     error,
   } = useQuery({
     queryKey: ["views"],
-    queryFn: listAllViewsRequest,
+    queryFn: () => listAllViewsRequest(),
     placeholderData: keepPreviousData,
     staleTime: DEFAULT_STALE_TIME,
+    select: (data) => data.find((item) => item.slug === slug)?.views,
   });
 
-  const postViews = allViews?.find((item) => item.slug === slug)?.views || 0;
-
-  // Increment view count for a specific slug
-  const incrementRequest = async (slug: string) => {
-    if (process.env.NODE_ENV === "development") {
-      return { views: 0 };
-    }
-
-    return fetch("/api/increment-view", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ slug }),
-    }).then((res): Promise<ViewsResponse> => res.json());
-  };
-
-  // Mutation to increment views
-  const { mutate, data: incrementedData } = useMutation({
+  const { data: incrementedData, mutate } = useMutation({
     mutationKey: ["views", slug],
     mutationFn: () => {
-      if (!shouldIncrement || hasIncremented) {
-        return new Promise<ViewsResponse>((resolve) =>
-          resolve({ views: postViews }),
-        );
+      if (process.env.NODE_ENV === "development") {
+        return new Promise<ViewsResponse>((resolve) => resolve({ views: 0 }));
       }
 
-      return incrementRequest(slug);
+      return fetch("/api/increment-view", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug }),
+      }).then((res): Promise<ViewsResponse> => res.json());
+    },
+    onSettled: (data?: ViewsResponse) => {
+      // update the queryClient cache with the new data
+      const views = data?.views;
+      if (!views) {
+        return;
+      }
+
+      const currentData: ViewsResponse[] =
+        queryClient.getQueryData(["views"]) ?? [];
+
+      const updatedData = currentData.map((item) =>
+        item.slug === slug ? { ...item, views } : item,
+      );
+      queryClient.setQueryData(["views"], updatedData);
     },
   });
 
-  // Only trigger increment when `shouldIncrement` is true
   useEffect(() => {
-    if (shouldIncrement && !hasIncremented) {
-      setHasIncremented(true);
+    if (shouldIncrement) {
       mutate();
     }
   }, [shouldIncrement, mutate]);
@@ -79,13 +77,13 @@ export function ViewCounter({
     return <Loader2 className="animate-spin size-4" />;
   }
 
-  if (error) {
+  if (error || !allViews) {
     return <p>-</p>;
   }
 
   return (
     <p className="text-muted-foreground text-sm flex items-center gap-1">
-      <NumberFlow value={incrementedData?.views ?? postViews} /> views
+      <NumberFlow value={incrementedData?.views ?? allViews} /> views
     </p>
   );
 }
