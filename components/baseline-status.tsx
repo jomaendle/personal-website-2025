@@ -13,7 +13,7 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
   }, []);
 
   return (
-    <div className="min-h-[200px] sm:min-h-[160px]  md:min-h-[128px] bg-neutral-950 border rounded-[.25rem] border-neutral-800">
+    <div className="min-h-[200px] sm:min-h-[160px]  md:min-h-[128px] bg-neutral-950 border rounded-[.25rem] border-neutral-800 mb-8">
       <baseline-status
         featureid={featureId}
         className="bg-inherit pb-2"

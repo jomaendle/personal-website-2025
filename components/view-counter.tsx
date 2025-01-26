@@ -19,8 +19,9 @@ const listAllViewsRequest = async () => {
 
 // Increment view count for a specific slug
 const incrementRequest = async (slug: string) => {
+  // check if in dev mode
   if (process.env.NODE_ENV === "development") {
-    return { views: 0, slug };
+    return { views: 0 };
   }
 
   return fetch("/api/increment-view", {
