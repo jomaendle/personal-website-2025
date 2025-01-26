@@ -1,13 +1,22 @@
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
-export function BlogImage({ src, caption }: { src: string; caption: string }) {
+export function BlogImage({
+  src,
+  caption,
+  className,
+}: {
+  src: string;
+  caption: string;
+  className?: string;
+}) {
   return (
     <figure>
       <Image
         src={src}
         loading="lazy"
         alt={caption}
-        className="w-full h-auto object-contain"
+        className={cn("h-auto w-full object-contain", className)}
         width={800}
         height={800}
         unoptimized
@@ -27,11 +36,12 @@ export function BlogVideo({
   className?: string;
 }) {
   return (
-    <figure className={className}>
+    <figure className={cn("flex flex-col", className)}>
       <video
         controls
         loop={true}
-        className="w-full h-auto max-h-[400px] object-contain"
+        className="h-full max-h-[400px] w-full object-contain"
+        autoPlay={true}
       >
         <source src={src} type="video/mp4" />
       </video>

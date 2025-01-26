@@ -74,7 +74,7 @@ export function ViewCounter({
   }, [shouldIncrement, mutate]);
 
   if (isLoading) {
-    return <Loader2 className="animate-spin size-4" />;
+    return <Loader2 className="size-4 animate-spin" />;
   }
 
   if (error || !allViews) {
@@ -82,7 +82,7 @@ export function ViewCounter({
   }
 
   return (
-    <p className="text-muted-foreground text-sm flex items-center gap-1">
+    <p className="motion-preset-fade-md flex items-center gap-1 text-sm text-muted-foreground">
       <NumberFlow value={incrementedData?.views ?? allViews} /> views
     </p>
   );

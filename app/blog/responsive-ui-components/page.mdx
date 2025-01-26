@@ -1,6 +1,6 @@
 import MdxLayout from "../../../components/mdx-layout";
-import {BlogImage} from "../../../components/blog-image";
-import {CodeBlock} from "../../../components/code-block";
+import { BlogImage } from "../../../components/blog-image";
+import { CodeBlock } from "../../../components/code-block";
 import BaselineStatus from "../../../components/baseline-status";
 
 export const metadata = {
@@ -14,7 +14,7 @@ export const metadata = {
 
 Recently, I revisited the `display: contents` property and was amazed by the possibilities it offers for responsive web design.
 
-In simple terms, applying display: contents to an element essentially removes it from the DOM flow while preserving its child elements.
+In simple terms, applying `display: contents` to an element essentially removes it from the DOM flow while preserving its child elements.
 
 Therefore, the element is “invisible” to the browser layout engine, but its child elements remain fully styled and rendered. The element itself no longer affects the page’s layout, but the content inside does.
 
@@ -43,7 +43,7 @@ Ideally, we want a clean, responsive layout built on top of Flexbox, which offer
 
 ### Layout and Styles
 
-We begin with a .card wrapper element that contains .card-title and .card-content as child elements. Here's an example of a basic card structure:
+We begin with a `.card` wrapper element that contains `.card-title` and .card-content as child elements. Here's an example of a basic card structure:
 
 <CodeBlock language="html" code={`
 <div class="card">
@@ -90,13 +90,14 @@ Note that I only added the required layout styles in the following code snippets
 <BlogImage
   src="/responsive-ui-components/2.gif"
   caption="Figure 2: Responsive Card component which changes the CTA position, based on the screen size."
+  className="max-h-[500px]"
 />
 
 ## How Does It Work?
 
-When the display: contents rule is applied, this property causes the browser to disregard the .card-title element in the layout, effectively removing it.
+When the `display: contents` rule is applied, this property causes the browser to disregard the `.card-title` element in the layout, effectively removing it.
 
-This results in that the contents inside .card-title (the title and button) are laid out as if they were direct children of the .card container.
+This results in that the contents inside `.card-title` (the title and button) are laid out as if they were direct children of the `.card` container.
 
 <CodeBlock language="html" code={`
 <div class="card">
@@ -115,7 +116,7 @@ Now, the title, CTA, and content all reside within the same flex container, maki
 
 The order property is particularly useful here—it allows us to reposition the button based on the screen size.
 
-By setting the order of the button to 1 on small screens and 0 (default value) on larger screens, we change its position relative to other elements without modifying the HTML. Read more about it here.
+By setting the `order` of the button to `1` on small screens and `0` (default value) on larger screens, we change its position relative to other elements without modifying the HTML. [Read more about it here.](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Ordering_flex_items)
 
 ## Conclusion
 

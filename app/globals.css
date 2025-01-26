@@ -67,7 +67,7 @@
     }
 
     .prose figure figcaption {
-        @apply text-xs text-muted-foreground text-center block mt-2;
+        @apply text-xs text-muted-foreground text-center block mt-3;
     }
 
     .prose figure img {

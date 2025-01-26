@@ -11,9 +11,9 @@ export const metadata = {
 
 # {metadata.title}
 
-In this article, I'm rebuilding the animated sign-up button Emil Kowalski's [Animations on the Web](https://animations.dev/) course.
+In this article, I'm rebuilding the animated sign-up button I've encountered in Emil Kowalski's [Animations on the Web](https://animations.dev/) course.
 
-<BlogVideo src="/animated-sign-up-button/tease.mp4" caption="Figure 1: The animated sign-up button in action." className="max-w-[340px] md:max-w-[400px]" />
+<BlogVideo src="/animated-sign-up-button/tease.mp4" caption="Figure 1: The animated sign-up button in action." className="max-w-[350px] h-[280px] sm:h-[260px] sm:max-w-[420px]" />
 
 The first time I saw this animation, I truly felt inspired.
 
@@ -27,9 +27,9 @@ Our animation is built with React and <s>Framer Motion</s> [Motion](https://moti
 
 The button has three different states, which are reflected by the changing content of the button: `idle`, `loading` and `success`
 
-So, our basic structure withouth any animations would look like this:
+So, our basic structure without any animations would look like this:
 
-<CodeBlock language="jsx" code={`
+<CodeBlock language="tsx" code={`
 type ButtonState = "idle" | "loading" | "success";
 
 export const AnimatedSignUpButton = () => {
@@ -61,40 +61,42 @@ In order to change the content of the button, we add a click listener and a `han
 
 This function changes the state from `idle` to `loading` and then to `success` after a short delay.
 
-<CodeBlock language="jsx" code={`
+<CodeBlock language="tsx" code={`
 
-    const handleSubmit = () => {
-        if (buttonState !== "idle") {
-            return;
-        }
+const handleSubmit = () => {
+    if (buttonState !== "idle") {
+        return;
+    }
 
-        setButtonState("loading");
+    setButtonState("loading");
 
-        setTimeout(() => {
-            setButtonState("success");
-        }, 2000);
+    setTimeout(() => {
+        setButtonState("success");
+    }, 2000);
 
-        setTimeout(() => {
-            setButtonState("idle");
-        }, 4000);
-    };
+    setTimeout(() => {
+        setButtonState("idle");
+    }, 4000);
+};
 
-...
-    <button  onClick={handleSubmit}>
-...
+return (
+    <button onClick={handleSubmit}>
+        {buttonStates[buttonState]}
+    </button>
+);
 `} />
 
 ## Adding Animations
 
-Next, we need to import the    `motion` object from `framer-motion`.
+Next, we need to import the `motion` object from `framer-motion`.
 
-Inside our button, we wrap the content in a `motion.span` component. This component will be animated by Motion.
+Inside our button, we wrap the content in a `motion.span` component. This tells Motion that we want to animate this element.
 
-We can then add animations to the button by setting the `initial`, `animate`, `exit` and `transition` properties.
+We can then add animations to the button by setting the `initial`, `animate`, `exit` and `transition` properties. In our case, we want the elements to slide in from the top and slide out to the bottom.
 
-To ensure that Motion knows when to animate the button, we need to add a `key` property to the button. This property should be unique for each state.
+To ensure that Motion triggers the animation when the button state changes, we need to add a `key` property to the `motion.span` component. This property should be unique for each state.
 
-<CodeBlock language="jsx" code={`
+<CodeBlock language="tsx" code={`
 <button className={styles.button} onClick={handleSubmit}>
     <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
