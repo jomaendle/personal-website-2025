@@ -1,25 +1,142 @@
-import MdxLayout from "../../../components/mdx-layout";
 import {AnimatedSignUpButton} from "./animated-sign-up-button";
+import {CodeBlock} from "../../../components/code-block";
+import {BlogVideo} from "../../../components/blog-image";
+import MdxLayout from "../../../components/mdx-layout";
+import {ANIMATED_SIGN_UP_BUTTON} from "../../../lib/state/blog";
 
 export const metadata = {
-    title: "Animated Sign-Up Button",
-    date: "Jan 24, 2025",
+    title: ANIMATED_SIGN_UP_BUTTON.title,
+    date: ANIMATED_SIGN_UP_BUTTON.date,
 };
 
-# Creating an Animated Sing-Up Button
+# {metadata.title}
 
-Today, I'd like to share my recent learnings about animations combined with Framer Motion.
+In this article, I'm rebuilding the animated sign-up button Emil Kowalski's [Animations on the Web](https://animations.dev/) course.
 
-<div className="w-full aspect-video bg-neutral-950 border border-neutral-800 rounded-sm flex items-center py-8 md:py-0 justify-center">
-    <AnimatedSignUpButton />
-</div>
+<BlogVideo src="/animated-sign-up-button/tease.mp4" caption="Figure 1: The animated sign-up button in action." className="max-w-[340px]" />
 
-{/* <CodeSandbox className="col-start-[full-start] col-end-[full-end] full-content" src="https://codesandbox.io/p/sandbox/button-animation-f7pv7f" /> */}
+The first time I saw this animation, I truly felt inspired.
 
-export default function Page({ children }) {
+The animation sticks to the button itself, not affecting the layout of the page. It's a great example of how animations can enhance user experience without being intrusive.
+
+Now let's dive into building this button.
+
+## Button Structure
+
+Our animation is built with React and <s>Framer Motion</s> [Motion](https://motion.dev/), a library that makes it easy to create animations in React applications.
+
+The button has three different states, which are reflected by the changing content of the button: `idle`, `loading` and `success`
+
+So, our basic structure withouth any animations would look like this:
+
+<CodeBlock language="jsx" code={`
+type ButtonState = "idle" | "loading" | "success";
+
+export const AnimatedSignUpButton = () => {
+    const [buttonState, setButtonState] = useState<ButtonState>("idle");
+
+    const buttonStates: {
+        [key in ButtonState]: string | JSX.Element;
+    } = {
+        idle: "Sign up for newsletter",
+        loading: (
+            <div className="size-4 animate-spin">
+                <Loader2 className={styles.icon} />
+            </div>
+        ),
+        success: "Thank you!",
+    }
+
     return (
-        <MdxLayout metadata={metadata} slug="animated-sign-up-button">
+        <button>
+            {buttonStates[buttonState]}
+        </button>
+    );
+}
+`}/>
+
+## Handle state changes
+
+In order to change the content of the button, we add a click listener and a `handleSubmit` function.
+
+This function changes the state from `idle` to `loading` and then to `success` after a short delay.
+
+<CodeBlock language="jsx" code={`
+
+    const handleSubmit = () => {
+        if (buttonState !== "idle") {
+            return;
+        }
+
+        setButtonState("loading");
+
+        setTimeout(() => {
+            setButtonState("success");
+        }, 2000);
+
+        setTimeout(() => {
+            setButtonState("idle");
+        }, 4000);
+    };
+
+...
+    <button  onClick={handleSubmit}>
+...
+`} />
+
+## Adding Animations
+
+Next, we need to import the    `motion` object from `framer-motion`.
+
+Inside our button, we wrap the content in a `motion.span` component. This component will be animated by Motion.
+
+We can then add animations to the button by setting the `initial`, `animate`, `exit` and `transition` properties.
+
+To ensure that Motion knows when to animate the button, we need to add a `key` property to the button. This property should be unique for each state.
+
+<CodeBlock language="jsx" code={`
+<button className={styles.button} onClick={handleSubmit}>
+    <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+            className={styles.span}
+            key={buttonState}
+            transition={{
+              type: "spring",
+              duration,
+              bounce,
+            }}
+            initial={{
+              opacity: 0,
+              y: -25,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            exit={{
+              opacity: 0,
+              y: 25,
+            }}
+            >
+              {buttonStates[buttonState]}
+        </motion.span>
+    </AnimatePresence>
+</button>
+`} />
+
+And that's it! We've created a beautiful animated sign-up button 🎉.
+
+## Playground
+
+Here you can play around with the button and see how it behaves in different states. Drag the Duration and Bounce sliders to see how the animation changes.
+
+<AnimatedSignUpButton/>
+
+
+export default function Page({children}) {
+    return (
+        <MdxLayout metadata={metadata} slug={ANIMATED_SIGN_UP_BUTTON.slug}>
             {children}
         </MdxLayout>
-    );
+    )
 }

@@ -1,3 +1,10 @@
+export const ANIMATED_SIGN_UP_BUTTON = {
+  slug: "animated-sign-up-button",
+  date: "Jan 25, 2025",
+  link: "/blog/animated-sign-up-button",
+  title: "Creating an Animated Sign Up Button",
+};
+
 export const blogPosts: {
   title: string;
   date: string;
@@ -22,10 +29,5 @@ export const blogPosts: {
     link: "/blog/align-dates-in-tables",
     slug: "align-dates-in-tables",
   },
-  {
-    slug: "animated-sign-up-button",
-    date: "Jan 25, 2025",
-    link: "/blog/animated-sign-up-button",
-    title: "Creating an Animated Sign Up Button",
-  },
+  ANIMATED_SIGN_UP_BUTTON,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

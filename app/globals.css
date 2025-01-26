@@ -51,7 +51,7 @@
     }
 
     .prose h2 {
-        @apply mt-16 mb-6 font-medium text-base;
+        @apply mt-14 mb-6 font-medium text-base;
     }
 
     .prose h3 {
