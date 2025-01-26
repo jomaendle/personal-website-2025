@@ -1,5 +1,3 @@
-"use client";
-
 import { H2, H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
