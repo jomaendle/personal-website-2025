@@ -70,7 +70,7 @@ export default function Home() {
               href="https://cal.com/jomaendle"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 rounded-[.25rem] flex gap-2 items-center"
+              className="btn-primary px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 transition-colors rounded-[.25rem] flex gap-2 items-center"
             >
               <span className="inline-block">
                 <CalendarIcon className="size-4" />

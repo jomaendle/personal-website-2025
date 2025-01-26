@@ -10,7 +10,19 @@ interface ViewsResponse {
   slug?: string;
 }
 
+// Fetch all views at once
+const listAllViewsRequest = async () => {
+  return fetch("/api/list-view-count").then(
+    (res): Promise<ViewsResponse[]> => res.json(),
+  );
+};
+
+// Increment view count for a specific slug
 const incrementRequest = async (slug: string) => {
+  if (process.env.NODE_ENV === "development") {
+    return { views: 0, slug };
+  }
+
   return fetch("/api/increment-view", {
     method: "POST",
     headers: {
@@ -20,12 +32,6 @@ const incrementRequest = async (slug: string) => {
   }).then((res): Promise<ViewsResponse> => res.json());
 };
 
-const listAllViewsRequest = async (slug: string) => {
-  return fetch("/api/list-view-count")
-    .then((res): Promise<ViewsResponse[]> => res.json())
-    .then((data) => data.find((item) => item.slug === slug));
-};
-
 export function ViewCounter({
   slug,
   shouldIncrement,
@@ -33,27 +39,40 @@ export function ViewCounter({
   slug: string;
   shouldIncrement?: boolean;
 }) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["views", slug],
-    queryFn: () =>
-      shouldIncrement ? incrementRequest(slug) : listAllViewsRequest(slug),
-    enabled: !!slug,
+  // Fetch all views once
+  const {
+    data: allViews,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["views"],
+    queryFn: listAllViewsRequest,
     placeholderData: keepPreviousData,
-    staleTime: shouldIncrement ? 0 : DEFAULT_STALE_TIME,
-    select: (data) => data,
+    staleTime: DEFAULT_STALE_TIME,
+  });
+
+  const postViews = allViews?.find((item) => item.slug === slug)?.views || 0;
+
+  // If `shouldIncrement` is true, make a separate mutation request
+  const { data: incrementedData } = useQuery({
+    queryKey: ["views", slug],
+    queryFn: () => incrementRequest(slug),
+    enabled: !!slug && shouldIncrement,
+    placeholderData: { views: postViews, slug },
+    staleTime: 0,
   });
 
   if (isLoading) {
     return <Loader2 className="animate-spin size-4" />;
   }
 
-  if (error || !data) {
+  if (error) {
     return <p>-</p>;
   }
 
   return (
     <p className="text-muted-foreground text-sm flex items-center gap-1">
-      <NumberFlow value={data?.views} /> views
+      <NumberFlow value={incrementedData?.views ?? postViews} /> views
     </p>
   );
 }
