@@ -58,7 +58,9 @@ export function ViewCounter({
     mutationKey: ["views", slug],
     mutationFn: () => {
       if (!shouldIncrement || hasIncremented) {
-        return new Promise((resolve) => resolve({ views: postViews }));
+        return new Promise<ViewsResponse>((resolve) =>
+          resolve({ views: postViews }),
+        );
       }
 
       return incrementRequest(slug);
