@@ -11,6 +11,11 @@ interface ViewsResponse {
 }
 
 const incrementRequest = async (slug: string) => {
+  // check if in dev mode
+  if (process.env.NODE_ENV === "development") {
+    return { views: 0 };
+  }
+
   return fetch("/api/increment-view", {
     method: "POST",
     headers: {
