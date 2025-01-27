@@ -41,7 +41,6 @@ export function BlogVideo({
         controls
         loop={true}
         className="h-full max-h-[400px] w-full object-contain"
-        autoPlay={true}
       >
         <source src={src} type="video/mp4" />
       </video>
