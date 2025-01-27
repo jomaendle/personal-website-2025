@@ -1,8 +1,8 @@
-import {AnimatedSignUpButton} from "./animated-sign-up-button";
-import {CodeBlock} from "../../../components/code-block";
-import {BlogVideo} from "../../../components/blog-image";
+import { AnimatedSignUpButton } from "./animated-sign-up-button";
+import { CodeBlock } from "../../../components/code-block";
+import { BlogVideo } from "../../../components/blog-image";
 import MdxLayout from "../../../components/mdx-layout";
-import {ANIMATED_SIGN_UP_BUTTON} from "../../../lib/state/blog";
+import { ANIMATED_SIGN_UP_BUTTON } from "../../../lib/state/blog";
 
 export const metadata = {
     title: ANIMATED_SIGN_UP_BUTTON.title,
@@ -23,7 +23,7 @@ Now let's dive into building this button.
 
 ## Button Structure
 
-Our animation is built with React and <s>Framer Motion</s> [Motion](https://motion.dev/), a library that makes it easy to create animations in React applications.
+Our animation is built with React and <s>Framer Motion</s> [Motion](https://motion.dev/), a library that makes it easy to create animations in Web applications, especially with React.
 
 The button has three different states, which are reflected by the changing content of the button: `idle`, `loading` and `success`
 

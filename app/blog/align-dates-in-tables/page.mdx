@@ -1,5 +1,5 @@
-import {BlogImage} from "../../../components/blog-image";
-import {CodeBlock} from "../../../components/code-block";
+import { BlogImage } from "../../../components/blog-image";
+import { CodeBlock } from "../../../components/code-block";
 import MdxLayout from "../../../components/mdx-layout";
 
 export const metadata = {
@@ -44,7 +44,7 @@ To ensure that your dates are aligned and readable, there are two main things we
 
 First, all dates should have the same number of characters.
 
-By formatting the date in DD.MM.YYYY, HH:MM:SS, you ensure that days and months with single digits (i.e., less than 10) are padded with a leading zero (e.g., "01", "02").
+By formatting the date in `DD.MM.YYYY, HH:MM:SS`, you ensure that days and months with single digits (i.e., less than 10) are padded with a leading zero (e.g., "01", "02").
 
 This way, every entry in your date column will maintain a consistent length.
 
@@ -139,7 +139,7 @@ dateCells.forEach(cell => {
 
 By using `toLocaleDateString()` and `toLocaleTimeString()` with the `de-DE` locale (German format), we ensure the date and time strings are formatted correctly with leading zeros.
 
-To ensure that the digits in our dates align perfectly, we’ll use the `font-variant-numeric` property with the `tabular-nums value.
+To ensure that the digits in our dates align perfectly, we’ll use the `font-variant-numeric` property with the `tabular-nums` value.
 
 This value ensures that each digit occupies the same amount of space, similar to how a monospace font would behave, and it is widely supported in modern browsers (see MDN Web Docs).
 
