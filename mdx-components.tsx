@@ -5,7 +5,7 @@ import { Link } from "next-view-transitions";
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: ({ children, ...props }) => (
-      <h1 className="text-2xl font-normal tracking-tight mb-8" {...props}>
+      <h1 className="mb-8 text-2xl font-normal tracking-tight" {...props}>
         {children}
       </h1>
     ),
@@ -24,7 +24,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-link hover:text-link-hover !important"
+            className="!important text-link hover:text-link-hover"
           >
             {children}
           </a>

@@ -86,9 +86,17 @@
         @apply bg-transparent p-0;
     }
 
+    .prose kbd {
+        @apply border border-neutral-400  text-white text-foreground rounded-sm text-sm  px-1 py-0.5;
+    }
+
     .prose {
         ul, ol {
             @apply list-disc pl-6 text-[currentColor];
+        }
+
+        ol {
+            @apply list-decimal pl-6;
         }
     }
 }

@@ -1,0 +1,115 @@
+import { FocusZoomAtProperty } from "./focus-zoom";
+import { CodeBlock } from "../../../components/code-block";
+import React from "react";
+import BaselineStatus from "../../../components/baseline-status";
+import MdxLayout from "../../../components/mdx-layout";
+import { FOCUS_ZOOM_MASK_IMAGE } from "../../../lib/state/blog";
+
+export const metadata = {
+  title: FOCUS_ZOOM_MASK_IMAGE.title,
+  date: FOCUS_ZOOM_MASK_IMAGE.date
+};
+
+# {metadata.title}
+
+
+<FocusZoomAtProperty />
+
+<div className="px-2 py-0 [&>*]:py-0 rounded-md text-sm mt-6 bg-neutral-900 border border-neutral-700">
+  This demo is based on the great work of [Adam Argyle](https://nerdy.dev/) in his talk about the [Symphony of the Web](https://youtu.be/VQfL3Egin7s?si=RayfuhaUKKBVrhtO&t=887).
+  Thanks for the inspiration, Adam!
+</div>
+
+## How It Works
+
+The dynamic focus zoom effect is created using CSS custom properties and a `radial-gradient` mask. By updating these properties based on mouse movement, we simulate a spotlight effect that follows the cursor.
+
+<CodeBlock language="css" code={`
+.focus-zoom {
+    @property --focal-size {
+      syntax: '<length-percentage>';
+      initial-value: 100%;
+      inherits: false;
+    }
+
+    mask-image: radial-gradient(
+      circle at var(--mouse-x) var(--mouse-y),
+      transparent var(--focal-size),
+      black 0%
+    );
+}`} />
+
+First, we define the `--focal-size` `@property` rule, which controls the size of the spotlight effect. This allows for smooth transitions when changing the spotlight size.
+
+Then, we use the `mask-image` property to create a radial gradient mask. The gradient is centered at the mouse position and transitions from `transparent` to `black`.
+
+The mouse position is set using the `--mouse-x` and `--mouse-y` custom properties, which are updated using JavaScript.
+
+
+## Interactivity
+
+We want to update the spotlight effect based on the mouse position, so we listen for `pointermove` events and update the `--mouse-x` and `--mouse-y` properties accordingly.
+
+In order to activate the spotlight effect, we toggle the `--focal-size` property between `7vmax` and `100%`, whenever the <kbd>Alt</kbd> key is pressed.
+
+
+<CodeBlock language="js" code={`
+
+// Toggle the spotlight effect
+const toggleSpotlight = (toggle: boolean) =>
+    spotlightRef.current?.style.setProperty(
+        "--focal-size",
+        toggle ? "7vmax" : "100%",
+    );
+
+// Listen for pointermove events and update the custom properties
+window.addEventListener("pointermove", (e) => {
+    spotlightRef.current?.style.setProperty("--mouse-x", e.clientX + "px");
+    spotlightRef.current?.style.setProperty("--mouse-y", e.clientY + "px");
+});
+
+window.addEventListener("keydown", (e) => toggleSpotlight(e.altKey));
+window.addEventListener("keyup", (e) => toggleSpotlight(e.altKey));
+window.addEventListener("touchstart", (e) => toggleSpotlight(true));
+window.addEventListener("touchend", (e) => toggleSpotlight(false));
+`} />
+
+
+## Transitioning between states
+
+In our transition, we target our `--focal-size` property and use the new `linear` timing function, which allows to generate spring-like easing curves.
+
+  Spring easing curves are a great way to create more natural and organic animations.
+
+I've created the one I use in this demo using [this website from Kevin Grajeda](https://www.kvin.me/css-springs).
+
+<CodeBlock language="css" code={`
+.focus-zoom {
+      ...
+
+      transition: --focal-size .7s linear(0, 0.0021, 0.0083 1.06%, 0.0317 2.12%, 0.071 3.27%, 0.1307 4.59%, 0.259 6.89%, 0.5489 11.48%, 0.6704 13.51%, 0.7885 15.72%, 0.8812, 0.9572 19.78%, 0.9902, 1.0187, 1.0429, 1.063, 1.0793 25.08%, 1.0929 26.23%, 1.105 27.73%, 1.1116 29.32%, 1.113 30.99%, 1.109 32.85%, 1.1026 34.35%, 1.0926 36.12%, 1.0397 43.71%, 1.017 47.6%, 1.0073 49.72%, 0.9995, 0.9938 54.13%, 0.9898 56.51%, 0.9876 59.34%, 0.9874 62.52%, 0.9999 82.12%, 1.0014 89.54%, 1.0009 99.96%);
+}
+`} />
+
+And that's it! Once again, thanks to Adam Argyle for the inspiration and the great talk.
+
+I learned a lot from this project and I hope you did too! Especially working with `mask-image` combined with `@property` was a new experience for me.
+
+## Browser Support
+
+Below you can see the current browser support for the features used in this demo.
+
+<BaselineStatus featureId="registered-custom-properties" />
+<BaselineStatus featureId="gradients" />
+<BaselineStatus featureId="linear-easing" />
+
+Thanks for reading and see you in the next one 👋
+
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug="animations">
+      {children}
+    </MdxLayout>
+  )
+}

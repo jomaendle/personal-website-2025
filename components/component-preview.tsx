@@ -1,7 +1,21 @@
-export function ComponentPreview({ children }: { children: React.ReactNode }) {
+import { forwardRef } from "react";
+import { cn } from "@/lib/utils";
+
+export const ComponentPreview = forwardRef<
+  HTMLDivElement,
+  { children: React.ReactNode; classList?: string; onHover?: () => void }
+>(({ children, classList }, ref) => {
   return (
-    <div className="w-full h-[300px] bg-neutral-950 border border-neutral-900 rounded-sm flex items-center py-8 md:py-0 justify-center">
+    <div
+      ref={ref}
+      className={cn(
+        "flex h-[300px] w-full items-center justify-center rounded-sm border border-neutral-900 bg-neutral-950 py-8 md:py-0",
+        classList,
+      )}
+    >
       {children}
     </div>
   );
-}
+});
+
+ComponentPreview.displayName = "ComponentPreview";

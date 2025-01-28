@@ -9,13 +9,13 @@ export function BlogPosts() {
       {blogPosts.map((post, index) => (
         <article key={index}>
           <Link
-            href={post.link}
-            className="group flex gap-4 items-center px-3 py-2 -mx-3 hover:bg-white/[0.03] rounded-[.25rem] transition-colors"
+            href={"/blog/" + post.slug}
+            className="group -mx-3 flex items-center gap-4 rounded-[.25rem] px-3 py-2 transition-colors hover:bg-white/[0.03]"
             prefetch={false}
           >
             <div className="flex-1">
               <H3 className="line-clamp-2">{post.title}</H3>
-              <p className="text-muted-foreground text-sm">{post.date}</p>
+              <p className="text-sm text-muted-foreground">{post.date}</p>
             </div>
             <ViewCounterWithProvider slug={post.slug} shouldIncrement={false} />
           </Link>
@@ -36,8 +36,8 @@ export function BlogPostList({ currentSlug }: { currentSlug: string }) {
           .map((post, index) => (
             <article key={index}>
               <Link
-                href={post.link}
-                className="group flex gap-4 items-center"
+                href={"/blog/" + post.slug}
+                className="group flex items-center gap-4 transition-colors hover:text-neutral-400"
                 prefetch={false}
               >
                 <H3 className="line-clamp-2">{post.title}</H3>
