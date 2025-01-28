@@ -5,7 +5,7 @@ import {
   SandpackProvider,
 } from "@codesandbox/sandpack-react";
 
-export default () => (
+const SandpackComponent = () => (
   <SandpackProvider template="react">
     <SandpackLayout>
       <SandpackCodeEditor
@@ -19,3 +19,7 @@ export default () => (
     </SandpackLayout>
   </SandpackProvider>
 );
+
+SandpackComponent.displayName = "SandpackComponent";
+
+export default SandpackComponent;

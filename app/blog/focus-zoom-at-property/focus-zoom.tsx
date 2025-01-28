@@ -33,8 +33,8 @@ export const FocusZoomAtProperty = () => {
 
     window.addEventListener("keydown", (e) => toggleSpotlight(e.altKey));
     window.addEventListener("keyup", (e) => toggleSpotlight(e.altKey));
-    window.addEventListener("touchstart", (e) => toggleSpotlight(true));
-    window.addEventListener("touchend", (e) => toggleSpotlight(false));
+    window.addEventListener("touchstart", () => toggleSpotlight(true));
+    window.addEventListener("touchend", () => toggleSpotlight(false));
   }, [previewRef]);
 
   return (
