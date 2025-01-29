@@ -37,18 +37,21 @@ export function ViewCounter({
 
   const { data: incrementedData, mutate } = useMutation({
     mutationKey: ["views", slug],
-    mutationFn: () => {
-      if (process.env.NODE_ENV === "development") {
-        return new Promise<ViewsResponse>((resolve) => resolve({ views: 0 }));
-      }
+    mutationFn: async () => {
+      console.log("incrementing view", slug);
 
-      return fetch("/api/increment-view", {
+      /* if (process.env.NODE_ENV === "development") {
+        return new Promise<ViewsResponse>((resolve) => resolve({ views: 0 }));
+      }*/
+
+      const res = await fetch("/api/increment-view", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ slug }),
-      }).then((res): Promise<ViewsResponse> => res.json());
+      });
+      return await res.json();
     },
     onSettled: (data?: ViewsResponse) => {
       // update the queryClient cache with the new data
