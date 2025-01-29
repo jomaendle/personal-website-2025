@@ -8,11 +8,14 @@
     background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
     overflow: hidden;
     position: relative;
+    user-select: none;
+    touch-action: none;
     @apply h-[300px] md:h-[400px];
 }
 
 .focusZoom {
     touch-action: none;
+    user-select: none;
     position: absolute;
     inset: 0;
     background: hsla(200 50% 0% / 0.3);
