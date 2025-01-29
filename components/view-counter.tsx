@@ -38,11 +38,9 @@ export function ViewCounter({
   const { data: incrementedData, mutate } = useMutation({
     mutationKey: ["views", slug],
     mutationFn: async () => {
-      console.log("incrementing view", slug);
-
-      /* if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === "development") {
         return new Promise<ViewsResponse>((resolve) => resolve({ views: 0 }));
-      }*/
+      }
 
       const res = await fetch("/api/increment-view", {
         method: "POST",

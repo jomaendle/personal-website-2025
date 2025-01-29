@@ -1,3 +1,9 @@
+@property --focal-size {
+    syntax: '<length-percentage>';
+    initial-value: 100%;
+    inherits: false;
+}
+
 .gradient {
     background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
     overflow: hidden;
@@ -6,12 +12,6 @@
 }
 
 .focusZoom {
-    @property --focal-size {
-        syntax: '<length-percentage>';
-        initial-value: 100%;
-        inherits: false;
-    }
-
     touch-action: none;
     position: absolute;
     inset: 0;
