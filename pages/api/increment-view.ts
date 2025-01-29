@@ -12,6 +12,11 @@ export default async function handler(
       return res.status(400).json({ error: "Slug is required" });
     }
 
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=10, stale-while-revalidate=59",
+    );
+
     // Check if the slug exists
     const { data: page, error } = await supabase
       .from("page_views")

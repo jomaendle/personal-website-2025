@@ -5,6 +5,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  res.setHeader(
+    "Cache-Control",
+    "public, s-maxage=10, stale-while-revalidate=59",
+  );
+
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
