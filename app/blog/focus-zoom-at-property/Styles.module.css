@@ -2,7 +2,7 @@
     background: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
     overflow: hidden;
     position: relative;
-    height: 400px;
+    @apply h-[300px] md:h-[400px];
 }
 
 .focusZoom {
