@@ -10,8 +10,18 @@ const inter = Inter({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://www.jomaendle.com/"),
   title: "Jo Mändle | Building for the Web.",
   description: "Frontend developer based in Bremen, Germany.",
+  openGraph: {
+    images: [
+      {
+        url: "/api/og?title=Jo+M%C3%A4ndle&description=Frontend+developer+based+in+Bremen%2C+Germany.",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -34,7 +44,7 @@ export default function RootLayout({
           <link rel="stylesheet" href="/index.css" />
         </head>
         <body
-          className={`${inter.variable} font-sans min-h-screen bg-background text-foreground antialiased`}
+          className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
         >
           <ThemeProvider attribute="class" defaultTheme="system">
             <PlausibleProvider domain="jomaendle.com">
