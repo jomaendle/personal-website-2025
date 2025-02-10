@@ -1,36 +1,34 @@
-// app/api/og.ts
-
 import { ImageResponse } from "@vercel/og";
-import { NextRequest } from "next/server";
 
-export const runtime = "edge";
+export const config = {
+  runtime: "edge", // ensure the Edge runtime is used
+};
 
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const title = url.searchParams.get("title");
-  const description = url.searchParams.get("description");
-
-  if (!title || !description) {
-    return new Response("Title and description are required", { status: 400 });
-  }
+export default async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const title = searchParams.get("title") || "Jo Maendle";
+  const description =
+    searchParams.get("description") || "Full-stack developer & builder";
 
   return new ImageResponse(
     (
       <div
         style={{
-          fontSize: 48,
-          background: "white",
+          background: "linear-gradient(135deg, #121212 0%, #1a1a1a 100%)",
+          color: "#fff",
           width: "100%",
           height: "100%",
           display: "flex",
-          textAlign: "center",
-          alignItems: "center",
-          justifyContent: "center",
           flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          padding: "40px",
         }}
       >
-        <h1 style={{ fontSize: 64 }}>{title}</h1>
-        <p style={{ fontSize: 32 }}>{description}</p>
+        <h1 style={{ fontSize: "108px", margin: 0 }}>{title}</h1>
+        <p style={{ fontSize: "32px", margin: "20px 0 0", color: "#a3a3a3" }}>
+          {description}
+        </p>
       </div>
     ),
     {
