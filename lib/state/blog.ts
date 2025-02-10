@@ -10,6 +10,12 @@ export const FOCUS_ZOOM_MASK_IMAGE = {
   slug: "focus-zoom-at-property",
 };
 
+export const HTML_POPOVER = {
+  title: "HTML Popover",
+  date: "Feb 12, 2025",
+  slug: "html-popover",
+};
+
 export const blogPosts: {
   title: string;
   date: string;
@@ -32,4 +38,5 @@ export const blogPosts: {
   },
   ANIMATED_SIGN_UP_BUTTON,
   FOCUS_ZOOM_MASK_IMAGE,
+  HTML_POPOVER,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

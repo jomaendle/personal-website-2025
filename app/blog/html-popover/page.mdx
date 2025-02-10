@@ -1,0 +1,55 @@
+import { CodeBlock } from "../../../components/code-block";
+import MdxLayout from "../../../components/mdx-layout";
+import { HTML_POPOVER } from "../../../lib/state/blog";
+import { PopoverPlayground } from "./PopoverPlayground";
+import BaselineStatus from "../../../components/baseline-status";
+
+
+export const metadata = {
+  title: HTML_POPOVER.title,
+  date: HTML_POPOVER.date,
+};
+
+# {metadata.title}
+
+<PopoverPlayground />
+
+As of January 2025, the HTML `popover` element has finally reached Baseline "Newly Available" status. This means that the feature is now available in all major browsers, including Chrome, Firefox, Safari, and Edge.
+
+Therefor, I think it's time to take a closer look at how to use the `popover` element in your projects.
+
+## Basic Usage
+
+All you need are two elements to create a popover: a <i>trigger</i> element and a <i>content</i> element.
+
+The trigger element is the element that the user interacts with to show the popover, such as a button or link. The content element is the element that contains the popover content.
+
+
+<CodeBlock
+    language="html"
+    code={`
+<button popovertarget="my-popover">Open Popover</button>
+
+<div id="my-popover" popover>
+   This works without any JavaScript!
+</div>
+`}
+/>
+
+It's as simple as this! But for many years, developers had to rely on JavaScript libraries or custom implementations to create popovers.
+
+I'm happy to see this feature finally being available natively in all Baseline-supported browsers.
+
+## Browser Support
+
+<BaselineStatus featureId="popover" />
+
+Thanks for reading and see you in the next one 👋
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={HTML_POPOVER.slug}>
+      {children}
+    </MdxLayout>
+  );
+}

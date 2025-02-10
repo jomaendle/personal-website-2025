@@ -38,14 +38,12 @@ export const FocusZoomAtProperty = () => {
   }, [previewRef]);
 
   return (
-    <>
-      <ComponentPreview ref={previewRef} classList={styles.gradient}>
-        <div className="text-white">
-          Press <kbd>Opt/Alt</kbd> to see the spotlight effect
-        </div>
+    <ComponentPreview ref={previewRef} classList={styles.gradient}>
+      <div className="text-white">
+        Press <kbd>Opt/Alt</kbd> to see the spotlight effect
+      </div>
 
-        <div ref={spotlightRef} className={styles.focusZoom}></div>
-      </ComponentPreview>
-    </>
+      <div ref={spotlightRef} className={styles.focusZoom}></div>
+    </ComponentPreview>
   );
 };
