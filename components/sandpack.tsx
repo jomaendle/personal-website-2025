@@ -5,7 +5,7 @@ import {
   SandpackProvider,
 } from "@codesandbox/sandpack-react";
 
-const SandpackComponent = ({ language }: { language: string }) => (
+const SandpackComponent = () => (
   <SandpackProvider
     template="vanilla"
     className="h-[380px]"
