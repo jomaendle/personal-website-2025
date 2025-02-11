@@ -79,11 +79,11 @@
     }
 
     .prose code {
-        @apply bg-secondary text-foreground px-1 py-0.5 rounded-[0.2rem] text-sm;
+        @apply bg-secondary text-foreground px-1 py-0.5 rounded-[0.2rem] text-sm border border-neutral-600;
     }
 
     .prose pre code {
-        @apply bg-transparent p-0;
+        @apply bg-transparent p-0 border-none;
     }
 
     .prose kbd {

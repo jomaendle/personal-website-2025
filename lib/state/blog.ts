@@ -11,12 +11,12 @@ export const FOCUS_ZOOM_MASK_IMAGE = {
 };
 
 export const HTML_POPOVER = {
-  title: "HTML Popover",
+  title: "HTML Popover reached Baseline Support",
   date: "Feb 12, 2025",
   slug: "html-popover",
 };
 
-export const blogPosts: {
+export const BLOG_POSTS: {
   title: string;
   date: string;
   slug: string;

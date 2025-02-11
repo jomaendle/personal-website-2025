@@ -5,14 +5,14 @@ import { WorkExperience } from "@/components/work-experience";
 import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
-import { CalendarIcon } from "lucide-react";
+import NewsletterForm from "@/components/newsletter";
 
 export default function Home() {
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
-      <div className="max-w-2xl mx-auto flex flex-col gap-16">
+      <div className="mx-auto flex max-w-2xl flex-col gap-16">
         <section>
-          <NameHeading />
+          <NameHeading showJobTitle={true} />
         </section>
 
         <section>
@@ -21,7 +21,7 @@ export default function Home() {
             I&apos;m a full-stack JavaScript/TypeScript developer with a passion
             for frontend, design, and animations.
           </p>
-          <p className="text-muted-foreground mt-4">
+          <p className="mt-4 text-muted-foreground">
             I enjoy building web applications and websites and to share my
             knowledge with the community.
           </p>
@@ -58,26 +58,7 @@ export default function Home() {
         </section>
 
         <section>
-          <H2>Get in Touch</H2>
-          <p className="text-muted-foreground">
-            I&apos;m always open to new opportunities and collaborations. If you
-            have a project in mind, want to chat, or just want to say hi, feel
-            free to reach out.
-          </p>
-
-          <div className="flex justify-start mt-8">
-            <a
-              href="https://cal.com/jomaendle"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary px-4 py-2 text-sm font-medium -mx-3 hover:bg-white/5 transition-colors rounded-[.25rem] flex gap-2 items-center"
-            >
-              <span className="inline-block">
-                <CalendarIcon className="size-4" />
-              </span>
-              Schedule a Call
-            </a>
-          </div>
+          <NewsletterForm />
         </section>
 
         <Footer />

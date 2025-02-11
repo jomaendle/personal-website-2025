@@ -1,8 +1,9 @@
 import { CodeBlock } from "../../../components/code-block";
-import MdxLayout from "../../../components/mdx-layout";
 import { HTML_POPOVER } from "../../../lib/state/blog";
 import { PopoverPlayground } from "./PopoverPlayground";
+import Sandpack from "../../../components/sandpack";
 import BaselineStatus from "../../../components/baseline-status";
+import MdxLayout from "../../../components/mdx-layout";
 
 
 export const metadata = {
@@ -22,7 +23,9 @@ Therefor, I think it's time to take a closer look at how to use the `popover` el
 
 All you need are two elements to create a popover: a <i>trigger</i> element and a <i>content</i> element.
 
-The trigger element is the element that the user interacts with to show the popover, such as a button or link. The content element is the element that contains the popover content.
+The trigger element is the element that the user interacts with to show the popover, such as a button or link. It has a `popovertarget` attribute that points to the content element.
+
+The content element is the element that contains the popover content. It has a `popover` attribute and an ID that matches the `popovertarget` attribute of the trigger element.
 
 
 <CodeBlock
@@ -40,9 +43,58 @@ It's as simple as this! But for many years, developers had to rely on JavaScript
 
 I'm happy to see this feature finally being available natively in all Baseline-supported browsers.
 
+## Animating the entry and exit
+
+Making use of the newly arrived `@starting-style` CSS feature, we can easily animate the entry and exit of the popover.
+
+<CodeBlock
+  language="css"
+  code={`
+[popover] {
+
+      /* Exit state */
+      transform: translateY(-1rem);
+      opacity: 0.3;
+      transition: all 0.3s ease-out allow-discrete;
+
+      /* Open state */
+      &:popover-open {
+          transform: translateY(0);
+          opacity: 1;
+      }
+
+      /* Before-Open state */
+      @starting-style {
+          &:popover-open {
+              transform: translateY(-1rem);
+              opacity: 0.3;
+          }
+      }
+  }
+`} />
+
+## Benefits of the HTML Popover
+
+The `popover` element is built with accessibility in mind. It is fully keyboard accessible and works with screen readers out of the box. Try it yourself.
+Open the popover, then press the <kbd>Esc</kbd> key to close it.
+
+As already mentioned, it is now supported in all major browsers, so you can use it without worrying about compatibility issues.
+
+Another benefit in my opinion is that you're using a native HTML element, which is always a good thing. It's more performant and easier to maintain than custom JavaScript solutions.
+
+## Playground
+
+<div>
+  <div className="absolute left-0 right-0 px-4 max-w-5xl mx-auto w-full z-50">
+<Sandpack />
+  </div>
+  <div className="w-full h-[320px]"></div>
+</div>
+
 ## Browser Support
 
 <BaselineStatus featureId="popover" />
+<BaselineStatus featureId="starting-style" />
 
 Thanks for reading and see you in the next one 👋
 
@@ -51,5 +103,5 @@ export default function Page({ children }) {
     <MdxLayout metadata={metadata} slug={HTML_POPOVER.slug}>
       {children}
     </MdxLayout>
-  );
+  )
 }

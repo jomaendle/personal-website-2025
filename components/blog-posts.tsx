@@ -1,12 +1,12 @@
 import { H2, H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
-import { blogPosts } from "@/lib/state/blog";
+import { BLOG_POSTS } from "@/lib/state/blog";
 
 export function BlogPosts() {
   return (
     <>
-      {blogPosts.map((post, index) => (
+      {BLOG_POSTS.map((post, index) => (
         <article key={index}>
           <Link
             href={"/blog/" + post.slug}
@@ -31,9 +31,8 @@ export function BlogPostList({ currentSlug }: { currentSlug: string }) {
       <H2 className="mb-0">More Posts</H2>
 
       <div className="flex flex-col gap-4">
-        {blogPosts
-          .filter((post) => post.slug !== currentSlug)
-          .map((post, index) => (
+        {BLOG_POSTS.filter((post) => post.slug !== currentSlug).map(
+          (post, index) => (
             <article key={index}>
               <Link
                 href={"/blog/" + post.slug}
@@ -43,7 +42,8 @@ export function BlogPostList({ currentSlug }: { currentSlug: string }) {
                 <H3 className="line-clamp-2">{post.title}</H3>
               </Link>
             </article>
-          ))}
+          ),
+        )}
       </div>
     </aside>
   );
