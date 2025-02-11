@@ -24,8 +24,6 @@ export default function NewsletterForm() {
       body: JSON.stringify({ email }),
     });
 
-    await res.json();
-
     if (res.ok) {
       setStatus("success");
       setEmail("");
