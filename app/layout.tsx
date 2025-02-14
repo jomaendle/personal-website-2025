@@ -4,6 +4,7 @@ import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
 import Head from "next/head";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system">
             <PlausibleProvider domain="jomaendle.com">
               {children}
+              <SpeedInsights />
             </PlausibleProvider>
           </ThemeProvider>
         </body>
