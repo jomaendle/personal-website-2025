@@ -55,9 +55,9 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system">
             <PlausibleProvider domain="jomaendle.com">
               {children}
-              <SpeedInsights />
             </PlausibleProvider>
           </ThemeProvider>
+          <SpeedInsights />
         </body>
       </html>
     </ViewTransitions>
