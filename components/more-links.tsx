@@ -15,7 +15,7 @@ const links = [
   },
   {
     text: "Unsplash",
-    href: "@https://unsplash.com/@leonardo_64",
+    href: "https://unsplash.com/@leonardo_64",
   },
   {
     text: "YouTube",
@@ -30,7 +30,7 @@ export const MoreLinks = () => {
         <Link
           key={index}
           href={link.href}
-          className="block text-muted-foreground hover:text-primary transition-colors"
+          className="block text-muted-foreground transition-colors hover:text-primary"
           target={link.href.startsWith("mailto:") ? undefined : "_blank"}
           rel={
             link.href.startsWith("mailto:") ? undefined : "noopener noreferrer"
