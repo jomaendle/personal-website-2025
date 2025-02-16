@@ -3,8 +3,8 @@ import { BlogPostList } from "@/components/blog-posts";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 import NewsletterForm from "@/components/newsletter";
-import { NameHeading } from "@/components/name-heading";
 import { ReadMoreArticles } from "@/components/read-more-articles";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 
 export default function MdxLayout({
   children,
@@ -17,13 +17,17 @@ export default function MdxLayout({
 }) {
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-8">
-          <NameHeading />
-        </div>
-
-        <div className="xl:hidden">
-          <BackLink />
+      <ScrollProgress />
+      <div className="relative mx-auto max-w-2xl">
+        <div className="sticky top-0 z-[100] mb-4 flex h-20 items-center justify-center gap-12 bg-gradient-to-b from-[hsl(var(--background))] from-35% md:h-28 md:from-25%">
+          <div className="relative -top-3 flex w-full items-center justify-center md:-top-8">
+            <div className="absolute left-0 xl:hidden">
+              <BackLink />
+            </div>
+            <Link href="/">
+              <p className="text-white">Jo Mändle</p>
+            </Link>
+          </div>
         </div>
 
         <div className="mb-12 flex items-center justify-between gap-3">
@@ -32,7 +36,9 @@ export default function MdxLayout({
         </div>
 
         <div className="fixed left-12 top-[100px] hidden max-w-[240px] flex-col gap-6 xl:flex">
-          <BackLink />
+          <div className="mb-12">
+            <BackLink />
+          </div>
 
           <BlogPostList currentSlug={slug} />
         </div>
@@ -55,7 +61,7 @@ function BackLink() {
   return (
     <Link
       href="/"
-      className="mb-12 inline-block text-sm text-muted-foreground transition-colors hover:text-primary"
+      className="inline-block text-sm text-muted-foreground transition-colors hover:text-primary"
     >
       ← Back
     </Link>

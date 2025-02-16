@@ -17,7 +17,10 @@ const ogImageDescription = encodeURIComponent(
 
 export const metadata = {
   metadataBase: new URL("https://www.jomaendle.com/"),
-  title: "Jo Mändle | Building for the Web.",
+  title: {
+    default: "Jo Mändle | Building for the Web.",
+    template: "%s | Jo Mändle",
+  },
   description: "Full-Stack developer sharing his thoughts on the web.",
   openGraph: {
     images: [
