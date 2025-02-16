@@ -8,7 +8,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
 
   return (
     <div className="flex flex-col xl:hidden">
-      <H2>Read more articles</H2>
+      <H2>more articles</H2>
       <ul className="flex flex-col gap-4">
         {filteredArticles.map((article) => (
           <li

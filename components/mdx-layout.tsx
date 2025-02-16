@@ -18,7 +18,7 @@ export default function MdxLayout({
   return (
     <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
       <ScrollProgress />
-      <div className="relative mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl">
         <div className="sticky top-0 z-[100] mb-4 flex h-20 items-center justify-center gap-12 bg-gradient-to-b from-[hsl(var(--background))] from-35% md:h-28 md:from-25%">
           <div className="relative -top-3 flex w-full items-center justify-center md:-top-8">
             <div className="absolute left-0 xl:hidden">
