@@ -21,10 +21,6 @@ export default function Home() {
             I&apos;m a full-stack JavaScript/TypeScript developer with a passion
             for frontend, design, and animations.
           </p>
-          <p className="mt-4 text-muted-foreground">
-            I enjoy building web applications and websites and to share my
-            knowledge with the community.
-          </p>
         </section>
 
         <section>

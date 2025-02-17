@@ -7,28 +7,43 @@ export const FocusZoomAtProperty = () => {
   const spotlightRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const toggleSpotlight = (toggle: boolean) =>
-    spotlightRef.current?.style.setProperty(
-      "--focal-size",
-      toggle ? "7vmax" : "100%",
-    );
+  const toggleSpotlight = (toggle: boolean) => {
+    requestAnimationFrame(() => {
+      spotlightRef.current?.style.setProperty(
+        "--focal-size",
+        toggle ? "7vmax" : "100%",
+      );
+    });
+  };
 
   useEffect(() => {
     const preview = previewRef.current;
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
     if (!preview) {
       return;
     }
 
-    // the positon of the preview marks the offset to the mouse position
     const { x, y } = preview.getBoundingClientRect();
 
     window.addEventListener("pointermove", (e) => {
-      // calculate the mouse position relative to the preview
-      const newX = e.clientX - x;
-      const newY = e.clientY - y;
-      spotlightRef.current?.style.setProperty("--mouse-x", newX + "px");
-      spotlightRef.current?.style.setProperty("--mouse-y", newY + "px");
+      if (
+        (e.clientX < x ||
+          e.clientX > x + preview.clientWidth ||
+          e.clientY < y ||
+          e.clientY > y + preview.clientHeight) &&
+        isMobile
+      ) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        // calculate the mouse position relative to the preview
+        const newX = e.clientX - x;
+        const newY = e.clientY - y;
+        spotlightRef.current?.style.setProperty("--mouse-x", newX + "px");
+        spotlightRef.current?.style.setProperty("--mouse-y", newY + "px");
+      });
     });
 
     window.addEventListener("keydown", (e) => toggleSpotlight(e.altKey));
