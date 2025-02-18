@@ -19,7 +19,7 @@ export default function Home() {
           <H2>Today</H2>
           <p className="text-muted-foreground">
             I&apos;m a full-stack JavaScript/TypeScript developer with a passion
-            for frontend, design, and animations.
+            for frontend, design, and animation.
           </p>
         </section>
 
