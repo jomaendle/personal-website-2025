@@ -35,11 +35,11 @@ export function WorkExperience() {
               {experience.isExternal && (
                 <ExternalLinkIcon className="ml-2 inline-block size-3" />
               )}
-              {experience.isNew && (
+              {/*{experience.isNew && (
                 <span className="ml-2 inline-block rounded border border-neutral-700 bg-gradient-to-t from-neutral-900 to-neutral-800 px-2 py-[1px] text-xs font-semibold text-white">
                   New
                 </span>
-              )}
+              )}*/}
             </H3>
             <p className="text-muted-foreground">{experience.description}</p>
           </Link>
