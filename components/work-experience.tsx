@@ -4,14 +4,6 @@ import { ExternalLinkIcon } from "lucide-react";
 
 const workExperiences = [
   {
-    title: "macOS Keyboard Shortcuts",
-    description:
-      "Improve your productivity with macOS keyboard shortcuts. Includes short courses for better learning.",
-    link: "https://macos-shortcuts.netlify.app",
-    isExternal: true,
-    isNew: true,
-  },
-  {
     title: "The Beauty of Earth",
     description:
       "A collection of landscape photography showcasing the beauty of Earth.",
