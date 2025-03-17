@@ -6,6 +6,7 @@ import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
+import { CraftsOverview } from "@/components/crafts-overview";
 
 export default function Home() {
   return (
@@ -28,6 +29,13 @@ export default function Home() {
           {/* use reduced space because items have padding for hover effect */}
           <div className="space-y-3">
             <WorkExperience />
+          </div>
+        </section>
+
+        <section>
+          <H2>Crafts</H2>
+          <div className="space-y-3">
+            <CraftsOverview />
           </div>
         </section>
 
