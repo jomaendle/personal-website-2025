@@ -1,0 +1,48 @@
+@layer demo {
+    .carousel {
+        list-style-type: none;
+
+        display: grid;
+        grid-auto-flow: column;
+
+        container-type: size;
+        inline-size: 100cqi;
+        block-size: min(60svh, 720px);
+
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        overscroll-behavior-x: contain;
+
+
+        gap: 1rem;
+        padding-inline: 1rem;
+        scroll-padding-inline: 1rem;
+        padding-block: 2rem;
+
+        &::before,
+        &::after {
+            content: "";
+            display: block;
+        }
+
+        &::before {
+            order: 0;
+            inline-size: 25cqi;
+        }
+
+        &::after {
+            order: 11;
+            inline-size: 90cqi;
+        }
+
+        > .item {
+            scroll-snap-align: start;
+        }
+
+        &::scroll-button {
+            z-index: 20;
+            background: blue;
+            backdrop-filter: blur(10px);
+        }
+    }
+}

@@ -16,6 +16,12 @@ export const HTML_POPOVER = {
   slug: "html-popover",
 };
 
+export const CSS_CAROUSEL = {
+  title: "CSS Carousels with ::scroll-button and ::scroll-marker",
+  date: "Apr 4, 2025",
+  slug: "css-carousel",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;

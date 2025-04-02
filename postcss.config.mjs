@@ -2,7 +2,9 @@
 const config = {
   plugins: {
     tailwindcss: {},
+    "postcss-preset-env": {},
   },
+  ignoreUnknownAtRules: true,
 };
 
 export default config;

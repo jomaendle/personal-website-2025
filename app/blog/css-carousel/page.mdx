@@ -1,0 +1,58 @@
+import { CodeBlock } from "../../../components/code-block";
+import MdxLayout from "../../../components/mdx-layout";
+import BaselineStatus from "../../../components/baseline-status";
+import { CSS_CAROUSEL } from "../../../lib/state/blog";
+import { AppSwitcher } from "./app-switcher";
+
+export const metadata = {
+  title: CSS_CAROUSEL.title,
+  date: CSS_CAROUSEL.date,
+};
+
+# {metadata.title}
+
+<BaselineStatus featureId="scroll-button" />
+
+<AppSwitcher />
+
+
+<CodeBlock language="css" code={`
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: animate-color 3s ease-in-out infinite alternate;
+    background: linear-gradient(var(--color), var(--color-second));
+}
+
+@keyframes animate-color {
+    to {
+        --color-1: yellow;
+        --color-2: dodgerblue;
+    }
+}
+
+@property --color {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: red;
+}
+
+@property --color-second {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: blue;
+}
+`}/>
+
+
+export default function Page({children}) {
+  return (
+  <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+    {children}
+  </MdxLayout>
+)
+
+
+}
