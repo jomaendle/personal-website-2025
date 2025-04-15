@@ -1,0 +1,41 @@
+import { IMMOKAEPSLE } from "../../../lib/state/blog";
+import MdxLayout from "../../../components/mdx-layout";
+import { BlogImage } from "../../../components/blog-image";
+
+import img1 from "../../../public/immokaepsele/hero.webp";
+
+export const metadata = {
+  title: IMMOKAEPSLE.title,
+  date: IMMOKAEPSLE.date,
+};
+
+# {metadata.title}
+
+This post is not going to be about a new CSS feature, but about my work I did recently for [ImmoKäpsele](https://immokaepsele.de/), a real estate company in Germany.
+
+I want to share my experience and the process I went through to create a new website for them.
+
+## The Challenge
+
+- Moving from WordPress to a modern tech stack
+- Improving performance and user experience
+- Giving the client the possibility to manage their properties via their CMS (Flowfact) and then showing them on the website. Previously there was a WordPress Plugin for that, but now the page is built with Next.js and Flowfact API.
+- The client wanted to have a modern-looking website that is easy to use and navigate.
+
+The challenge here was to rebuild their existing WordPress website with a modern tech stack, while making it more performant, modern-looking and user-friendly.
+
+<BlogImage
+  src={img1.src}
+  caption="Figure 1: Mobile and desktop layouts of the card component."
+/>
+
+
+Thanks for reading and see you in the next one 👋
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={IMMOKAEPSLE.slug}>
+      {children}
+    </MdxLayout>
+  )
+}

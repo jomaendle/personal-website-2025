@@ -16,6 +16,12 @@ export const HTML_POPOVER = {
   slug: "html-popover",
 };
 
+export const IMMOKAEPSLE = {
+  title: "ImmoKäpsele - Real Estate Agency",
+  date: "Apr 15, 2025",
+  slug: "immokaepsele",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;
@@ -39,4 +45,5 @@ export const BLOG_POSTS: {
   ANIMATED_SIGN_UP_BUTTON,
   FOCUS_ZOOM_MASK_IMAGE,
   HTML_POPOVER,
+  IMMOKAEPSLE,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

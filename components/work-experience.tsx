@@ -11,6 +11,13 @@ const workExperiences = [
     isExternal: true,
   },
   {
+    title: "ImmoKäpsele - Real Estate Agency",
+    description:
+      "A German real estate agency website with a focus on user experience and property listings.",
+    link: "https://immokaepsele.de",
+    isExternal: true,
+  },
+  {
     title: "Jo Maendle Photography",
     description:
       "Personal photography portfolio showcasing portrait and landscape photography.",
