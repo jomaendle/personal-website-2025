@@ -16,6 +16,12 @@ export const HTML_POPOVER = {
   slug: "html-popover",
 };
 
+export const FREELANCE_TOOL = {
+  title: "Vibe-coding my own Freelance-Tracking Tool",
+  date: "Apr 15, 2025",
+  slug: "freelance-tool",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;
@@ -39,4 +45,5 @@ export const BLOG_POSTS: {
   ANIMATED_SIGN_UP_BUTTON,
   FOCUS_ZOOM_MASK_IMAGE,
   HTML_POPOVER,
+  FREELANCE_TOOL,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

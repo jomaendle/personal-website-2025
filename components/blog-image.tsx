@@ -30,10 +30,12 @@ export function BlogVideo({
   src,
   caption,
   className,
+  posterSrc,
 }: {
   src: string;
   caption: string;
   className?: string;
+  posterSrc?: string;
 }) {
   return (
     <figure className={cn("flex flex-col", className)}>
@@ -41,6 +43,7 @@ export function BlogVideo({
         controls
         loop={true}
         className="h-full max-h-[400px] w-full object-contain"
+        poster={posterSrc}
       >
         <source src={src} type="video/mp4" />
       </video>

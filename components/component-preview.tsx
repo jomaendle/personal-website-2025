@@ -9,7 +9,7 @@ export const ComponentPreview = forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex h-[300px] w-full items-center justify-center rounded-sm border border-neutral-900 bg-neutral-950 py-8 md:py-0",
+        "flex h-[300px] w-full items-center justify-center rounded-sm border border-neutral-800 bg-neutral-950 py-8 md:py-0",
         classList,
       )}
     >

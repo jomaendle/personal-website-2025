@@ -1,0 +1,77 @@
+import MdxLayout from "../../../components/mdx-layout";
+import { FREELANCE_TOOL } from "../../../lib/state/blog";
+import { BlogVideo } from "../../../components/blog-image";
+
+import previewImg from "../../../public/freelance-tool/preview.webp";
+import { ContactForm } from "../../../components/contact-form";
+
+export const metadata = {
+  title: FREELANCE_TOOL.title,
+  date: FREELANCE_TOOL.date,
+};
+
+# {metadata.title}
+
+As a part-time freelancer, I was looking for a simple tool to manage my work.
+
+I needed something that could track different clients, tasks, time spent on each project and generate invoices.
+
+I couldn't find a tool that did all these things in a simple way without spending too much money.
+
+So I decided to <del>build</del> vibe-code my own tool.
+
+## The process
+
+1. I started a new project in [Lovable](https://lovable.dev)
+
+2. Outlined my specific requirements. In this case, I needed:
+   - Dashboard to track my clients and projects
+   - A way to log time spent on each project
+   - Simple invoice generator
+
+3. Refined the product through multiple iterations. I revised the design and functionality based on my needs.
+
+4. Integrated Supabase for authentication and data storage
+
+## The Result
+My very own software tool to efficiently manage my work with a neat dashboard to keep track of everything.
+
+It took me about one hour to build the tool until it was fully functional.
+
+To use it, I linked the tool to my personal domain and set up a simple authentication system with Supabase.
+
+The cost to build and run the tool is literally 0€.
+
+Check it out in the video below:
+
+<BlogVideo
+  src="/freelance-tool/1.mp4"
+  caption="Figure 1: My personal freelance-tracking tool in action"
+  posterSrc={previewImg.src}
+/>
+
+## Notes
+
+I don't plan to share the actual tool for the following reasons:
+- It's not a product, just a personal tool
+- Except for basic authentication, it doesn't have any security features
+- I don't want to maintain it for others
+
+## Final Thoughts
+
+Custom software is becoming ubiquitous. I highly encourage you to try it out yourself and built software that truly fits your needs.
+
+If you're in need for a new tool but don't feel comfortable building it yourself, feel free to reach out to me.
+
+I'll be happy to help you out.
+
+<ContactForm />
+
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={FREELANCE_TOOL.slug}>
+      {children}
+    </MdxLayout>
+  )
+}
