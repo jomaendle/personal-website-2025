@@ -11,6 +11,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     h2: ({ children, ...props }) => <H2 {...props}>{children}</H2>,
     h3: ({ children, ...props }) => <H3 {...props}>{children}</H3>,
+    del: ({ children }) => <del className="line-through">{children}</del>,
     a: ({ href, children }) => {
       if (typeof href !== "string") {
         return null;

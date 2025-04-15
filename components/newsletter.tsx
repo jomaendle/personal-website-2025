@@ -51,7 +51,7 @@ export default function NewsletterForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
           required
-          className="border-[#3C3C3C] bg-[#2C2C2C] text-white placeholder:text-[#6C6C6C] focus:border-[#4C4C4C] focus:ring-0"
+          className="bg-neutral-900"
         />
         <motion.button
           type="submit"
@@ -59,7 +59,7 @@ export default function NewsletterForm() {
           animate={{ width: isLoading ? "10rem" : "8rem" }} // adjust values as needed
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
           initial={false}
-          className="h-9 overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          className="h-10 overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
         >
           <AnimatePresence mode="wait">
             <motion.span

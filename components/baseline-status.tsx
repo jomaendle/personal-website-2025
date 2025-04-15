@@ -17,7 +17,7 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
   }, []);
 
   return (
-    <div className="relative mb-8 min-h-[200px] rounded-[.25rem] border border-neutral-900 bg-neutral-950 sm:min-h-[160px] md:min-h-[128px]">
+    <div className="relative mb-8 min-h-[200px] rounded-[.25rem] border border-neutral-800 bg-neutral-950 sm:min-h-[160px] md:min-h-[128px]">
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="size-5 animate-spin" />
