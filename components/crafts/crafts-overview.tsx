@@ -58,7 +58,7 @@ export function CraftsOverview() {
             playsInline
             height={craft.posterImg.height}
             width={craft.posterImg.width}
-            className="md:max-w-non6 w-full max-w-[400px]"
+            className="w-full max-w-[400px] md:max-w-none"
             poster={craft.posterImg.src}
             aria-label={craft.title}
             onLoadedData={() => {
