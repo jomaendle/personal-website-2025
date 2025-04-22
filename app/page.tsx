@@ -6,7 +6,7 @@ import { MoreLinks } from "@/components/more-links";
 import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
-import { CraftsOverview } from "@/components/crafts-overview";
+import { CraftsOverview } from "@/components/crafts/crafts-overview";
 
 export default function Home() {
   return (
