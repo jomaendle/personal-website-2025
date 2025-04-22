@@ -1,10 +1,25 @@
 "use client";
-import posterImg1 from "../public/crafts/preview/html-details.webp";
-import posterImg2 from "../public/crafts/preview/mspot-subscribe-btn.webp";
+import posterImg1 from "../../public/crafts/preview/html-details.webp";
+import posterImg2 from "../../public/crafts/preview/mspot-subscribe-btn.webp";
+import posterImg3 from "../../public/crafts/preview/animated-button.webp";
 import { Loader2 } from "lucide-react";
 import { CounterCraft } from "@/components/crafts/counter";
+import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 
-const crafts = [
+const crafts: {
+  src: string;
+  link?: string;
+  posterImg: { src: string; width: number; height: number };
+  title: string;
+  bgColor: string;
+}[] = [
+  {
+    src: "/animated-sign-up-button/tease.mp4",
+    posterImg: posterImg3,
+    title: "Sign Up Button Animation",
+    bgColor: "#060606",
+    link: "/blog/animated-sign-up-button",
+  },
   {
     src: "/crafts/animetd-details-demo-website.mp4",
     posterImg: posterImg1,
@@ -24,10 +39,11 @@ export function CraftsOverview() {
     <div className="flex grid-cols-2 flex-col items-start gap-4 md:grid">
       <CounterCraft />
       {crafts.map((craft) => (
-        <div
+        <CraftsContainer
           key={craft.src}
-          className="relative h-auto overflow-hidden rounded-lg border pt-2 text-white/80"
           style={{ backgroundColor: craft.bgColor }}
+          title={craft.title}
+          link={craft.link}
         >
           <div
             id={`loader-${craft.src}`}
@@ -42,7 +58,7 @@ export function CraftsOverview() {
             playsInline
             height={craft.posterImg.height}
             width={craft.posterImg.width}
-            className="w-full max-w-[400px] md:max-w-none"
+            className="md:max-w-non6 w-full max-w-[400px]"
             poster={craft.posterImg.src}
             aria-label={craft.title}
             onLoadedData={() => {
@@ -51,8 +67,7 @@ export function CraftsOverview() {
           >
             <source src={craft.src} type="video/mp4" />
           </video>
-          <div className="absolute inset-0 p-2 text-xs">{craft.title}</div>
-        </div>
+        </CraftsContainer>
       ))}
     </div>
   );
