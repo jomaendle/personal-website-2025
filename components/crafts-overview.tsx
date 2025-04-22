@@ -2,6 +2,7 @@
 import posterImg1 from "../public/crafts/preview/html-details.webp";
 import posterImg2 from "../public/crafts/preview/mspot-subscribe-btn.webp";
 import { Loader2 } from "lucide-react";
+import { CounterCraft } from "@/components/crafts/counter";
 
 const crafts = [
   {
@@ -21,6 +22,7 @@ const crafts = [
 export function CraftsOverview() {
   return (
     <div className="flex grid-cols-2 flex-col items-start gap-4 md:grid">
+      <CounterCraft />
       {crafts.map((craft) => (
         <div
           key={craft.src}
