@@ -1,0 +1,47 @@
+import MdxLayout from "../../../components/mdx-layout";
+import { CSS_CAROUSEL } from "../../../lib/state/blog";
+import { CarouselDemo } from "./CarouselDemo";
+import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
+
+export const metadata = {
+  title: CSS_CAROUSEL.title,
+  date: CSS_CAROUSEL.date,
+};
+
+# {metadata.title}
+
+The CSS Overflow Module Level 5 introduces two powerful new features for scrollable containers: `::scroll-buttons` and `::scroll-markers`.
+
+These features enable native, customizable scroll controls and indicators, making it easier to build accessible, visually consistent carousels and scrollers without JavaScript.
+
+## What Are Scroll-Buttons?
+Scroll-buttons are interactive elements rendered by the browser at the edges of a scrollable container. They allow users to scroll the content by clicking or tapping, and can be styled with CSS.
+
+<b>Key features:</b>
+- Appear at the start/end of a scrollable axis.
+- Can be styled and positioned using new pseudo-elements like `::scroll-button(inline-start)` and `::scroll-button(inline-end)`.
+- Support for custom content via the content property.
+
+## What Are Scroll-Markers?
+Scroll-markers are visual indicators that represent scroll positions or items within a scrollable container. They help users understand their position within the scroll area.
+
+<b>Key features:</b>
+- Rendered for each scroll-snap point or item.
+- Can be styled with `::scroll-marker` and grouped with `::scroll-marker-group`.
+- The `:target-current` pseudo-class highlights the marker for the currently visible item.
+
+## Anatomy of a Scrollable Container with Overflow 5
+Below is a breakdown of the new elements
+<ScrollButtonAnatomy />
+
+## Demo
+<CarouselDemo />
+
+
+export default function Page({ children }) {
+  return (
+  <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+    {children}
+  </MdxLayout>
+)
+}

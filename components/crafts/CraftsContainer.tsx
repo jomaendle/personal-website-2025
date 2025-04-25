@@ -8,6 +8,7 @@ interface CraftsContainerProps extends HTMLAttributes<HTMLDivElement> {
   innerClassName?: string;
   title?: string;
   link?: string;
+  showFadeOut?: boolean;
 }
 
 export const CraftsContainer = ({
@@ -16,6 +17,7 @@ export const CraftsContainer = ({
   innerClassName,
   title,
   link,
+  showFadeOut = true,
   ...props
 }: CraftsContainerProps) => {
   const containerContent = (
@@ -48,7 +50,7 @@ export const CraftsContainer = ({
     >
       {containerContent}
 
-      {link ? (
+      {link && showFadeOut && (
         <Link
           href={link}
           target="_self"
@@ -56,7 +58,8 @@ export const CraftsContainer = ({
         >
           {titleElement}
         </Link>
-      ) : (
+      )}
+      {!link && showFadeOut && (
         <div className="group absolute bottom-0 z-20 flex min-h-20 w-full items-end bg-gradient-to-b from-transparent to-neutral-950 p-3 font-sans text-xs text-white/80">
           {titleElement}
         </div>
