@@ -39,7 +39,11 @@ const ScrollMarker = ({
       ? "h-4 w-0.5 bg-white/40"
       : "h-0.5 w-6 bg-white/40";
   return orientation === "horizontal" ? (
-    <span className="relative flex flex-col items-center">
+    <span
+      className="relative flex flex-col items-center"
+      aria-label={label}
+      aria-orientation={orientation}
+    >
       <span className={markerClass} />
       <span className={lineClass} />
       <span className="mt-2 whitespace-nowrap text-[10px] text-white/80">
@@ -61,15 +65,15 @@ export const ScrollButtonAnatomy = () => {
   return (
     <div className="my-8 flex flex-col gap-16">
       {/* Inline scroll buttons anatomy */}
-      <div className="relative mx-auto w-full max-w-2xl rounded-lg border bg-neutral-900 p-6 sm:p-6">
+      <div className="group relative mx-auto w-full max-w-2xl rounded-lg border bg-neutral-900 px-6 py-8">
         {/* Scroll Buttons */}
         <ScrollButton
-          position="left-2 top-[54px] md:top-1/2 -translate-y-1/2"
+          position="left-2 top-[54px] md:top-1/3 -translate-y-1/2"
           icon="←"
           ariaLabel="Scroll Left"
         />
         <ScrollButton
-          position="right-2  top-[54px] md:top-1/2 -translate-y-1/2"
+          position="right-2  top-[54px] md:top-1/3 -translate-y-1/2"
           icon="→"
           ariaLabel="Scroll Right"
         />
@@ -89,6 +93,7 @@ export const ScrollButtonAnatomy = () => {
 
           {/* Scroll Markers */}
           <div className="relative my-2 flex items-center justify-center gap-4 sm:gap-8">
+            <div className="absolute bottom-0 h-4 w-full rounded-md border border-pink-400/50"></div>
             {[0, 1, 2].map((i) => (
               <ScrollMarker
                 key={i}
@@ -120,6 +125,7 @@ export const ScrollButtonAnatomy = () => {
 
           {/* Scroll Markers */}
           <div className="relative my-2 flex items-center justify-center gap-4 sm:gap-8">
+            <div className="absolute bottom-0 h-4 w-full rounded-md border border-pink-400/50"></div>
             {[0, 1, 2, 3, 4].map((i) => (
               <ScrollMarker
                 key={i}
@@ -139,14 +145,14 @@ export const ScrollButtonAnatomy = () => {
         <span className="absolute right-2 top-2 text-xs text-white/80">
           ::scroll-button(inline-end)
         </span>
-        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-white/80">
+        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md border border-pink-400/50 px-1 text-xs text-white/80">
           ::scroll-marker-group
         </span>
       </div>
 
       {/* Block-level scroll buttons anatomy */}
-      <div className="relative mx-auto grid w-full max-w-2xl grid-cols-2 items-center rounded-lg border bg-neutral-900 p-2 py-16 sm:p-6 md:flex md:flex-col">
-        {/* Block-level Scroll Button (Top) */}
+      {/*<div className="relative mx-auto grid w-full max-w-2xl grid-cols-2 items-center rounded-lg border bg-neutral-900 p-2 py-16 sm:p-6 md:flex md:flex-col">
+        Block-level Scroll Button (Top)
         <ScrollButton
           position="left-1/2 top-2 -translate-x-1/2"
           icon="↑"
@@ -155,8 +161,7 @@ export const ScrollButtonAnatomy = () => {
         <span className="absolute left-1/2 top-14 -translate-x-1/2 text-xs text-white/80">
           ::scroll-button(block-start)
         </span>
-
-        {/* Scrollable Area */}
+        Scrollable Area
         <div className="flex flex-col items-center justify-center gap-2 overflow-y-auto py-8 sm:gap-4 sm:py-20">
           {[
             "bg-neutral-800",
@@ -168,8 +173,7 @@ export const ScrollButtonAnatomy = () => {
             <div key={i} className={`h-10 w-24 rounded-lg sm:w-32 ${bg}`} />
           ))}
         </div>
-
-        {/* Scroll Markers (vertical) */}
+        Scroll Markers (vertical)
         <div className="right-2 flex flex-col items-start gap-4 sm:right-4 sm:gap-8 md:absolute md:top-1/2 md:-translate-y-1/2">
           {[0, 1, 2, 3, 4].map((i) => (
             <ScrollMarker
@@ -185,8 +189,7 @@ export const ScrollButtonAnatomy = () => {
         <span className="absolute right-2 top-2 text-xs text-white/80 sm:right-4">
           ::scroll-marker-group
         </span>
-
-        {/* Block-level Scroll Button (Bottom) */}
+        Block-level Scroll Button (Bottom)
         <ScrollButton
           position="bottom-2 left-1/2 -translate-x-1/2"
           icon="↓"
@@ -195,7 +198,7 @@ export const ScrollButtonAnatomy = () => {
         <span className="absolute bottom-14 left-1/2 -translate-x-1/2 text-xs text-white/80">
           ::scroll-button(block-end)
         </span>
-      </div>
+      </div>*/}
     </div>
   );
 };

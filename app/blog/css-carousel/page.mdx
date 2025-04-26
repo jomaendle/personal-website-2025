@@ -2,6 +2,7 @@ import MdxLayout from "../../../components/mdx-layout";
 import { CSS_CAROUSEL } from "../../../lib/state/blog";
 import { CarouselDemo } from "./CarouselDemo";
 import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
+import { CodeBlock } from "../../../components/code-block";
 
 export const metadata = {
   title: CSS_CAROUSEL.title,
@@ -13,6 +14,8 @@ export const metadata = {
 The CSS Overflow Module Level 5 introduces two powerful new features for scrollable containers: `::scroll-buttons` and `::scroll-markers`.
 
 These features enable native, customizable scroll controls and indicators, making it easier to build accessible, visually consistent carousels and scrollers without JavaScript.
+
+> **Note:** As of now, browser support for these features is limited. Check [MDN documentation](https://developer.mozilla.org/) for the latest compatibility updates.
 
 ## What Are Scroll-Buttons?
 Scroll-buttons are interactive elements rendered by the browser at the edges of a scrollable container. They allow users to scroll the content by clicking or tapping, and can be styled with CSS.
@@ -34,8 +37,50 @@ Scroll-markers are visual indicators that represent scroll positions or items wi
 Below is a breakdown of the new elements
 <ScrollButtonAnatomy />
 
+## Minimal Working Example
+
+<CodeBlock language="html" code={`
+<section class="container">
+    <ul class="scroller">
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+    </ul>
+</section>
+`}/>
+
+<CodeBlock language="css" code={`
+.scroller {
+    /* ... */
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; // Enables scroll snapping
+    scroll-padding-inline: 20px;
+    scroll-behavior: smooth;
+
+    scroll-marker-group: after; // Defines where the markers are placed
+}
+
+.scroller li {
+    /* ... */
+    scroll-snap-align: start; // Defines the snap position
+
+    &::scroll-marker {
+      // Style the marker (the dots)
+    }
+}
+
+.scroller::scroll-marker-group {
+    // Style the marker group
+}
+
+.scroller::scroll-marker:target-current {
+    // Style the current marker
+}
+`}/>
+
 ## Demo
 <CarouselDemo />
+
 
 
 export default function Page({ children }) {
