@@ -34,7 +34,10 @@ export const CarouselDemo = () => {
       </section>
 
       <section className={style.container}>
-        <span className="my-0 px-4 font-medium">With Default Buttons</span>
+        <h4 className="my-0 px-4 font-medium">With Default Buttons</h4>
+        <p className="px-4 text-sm leading-5">
+          This demo uses Anchor positioning to layout the scroll buttons.
+        </p>
         <ul className={cn(style.scroller, style.base)}>{renderImages()}</ul>
       </section>
     </div>

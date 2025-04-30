@@ -3,6 +3,8 @@ import { CSS_CAROUSEL } from "../../../lib/state/blog";
 import { CarouselDemo } from "./CarouselDemo";
 import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
 import { CodeBlock } from "../../../components/code-block";
+import BaselineStatus from "../../../components/baseline-status";
+import { BlogVideo } from "../../../components/blog-image";
 
 export const metadata = {
   title: CSS_CAROUSEL.title,
@@ -11,11 +13,18 @@ export const metadata = {
 
 # {metadata.title}
 
+<BlogVideo
+  src="/css-carousel/demo.mp4"
+  caption="Figure 1: A carousel with scroll buttons and markers."
+/>
+
+
+
 The CSS Overflow Module Level 5 introduces two powerful new features for scrollable containers: `::scroll-buttons` and `::scroll-markers`.
 
 These features enable native, customizable scroll controls and indicators, making it easier to build accessible, visually consistent carousels and scrollers without JavaScript.
 
-> **Note:** As of now, browser support for these features is limited. Check [MDN documentation](https://developer.mozilla.org/) for the latest compatibility updates.
+> **Note:** As of now, browser support for these features is limited. Check the Baseline status below for the latest updates.
 
 ## What Are Scroll-Buttons?
 Scroll-buttons are interactive elements rendered by the browser at the edges of a scrollable container. They allow users to scroll the content by clicking or tapping, and can be styled with CSS.
@@ -47,17 +56,18 @@ Below is a breakdown of the new elements
       <li>3</li>
     </ul>
 </section>
-`}/>
+`} />
 
 <CodeBlock language="css" code={`
 .scroller {
     /* ... */
     overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; // Enables scroll snapping
-    scroll-padding-inline: 20px;
-    scroll-behavior: smooth;
 
     scroll-marker-group: after; // Defines where the markers are placed
+    scroll-snap-type: x mandatory; // Enables scroll snapping
+
+    scroll-padding-inline: 20px;
+    scroll-behavior: smooth;
 }
 
 .scroller li {
@@ -76,17 +86,25 @@ Below is a breakdown of the new elements
 .scroller::scroll-marker:target-current {
     // Style the current marker
 }
-`}/>
+`} />
 
 ## Demo
 <CarouselDemo />
 
+## Conclusion
+With the new `::scroll-buttons` and `::scroll-markers` features, you can create carousels and scrollers that are not only visually appealing but also accessible to all users.
+And the best part, you can do it all with just CSS!
+No tedious JavaScript or 3rd-party libraries are needed.
+
+## Browser Support
+
+<BaselineStatus featureId="scroll-markers" />
 
 
 export default function Page({ children }) {
   return (
-  <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
-    {children}
-  </MdxLayout>
-)
+    <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+      {children}
+    </MdxLayout>
+  )
 }
