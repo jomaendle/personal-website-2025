@@ -6,6 +6,8 @@ import { CodeBlock } from "../../../components/code-block";
 import BaselineStatus from "../../../components/baseline-status";
 import { BlogVideo } from "../../../components/blog-image";
 
+import videoPoster from "../../../public/css-carousel/video-poster.webp";
+
 export const metadata = {
   title: CSS_CAROUSEL.title,
   date: CSS_CAROUSEL.date,
@@ -15,7 +17,8 @@ export const metadata = {
 
 <BlogVideo
   src="/css-carousel/demo.mp4"
-  caption="Figure 1: A carousel with scroll buttons and markers."
+  posterSrc={videoPoster.src}
+  caption="Figure 1: A CSS-only carousel using the new ::scroll-markers to indicate the current item."
 />
 
 
@@ -42,13 +45,20 @@ Scroll-markers are visual indicators that represent scroll positions or items wi
 - Can be styled with `::scroll-marker` and grouped with `::scroll-marker-group`.
 - The `:target-current` pseudo-class highlights the marker for the currently visible item.
 
-## Anatomy of a Scrollable Container with Overflow 5
-Below is a breakdown of the new elements
+Read more about the specification [here](https://www.w3.org/TR/css-overflow-5/#scroll-markers).
+
+## Demo
+<CarouselDemo />
+
+## Anatomy of a Scrollable Container
+Below is a breakdown of the new elements:
 <ScrollButtonAnatomy />
+
 
 ## Minimal Working Example
 
 <CodeBlock language="html" code={`
+<!-- Basic structure -->
 <section class="container">
     <ul class="scroller">
       <li>1</li>
@@ -58,38 +68,98 @@ Below is a breakdown of the new elements
 </section>
 `} />
 
+### 1. Basic Scrollable Container
 <CodeBlock language="css" code={`
 .scroller {
-    /* ... */
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem;
+
+    /* Prevents scroll chaining to parent elements */
     overscroll-behavior-x: contain;
 
-    scroll-marker-group: after; // Defines where the markers are placed
-    scroll-snap-type: x mandatory; // Enables scroll snapping
-
-    scroll-padding-inline: 20px;
+    /* Smooth scrolling behavior */
     scroll-behavior: smooth;
-}
-
-.scroller li {
-    /* ... */
-    scroll-snap-align: start; // Defines the snap position
-
-    &::scroll-marker {
-      // Style the marker (the dots)
-    }
-}
-
-.scroller::scroll-marker-group {
-    // Style the marker group
-}
-
-.scroller::scroll-marker:target-current {
-    // Style the current marker
 }
 `} />
 
-## Demo
-<CarouselDemo />
+### 2. Adding Scroll Snapping
+<CodeBlock language="css" code={`
+.scroller {
+    /* Previous styles... */
+
+    /* Enable horizontal snap scrolling */
+    scroll-snap-type: x mandatory;
+
+    /* Add padding for better UX at container edges */
+    scroll-padding-inline: 20px;
+}
+
+.scroller li {
+    flex: 0 0 250px;
+
+    /* Defines where items should snap to */
+    scroll-snap-align: start;
+}
+`} />
+
+### 3. Adding Scroll Markers
+<CodeBlock language="css" code={`
+.scroller {
+    /* Previous styles... */
+
+    /* Position marker group after the content */
+    scroll-marker-group: after;
+}
+
+/* Style the container for markers */
+.scroller::scroll-marker-group {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Style individual markers */
+.scroller li::scroll-marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+/* Highlight the current item's marker */
+.scroller li::scroll-marker:target-current {
+    background-color: #333;
+    transform: scale(1.2);
+}
+`} />
+
+
+### 4. Adding Scroll Buttons
+<CodeBlock language="css" code={`
+.scroller::scroll-button(inline-start),
+.scroller::scroll-button(inline-end) {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroller::scroll-button(inline-start)::before {
+    content: "←";
+}
+
+.scroller::scroll-button(inline-end)::before {
+    content: "→";
+}
+`} />
+
 
 ## Conclusion
 With the new `::scroll-buttons` and `::scroll-markers` features, you can create carousels and scrollers that are not only visually appealing but also accessible to all users.

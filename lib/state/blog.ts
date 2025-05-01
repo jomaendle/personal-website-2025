@@ -22,7 +22,7 @@ export const FREELANCE_TOOL = {
   slug: "freelance-tool",
 };
 export const CSS_CAROUSEL = {
-  title: "CSS-only Carousel",
+  title: "Native CSS Carousels with ::scroll-button and ::scroll-marker",
   date: "Apr 25, 2025",
   slug: "css-carousel",
 };

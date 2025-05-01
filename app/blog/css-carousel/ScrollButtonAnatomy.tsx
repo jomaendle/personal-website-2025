@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 const ScrollButton = ({
   position,
@@ -65,10 +66,6 @@ const ScrollMarker = ({
 };
 
 export const ScrollButtonAnatomy = () => {
-  const [orientation, setOrientation] = useState<"horizontal" | "vertical">(
-    "horizontal",
-  );
-
   return (
     <div className="my-8 flex flex-col gap-16">
       <Tabs defaultValue="horizontal" className="w-full">
@@ -80,7 +77,6 @@ export const ScrollButtonAnatomy = () => {
           <HorizontalView />
         </TabsContent>
         <TabsContent value="vertical">
-          {" "}
           <VerticalView />
         </TabsContent>
       </Tabs>
@@ -89,7 +85,12 @@ export const ScrollButtonAnatomy = () => {
 };
 
 const HorizontalView = () => (
-  <div className="group relative mx-auto w-full max-w-2xl rounded-lg border bg-neutral-900 px-6 py-8 md:py-12">
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, type: "spring" }}
+    className="group relative mx-auto w-full max-w-2xl rounded-lg border bg-neutral-900 px-6 py-8 md:py-12"
+  >
     {/* Scroll Buttons */}
     <ScrollButton
       position="left-2 md:left-6 top-[54px] -translate-y-1/2 md:top-1/3"
@@ -170,11 +171,16 @@ const HorizontalView = () => (
     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-1 text-xs text-white/80">
       ::scroll-marker-group
     </span>
-  </div>
+  </motion.div>
 );
 
 const VerticalView = () => (
-  <div className="relative mx-auto flex w-full max-w-2xl items-center justify-center gap-6 rounded-lg border bg-neutral-900 px-2 py-16 md:p-6">
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, type: "spring" }}
+    className="relative mx-auto flex w-full max-w-2xl items-center justify-center gap-6 rounded-lg border bg-neutral-900 px-2 py-16 md:p-6"
+  >
     {/* Block-level Scroll Button (Top) */}
     <ScrollButton
       position="left-1/2 top-2 -translate-x-1/2"
@@ -216,5 +222,5 @@ const VerticalView = () => (
     <span className="absolute bottom-14 left-1/2 -translate-x-1/2 text-xs text-white/80">
       ::scroll-button(block-end)
     </span>
-  </div>
+  </motion.div>
 );
