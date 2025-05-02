@@ -1,0 +1,180 @@
+import MdxLayout from "../../../components/mdx-layout";
+import { CSS_CAROUSEL } from "../../../lib/state/blog";
+import { CarouselDemo } from "./CarouselDemo";
+import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
+import { CodeBlock } from "../../../components/code-block";
+import BaselineStatus from "../../../components/baseline-status";
+import { BlogVideo } from "../../../components/blog-image";
+
+import videoPoster from "../../../public/css-carousel/video-poster.webp";
+
+export const metadata = {
+  title: CSS_CAROUSEL.title,
+  date: CSS_CAROUSEL.date,
+};
+
+# {metadata.title}
+
+<BlogVideo
+  src="/css-carousel/demo.mp4"
+  posterSrc={videoPoster.src}
+  caption="Figure 1: A CSS-only carousel using the new ::scroll-markers to indicate the current item."
+/>
+
+
+
+The CSS Overflow Module Level 5 introduces two powerful new features for scrollable containers: `::scroll-buttons` and `::scroll-markers`.
+
+These features enable native, customizable scroll controls and indicators, making it easier to build accessible, visually consistent carousels and scrollers without JavaScript.
+
+> **Note:** As of now, browser support for these features is limited. Check the Baseline status below for the latest updates.
+
+## What Are Scroll-Buttons?
+Scroll-buttons are interactive elements rendered by the browser at the edges of a scrollable container. They allow users to scroll the content by clicking or tapping, and can be styled with CSS.
+
+<b>Key features:</b>
+- Appear at the start/end of a scrollable axis.
+- Can be styled and positioned using new pseudo-elements like `::scroll-button(inline-start)` and `::scroll-button(inline-end)`.
+- Support for custom content via the content property.
+
+## What Are Scroll-Markers?
+Scroll-markers are visual indicators that represent scroll positions or items within a scrollable container. They help users understand their position within the scroll area.
+
+<b>Key features:</b>
+- Rendered for each scroll-snap point or item.
+- Can be styled with `::scroll-marker` and grouped with `::scroll-marker-group`.
+- The `:target-current` pseudo-class highlights the marker for the currently visible item.
+
+Read more about the specification [here](https://www.w3.org/TR/css-overflow-5/#scroll-markers).
+
+## Demo
+<CarouselDemo />
+
+## Anatomy of a Scrollable Container
+Below is a breakdown of the new elements:
+<ScrollButtonAnatomy />
+
+
+## Minimal Working Example
+
+<CodeBlock language="html" code={`
+<!-- Basic structure -->
+<section class="container">
+    <ul class="scroller">
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+    </ul>
+</section>
+`} />
+
+### 1. Basic Scrollable Container
+<CodeBlock language="css" code={`
+.scroller {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem;
+
+    /* Prevents scroll chaining to parent elements */
+    overscroll-behavior-x: contain;
+
+    /* Smooth scrolling behavior */
+    scroll-behavior: smooth;
+}
+`} />
+
+### 2. Adding Scroll Snapping
+<CodeBlock language="css" code={`
+.scroller {
+    /* Previous styles... */
+
+    /* Enable horizontal snap scrolling */
+    scroll-snap-type: x mandatory;
+
+    /* Add padding for better UX at container edges */
+    scroll-padding-inline: 20px;
+}
+
+.scroller li {
+    flex: 0 0 250px;
+
+    /* Defines where items should snap to */
+    scroll-snap-align: start;
+}
+`} />
+
+### 3. Adding Scroll Markers
+<CodeBlock language="css" code={`
+.scroller {
+    /* Previous styles... */
+
+    /* Position marker group after the content */
+    scroll-marker-group: after;
+}
+
+/* Style the container for markers */
+.scroller::scroll-marker-group {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Style individual markers */
+.scroller li::scroll-marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+/* Highlight the current item's marker */
+.scroller li::scroll-marker:target-current {
+    background-color: #333;
+    transform: scale(1.2);
+}
+`} />
+
+
+### 4. Adding Scroll Buttons
+<CodeBlock language="css" code={`
+.scroller::scroll-button(inline-start),
+.scroller::scroll-button(inline-end) {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroller::scroll-button(inline-start)::before {
+    content: "←";
+}
+
+.scroller::scroll-button(inline-end)::before {
+    content: "→";
+}
+`} />
+
+
+## Conclusion
+With the new `::scroll-buttons` and `::scroll-markers` features, you can create carousels and scrollers that are not only visually appealing but also accessible to all users.
+And the best part, you can do it all with just CSS!
+No tedious JavaScript or 3rd-party libraries are needed.
+
+## Browser Support
+
+<BaselineStatus featureId="scroll-markers" />
+
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+      {children}
+    </MdxLayout>
+  )
+}

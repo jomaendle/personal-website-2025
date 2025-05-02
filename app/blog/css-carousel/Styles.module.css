@@ -1,0 +1,106 @@
+.container {
+    @apply relative block w-full rounded-lg border py-4;
+}
+
+.scroller {
+    @apply list-none flex gap-6 p-5 w-full overflow-x-auto h-full;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-marker-group: after;
+    scroll-padding-inline: 20px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #b0b0b0 transparent;
+
+    anchor-name: --horizontal-scroll-anchor;
+
+    li {
+        @apply flex items-center justify-center bg-neutral-800 rounded-lg h-full aspect-[9/16] min-w-40 md:min-w-60;
+        list-style-type: none;
+        scroll-snap-align: start;
+        text-align: center;
+
+        &::scroll-marker {
+            @apply inline-block bg-neutral-800 hover:bg-neutral-700 size-4 rounded-full;
+            content: ""
+        }
+
+        img {
+            @apply rounded-lg w-full h-full object-cover;
+        }
+    }
+
+    &::scroll-marker-group {
+        @apply flex gap-3 w-full justify-center items-end h-full pt-6;
+    }
+
+    ::scroll-marker:target-current {
+        @apply bg-neutral-400 hover:bg-neutral-300;
+    }
+}
+
+
+.verticalContainer {
+    @apply relative block w-full rounded-lg border p-4 h-96;
+}
+
+.verticalScroller {
+    @apply list-none flex flex-col gap-6 p-5 w-full overflow-y-auto h-full;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y mandatory;
+    scroll-marker-group: before;
+    scroll-padding-block: 20px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #b0b0b0 transparent;
+
+    li {
+        @apply flex items-center justify-center bg-neutral-800 rounded-lg w-full aspect-[16/9] min-h-52;
+        list-style-type: none;
+        scroll-snap-align: start;
+        text-align: center;
+
+        &::scroll-marker {
+            @apply inline-block bg-neutral-800 hover:bg-neutral-700 size-4 rounded-full;
+            content: ""
+        }
+
+        img {
+            @apply rounded-lg w-full h-full object-cover;
+        }
+    }
+
+    &::scroll-marker-group {
+        @apply flex flex-col gap-3 h-full justify-center items-center absolute;
+    }
+
+    ::scroll-marker:target-current {
+        @apply bg-neutral-400 hover:bg-neutral-300;
+    }
+}
+
+.base {
+    &::scroll-button(*) {
+        position: absolute;
+        position-anchor: --horizontal-scroll-anchor;
+        align-self: anchor-center;
+    }
+
+    &::scroll-button(inline-start) {
+        content: "⬅" / "Scroll Left";
+        left: calc(anchor(left) - 45px);
+    }
+
+    &::scroll-button(inline-end) {
+        content: "⮕" / "Scroll Right";
+        right: calc(anchor(right) - 45px);
+    }
+
+    &::scroll-button(*):focus-visible {
+        outline-offset: 5px;
+    }
+}
+
+
+
+

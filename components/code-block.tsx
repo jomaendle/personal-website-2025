@@ -1,6 +1,6 @@
 import React from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   language: string;
@@ -9,13 +9,13 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   return (
-    <div className="relative rounded-[0.25rem] overflow-hidden code-block my-6">
-      <div className="absolute top-0 right-0 bg-neutral-800 text-gray-300 px-2 py-1 text-xs font-mono rounded-bl">
+    <div className="code-block relative my-6 overflow-hidden rounded-md border border-neutral-700 bg-neutral-900">
+      <div className="absolute right-0 top-0 rounded-bl-lg bg-neutral-800 px-2 py-1 font-mono text-xs text-gray-300">
         {language}
       </div>
       <SyntaxHighlighter
         language={language}
-        style={vscDarkPlus}
+        style={dracula}
         customStyle={{
           margin: 0,
           padding: "1.5rem 1rem",

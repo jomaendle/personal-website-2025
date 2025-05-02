@@ -21,6 +21,11 @@ export const FREELANCE_TOOL = {
   date: "Apr 15, 2025",
   slug: "freelance-tool",
 };
+export const CSS_CAROUSEL = {
+  title: "Native CSS Carousels with ::scroll-button and ::scroll-marker",
+  date: "Apr 25, 2025",
+  slug: "css-carousel",
+};
 
 export const BLOG_POSTS: {
   title: string;
@@ -46,4 +51,5 @@ export const BLOG_POSTS: {
   FOCUS_ZOOM_MASK_IMAGE,
   HTML_POPOVER,
   FREELANCE_TOOL,
+  CSS_CAROUSEL,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
