@@ -1,12 +1,12 @@
-import MdxLayout from "../../../components/mdx-layout";
 import { CSS_CAROUSEL } from "../../../lib/state/blog";
 import { CarouselDemo } from "./CarouselDemo";
 import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
-import { CodeBlock } from "../../../components/code-block";
-import BaselineStatus from "../../../components/baseline-status";
 import { BlogVideo } from "../../../components/blog-image";
 
 import videoPoster from "../../../public/css-carousel/video-poster.webp";
+import { CarouselCode } from "./CarouselCode";
+import BaselineStatus from "../../../components/baseline-status";
+import MdxLayout from "../../../components/mdx-layout";
 
 export const metadata = {
   title: CSS_CAROUSEL.title,
@@ -54,111 +54,13 @@ Read more about the specification [here](https://www.w3.org/TR/css-overflow-5/#s
 Below is a breakdown of the new elements:
 <ScrollButtonAnatomy />
 
+## How to Use Scroll-Buttons and Scroll-Markers
 
-## Minimal Working Example
+<div className="absolute left-0 right-0 p-4 max-w-4xl xl:max-w-5xl min-h-[420px] mx-auto w-full z-50">
+  <CarouselCode />
+</div>
 
-<CodeBlock language="html" code={`
-<!-- Basic structure -->
-<section class="container">
-    <ul class="scroller">
-      <li>1</li>
-      <li>2</li>
-      <li>3</li>
-    </ul>
-</section>
-`} />
-
-### 1. Basic Scrollable Container
-<CodeBlock language="css" code={`
-.scroller {
-    display: flex;
-    overflow-x: auto;
-    gap: 1rem;
-    padding: 1rem;
-
-    /* Prevents scroll chaining to parent elements */
-    overscroll-behavior-x: contain;
-
-    /* Smooth scrolling behavior */
-    scroll-behavior: smooth;
-}
-`} />
-
-### 2. Adding Scroll Snapping
-<CodeBlock language="css" code={`
-.scroller {
-    /* Previous styles... */
-
-    /* Enable horizontal snap scrolling */
-    scroll-snap-type: x mandatory;
-
-    /* Add padding for better UX at container edges */
-    scroll-padding-inline: 20px;
-}
-
-.scroller li {
-    flex: 0 0 250px;
-
-    /* Defines where items should snap to */
-    scroll-snap-align: start;
-}
-`} />
-
-### 3. Adding Scroll Markers
-<CodeBlock language="css" code={`
-.scroller {
-    /* Previous styles... */
-
-    /* Position marker group after the content */
-    scroll-marker-group: after;
-}
-
-/* Style the container for markers */
-.scroller::scroll-marker-group {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-/* Style individual markers */
-.scroller li::scroll-marker {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #ccc;
-}
-
-/* Highlight the current item's marker */
-.scroller li::scroll-marker:target-current {
-    background-color: #333;
-    transform: scale(1.2);
-}
-`} />
-
-
-### 4. Adding Scroll Buttons
-<CodeBlock language="css" code={`
-.scroller::scroll-button(inline-start),
-.scroller::scroll-button(inline-end) {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.scroller::scroll-button(inline-start)::before {
-    content: "←";
-}
-
-.scroller::scroll-button(inline-end)::before {
-    content: "→";
-}
-`} />
+<div className="w-full h-[820px] md:h-[420px]"></div>
 
 
 ## Conclusion
