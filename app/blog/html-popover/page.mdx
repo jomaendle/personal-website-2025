@@ -1,9 +1,9 @@
 import { CodeBlock } from "../../../components/code-block";
 import { HTML_POPOVER } from "../../../lib/state/blog";
 import { PopoverPlayground } from "./PopoverPlayground";
-import Sandpack from "../../../components/sandpack";
 import BaselineStatus from "../../../components/baseline-status";
 import MdxLayout from "../../../components/mdx-layout";
+import { PopoverCode } from "./PopoverCode";
 
 export const metadata = {
   title: HTML_POPOVER.title,
@@ -88,7 +88,7 @@ Below is a playground where you can experiment with the `popover` element 🛝.
 
 <div>
   <div className="absolute left-0 right-0 px-4 max-w-4xl xl:max-w-5xl mx-auto w-full z-50">
-<Sandpack />
+    <PopoverCode />
   </div>
   <div className="w-full h-[580px] md:h-[320px]"></div>
 </div>
