@@ -2,6 +2,7 @@ import Sandpack from "@/components/sandpack";
 
 export const CarouselCode = () => (
   <Sandpack
+    height="420px"
     files={{
       "/index.js": {
         code: `import "./styles.css";
@@ -24,7 +25,6 @@ document.getElementById("app").innerHTML = \`
   color: white;
   font-family: 'Arial', sans-serif;
   padding: 2rem;
-  height: 100%;
   color-scheme: dark;
 }
 

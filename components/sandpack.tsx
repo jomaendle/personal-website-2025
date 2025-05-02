@@ -21,28 +21,31 @@ const Sandpack = ({
   files,
   template = "vanilla",
   theme = "dark",
-  height = "380px",
   showLineNumbers = false,
   wrapContent = true,
   showTabs = true,
   showInlineErrors = true,
   closableTabs = true,
 }: SandpackProps) => (
-  <SandpackProvider
-    template={template}
-    className={`h-[${height}]`}
-    theme={theme}
-    files={files}
-  >
+  <SandpackProvider template={template} theme={theme} files={files}>
     <SandpackLayout>
       <SandpackCodeEditor
+        style={{
+          height: "400px",
+          overflowY: "auto",
+        }}
         showTabs={showTabs}
         showLineNumbers={showLineNumbers}
         showInlineErrors={showInlineErrors}
         wrapContent={wrapContent}
         closableTabs={closableTabs}
       />
-      <SandpackPreview />
+      <SandpackPreview
+        style={{
+          height: "400px",
+          overflowY: "auto",
+        }}
+      />
     </SandpackLayout>
   </SandpackProvider>
 );
