@@ -70,7 +70,7 @@ export const ScrollButtonAnatomy = () => {
     <div className="my-8 flex flex-col gap-16">
       <Tabs defaultValue="horizontal" className="w-full">
         <TabsList>
-          <TabsTrigger value="horizontal">Horizonal</TabsTrigger>
+          <TabsTrigger value="horizontal">Horizontal</TabsTrigger>
           <TabsTrigger value="vertical">Vertical</TabsTrigger>
         </TabsList>
         <TabsContent value="horizontal">
