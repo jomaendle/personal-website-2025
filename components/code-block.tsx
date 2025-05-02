@@ -9,7 +9,7 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   return (
-    <div className="code-block relative my-6 overflow-hidden rounded-md border border-neutral-600 bg-neutral-900">
+    <div className="code-block relative my-6 overflow-hidden rounded-md border border-neutral-700 bg-neutral-900">
       <div className="absolute right-0 top-0 rounded-bl-lg bg-neutral-800 px-2 py-1 font-mono text-xs text-gray-300">
         {language}
       </div>
