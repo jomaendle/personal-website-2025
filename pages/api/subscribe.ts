@@ -7,10 +7,38 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { email } = req.body;
+
+    // Enhanced validation
+    if (!email) {
+      return res.status(400).json({ 
+        error: "Email is required",
+        details: "Please enter your email address"
+      });
+    }
+
+    if (typeof email !== 'string') {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    const sanitizedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(sanitizedEmail)) {
+      return res.status(400).json({ 
+        error: "Invalid email format",
+        details: "Please enter a valid email address"
+      });
+    }
+
     try {
+      const audienceId = process.env.RESEND_AUDIENCE_ID;
+      if (!audienceId) {
+        return res.status(500).json({ error: "Newsletter configuration error" });
+      }
+
       const contactRes = await resend.contacts.create({
-        email,
-        audienceId: "fc715dff-d469-4c22-ba40-87a4b427ec0f",
+        email: sanitizedEmail,
+        audienceId,
       });
 
       if (contactRes.error) {
@@ -20,14 +48,14 @@ export default async function handler(
       // send a welcome email
       const sendMailRes = await resend.emails.send({
         from: "Jo <jo@contact.jomaendle.com>",
-        to: email,
+        to: sanitizedEmail,
         subject: "Welcome to the newsletter!",
         html: `
 <h1> Hi there! </h1>
 <p>Thanks for subscribing to my newsletter.</p>
 
 <p>
-If you want to unsubscribe, you can do so by clicking <a href="https://jomaendle.com/api/unsubscribe?email=${email}">here</a>.
+If you want to unsubscribe, you can do so by clicking <a href="https://jomaendle.com/api/unsubscribe?email=${sanitizedEmail}">here</a>.
 </p>
 
 <small>

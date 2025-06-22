@@ -12,19 +12,20 @@ export function BlogPosts() {
   const displayedPosts = showAll ? BLOG_POSTS : BLOG_POSTS.slice(0, 4);
 
   return (
-    <motion.div className="flex flex-col gap-4" layout>
+    <motion.div layout className="flex flex-col gap-4">
       <AnimatePresence initial={false}>
         {displayedPosts.map((post, index) => (
           <motion.article
             key={post.slug}
-            initial={{ opacity: 0, y: 20 }}
+            layout
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{
               duration: 0.3,
-              delay: index * 0.05, // subtle staggered animation
+              delay: showAll ? index * 0.05 : 0, // only stagger on expand, not collapse
+              bounce: 0,
             }}
-            layout
           >
             <Link
               href={"/blog/" + post.slug}
@@ -50,6 +51,11 @@ export function BlogPosts() {
           className="mt-2 flex justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            layout: { duration: 3, ease: "easeInOut" },
+            bounce: 0,
+          }}
         >
           <Button variant="outline" onClick={() => setShowAll(!showAll)}>
             {showAll ? "Show Less" : "Show More"}

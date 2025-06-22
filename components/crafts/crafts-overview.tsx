@@ -56,6 +56,15 @@ export function CraftsOverview() {
           <CounterCraft />
         </motion.div>
 
+        <motion.div
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="w-full"
+        >
+          <CounterCraft />
+        </motion.div>
+
         <AnimatePresence>
           {displayedCrafts.map((craft, index) => (
             <motion.div
@@ -105,10 +114,11 @@ export function CraftsOverview() {
 
       {crafts.length > 2 && (
         <motion.div
-          layout
+          layout="position"
           className="flex justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
         >
           <Button
             variant="outline"

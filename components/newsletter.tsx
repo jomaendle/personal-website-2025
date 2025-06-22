@@ -12,26 +12,38 @@ export default function NewsletterForm() {
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error" | "finished"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent) => {
-    setStatus("loading");
     e.preventDefault();
-    const res = await fetch("/api/subscribe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    });
+    setStatus("loading");
+    setErrorMessage("");
 
-    if (res.ok) {
-      setStatus("success");
-      setEmail("");
-    } else {
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus("success");
+        setEmail("");
+        setTimeout(() => setStatus("finished"), 3000);
+      } else {
+        setStatus("error");
+        setErrorMessage(data.details || data.error || "Failed to subscribe");
+        setTimeout(() => setStatus("idle"), 5000);
+      }
+    } catch (error) {
       setStatus("error");
+      setErrorMessage("Network error. Please check your connection and try again.");
+      setTimeout(() => setStatus("idle"), 5000);
     }
-
-    setTimeout(() => setStatus("finished"), 5000);
   };
 
   const isLoading = useMemo(() => status === "loading", [status]);
@@ -79,18 +91,17 @@ export default function NewsletterForm() {
         </motion.button>
       </form>
 
-      <p
-        className={cn(
-          "mt-3 text-sm text-muted-foreground",
-          status === "success" &&
-            "motion-preset-slide-down-md opacity-100 motion-opacity-in-0",
-          status === "finished" &&
-            "motion-preset-slide-up-md motion-opacity-out-0",
-          status !== "success" && status !== "finished" && "opacity-0",
-        )}
-      >
-        Thanks for subscribing! You will receive an email shortly.
-      </p>
+      {status === "success" && (
+        <p className="mt-3 text-sm text-green-400 motion-preset-slide-down-md opacity-100 motion-opacity-in-0">
+          Thanks for subscribing! You will receive an email shortly.
+        </p>
+      )}
+
+      {status === "error" && (
+        <p className="mt-3 text-sm text-red-400 motion-preset-slide-down-md opacity-100 motion-opacity-in-0">
+          {errorMessage || "Failed to subscribe. Please try again."}
+        </p>
+      )}
     </div>
   );
 }
