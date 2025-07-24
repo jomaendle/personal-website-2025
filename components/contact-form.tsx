@@ -14,10 +14,13 @@ export function ContactForm() {
   const [submitStatus, setSubmitStatus] = useState<null | "success" | "error">(
     null,
   );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage("");
+    setSubmitStatus(null);
 
     try {
       const res = await fetch("/api/contact", {
@@ -26,6 +29,8 @@ export function ContactForm() {
         body: JSON.stringify({ name, email, topic }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         setSubmitStatus("success");
         setName("");
@@ -33,10 +38,12 @@ export function ContactForm() {
         setTopic("");
       } else {
         setSubmitStatus("error");
+        setErrorMessage(data.details || data.error || "Failed to send message");
       }
     } catch (error) {
       console.log("Error:", error);
       setSubmitStatus("error");
+      setErrorMessage("Network error. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -52,7 +59,7 @@ export function ContactForm() {
         </div>
       ) : submitStatus === "error" ? (
         <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400">
-          Something went wrong. Please try again later.
+          {errorMessage || "Something went wrong. Please try again later."}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">

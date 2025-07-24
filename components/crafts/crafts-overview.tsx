@@ -1,13 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import posterImg1 from "../../public/crafts/preview/html-details.webp";
 import posterImg2 from "../../public/crafts/preview/mspot-subscribe-btn.webp";
 import posterImg3 from "../../public/crafts/preview/animated-button.webp";
+import posterAiChat from "../../public/crafts/preview/ai-chat.webp";
 import { Loader2 } from "lucide-react";
 import { CounterCraft } from "@/components/crafts/counter";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
+
+import { LoadingGradient } from "@/components/ui/loading-gradient";
 
 const crafts: {
   src: string;
@@ -16,6 +19,12 @@ const crafts: {
   title: string;
   bgColor: string;
 }[] = [
+  {
+    src: "/crafts/ai-chat-demo.mp4",
+    title: "Conversational AI Chat",
+    posterImg: posterAiChat,
+    bgColor: "#0a0a0a",
+  },
   {
     src: "/animated-sign-up-button/tease.mp4",
     posterImg: posterImg3,
@@ -39,14 +48,57 @@ const crafts: {
 
 export function CraftsOverview() {
   const [showAll, setShowAll] = useState(false);
-  const displayedCrafts = showAll ? crafts : crafts.slice(0, 1);
+  const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
+  const displayedCrafts = showAll ? crafts : crafts.slice(0, 2);
+
+  const removeLoader = useCallback((craftSrc: string) => {
+    setLoadedVideos((prev) => new Set(prev).add(craftSrc));
+  }, []);
+
+  const handleVideoRef = useCallback(
+    (videoElement: HTMLVideoElement | null, craftSrc: string) => {
+      if (videoElement && !loadedVideos.has(craftSrc)) {
+        // Remove loader immediately when video element is created
+        removeLoader(craftSrc);
+
+        // Also set up multiple event listeners for backup
+        const events = ["loadstart", "loadedmetadata", "loadeddata", "canplay"];
+        events.forEach((event) => {
+          videoElement.addEventListener(event, () => removeLoader(craftSrc), {
+            once: true,
+          });
+        });
+      }
+    },
+    [loadedVideos, removeLoader],
+  );
 
   return (
     <motion.div className="flex flex-col gap-4" layout>
+      <style>
+        {`
+          .gradient-text {
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+        `}
+      </style>
+
       <motion.div
         layout
         className="flex grid-cols-2 flex-col items-start gap-4 md:grid"
       >
+        <motion.div
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="w-full"
+        >
+          <CraftsContainer title="Shimmer Effect">
+            <LoadingGradient className="text-xl">Loading</LoadingGradient>
+          </CraftsContainer>
+        </motion.div>
+
         <motion.div
           layout
           initial={{ opacity: 0 }}
@@ -75,13 +127,16 @@ export function CraftsOverview() {
                 title={craft.title}
                 link={craft.link}
               >
-                <div
-                  id={`loader-${craft.src}`}
-                  className="motion-preset-fade absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm"
-                >
-                  <Loader2 className="absolute inset-0 m-auto h-8 w-8 animate-spin" />
-                </div>
+                {!loadedVideos.has(craft.src) && (
+                  <div
+                    id={`loader-${craft.src}`}
+                    className="motion-preset-fade absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+                  >
+                    <Loader2 className="absolute inset-0 m-auto h-8 w-8 animate-spin" />
+                  </div>
+                )}
                 <video
+                  ref={(el) => handleVideoRef(el, craft.src)}
                   autoPlay
                   loop
                   muted
@@ -91,9 +146,6 @@ export function CraftsOverview() {
                   className="w-full max-w-[400px] md:max-w-none"
                   poster={craft.posterImg.src}
                   aria-label={craft.title}
-                  onLoadedData={() => {
-                    document.getElementById(`loader-${craft.src}`)?.remove();
-                  }}
                 >
                   <source src={craft.src} type="video/mp4" />
                 </video>
@@ -105,10 +157,11 @@ export function CraftsOverview() {
 
       {crafts.length > 2 && (
         <motion.div
-          layout
+          layout="position"
           className="flex justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
         >
           <Button
             variant="outline"

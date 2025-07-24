@@ -8,13 +8,13 @@ export default async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get("title") || "Jo Maendle";
   const description =
-    searchParams.get("description") || "Full-stack developer & builder";
+    searchParams.get("description") || "Building for the Web.";
 
   return new ImageResponse(
     (
       <div
         style={{
-          background: "linear-gradient(135deg, #121212 0%, #1a1a1a 100%)",
+          background: "linear-gradient(135deg, #101010 0%, #1a1a1a 100%)",
           color: "#fff",
           width: "100%",
           height: "100%",
