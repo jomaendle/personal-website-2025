@@ -94,7 +94,7 @@ export function CraftsOverview() {
           animate={{ opacity: 1 }}
           className="w-full"
         >
-          <CraftsContainer title="Shimmer Effetct">
+          <CraftsContainer title="Shimmer Effect">
             <LoadingGradient className="text-xl">Loading</LoadingGradient>
           </CraftsContainer>
         </motion.div>
