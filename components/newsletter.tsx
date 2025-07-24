@@ -3,7 +3,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { H2 } from "@/components/ui/heading";
-import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
@@ -40,8 +39,11 @@ export default function NewsletterForm() {
         setTimeout(() => setStatus("idle"), 5000);
       }
     } catch (error) {
+      console.error("Subscription error:", error);
       setStatus("error");
-      setErrorMessage("Network error. Please check your connection and try again.");
+      setErrorMessage(
+        "Network error. Please check your connection and try again.",
+      );
       setTimeout(() => setStatus("idle"), 5000);
     }
   };
@@ -92,13 +94,13 @@ export default function NewsletterForm() {
       </form>
 
       {status === "success" && (
-        <p className="mt-3 text-sm text-green-400 motion-preset-slide-down-md opacity-100 motion-opacity-in-0">
+        <p className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0">
           Thanks for subscribing! You will receive an email shortly.
         </p>
       )}
 
       {status === "error" && (
-        <p className="mt-3 text-sm text-red-400 motion-preset-slide-down-md opacity-100 motion-opacity-in-0">
+        <p className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0">
           {errorMessage || "Failed to subscribe. Please try again."}
         </p>
       )}
