@@ -5,6 +5,7 @@ import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
 import Head from "next/head";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Metadata } from "next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,7 +16,7 @@ const ogImageDescription = encodeURIComponent(
   "Full-Stack developer sharing his thoughts on the web.",
 );
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL("https://www.jomaendle.com/"),
   title: {
     default: "Jo Mändle | Building for the Web.",
