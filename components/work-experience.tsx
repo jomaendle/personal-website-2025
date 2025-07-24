@@ -4,6 +4,12 @@ import { ExternalLinkIcon } from "lucide-react";
 
 const workExperiences = [
   {
+    title: "Music Player",
+    description: "A music player to play songs from my band Car Kids.",
+    link: "https://radio.jomaendle.com",
+    isExternal: true,
+  },
+  {
     title: "The Beauty of Earth",
     description:
       "A collection of landscape photography showcasing the beauty of Earth.",
