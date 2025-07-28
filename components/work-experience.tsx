@@ -4,16 +4,17 @@ import { ExternalLinkIcon } from "lucide-react";
 
 const workExperiences = [
   {
-    title: "Music Player",
-    description: "A music player to play songs from my band Car Kids.",
-    link: "https://radio.jomaendle.com",
-    isExternal: true,
-  },
-  {
     title: "The Beauty of Earth",
     description:
       "A collection of landscape photography showcasing the beauty of Earth.",
-    link: "https://images.jomaendle.com",
+    link: "https://thebeautyof.earth",
+    isExternal: true,
+    isNew: true,
+  },
+  {
+    title: "Music Player",
+    description: "A music player to play songs from my band Car Kids.",
+    link: "https://radio.jomaendle.com",
     isExternal: true,
   },
   {
@@ -23,6 +24,13 @@ const workExperiences = [
     link: "https://photo.jomaendle.com",
     isExternal: true,
   },
+  /*{
+    title: "The Beauty of Earth (deprecated)",
+    description:
+      "A collection of landscape photography showcasing the beauty of Earth.",
+    link: "https://images.jomaendle.com",
+    isExternal: true,
+  },*/
 ];
 
 export function WorkExperience() {
@@ -40,6 +48,11 @@ export function WorkExperience() {
               {experience.title}
               {experience.isExternal && (
                 <ExternalLinkIcon className="ml-2 inline-block size-3" />
+              )}
+              {experience.isNew && (
+                <span className="ml-2 inline-block rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
+                  New
+                </span>
               )}
             </H3>
             <p className="text-muted-foreground">{experience.description}</p>
