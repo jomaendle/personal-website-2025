@@ -19,8 +19,10 @@ export default function Home() {
         <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
-            I&apos;m a full-stack JavaScript/TypeScript developer with a passion
-            for frontend, design, and animation.
+            Full-stack developer specializing in React, TypeScript, and modern
+            web architectures. <br />
+            I help startups and enterprises build scalable products that users
+            love and businesses depend on. <br />
           </p>
         </section>
 
