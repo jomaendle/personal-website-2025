@@ -7,7 +7,7 @@ interface CraftsContainerProps extends HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   innerClassName?: string;
   title?: string;
-  link?: string;
+  link?: string | undefined;
   showFadeOut?: boolean;
 }
 

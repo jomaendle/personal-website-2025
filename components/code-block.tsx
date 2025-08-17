@@ -19,8 +19,8 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
       await navigator.clipboard.writeText(code.trim());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
+    } catch {
+      setCopied(false);
     }
   };
 

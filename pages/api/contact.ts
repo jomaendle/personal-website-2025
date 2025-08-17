@@ -1,5 +1,6 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withRateLimit } from "@/lib/rate-limit";
 
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -10,7 +11,7 @@ function sanitizeInput(input: string): string {
   return input.trim().slice(0, 1000); // Limit length and trim whitespace
 }
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -73,8 +74,7 @@ export default async function handler(
       }
 
       res.status(200).json({ message: "Message sent successfully" });
-    } catch (error) {
-      console.error("Contact form error:", error);
+    } catch {
       res.status(500).json({ error: "Failed to send message" });
     }
   } else {
@@ -82,3 +82,9 @@ export default async function handler(
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+export default withRateLimit(handler, {
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  message: "Too many contact form submissions, please try again later"
+});

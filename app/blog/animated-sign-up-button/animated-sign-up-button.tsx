@@ -86,7 +86,7 @@ export function AnimatedSignUpButton() {
               step={0.1}
               defaultValue={[duration]}
               value={[duration]}
-              onValueChange={(e) => setDuration(e[0])}
+              onValueChange={(e) => setDuration(e[0] ?? 0.3)}
             />
             {duration}s
           </div>
@@ -100,7 +100,7 @@ export function AnimatedSignUpButton() {
               step={0.1}
               defaultValue={[bounce]}
               value={[bounce]}
-              onValueChange={(e) => setBounce(e[0])}
+              onValueChange={(e) => setBounce(e[0] ?? 0)}
             />
             {bounce}
           </div>

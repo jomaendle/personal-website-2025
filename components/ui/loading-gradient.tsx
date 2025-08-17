@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface LoadingGradientProps
@@ -7,7 +7,47 @@ export interface LoadingGradientProps
   children: React.ReactNode;
 }
 
-// CSS @property definition - adds to document only once
+// Global flag to track if CSS has been injected
+let shimmerStylesInjected = false;
+
+// Inject CSS styles once globally
+const injectShimmerStyles = () => {
+  if (shimmerStylesInjected || typeof document === "undefined") return;
+
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+    @property --shimmer-position {
+      syntax: "<percentage>";
+      initial-value: 0%;
+      inherits: false;
+    }
+
+    .shimmer-text {
+      animation: shimmer-property 2s ease-in-out infinite;
+      background-clip: text !important;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      background: linear-gradient(to right, #4a5568, white, #4a5568);
+      background-size: 200% 100%;
+      background-position: var(--shimmer-position, 0%) 0%;
+    }
+
+    @keyframes shimmer-property {
+      0% {
+        --shimmer-position: -100%;
+      }
+      100% {
+        --shimmer-position: 100%;
+      }
+    }
+  `;
+
+  document.head.appendChild(styleSheet);
+  shimmerStylesInjected = true;
+};
+
+// CSS @property registration for browsers that support it
 const registerCSSProperty = () => {
   if (
     typeof window !== "undefined" &&
@@ -21,56 +61,30 @@ const registerCSSProperty = () => {
         initialValue: "0%",
         inherits: false,
       });
-    } catch (error) {
-      // Property may already be registered, which throws an error
-      console.debug("CSS Property registration:", error);
+    } catch {
+      // Property may already be registered, silently ignore
     }
   }
 };
 
 const LoadingGradient = React.forwardRef<HTMLSpanElement, LoadingGradientProps>(
   ({ className, children, ...props }, ref) => {
+    const initRef = useRef(false);
+
     useEffect(() => {
-      registerCSSProperty();
+      if (!initRef.current) {
+        injectShimmerStyles();
+        registerCSSProperty();
+        initRef.current = true;
+      }
     }, []);
 
     return (
       <span
         ref={ref}
         className={cn("shimmer-text inline-block", className)}
-        style={{
-          // Define gradient using the CSS property
-          background: "linear-gradient(to right, #4a5568, white, #4a5568)",
-          backgroundSize: "200% 100%",
-          backgroundPosition: "var(--shimmer-position, 0%) 0%",
-          backgroundClip: "text",
-        }}
         {...props}
       >
-        <style jsx global>{`
-          @property --shimmer-position {
-            syntax: "<percentage>";
-            initial-value: 0%;
-            inherits: false;
-          }
-
-          .shimmer-text {
-            animation: shimmer-property 2s ease-in-out infinite;
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-          }
-
-          @keyframes shimmer-property {
-            0% {
-              --shimmer-position: -100%;
-            }
-            100% {
-              --shimmer-position: 100%;
-            }
-          }
-        `}</style>
         {children}
       </span>
     );

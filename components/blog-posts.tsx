@@ -69,21 +69,23 @@ export function BlogPosts() {
 
           if (!shouldShow) return null;
 
+          const motionProps = {
+            ...(index > 3 && showAll && !isCollapsing && { initial: "initial" }),
+            ...(index > 3 && isCollapsing && { exit: "exit" }),
+          };
+
           return (
             <motion.article
               key={post.slug}
               layout
               variants={itemVariants}
-              initial={
-                index > 3 && showAll && !isCollapsing ? "initial" : undefined
-              }
               animate="animate"
-              exit={index > 3 && isCollapsing ? "exit" : undefined}
               transition={{
                 duration: ANIMATION_DURATION,
                 delay: getItemAnimationDelay(index),
                 ease: "easeOut",
               }}
+              {...motionProps}
             >
               <Link
                 href={"/blog/" + post.slug}

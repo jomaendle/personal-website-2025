@@ -7,6 +7,7 @@ import Head from "next/head";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
 import { Provider as JotaiProvider } from "jotai";
+import { PersonStructuredData, WebsiteStructuredData } from "@/components/structured-data";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -64,6 +65,8 @@ export default function RootLayout({
             </ThemeProvider>
           </JotaiProvider>
           <SpeedInsights />
+          <PersonStructuredData />
+          <WebsiteStructuredData />
         </body>
       </html>
     </ViewTransitions>

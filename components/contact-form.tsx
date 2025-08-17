@@ -41,9 +41,12 @@ export function ContactForm() {
         setErrorMessage(data.details || data.error || "Failed to send message");
       }
     } catch (error) {
-      console.log("Error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setSubmitStatus("error");
-      setErrorMessage("Network error. Please check your connection and try again.");
+      setErrorMessage(
+        `Network error. Please check your connection and try again: ${errorMessage}`,
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -65,7 +68,7 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="mb-2 block text-sm text-white/80">
-              Name
+              Name <span className="text-red-400">*</span>
             </label>
             <Input
               id="name"
@@ -73,29 +76,34 @@ export function ContactForm() {
               value={name}
               placeholder="Your Name"
               onChange={(e) => setName(e.target.value)}
-              className="bg-neutral-900"
+              className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              disabled={isSubmitting}
+              minLength={2}
+              maxLength={100}
             />
           </div>
 
           <div>
             <label htmlFor="email" className="mb-2 block text-sm text-white/80">
-              Email
+              Email <span className="text-red-400">*</span>
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="Your Email"
+              placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-neutral-900"
+              className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              disabled={isSubmitting}
+              maxLength={254}
             />
           </div>
 
           <div>
             <label htmlFor="topic" className="mb-2 block text-sm text-white/80">
-              Message
+              Message <span className="text-red-400">*</span>
             </label>
             <Textarea
               id="topic"
@@ -103,9 +111,15 @@ export function ContactForm() {
               onChange={(e) => setTopic(e.target.value)}
               rows={4}
               placeholder="I'm interested in a new software product and would like to know more about your services."
-              className="w-full bg-neutral-900"
+              className="w-full bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              disabled={isSubmitting}
+              minLength={10}
+              maxLength={1000}
             />
+            <div className="mt-1 text-xs text-muted-foreground">
+              {topic.length}/1000 characters
+            </div>
           </div>
 
           <Button

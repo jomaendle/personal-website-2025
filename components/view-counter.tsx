@@ -20,7 +20,7 @@ export function ViewCounter({
   shouldIncrement,
 }: {
   slug: string;
-  shouldIncrement?: boolean;
+  shouldIncrement?: boolean | undefined;
 }) {
   // Fetch all views once
   const {

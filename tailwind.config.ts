@@ -52,8 +52,8 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
         link: {
-          DEFAULT: "#339cff",
-          hover: "#0070f3",
+          DEFAULT: "hsl(var(--link))",
+          hover: "hsl(var(--link-hover))",
         },
       },
       borderRadius: {

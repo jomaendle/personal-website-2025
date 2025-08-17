@@ -85,6 +85,10 @@ export function WorkExperience() {
                       width={400}
                       height={280}
                       className="h-full w-full object-cover transition-transform duration-300"
+                      priority={index === 0}
+                      placeholder="blur"
+                      sizes="(max-width: 768px) 160px, 256px"
+                      quality={85}
                     />
                   </div>
                 </div>
