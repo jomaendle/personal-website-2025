@@ -84,11 +84,11 @@ export function TableOfContents({ className = "" }: TableOfContentsProps) {
         transition={{ duration: 0.3 }}
         className={`fixed right-4 top-[100px] hidden h-full max-w-[260px] flex-col xl:flex 2xl:max-w-[290px] ${className}`}
         style={{
-          maxHeight: "calc(80vh - 200px)",
+          maxHeight: "calc(100svh - 200px)",
         }}
         aria-label="Table of contents"
       >
-        <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4">
+        <div className="flex h-full flex-col rounded-lg border border-border bg-card px-2 py-4">
           <h4 className="mb-3 text-sm font-medium text-foreground">
             On this page
           </h4>
@@ -98,7 +98,10 @@ export function TableOfContents({ className = "" }: TableOfContentsProps) {
                 key={item.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: tocItems.indexOf(item) * 0.05 }}
+                transition={{
+                  delay: tocItems.indexOf(item) * 0.05,
+                  type: "tween",
+                }}
                 className="flex w-full items-center"
               >
                 <button
@@ -120,7 +123,7 @@ export function TableOfContents({ className = "" }: TableOfContentsProps) {
   );
 }
 
-// Mobile version that can be toggled
+// Mobile version that uses collapsible for table of contents only
 export function MobileTableOfContents() {
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -168,7 +171,7 @@ export function MobileTableOfContents() {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full justify-between"
       >
-        Table of Contents
+        On This Page
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}

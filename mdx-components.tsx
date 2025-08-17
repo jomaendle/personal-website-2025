@@ -6,16 +6,9 @@ import { usePathname } from "next/navigation";
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: ({ children, ...props }) => {
-      // Extract slug from current path for view transition name
-      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-      const slug = pathname.split('/blog/')[1] || '';
-      
       return (
         <h1 
           className="mb-8 text-2xl font-normal tracking-tight blog-title" 
-          style={{ 
-            viewTransitionName: slug ? `blog-title-${slug}` : undefined 
-          }}
           {...props}
         >
           {children}

@@ -6,7 +6,7 @@
     :root {
         --background: 0 0% 7%;
         --foreground: 0 0% 98%;
-        --card: 0 0% 7%;
+        --card: 0 0% 10.8%;
         --card-foreground: 0 0% 98%;
         --popover: 0 0% 7%;
         --popover-foreground: 0 0% 98%;
@@ -212,47 +212,21 @@
 :root {
 
     scrollbar-width: thin;
-    scrollbar-color: #b0b0b0 #222;
+    scrollbar-color: #b0b0b0 transparent;
     scrollbar-gutter: stable both-edges;
 }
 
     /* View Transitions Support */
     @supports (view-transition-name: none) {
-        /* Disable default root cross-fade to prevent flickering */
-        ::view-transition-group(root) {
-            animation-duration: 0s;
-        }
-
-        ::view-transition-old(root),
-        ::view-transition-new(root) {
-            animation: none;
-            mix-blend-mode: normal;
-        }
-
-        /* Blog title specific transitions - simplified for smooth bidirectional navigation */
-        ::view-transition-old(blog-title),
-        ::view-transition-new(blog-title) {
-            height: auto;
-            right: auto;
-            left: auto;
-            bottom: auto;
-            top: auto;
-            transform-origin: center;
-            animation-fill-mode: both;
-        }
-
-        ::view-transition-old(blog-title) {
-            animation: title-fade-out 0.2s ease-out both;
-        }
-
-        ::view-transition-new(blog-title) {
-            animation: title-fade-in 0.2s ease-out both;
-        }
-
-        /* Performance optimizations for blog titles */
-        .blog-title {
-            contain: layout style paint;
-            will-change: transform, opacity;
+        /* Respect user's motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            ::view-transition-group(*),
+            ::view-transition-old(*),
+            ::view-transition-new(*) {
+                animation-duration: 0.01s !important;
+                animation-delay: 0s !important;
+                animation-iteration-count: 1 !important;
+            }
         }
     }
 

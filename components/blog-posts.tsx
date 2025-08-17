@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
@@ -91,12 +91,7 @@ export function BlogPosts() {
                 prefetch={false}
               >
                 <div className="flex-1">
-                  <H3
-                    className="blog-title line-clamp-2"
-                    style={{
-                      viewTransitionName: `blog-title-${post.slug}`,
-                    }}
-                  >
+                  <H3 className="blog-title line-clamp-2">
                     {post.title}
                   </H3>
                   <p className="text-sm text-muted-foreground">{post.date}</p>
@@ -136,40 +131,38 @@ export function BlogPosts() {
 }
 
 export function BlogPostList({ currentSlug }: { currentSlug: string }) {
+  const currentBlogPosts = useMemo(() => {
+    return BLOG_POSTS.filter((post) => post.slug !== currentSlug);
+  }, [currentSlug]);
+
   return (
-    <aside className="flex h-full flex-col gap-2 overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm">
+    <motion.aside
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="flex h-full flex-col gap-2 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
+    >
       <h4 className="mb-0 text-sm font-medium text-foreground">More Posts</h4>
 
       <div className="flex flex-col gap-3 overflow-y-auto overflow-x-hidden pr-1">
-        {BLOG_POSTS.filter((post) => post.slug !== currentSlug).map(
-          (post, index) => (
-            <motion.article
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+        {currentBlogPosts.map((post, index) => (
+          <article key={index}>
+            <Link
+              href={"/blog/" + post.slug}
+              className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
+              prefetch={false}
             >
-              <Link
-                href={"/blog/" + post.slug}
-                className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
-                prefetch={false}
-              >
-                <H3
-                  className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-primary"
-                  style={{
-                    viewTransitionName: `blog-title-${post.slug}`,
-                  }}
-                >
-                  {post.title}
-                </H3>
-                <p className="mt-1 text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
-                  {post.date}
-                </p>
-              </Link>
-            </motion.article>
-          ),
-        )}
+              <H3 className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-primary">
+                {post.title}
+              </H3>
+              <p className="mt-1 text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
+                {post.date}
+              </p>
+            </Link>
+          </article>
+        ))}
       </div>
-    </aside>
+    </motion.aside>
   );
 }

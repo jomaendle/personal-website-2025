@@ -1,14 +1,11 @@
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
-import { BlogPostList } from "@/components/blog-posts";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-import {
-  MobileTableOfContents,
-  TableOfContents,
-} from "@/components/table-of-contents";
+import { MobileTableOfContents } from "@/components/table-of-contents";
 import { ReadingTime } from "@/components/reading-time";
 import { BackToTop } from "@/components/back-to-top";
 
@@ -46,23 +43,21 @@ export default function MdxLayout({
         </div>
 
         <div
-          className="fixed left-12 top-[100px] hidden max-w-[240px] flex-col gap-6 overflow-y-hidden xl:flex"
+          className="fixed left-12 top-[100px] hidden w-[240px] flex-col gap-6 overflow-y-hidden xl:flex"
           style={{
-            maxHeight: "calc(100vh - 200px)",
+            maxHeight: "calc(100svh - 200px)",
           }}
         >
           <div className="mb-12">
             <BackLink />
           </div>
 
-          <BlogPostList currentSlug={slug} />
+          <SidebarNavigation currentSlug={slug} />
         </div>
 
         <MobileTableOfContents />
 
         <div className="prose">{children}</div>
-
-        <TableOfContents />
 
         <hr className="my-12" />
 
