@@ -70,6 +70,10 @@ const config: Config = {
       animation: {
         shimmer: "shimmer 2s ease-in-out infinite",
       },
+      screens: {
+        "2xl": "1440px",
+        "3xl": "1600px",
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("tailwindcss-motion")],

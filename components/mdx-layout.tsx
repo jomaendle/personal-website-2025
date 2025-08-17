@@ -5,6 +5,12 @@ import { Link } from "next-view-transitions";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import {
+  MobileTableOfContents,
+  TableOfContents,
+} from "@/components/table-of-contents";
+import { ReadingTime } from "@/components/reading-time";
+import { BackToTop } from "@/components/back-to-top";
 
 export default function MdxLayout({
   children,
@@ -31,11 +37,20 @@ export default function MdxLayout({
         </div>
 
         <div className="mb-12 flex items-center justify-between gap-3">
-          {metadata.date}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <time dateTime={metadata.date}>{metadata.date}</time>
+            <span>•</span>
+            <ReadingTime />
+          </div>
           <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
         </div>
 
-        <div className="fixed left-12 top-[100px] hidden max-w-[240px] flex-col gap-6 xl:flex">
+        <div
+          className="fixed left-12 top-[100px] hidden max-w-[240px] flex-col gap-6 overflow-y-hidden xl:flex"
+          style={{
+            maxHeight: "calc(100vh - 200px)",
+          }}
+        >
           <div className="mb-12">
             <BackLink />
           </div>
@@ -43,7 +58,11 @@ export default function MdxLayout({
           <BlogPostList currentSlug={slug} />
         </div>
 
+        <MobileTableOfContents />
+
         <div className="prose">{children}</div>
+
+        <TableOfContents />
 
         <hr className="my-12" />
 
@@ -53,6 +72,8 @@ export default function MdxLayout({
 
         <Footer />
       </div>
+
+      <BackToTop />
     </main>
   );
 }
@@ -61,9 +82,10 @@ function BackLink() {
   return (
     <Link
       href="/"
-      className="inline-block text-sm text-muted-foreground transition-colors hover:text-primary"
+      className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200 hover:text-primary"
     >
-      ← Back
+      <span className="transition-transform duration-200">←</span>
+      Back
     </Link>
   );
 }
