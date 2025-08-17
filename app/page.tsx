@@ -19,10 +19,22 @@ export default function Home() {
         <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
-            Full-stack developer specializing in React, TypeScript, and modern
-            web architectures. <br />
-            I help startups and enterprises build scalable products that users
-            love and businesses depend on. <br />
+            Passionate full-stack JavaScript developer crafting modern web
+            applications across the entire JavaScript ecosystem - from React and
+            Vue to Angular and vanilla JS. <br /> <br />
+            Leveraging AI tools like Lovable to accelerate development and
+            explore innovative solutions.
+            <br />
+            <br />
+            Sharing insights and building in public on{" "}
+            <a
+              href="https://www.linkedin.com/in/johannes-maendle/"
+              target="_blank"
+              className="text-link transition-colors hover:text-link-hover"
+            >
+              LinkedIn
+            </a>
+            .
           </p>
         </section>
 

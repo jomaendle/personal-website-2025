@@ -52,7 +52,7 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
         link: {
-          DEFAULT: "#2997ff",
+          DEFAULT: "#339cff",
           hover: "#0070f3",
         },
       },

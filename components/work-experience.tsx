@@ -1,8 +1,20 @@
 import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
+import Image from "next/image";
+
+import oneClientImg from "../public/hero/one-client.webp";
 
 const workExperiences = [
+  {
+    title: "OneClient",
+    description:
+      "A platform for freelancers and agencies to manage projects and clients.",
+    link: "https://oneclient.pro",
+    isExternal: true,
+    isNew: true,
+    imgSrc: oneClientImg,
+  },
   {
     title: "The Beauty of Earth",
     description:
@@ -44,18 +56,40 @@ export function WorkExperience() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <H3 className="flex items-center">
-              {experience.title}
-              {experience.isExternal && (
-                <ExternalLinkIcon className="ml-2 inline-block size-3" />
-              )}
-              {experience.isNew && (
-                <span className="ml-2 inline-block rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
-                  New
-                </span>
-              )}
-            </H3>
-            <p className="text-muted-foreground">{experience.description}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <H3 className="flex flex-wrap items-center">
+                  {experience.title}
+                  {experience.isExternal && (
+                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0" />
+                  )}
+                  {experience.isNew && (
+                    <span className="ml-2 inline-block flex-shrink-0 rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
+                      New
+                    </span>
+                  )}
+                </H3>
+                <p className="text-muted-foreground">
+                  {experience.description}
+                </p>
+              </div>
+            </div>
+
+            {experience.imgSrc && (
+              <div className="mt-3">
+                <div className="relative h-24 w-40 overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-neutral-100/10 to-neutral-900/20 p-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:border-white/10 group-hover:shadow-xl md:h-48 md:w-64">
+                  <div className="h-full w-full overflow-hidden rounded-xl bg-neutral-900/50">
+                    <Image
+                      src={experience.imgSrc}
+                      alt={`${experience.title} preview`}
+                      width={400}
+                      height={280}
+                      className="h-full w-full object-cover transition-transform duration-300"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </Link>
         </article>
       ))}
