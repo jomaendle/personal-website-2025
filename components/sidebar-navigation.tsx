@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useAtom } from "jotai";
 import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { BLOG_POSTS } from "@/lib/state/blog";
+import {
+  sidebarMorePostsOpenAtom,
+  sidebarOnThisPageOpenAtom,
+  tocAutoExpandEnabledAtom,
+} from "@/lib/state/sidebar";
 import { AnimatePresence, motion } from "framer-motion";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
@@ -21,8 +27,9 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
-  const [isMorePostsOpen, setIsMorePostsOpen] = useState(true);
-  const [isOnThisPageOpen, setIsOnThisPageOpen] = useState(false);
+  const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(sidebarMorePostsOpenAtom);
+  const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(sidebarOnThisPageOpenAtom);
+  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(tocAutoExpandEnabledAtom);
 
   const currentBlogPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => post.slug !== currentSlug);
@@ -49,9 +56,15 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
     setTocItems(items);
 
-    // Auto-expand "On This Page" if there are TOC items
-    if (items.length > 0) {
+    // Smart auto-expand logic for "On This Page" section
+    // Only auto-expand if:
+    // 1. TOC items exist
+    // 2. Auto-expansion is still enabled (first-time behavior)
+    // 3. User hasn't explicitly set a preference (section is still closed)
+    if (items.length > 0 && tocAutoExpandEnabled && !isOnThisPageOpen) {
       setIsOnThisPageOpen(true);
+      // Disable auto-expansion after first use to respect user preference going forward
+      setTocAutoExpandEnabled(false);
     }
 
     // Intersection Observer for active heading tracking
@@ -71,7 +84,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     headings.forEach((heading) => observer.observe(heading));
 
     return () => observer.disconnect();
-  }, []);
+  }, [isOnThisPageOpen, setIsOnThisPageOpen, tocAutoExpandEnabled, setTocAutoExpandEnabled]);
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);

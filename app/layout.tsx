@@ -6,6 +6,7 @@ import PlausibleProvider from "next-plausible";
 import Head from "next/head";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
+import { Provider as JotaiProvider } from "jotai";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,11 +56,13 @@ export default function RootLayout({
         <body
           className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
         >
-          <ThemeProvider attribute="class" defaultTheme="system">
-            <PlausibleProvider domain="jomaendle.com">
-              {children}
-            </PlausibleProvider>
-          </ThemeProvider>
+          <JotaiProvider>
+            <ThemeProvider attribute="class" defaultTheme="system">
+              <PlausibleProvider domain="jomaendle.com">
+                {children}
+              </PlausibleProvider>
+            </ThemeProvider>
+          </JotaiProvider>
           <SpeedInsights />
         </body>
       </html>

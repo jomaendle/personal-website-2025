@@ -4,9 +4,9 @@
 
 @layer base {
     :root {
-        --background: 0 0% 7%;
+        --background: 0 0% 6%;
         --foreground: 0 0% 98%;
-        --card: 0 0% 10.8%;
+        --card: 0 0% 9.8%;
         --card-foreground: 0 0% 98%;
         --popover: 0 0% 7%;
         --popover-foreground: 0 0% 98%;
@@ -247,5 +247,60 @@
         to { 
             opacity: 1;
         }
+    }
+
+    /* Glass morphism effect for header */
+    .glass-header {
+        position: relative;
+        
+        /* Background gradient - visible on all screen sizes */
+        background: linear-gradient(180deg, 
+            hsl(0 0% 0% / 0.95) 0%,
+            hsl(0 0% 0% / 0.8) 25%, 
+            hsl(0 0% 0% / 0.5) 50%, 
+            hsl(0 0% 0% / 0.2) 75%, 
+            transparent 100%);
+    }
+
+    /* Only extend beyond container on larger screens to prevent mobile overflow */
+    @media (min-width: 768px) {
+        .glass-header {
+            /* Extend beyond container to prevent blur cutoff */
+            margin-left: -50vw;
+            margin-right: -50vw;
+            padding-left: 50vw;
+            padding-right: 50vw;
+        }
+    }
+
+    .glass-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        
+        /* Backdrop filter with mask for gradient effect */
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        
+        /* Mask only the backdrop filter, not the main background */
+        mask: linear-gradient(180deg, 
+            black 0%, 
+            black 20%, 
+            rgba(0,0,0,0.9) 35%, 
+            rgba(0,0,0,0.7) 50%, 
+            rgba(0,0,0,0.5) 65%, 
+            rgba(0,0,0,0.2) 80%, 
+            transparent 100%);
+        -webkit-mask: linear-gradient(180deg, 
+            black 0%, 
+            black 20%, 
+            rgba(0,0,0,0.9) 35%, 
+            rgba(0,0,0,0.7) 50%, 
+            rgba(0,0,0,0.5) 65%, 
+            rgba(0,0,0,0.2) 80%, 
+            transparent 100%);
+        
+        pointer-events: none;
+        z-index: 1;
     }
 }

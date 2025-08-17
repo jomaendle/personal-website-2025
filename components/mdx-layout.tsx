@@ -19,11 +19,14 @@ export default function MdxLayout({
   metadata: { date: string };
 }) {
   return (
-    <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
+    <main className="px-6 pb-16 md:px-16 md:pb-24 lg:pb-24">
       <ScrollProgress />
       <div className="mx-auto max-w-2xl">
-        <div className="sticky top-0 z-[100] mb-4 flex h-20 items-center justify-center gap-12 bg-gradient-to-b from-[hsl(var(--background))] from-35% md:h-28 md:from-25%">
-          <div className="relative -top-3 flex w-full items-center justify-center md:-top-8">
+        <div className="glass-header sticky top-0 z-[100] mb-4 flex h-20 items-center justify-center gap-12 md:h-24">
+          <div
+            className="relative -top-3 z-10 flex w-full items-center justify-center md:-top-8"
+            style={{ zIndex: 10 }}
+          >
             <div className="absolute left-0 xl:hidden">
               <BackLink />
             </div>
