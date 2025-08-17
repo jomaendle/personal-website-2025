@@ -53,6 +53,9 @@ export default function RootLayout({
         <Head>
           <link rel="icon" type="image/x-icon" href="/favicon.ico" />
           <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+          <link rel="modulepreload" href="/_next/static/chunks/pages/_app.js" />
+          <link rel="modulepreload" href="/_next/static/chunks/webpack.js" />
+          <link rel="modulepreload" href="/_next/static/chunks/main.js" />
         </Head>
         <body
           className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}

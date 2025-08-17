@@ -1,6 +1,6 @@
 import { atomWithStorage } from 'jotai/utils'
 
-// Persistent sidebar state atoms with localStorage
+// Persistent sidebar state atoms - using built-in localStorage with SSR handling
 export const sidebarMorePostsOpenAtom = atomWithStorage(
   'sidebar-more-posts-open',
   true // Default: More Posts section is open

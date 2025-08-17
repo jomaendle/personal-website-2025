@@ -30,10 +30,17 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(sidebarMorePostsOpenAtom);
   const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(sidebarOnThisPageOpenAtom);
   const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(tocAutoExpandEnabledAtom);
+  const [isMounted, setIsMounted] = useState(false);
+
 
   const currentBlogPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => post.slug !== currentSlug);
   }, [currentSlug]);
+
+  // Handle mounting to prevent SSR/hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // TOC logic from original TableOfContents component
   useEffect(() => {
@@ -60,8 +67,8 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     // Only auto-expand if:
     // 1. TOC items exist
     // 2. Auto-expansion is still enabled (first-time behavior)
-    // 3. User hasn't explicitly set a preference (section is still closed)
-    if (items.length > 0 && tocAutoExpandEnabled && !isOnThisPageOpen) {
+    // 3. Component has mounted (to ensure localStorage is loaded)
+    if (items.length > 0 && tocAutoExpandEnabled && isMounted) {
       setIsOnThisPageOpen(true);
       // Disable auto-expansion after first use to respect user preference going forward
       setTocAutoExpandEnabled(false);
@@ -84,7 +91,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     headings.forEach((heading) => observer.observe(heading));
 
     return () => observer.disconnect();
-  }, [isOnThisPageOpen, setIsOnThisPageOpen, tocAutoExpandEnabled, setTocAutoExpandEnabled]);
+  }, [isMounted, tocAutoExpandEnabled, setIsOnThisPageOpen, setTocAutoExpandEnabled]);
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);
@@ -98,22 +105,34 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     }
   };
 
+  // Handle manual TOC toggle - disable auto-expand when user manually interacts
+  const handleTocToggle = (open: boolean) => {
+    setIsOnThisPageOpen(open);
+    // Disable auto-expand permanently when user manually toggles
+    setTocAutoExpandEnabled(false);
+  };
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <motion.aside
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
-      style={{
-        scrollbarGutter: "stable",
-      }}
-    >
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
+        style={{
+          scrollbarGutter: "stable",
+        }}
+      >
       {/* On This Page Section */}
       {tocItems.length > 0 && (
         <Collapsible
           open={isOnThisPageOpen}
-          onOpenChange={setIsOnThisPageOpen}
+          onOpenChange={handleTocToggle}
           className="relative"
         >
           <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md bg-card px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
