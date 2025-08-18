@@ -49,8 +49,6 @@ export function HeadingWithAnchor({
     }
   }, [headingId]);
 
-  const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-
   // Base styles for different heading levels (matching existing H2/H3 components)
   const getHeadingStyles = () => {
     if (level === 2) {
@@ -62,12 +60,14 @@ export function HeadingWithAnchor({
     return "";
   };
 
-  return (
-    <HeadingTag
-      id={headingId}
-      className={cn("group relative", getHeadingStyles(), className)}
-      {...props}
-    >
+  const headingProps = {
+    id: headingId,
+    className: cn("group relative", getHeadingStyles(), className),
+    ...props
+  };
+
+  return level === 2 ? (
+    <h2 {...headingProps}>
       {children}
       <button
         onClick={copyToClipboard}
@@ -77,6 +77,18 @@ export function HeadingWithAnchor({
       >
         <Link2 className="h-4 w-4 text-muted-foreground" />
       </button>
-    </HeadingTag>
+    </h2>
+  ) : (
+    <h3 {...headingProps}>
+      {children}
+      <button
+        onClick={copyToClipboard}
+        className="anchor-link ml-2 inline-flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-60 hover:opacity-100"
+        aria-label={`Copy link to ${textContent}`}
+        tabIndex={-1}
+      >
+        <Link2 className="h-4 w-4 text-muted-foreground" />
+      </button>
+    </h3>
   );
 }

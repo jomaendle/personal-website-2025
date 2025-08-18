@@ -7,7 +7,13 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
-import { AngularIcon, AstroIcon, JavaScriptIcon, ReactIcon, VueIcon } from "@/components/ui/framework-icons";
+import {
+  AngularIcon,
+  AstroIcon,
+  JavaScriptIcon,
+  ReactIcon,
+  VueIcon,
+} from "@/components/ui/framework-icons";
 import { Linkedin } from "lucide-react";
 
 export default function Home() {
