@@ -9,30 +9,26 @@ interface SourceRefProps {
 
 const sourceData = {
   1: {
-    title: "GitHub Developer Survey 2024 - AI Tool Productivity Metrics",
-    url: "https://github.blog/2024-ai-developer-survey-productivity",
-    description: "Comprehensive survey of 92,000+ developers on AI tool usage and productivity impacts"
+    title: "Qodo 2025 State of AI Code Quality Report",
+    url: "https://www.qodo.ai/reports/state-of-ai-code-quality/",
+    description: "Comprehensive survey of 609 developers covering AI tool usage patterns, productivity impacts, quality outcomes, and developer confidence levels",
+    type: "survey",
+    credibility: "high",
   },
   2: {
-    title: "Vercel Development Teams Study - Code Generation Efficiency",
-    url: "https://vercel.com/blog/ai-code-generation-efficiency-2024",
-    description: "Study of 500+ development teams using V0 and similar AI code generation tools"
+    title: "InfoWorld / METR Developer Productivity Study",
+    url: "https://www.infoworld.com/article/4020931/ai-coding-tools-can-slow-down-seasoned-developers-by-19.html",
+    description: "Randomized controlled trial analyzing AI coding tool impact on developer productivity, including acceptance rates and performance metrics",
+    type: "research",
+    credibility: "high",
   },
   3: {
-    title: "GitHub Copilot Market Leadership Report 2024",
-    url: "https://github.blog/2024-copilot-1-8-million-subscribers",
-    description: "Official GitHub announcement of Copilot's subscriber growth and market position"
+    title: "ShiftMag 2025 Stack Overflow Developer Survey Analysis",
+    url: "https://shiftmag.dev/stack-overflow-survey-2025-ai-5653/",
+    description: "Analysis of Stack Overflow's annual developer survey focusing on AI tool adoption, trust levels, and community usage patterns",
+    type: "survey",
+    credibility: "high",
   },
-  4: {
-    title: "GitHub Developer Survey 2024 - AI Tool Adoption Rates",
-    url: "https://github.blog/2024-ai-developer-survey-adoption",
-    description: "Analysis of AI tool adoption patterns across different developer demographics"
-  },
-  5: {
-    title: "MIT Technology Review - The Future of Programming with AI",
-    url: "https://www.technologyreview.com/2024/future-programming-ai",
-    description: "Academic analysis of AI's transformative impact on software development"
-  }
 };
 
 export function SourceRef({ id, children }: SourceRefProps) {
@@ -45,47 +41,71 @@ export function SourceRef({ id, children }: SourceRefProps) {
 
   const handleClick = () => {
     // Scroll to sources section - find by heading text
-    const headings = document.querySelectorAll('h2');
+    const headings = document.querySelectorAll("h2");
     let sourcesSection = null;
-    
+
     for (const heading of headings) {
-      if (heading.textContent?.includes('Sources')) {
+      if (heading.textContent?.includes("Sources")) {
         sourcesSection = heading;
         break;
       }
     }
-    
+
     if (sourcesSection) {
-      sourcesSection.scrollIntoView({ behavior: 'smooth' });
-      
+      sourcesSection.scrollIntoView({ behavior: "smooth" });
+
       // Highlight the specific source
       const sourceElement = document.getElementById(`source-${id}`);
       if (sourceElement) {
-        sourceElement.classList.add('bg-blue-100', 'border-blue-300');
+        sourceElement.classList.add("bg-blue-100", "border-blue-300");
         setTimeout(() => {
-          sourceElement.classList.remove('bg-blue-100', 'border-blue-300');
+          sourceElement.classList.remove("bg-blue-100", "border-blue-300");
         }, 2000);
       }
     }
   };
 
   return (
-    <span className="relative inline-block">
+    <span className="relative">
       <span
-        className="text-blue-600 hover:text-blue-800 cursor-pointer underline decoration-dotted underline-offset-2"
+        className="cursor-pointer text-link underline decoration-dotted underline-offset-2 hover:text-link-hover"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
       >
         {children}
-        <sup className="text-xs ml-0.5">[{id}]</sup>
+        <sup className="ml-0.5 text-xs">[{id}]</sup>
       </span>
-      
+
       {isHovered && (
-        <div className="absolute bottom-full left-0 mb-2 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50 pointer-events-none">
-          <div className="font-semibold mb-1">{source.title}</div>
-          <div className="text-gray-300 text-xs">{source.description}</div>
-          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-80 rounded-lg bg-gray-900 p-3 text-sm text-white shadow-lg">
+          <div className="mb-2">
+            <div className="mb-1 font-semibold">{source.title}</div>
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className={`rounded px-2 py-1 text-xs font-medium ${
+                  source.type === "research"
+                    ? "bg-blue-600 text-white"
+                    : source.type === "survey"
+                      ? "bg-green-600 text-white"
+                      : "bg-orange-600 text-white"
+                }`}
+              >
+                {source.type?.toUpperCase()}
+              </span>
+              <span
+                className={`rounded px-2 py-1 text-xs font-medium ${
+                  source.credibility === "high"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-yellow-600 text-white"
+                }`}
+              >
+                {source.credibility?.toUpperCase()} TRUST
+              </span>
+            </div>
+          </div>
+          <div className="text-xs text-gray-300">{source.description}</div>
+          <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
       )}
     </span>

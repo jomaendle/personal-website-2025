@@ -7,6 +7,14 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import {
+  AngularIcon,
+  AstroIcon,
+  JavaScriptIcon,
+  ReactIcon,
+  VueIcon,
+} from "@/components/ui/framework-icons";
+import { Linkedin } from "lucide-react";
 
 export default function Home() {
   return (
@@ -19,22 +27,32 @@ export default function Home() {
         <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
-            Passionate full-stack JavaScript developer crafting modern web
-            applications across the entire JavaScript ecosystem - from React and
-            Vue to Angular and vanilla JS. <br /> <br />
-            Leveraging AI tools like Lovable to accelerate development and
-            explore innovative solutions.
+            Building modern web applications across the JavaScript ecosystem{" "}
+            <br />
+            <span className="mx-1 inline-flex items-center gap-3 pt-1">
+              <ReactIcon size={20} />
+              <VueIcon size={20} />
+              <AngularIcon size={20} />
+              <JavaScriptIcon size={20} />
+              <AstroIcon size={20} />
+            </span>
+            <br /> <br />
+            Currently exploring how AI can supercharge development workflows and
+            unlock new possibilities.
             <br />
             <br />
-            Sharing insights and building in public on{" "}
-            <a
-              href="https://www.linkedin.com/in/johannes-maendle/"
-              target="_blank"
-              className="text-link transition-colors hover:text-link-hover"
-            >
-              LinkedIn
-            </a>
-            .
+            <span className="inline-flex items-center gap-2">
+              Always up for collaborating on interesting projects. Let's connect
+              on{" "}
+              <a
+                href="https://www.linkedin.com/in/johannes-maendle/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-link transition-colors hover:text-link-hover"
+              >
+                <Linkedin className="relative -top-0.5 size-5" />.
+              </a>
+            </span>
           </p>
         </section>
 

@@ -27,11 +27,16 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
-  const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(sidebarMorePostsOpenAtom);
-  const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(sidebarOnThisPageOpenAtom);
-  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(tocAutoExpandEnabledAtom);
+  const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(
+    sidebarMorePostsOpenAtom,
+  );
+  const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(
+    sidebarOnThisPageOpenAtom,
+  );
+  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(
+    tocAutoExpandEnabledAtom,
+  );
   const [isMounted, setIsMounted] = useState(false);
-
 
   const currentBlogPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => post.slug !== currentSlug);
@@ -91,7 +96,12 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     headings.forEach((heading) => observer.observe(heading));
 
     return () => observer.disconnect();
-  }, [isMounted, tocAutoExpandEnabled, setIsOnThisPageOpen, setTocAutoExpandEnabled]);
+  }, [
+    isMounted,
+    tocAutoExpandEnabled,
+    setIsOnThisPageOpen,
+    setTocAutoExpandEnabled,
+  ]);
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);
@@ -119,15 +129,15 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
   return (
     <motion.aside
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
-        style={{
-          scrollbarGutter: "stable",
-        }}
-      >
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
+      style={{
+        scrollbarGutter: "stable",
+      }}
+    >
       {/* On This Page Section */}
       {tocItems.length > 0 && (
         <Collapsible
