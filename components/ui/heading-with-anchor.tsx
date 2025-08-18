@@ -38,7 +38,7 @@ export function HeadingWithAnchor({
     const url = `${window.location.origin}${window.location.pathname}#${headingId}`;
     try {
       await navigator.clipboard.writeText(url);
-    } catch (err) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = url;

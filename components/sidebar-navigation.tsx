@@ -129,11 +129,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
   return (
     <motion.aside
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
+      className="motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
       style={{
         scrollbarGutter: "stable",
       }}

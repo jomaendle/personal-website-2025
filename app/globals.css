@@ -261,15 +261,28 @@
 
     /* Glass morphism effect for header */
     .glass-header {
-        position: relative;
+        /* Enable sticky positioning */
+        position: sticky;
+        top: 0;
+        z-index: 1000;
 
-        /* Background gradient - visible on all screen sizes */
+        /* Performance optimizations */
+        will-change: transform;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+
+        /* Improved background gradient for smoother fade */
         background: linear-gradient(180deg,
-        hsl(0 0% 6% / 1) 0%,
-        hsl(0 0% 6% / 0.8) 25%,
-        hsl(0 0% 6% / 0.5) 50%,
-        hsl(0 0% 6% / 0.2) 75%,
+        hsl(var(--background) / 1) 0%,
+        hsl(var(--background) / 0.95) 15%,
+        hsl(var(--background) / 0.8) 30%,
+        hsl(var(--background) / 0.6) 50%,
+        hsl(var(--background) / 0.3) 70%,
+        hsl(var(--background) / 0.1) 85%,
         transparent 100%);
+
+        /* Safari compatibility */
+        -webkit-position: sticky;
     }
 
 
@@ -290,26 +303,26 @@
         position: absolute;
         inset: 0;
 
-        /* Backdrop filter with mask for gradient effect */
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
+        /* Enhanced backdrop filter for premium glass effect */
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
 
-        /* Mask only the backdrop filter, not the main background */
+        /* Fixed mask for smooth blur-to-no-blur transition */
         mask: linear-gradient(180deg,
-        hsla(0 0% 6% / 1) 0%,
-        hsla(0 0% 6% / 1) 20%,
-        hsla(0 0% 6% / 0.9)  35%,
-        hsla(0 0% 6% / 0.7)  65%,
-        hsla(0 0% 6% / 0.5)  80%,
-        hsla(0 0% 6% / 0.2)  50%,
+        hsl(var(--background)) 0%,
+        hsl(var(--background)) 20%,
+        hsla(var(--background) / 0.9) 35%,
+        hsla(var(--background) / 0.7) 65%,
+        hsla(var(--background) / 0.5) 80%,
+        hsla(var(--background) / 0.2) 90%,
         transparent 100%);
         -webkit-mask: linear-gradient(180deg,
-        hsla(0 0% 6% / 1) 0%,
-        hsla(0 0% 6% / 1) 20%,
-        hsla(0 0% 6% / 0.9)  35%,
-        hsla(0 0% 6% / 0.7)  65%,
-        hsla(0 0% 6% / 0.2)  80%,
-        hsla(0 0% 6% / 0.5)  50%,
+        hsl(var(--background)) 0%,
+        hsl(var(--background)) 20%,
+        hsla(var(--background) / 0.9) 35%,
+        hsla(var(--background) / 0.7) 65%,
+        hsla(var(--background) / 0.5) 80%,
+        hsla(var(--background) / 0.2) 90%,
         transparent 100%);
 
         pointer-events: none;

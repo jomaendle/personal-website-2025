@@ -7,13 +7,7 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
-import {
-  AngularIcon,
-  AstroIcon,
-  JavaScriptIcon,
-  ReactIcon,
-  VueIcon,
-} from "@/components/ui/framework-icons";
+import { AngularIcon, AstroIcon, JavaScriptIcon, ReactIcon, VueIcon } from "@/components/ui/framework-icons";
 import { Linkedin } from "lucide-react";
 
 export default function Home() {
@@ -29,7 +23,7 @@ export default function Home() {
           <p className="text-muted-foreground">
             Building modern web applications across the JavaScript ecosystem{" "}
             <br />
-            <span className="mx-1 inline-flex items-center gap-3 pt-1">
+            <span className="mx-1 mt-2 inline-flex items-center gap-3">
               <ReactIcon size={20} />
               <VueIcon size={20} />
               <AngularIcon size={20} />
@@ -42,16 +36,19 @@ export default function Home() {
             <br />
             <br />
             <span className="inline-flex items-center gap-2">
-              Always up for collaborating on interesting projects. Let's connect
-              on{" "}
-              <a
-                href="https://www.linkedin.com/in/johannes-maendle/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center text-link transition-colors hover:text-link-hover"
-              >
-                <Linkedin className="relative -top-0.5 size-5" />.
-              </a>
+              Always up for collaborating on interesting projects.
+              <br />
+              <span className="mt-2 inline-flex items-center gap-2">
+                <span>Let&apos;s connect on </span>
+                <a
+                  href="https://www.linkedin.com/in/johannes-maendle/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-link transition-colors hover:text-link-hover"
+                >
+                  <Linkedin className="relative -top-0.5 size-5" />.
+                </a>
+              </span>
             </span>
           </p>
         </section>
