@@ -7,13 +7,7 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
-import {
-  AngularIcon,
-  AstroIcon,
-  JavaScriptIcon,
-  ReactIcon,
-  VueIcon,
-} from "@/components/ui/framework-icons";
+import { AngularIcon, AstroIcon, JavaScriptIcon, ReactIcon, VueIcon } from "@/components/ui/framework-icons";
 import { Linkedin } from "lucide-react";
 
 export default function Home() {
@@ -41,7 +35,7 @@ export default function Home() {
             unlock new possibilities.
             <br />
             <br />
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex flex-col items-baseline gap-2 md:flex-row">
               Always up for collaborating on interesting projects.
               <br />
               <span className="mt-2 inline-flex items-center gap-2">
@@ -50,9 +44,9 @@ export default function Home() {
                   href="https://www.linkedin.com/in/johannes-maendle/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-link transition-colors hover:text-link-hover"
+                  className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
                 >
-                  <Linkedin className="relative -top-0.5 size-5" />.
+                  <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
                 </a>
               </span>
             </span>

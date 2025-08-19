@@ -103,18 +103,6 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     setTocAutoExpandEnabled,
   ]);
 
-  const scrollToHeading = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 100; // Account for sticky header
-      const elementPosition = element.offsetTop - offset;
-      window.scrollTo({
-        top: elementPosition,
-        behavior: "smooth",
-      });
-    }
-  };
-
   // Handle manual TOC toggle - disable auto-expand when user manually interacts
   const handleTocToggle = (open: boolean) => {
     setIsOnThisPageOpen(open);
@@ -171,8 +159,8 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                         }}
                         className="flex w-full items-center"
                       >
-                        <button
-                          onClick={() => scrollToHeading(item.id)}
+                        <Link
+                          href={`#${item.id}`}
                           className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${
                             item.level === 3 ? "ml-4 text-muted-foreground" : ""
                           } ${
@@ -182,7 +170,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                           }`}
                         >
                           {item.title}
-                        </button>
+                        </Link>
                       </motion.div>
                     ))}
                   </div>
