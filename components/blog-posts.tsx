@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { H2, H3 } from "@/components/ui/heading";
+import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
 import { BLOG_POSTS } from "@/lib/state/blog";
@@ -69,21 +69,25 @@ export function BlogPosts() {
 
           if (!shouldShow) return null;
 
+          const motionProps = {
+            ...(index > 3 &&
+              showAll &&
+              !isCollapsing && { initial: "initial" }),
+            ...(index > 3 && isCollapsing && { exit: "exit" }),
+          };
+
           return (
             <motion.article
               key={post.slug}
               layout
               variants={itemVariants}
-              initial={
-                index > 3 && showAll && !isCollapsing ? "initial" : undefined
-              }
               animate="animate"
-              exit={index > 3 && isCollapsing ? "exit" : undefined}
               transition={{
                 duration: ANIMATION_DURATION,
                 delay: getItemAnimationDelay(index),
                 ease: "easeOut",
               }}
+              {...motionProps}
             >
               <Link
                 href={"/blog/" + post.slug}
@@ -91,7 +95,7 @@ export function BlogPosts() {
                 prefetch={false}
               >
                 <div className="flex-1">
-                  <H3 className="line-clamp-2">{post.title}</H3>
+                  <H3 className="blog-title line-clamp-2">{post.title}</H3>
                   <p className="text-sm text-muted-foreground">{post.date}</p>
                 </div>
                 <ViewCounterWithProvider
@@ -125,29 +129,5 @@ export function BlogPosts() {
         </motion.div>
       )}
     </motion.div>
-  );
-}
-
-export function BlogPostList({ currentSlug }: { currentSlug: string }) {
-  return (
-    <aside className="flex flex-col gap-6 text-sm">
-      <H2 className="mb-0">More Posts</H2>
-
-      <div className="flex flex-col gap-4">
-        {BLOG_POSTS.filter((post) => post.slug !== currentSlug).map(
-          (post, index) => (
-            <article key={index}>
-              <Link
-                href={"/blog/" + post.slug}
-                className="group flex items-center gap-4 transition-colors hover:text-neutral-400"
-                prefetch={false}
-              >
-                <H3 className="line-clamp-2">{post.title}</H3>
-              </Link>
-            </article>
-          ),
-        )}
-      </div>
-    </aside>
   );
 }

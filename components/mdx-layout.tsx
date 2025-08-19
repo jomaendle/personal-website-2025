@@ -1,10 +1,14 @@
 import { ViewCounterWithProvider } from "@/components/view-counter-provider";
-import { BlogPostList } from "@/components/blog-posts";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { MobileTableOfContents } from "@/components/table-of-contents";
+import { ReadingTime } from "@/components/reading-time";
+import { BackToTop } from "@/components/back-to-top";
+import { Button } from "@/components/ui/button";
 
 export default function MdxLayout({
   children,
@@ -16,44 +20,74 @@ export default function MdxLayout({
   metadata: { date: string };
 }) {
   return (
-    <main className="px-6 py-16 md:px-16 md:py-24 lg:px-24">
+    <>
       <ScrollProgress />
-      <div className="mx-auto max-w-2xl">
-        <div className="sticky top-0 z-[100] mb-4 flex h-20 items-center justify-center gap-12 bg-gradient-to-b from-[hsl(var(--background))] from-35% md:h-28 md:from-25%">
-          <div className="relative -top-3 flex w-full items-center justify-center md:-top-8">
-            <div className="absolute left-0 xl:hidden">
-              <BackLink />
-            </div>
-            <Link href="/">
-              <p className="text-white">Jo Mändle</p>
-            </Link>
-          </div>
-        </div>
 
-        <div className="mb-12 flex items-center justify-between gap-3">
-          {metadata.date}
-          <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
-        </div>
-
-        <div className="fixed left-12 top-[100px] hidden max-w-[240px] flex-col gap-6 xl:flex">
-          <div className="mb-12">
+      {/* Sticky header - extracted outside main container for stickyness */}
+      <div className="glass-header z-[51] flex h-24 items-center justify-center gap-12">
+        <div className="relative -top-3 flex w-full max-w-2xl items-center justify-center px-6 md:px-16 lg:px-24">
+          <div className="absolute left-6 z-10 md:left-0 xl:hidden">
             <BackLink />
           </div>
+          <Link href="/">
+            <p className="relative z-10 font-medium tracking-tight text-white">
+              Jo Mändle
+            </p>
+          </Link>
+        </div>
+      </div>
 
-          <BlogPostList currentSlug={slug} />
+      <main className="overflow-x-clip px-6 py-6 pb-16 pt-0 md:px-16 md:py-16 md:pb-24 lg:pb-24">
+        <div className="mx-auto max-w-2xl">
+          {/* Add top padding to account for sticky header */}
+          <div className="mb-4 h-4"></div>
+
+          <div className="mb-12 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <time dateTime={metadata.date}>{metadata.date}</time>
+              <span>•</span>
+              <ReadingTime />
+            </div>
+            <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
+          </div>
+
+          <div
+            className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 overflow-y-hidden xl:flex 2xl:w-[300px]"
+            style={{
+              maxHeight: "calc(100svh - 200px)",
+            }}
+          >
+            <div className="mb-12">
+              <BackLink />
+            </div>
+
+            <SidebarNavigation currentSlug={slug} />
+          </div>
+
+          <div className="relative -mt-2 mb-8 h-10 xl:hidden">
+            <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
+              <Button variant="outline" className="w-full justify-between">
+                On This Page
+                <span>↓</span>
+              </Button>
+            </div>
+            <MobileTableOfContents />
+          </div>
+
+          <div className="prose">{children}</div>
+
+          <hr className="my-12" />
+
+          <ReadMoreArticles currentSlug={slug} />
+
+          <NewsletterForm />
+
+          <Footer />
         </div>
 
-        <div className="prose">{children}</div>
-
-        <hr className="my-12" />
-
-        <ReadMoreArticles currentSlug={slug} />
-
-        <NewsletterForm />
-
-        <Footer />
-      </div>
-    </main>
+        <BackToTop />
+      </main>
+    </>
   );
 }
 
@@ -61,9 +95,10 @@ function BackLink() {
   return (
     <Link
       href="/"
-      className="inline-block text-sm text-muted-foreground transition-colors hover:text-primary"
+      className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200 hover:text-primary"
     >
-      ← Back
+      <span className="transition-transform duration-200">←</span>
+      Back
     </Link>
   );
 }

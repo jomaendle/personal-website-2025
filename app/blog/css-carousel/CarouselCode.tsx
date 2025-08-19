@@ -1,7 +1,7 @@
-import Sandpack from "@/components/sandpack";
+import SandpackWithObserver from "@/components/sandpack-with-observer";
 
 export const CarouselCode = () => (
-  <Sandpack
+  <SandpackWithObserver
     height="420px"
     files={{
       "/index.js": {

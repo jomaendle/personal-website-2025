@@ -1,7 +1,8 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withRateLimit } from "@/lib/rate-limit";
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -73,8 +74,7 @@ Jo Mändle
       }
 
       res.status(200).json({ message: "Subscription successful" });
-    } catch (error) {
-      console.error(error);
+    } catch {
       res.status(500).json({ error: "Subscription failed" });
     }
   } else {
@@ -82,3 +82,9 @@ Jo Mändle
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+export default withRateLimit(handler, {
+  maxRequests: 3,
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  message: "Too many subscription attempts, please try again later"
+});

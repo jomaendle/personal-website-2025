@@ -52,8 +52,8 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
         link: {
-          DEFAULT: "#2997ff",
-          hover: "#0070f3",
+          DEFAULT: "hsl(var(--link))",
+          hover: "hsl(var(--link-hover))",
         },
       },
       borderRadius: {
@@ -69,6 +69,10 @@ const config: Config = {
       },
       animation: {
         shimmer: "shimmer 2s ease-in-out infinite",
+      },
+      screens: {
+        "2xl": "1440px",
+        "3xl": "1600px",
       },
     },
   },

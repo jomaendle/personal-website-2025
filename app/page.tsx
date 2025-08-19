@@ -7,6 +7,8 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { AngularIcon, AstroIcon, JavaScriptIcon, ReactIcon, VueIcon } from "@/components/ui/framework-icons";
+import { Linkedin } from "lucide-react";
 
 export default function Home() {
   return (
@@ -19,10 +21,35 @@ export default function Home() {
         <section>
           <H2>Today</H2>
           <p className="text-muted-foreground">
-            Full-stack developer specializing in React, TypeScript, and modern
-            web architectures. <br />
-            I help startups and enterprises build scalable products that users
-            love and businesses depend on. <br />
+            Building modern web applications across the JavaScript ecosystem{" "}
+            <br />
+            <span className="mx-1 mt-2 inline-flex items-center gap-3">
+              <ReactIcon size={20} />
+              <VueIcon size={20} />
+              <AngularIcon size={20} />
+              <JavaScriptIcon size={20} />
+              <AstroIcon size={20} />
+            </span>
+            <br /> <br />
+            Currently exploring how AI can supercharge development workflows and
+            unlock new possibilities.
+            <br />
+            <br />
+            <span className="inline-flex flex-col items-baseline gap-2 md:flex-row">
+              Always up for collaborating on interesting projects.
+              <br />
+              <span className="mt-2 inline-flex items-center gap-2">
+                <span>Let&apos;s connect on </span>
+                <a
+                  href="https://www.linkedin.com/in/johannes-maendle/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
+                >
+                  <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
+                </a>
+              </span>
+            </span>
           </p>
         </section>
 

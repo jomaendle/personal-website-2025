@@ -3,6 +3,15 @@ import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
 
 const workExperiences = [
+  /*  {
+    title: "OneClient",
+    description:
+      "A platform for freelancers and agencies to manage projects and clients.",
+    link: "https://oneclient.pro",
+    isExternal: true,
+    isNew: true,
+    imgSrc: oneClientImg,
+  },*/
   {
     title: "The Beauty of Earth",
     description:
@@ -44,18 +53,24 @@ export function WorkExperience() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <H3 className="flex items-center">
-              {experience.title}
-              {experience.isExternal && (
-                <ExternalLinkIcon className="ml-2 inline-block size-3" />
-              )}
-              {experience.isNew && (
-                <span className="ml-2 inline-block rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
-                  New
-                </span>
-              )}
-            </H3>
-            <p className="text-muted-foreground">{experience.description}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <H3 className="flex flex-wrap items-center">
+                  {experience.title}
+                  {experience.isExternal && (
+                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0" />
+                  )}
+                  {experience.isNew && (
+                    <span className="ml-2 inline-block flex-shrink-0 rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
+                      New
+                    </span>
+                  )}
+                </H3>
+                <p className="text-muted-foreground">
+                  {experience.description}
+                </p>
+              </div>
+            </div>
           </Link>
         </article>
       ))}

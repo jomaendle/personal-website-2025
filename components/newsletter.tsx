@@ -39,10 +39,11 @@ export default function NewsletterForm() {
         setTimeout(() => setStatus("idle"), 5000);
       }
     } catch (error) {
-      console.error("Subscription error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setStatus("error");
       setErrorMessage(
-        "Network error. Please check your connection and try again.",
+        `Network error. Please check your connection and try again: ${errorMessage}`,
       );
       setTimeout(() => setStatus("idle"), 5000);
     }
@@ -63,9 +64,12 @@ export default function NewsletterForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
+          placeholder="your.email@example.com"
           required
-          className="bg-neutral-900"
+          disabled={isLoading}
+          className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
+          maxLength={254}
+          aria-describedby="email-help"
         />
         <motion.button
           type="submit"

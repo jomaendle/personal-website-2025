@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export const ComponentPreview = forwardRef<
   HTMLDivElement,
-  { children: React.ReactNode; classList?: string; onHover?: () => void }
+  { children: React.ReactNode; classList?: string | undefined; onHover?: () => void }
 >(({ children, classList }, ref) => {
   return (
     <div

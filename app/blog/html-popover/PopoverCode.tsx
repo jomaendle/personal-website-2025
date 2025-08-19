@@ -1,7 +1,7 @@
-import Sandpack from "@/components/sandpack";
+import SandpackWithObserver from "@/components/sandpack-with-observer";
 
 export const PopoverCode = () => (
-  <Sandpack
+  <SandpackWithObserver
     files={{
       "/index.js": {
         code: `import "./styles.css";
