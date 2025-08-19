@@ -41,7 +41,7 @@ export default function Home() {
             unlock new possibilities.
             <br />
             <br />
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-baseline gap-2">
               Always up for collaborating on interesting projects.
               <br />
               <span className="mt-2 inline-flex items-center gap-2">

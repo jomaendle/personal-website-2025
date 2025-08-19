@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useAnalytics, getArticleName, getArticleSlug } from "@/lib/useAnalytics";
 
 interface SourceRefProps {
   id: number;
@@ -34,12 +36,24 @@ const sourceData = {
 export function SourceRef({ id, children }: SourceRefProps) {
   const [isHovered, setIsHovered] = useState(false);
   const source = sourceData[id as keyof typeof sourceData];
+  const pathname = usePathname();
+  const { trackSourceInteraction } = useAnalytics();
 
   if (!source) {
     return <span>{children}</span>;
   }
 
   const handleClick = () => {
+    // Track source click
+    const articleSlug = getArticleSlug(pathname || '');
+    const articleName = getArticleName(articleSlug);
+    
+    trackSourceInteraction('clicked', {
+      article: articleName,
+      sourceId: id,
+      sourceTitle: source.title
+    });
+    
     // Scroll to sources section - find by heading text
     const headings = document.querySelectorAll("h2");
     let sourcesSection = null;
@@ -57,9 +71,9 @@ export function SourceRef({ id, children }: SourceRefProps) {
       // Highlight the specific source
       const sourceElement = document.getElementById(`source-${id}`);
       if (sourceElement) {
-        sourceElement.classList.add("bg-blue-100", "border-blue-300");
+        sourceElement.classList.add("bg-link/20", "border-link");
         setTimeout(() => {
-          sourceElement.classList.remove("bg-blue-100", "border-blue-300");
+          sourceElement.classList.remove("bg-link/20", "border-link");
         }, 2000);
       }
     }
@@ -78,17 +92,17 @@ export function SourceRef({ id, children }: SourceRefProps) {
       </span>
 
       {isHovered && (
-        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-80 rounded-lg bg-gray-900 p-3 text-sm text-white shadow-lg">
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-80 rounded-lg bg-popover p-3 text-sm text-popover-foreground shadow-lg border border-border">
           <div className="mb-2">
             <div className="mb-1 font-semibold">{source.title}</div>
             <div className="mb-2 flex items-center gap-2">
               <span
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   source.type === "research"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-link text-white"
                     : source.type === "survey"
-                      ? "bg-green-600 text-white"
-                      : "bg-orange-600 text-white"
+                      ? "bg-secondary text-foreground"
+                      : "bg-muted text-foreground"
                 }`}
               >
                 {source.type?.toUpperCase()}
@@ -96,16 +110,16 @@ export function SourceRef({ id, children }: SourceRefProps) {
               <span
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   source.credibility === "high"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-yellow-600 text-white"
+                    ? "bg-link text-white"
+                    : "bg-muted text-foreground"
                 }`}
               >
                 {source.credibility?.toUpperCase()} TRUST
               </span>
             </div>
           </div>
-          <div className="text-xs text-gray-300">{source.description}</div>
-          <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="text-xs text-muted-foreground">{source.description}</div>
+          <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-popover"></div>
         </div>
       )}
     </span>
