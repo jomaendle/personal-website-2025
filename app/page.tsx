@@ -7,7 +7,13 @@ import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
 import { CraftsOverview } from "@/components/crafts/crafts-overview";
-import { AngularIcon, AstroIcon, JavaScriptIcon, ReactIcon, VueIcon } from "@/components/ui/framework-icons";
+import {
+  AngularIcon,
+  AstroIcon,
+  JavaScriptIcon,
+  ReactIcon,
+  VueIcon,
+} from "@/components/ui/framework-icons";
 import { Linkedin } from "lucide-react";
 
 export default function Home() {
@@ -31,11 +37,13 @@ export default function Home() {
               <AstroIcon size={20} />
             </span>
             <br /> <br />
-            Currently exploring how AI can supercharge development workflows and
-            unlock new possibilities.
+            <span className="inline-block max-w-lg">
+              Currently exploring how AI can supercharge development workflows
+              and unlock new possibilities.
+            </span>
             <br />
             <br />
-            <span className="inline-flex flex-col items-baseline gap-2 md:flex-row">
+            <span className="inline-flex flex-col items-baseline gap-2">
               Always up for collaborating on interesting projects.
               <br />
               <span className="mt-2 inline-flex items-center gap-2">
