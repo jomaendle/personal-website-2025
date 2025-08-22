@@ -13,6 +13,7 @@ import {
 } from "@/components/structured-data";
 import { OptimizedBackground } from "@/components/ui/optimized-background";
 import { ShaderErrorBoundary } from "@/components/ui/shader-error-boundary";
+import { ChatWrapper } from "@/components/chat/chat-wrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -80,6 +81,7 @@ export default function RootLayout({
           <SpeedInsights />
           <PersonStructuredData />
           <WebsiteStructuredData />
+          <ChatWrapper />
         </body>
       </html>
     </ViewTransitions>
