@@ -236,7 +236,30 @@
     }
 
     .glass-bg {
-        @apply overflow-hidden rounded-3xl border border-white/20 bg-black/40 shadow-2xl shadow-black/40 backdrop-blur-2xl;
+        @apply overflow-hidden rounded-3xl border border-white/20 bg-black/40 shadow-2xl shadow-black/40;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        contain: layout style paint;
+        transform: translateZ(0); /* Force hardware acceleration */
+        will-change: auto; /* Let browser optimize */
+    }
+
+    /* Performance-optimized glass effect for reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .glass-bg {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            will-change: auto;
+        }
+    }
+
+    /* Lighter glass effect for low-end devices */
+    .glass-bg-light {
+        @apply overflow-hidden rounded-3xl border border-white/10 bg-black/60 shadow-lg shadow-black/20;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        contain: layout style paint;
+        transform: translateZ(0);
     }
 
     .page-container {
