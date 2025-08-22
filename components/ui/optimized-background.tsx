@@ -44,9 +44,6 @@ const getDeviceCapabilities = () => {
     canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
   const canHandle3D = !!gl && !isLowEnd;
 
-  // Cleanup
-  canvas.remove();
-
   return {
     canHandle3D,
     isLowEnd,
@@ -69,8 +66,8 @@ const getBatteryStatus = async () => {
         level: battery.level,
         charging: battery.charging,
       };
-    } catch {
-      return null;
+    } catch (error) {
+      console.error("Error getting battery status:", error);
     }
   }
   return null;
