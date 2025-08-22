@@ -59,7 +59,7 @@ export default function NewsletterForm() {
           Subscribe to get notified about new articles and updates.
         </p>
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-3">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
         <Input
           type="email"
           value={email}
@@ -74,10 +74,9 @@ export default function NewsletterForm() {
         <motion.button
           type="submit"
           disabled={isLoading}
-          animate={{ width: isLoading ? "10rem" : "8rem" }} // adjust values as needed
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
           initial={false}
-          className="h-10 overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 md:w-40"
         >
           <AnimatePresence mode="wait">
             <motion.span

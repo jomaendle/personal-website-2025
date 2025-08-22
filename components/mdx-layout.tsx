@@ -23,70 +23,72 @@ export default function MdxLayout({
     <>
       <ScrollProgress />
 
-      {/* Sticky header - extracted outside main container for stickyness */}
-      <div className="glass-header z-[51] flex h-24 items-center justify-center gap-12">
-        <div className="relative -top-3 flex w-full max-w-2xl items-center justify-center px-6 md:px-16 lg:px-24">
-          <div className="absolute left-6 z-10 md:left-0 xl:hidden">
-            <BackLink />
-          </div>
-          <Link href="/">
-            <p className="relative z-10 font-medium tracking-tight text-white">
-              Jo Mändle
-            </p>
-          </Link>
-        </div>
-      </div>
-
-      <main className="overflow-x-clip px-6 py-6 pb-16 pt-0 md:px-16 md:py-16 md:pb-24 lg:pb-24">
-        <div className="mx-auto max-w-2xl">
-          {/* Add top padding to account for sticky header */}
-          <div className="mb-4 h-4"></div>
-
-          <div className="mb-12 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <time dateTime={metadata.date}>{metadata.date}</time>
-              <span>•</span>
-              <ReadingTime />
-            </div>
-            <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
-          </div>
-
-          <div
-            className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 overflow-y-hidden xl:flex 2xl:w-[300px]"
-            style={{
-              maxHeight: "calc(100svh - 200px)",
-            }}
-          >
-            <div className="mb-12">
-              <BackLink />
-            </div>
-
-            <SidebarNavigation currentSlug={slug} />
-          </div>
-
-          <div className="relative -mt-2 mb-8 h-10 xl:hidden">
-            <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
-              <Button variant="outline" className="w-full justify-between">
-                On This Page
-                <span>↓</span>
-              </Button>
-            </div>
-            <MobileTableOfContents />
-          </div>
-
-          <div className="prose">{children}</div>
-
-          <hr className="my-12" />
-
-          <ReadMoreArticles currentSlug={slug} />
-
-          <NewsletterForm />
-
-          <Footer />
+      <aside
+        className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 overflow-y-hidden xl:flex 2xl:w-[300px]"
+        style={{
+          maxHeight: "calc(100svh - 200px)",
+        }}
+      >
+        <div className="mb-12">
+          <BackLink />
         </div>
 
+        <SidebarNavigation currentSlug={slug} />
+      </aside>
+
+      <div className="page-container">
+        <div className="glass-bg">
+          <div className="z-[51] flex h-24 items-center justify-center gap-12">
+            <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
+              <div className="absolute left-6 z-10 md:left-12 xl:hidden">
+                <BackLink />
+              </div>
+              <Link href="/">
+                <p className="relative z-10 text-lg font-medium tracking-tight text-white">
+                  Jo Mändle
+                </p>
+              </Link>
+            </div>
+          </div>
+
+          <main className="glass-container-spacing overflow-x-clip">
+            <div className="mx-auto max-w-3xl">
+              {/* Add top padding to account for sticky header */}
+              <div className="mb-4 h-4"></div>
+
+              <div className="mb-12 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <time dateTime={metadata.date}>{metadata.date}</time>
+                  <span>•</span>
+                  <ReadingTime />
+                </div>
+                <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
+              </div>
+
+              <div className="relative -mt-2 mb-8 h-10 xl:hidden">
+                <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
+                  <Button variant="outline" className="w-full justify-between">
+                    On This Page
+                    <span>↓</span>
+                  </Button>
+                </div>
+                <MobileTableOfContents />
+              </div>
+
+              <div className="prose">{children}</div>
+
+              <hr className="my-12" />
+
+              <ReadMoreArticles currentSlug={slug} />
+
+              <NewsletterForm />
+
+              <Footer />
+            </div>
+          </main>
+        </div>
         <BackToTop />
-      </main>
+      </div>
     </>
   );
 }

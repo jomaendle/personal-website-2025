@@ -1,5 +1,5 @@
 .container {
-    @apply relative block w-full rounded-lg border py-4;
+    @apply relative block w-full bg-background rounded-lg border py-4;
 }
 
 .scroller {
@@ -41,7 +41,7 @@
 
 
 .verticalContainer {
-    @apply relative block w-full rounded-lg border p-4 h-96;
+    @apply relative block w-full overflow-hidden bg-background rounded-lg border p-4 h-96;
 }
 
 .verticalScroller {
