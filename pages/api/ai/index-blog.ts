@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { withRateLimit } from '@/lib/rate-limit';
-import { indexAllBlogPosts, indexBlogPost, reindexBlogPost } from '@/lib/ai/blog-indexer';
-import { initializeDatabase } from '@/lib/ai/init-db';
-import { getDatabaseStats } from '@/lib/ai/vector-db';
+import { NextApiRequest, NextApiResponse } from "next";
+import { withRateLimit } from "@/lib/rate-limit";
+import { indexAllBlogPosts, reindexBlogPost } from "@/lib/ai/blog-indexer";
+import { initializeDatabase } from "@/lib/ai/init-db";
+import { getDatabaseStats } from "@/lib/ai/vector-db";
 
 interface IndexResponse {
   success: boolean;
@@ -13,14 +13,14 @@ interface IndexResponse {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<IndexResponse>
+  res: NextApiResponse<IndexResponse>,
 ) {
   // Only allow POST requests
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
     return res.status(405).json({
       success: false,
-      message: `Method ${req.method} not allowed`
+      message: `Method ${req.method} not allowed`,
     });
   }
 
@@ -28,23 +28,23 @@ async function handler(
 
   try {
     switch (action) {
-      case 'init-db':
-        console.log('🔧 Initializing database...');
+      case "init-db":
+        console.log("🔧 Initializing database...");
         const initialized = await initializeDatabase();
         if (initialized) {
           return res.status(200).json({
             success: true,
-            message: 'Database initialized successfully'
+            message: "Database initialized successfully",
           });
         } else {
           return res.status(500).json({
             success: false,
-            message: 'Failed to initialize database'
+            message: "Failed to initialize database",
           });
         }
 
-      case 'index-all':
-        console.log('📚 Indexing all blog posts...');
+      case "index-all":
+        console.log("📚 Indexing all blog posts...");
         const stats = await indexAllBlogPosts();
         return res.status(200).json({
           success: true,
@@ -53,15 +53,15 @@ async function handler(
             totalChunks: stats.totalChunks,
             totalTokens: stats.totalTokens,
             totalCost: stats.totalCost,
-            lastUpdated: stats.lastUpdated.toISOString()
-          }
+            lastUpdated: stats.lastUpdated.toISOString(),
+          },
         });
 
-      case 'index-single':
+      case "index-single":
         if (!slug) {
           return res.status(400).json({
             success: false,
-            message: 'Slug is required for single indexing'
+            message: "Slug is required for single indexing",
           });
         }
         console.log(`📄 Indexing blog post: ${slug}`);
@@ -69,43 +69,44 @@ async function handler(
         if (success) {
           return res.status(200).json({
             success: true,
-            message: `Successfully indexed blog post: ${slug}`
+            message: `Successfully indexed blog post: ${slug}`,
           });
         } else {
           return res.status(500).json({
             success: false,
-            message: `Failed to index blog post: ${slug}`
+            message: `Failed to index blog post: ${slug}`,
           });
         }
 
-      case 'stats':
-        console.log('📊 Getting database stats...');
+      case "stats":
+        console.log("📊 Getting database stats...");
         const dbStats = await getDatabaseStats();
         if (dbStats) {
           return res.status(200).json({
             success: true,
-            message: 'Database stats retrieved successfully',
-            stats: dbStats
+            message: "Database stats retrieved successfully",
+            stats: dbStats,
           });
         } else {
           return res.status(500).json({
             success: false,
-            message: 'Failed to get database stats'
+            message: "Failed to get database stats",
           });
         }
 
       default:
         return res.status(400).json({
           success: false,
-          message: 'Invalid action. Use: init-db, index-all, index-single, or stats'
+          message:
+            "Invalid action. Use: init-db, index-all, index-single, or stats",
         });
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
@@ -113,5 +114,5 @@ async function handler(
 export default withRateLimit(handler, {
   maxRequests: 10,
   windowMs: 60 * 1000, // 1 minute
-  message: 'Too many indexing requests, please try again later'
+  message: "Too many indexing requests, please try again later",
 });
