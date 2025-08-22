@@ -23,7 +23,7 @@ export const CraftsContainer = ({
   const containerContent = (
     <div
       className={cn(
-        "absolute inset-0 flex flex-1 items-center justify-center",
+        "absolute inset-0 flex flex-1 items-center justify-center bg-background",
         innerClassName,
       )}
     >

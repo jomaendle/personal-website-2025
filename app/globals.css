@@ -20,7 +20,7 @@
         --accent-foreground: 0 0% 98%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
+        --border: 0 0% 40%;
         --input: 0 0% 14.9%;
         --ring: 0 0% 83.1%;
         --radius: 0.5rem;
@@ -142,7 +142,6 @@
     .prose ul li,
     .prose ol li {
         @apply text-muted-foreground leading-relaxed;
-        padding-left: 0.5rem;
     }
 
     .prose ul li::marker,
@@ -220,72 +219,10 @@
     }
 
     :root {
-
         scrollbar-width: thin;
         scrollbar-color: #b0b0b0 transparent;
         scrollbar-gutter: stable both-edges;
     }
-
-    /* View Transitions Support */
-    @supports (view-transition-name: none) {
-        /* Respect user's motion preferences */
-        @media (prefers-reduced-motion: reduce) {
-            ::view-transition-group(*),
-            ::view-transition-old(*),
-            ::view-transition-new(*) {
-                animation-duration: 0.01s !important;
-                animation-delay: 0s !important;
-                animation-iteration-count: 1 !important;
-            }
-        }
-    }
-
-    /* Simplified view transition animations - opacity only for smooth performance */
-    @keyframes title-fade-out {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
-
-    @keyframes title-fade-in {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    /* Glass morphism effect for header */
-    .glass-header {
-        /* Enable sticky positioning */
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-
-        /* Performance optimizations */
-        will-change: transform;
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-
-        /* Improved background gradient for smoother fade */
-        background: linear-gradient(180deg,
-        hsl(var(--background) / 1) 0%,
-        hsl(var(--background) / 0.95) 15%,
-        hsl(var(--background) / 0.8) 30%,
-        hsl(var(--background) / 0.6) 50%,
-        hsl(var(--background) / 0.3) 70%,
-        hsl(var(--background) / 0.1) 85%,
-        transparent 100%);
-
-        /* Safari compatibility */
-        -webkit-position: sticky;
-    }
-
-
 
     /* Anchor link styling */
     .anchor-link {
@@ -298,34 +235,15 @@
         @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
     }
 
-    .glass-header::before {
-        content: '';
-        position: absolute;
-        inset: 0;
+    .glass-bg {
+        @apply overflow-hidden rounded-3xl border border-white/20 bg-black/40 shadow-2xl shadow-black/40 backdrop-blur-2xl;
+    }
 
-        /* Enhanced backdrop filter for premium glass effect */
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+    .page-container {
+     @apply relative z-20 mx-auto max-w-3xl px-3 sm:px-6 py-16;
+    }
 
-        /* Fixed mask for smooth blur-to-no-blur transition */
-        mask: linear-gradient(180deg,
-        hsl(var(--background)) 0%,
-        hsl(var(--background)) 20%,
-        hsla(var(--background) / 0.9) 35%,
-        hsla(var(--background) / 0.7) 65%,
-        hsla(var(--background) / 0.5) 80%,
-        hsla(var(--background) / 0.2) 90%,
-        transparent 100%);
-        -webkit-mask: linear-gradient(180deg,
-        hsl(var(--background)) 0%,
-        hsl(var(--background)) 20%,
-        hsla(var(--background) / 0.9) 35%,
-        hsla(var(--background) / 0.7) 65%,
-        hsla(var(--background) / 0.5) 80%,
-        hsla(var(--background) / 0.2) 90%,
-        transparent 100%);
-
-        pointer-events: none;
-        z-index: 1;
+    .glass-container-spacing {
+        @apply px-4 py-6 md:p-12;
     }
 }

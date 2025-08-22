@@ -117,7 +117,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
   return (
     <motion.aside
-      className="motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-hidden overflow-y-auto rounded-lg border border-border bg-card px-2 py-4 text-sm"
+      className="glass-bg motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-y-auto px-2 py-4 text-sm"
       style={{
         scrollbarGutter: "stable",
       }}
@@ -129,7 +129,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
           onOpenChange={handleTocToggle}
           className="relative"
         >
-          <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md bg-card px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+          <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground">
             On This Page
             <ChevronDown
               className={`h-4 w-4 transition-transform duration-200 ${
@@ -183,7 +183,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
       {/* More Posts Section */}
       <Collapsible open={isMorePostsOpen} onOpenChange={setIsMorePostsOpen}>
-        <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md bg-card px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+        <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground">
           More Posts
           <ChevronDown
             className={`h-4 w-4 transition-transform duration-200 ${
