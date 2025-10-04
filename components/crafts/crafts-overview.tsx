@@ -73,7 +73,7 @@ export function CraftsOverview() {
         </motion.div>
 
         <AnimatePresence>
-          {displayedCrafts.map((craft, index) => (
+          {displayedCrafts.map((craft) => (
             <motion.div key={craft.src} className="w-full">
               <CraftsContainer
                 style={{ backgroundColor: craft.bgColor }}
