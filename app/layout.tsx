@@ -63,16 +63,9 @@ export default function RootLayout({
         <body
           className={`${inter.variable} min-h-[100dvh] bg-background font-sans text-foreground antialiased`}
         >
-          <div className="fixed inset-0 z-10 h-full w-full bg-accent opacity-50">
-            <Image
-              fetchPriority="high"
-              blurDataURL={bgImage.src}
-              placeholder="blur"
-              src={bgImage}
-              alt=""
-              fill
-              className="object-cover"
-            />
+          <div className="fixed inset-0 -z-10 h-full w-full after:absolute after:inset-0 after:bg-black/35">
+            <Image src={bgImage} alt="" fill className="object-cover" />
+            <div className="absolute inset-0 z-10 h-full w-full blur-xl" />
           </div>
           <JotaiProvider>
             <ThemeProvider attribute="class" defaultTheme="system">
