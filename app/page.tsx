@@ -15,13 +15,11 @@ import {
   VueIcon,
 } from "@/components/ui/framework-icons";
 import { Linkedin } from "lucide-react";
-import { SmartGlass } from "@/components/ui/smart-glass";
 
 export default function Home() {
   return (
     <div className="page-container">
-      <SmartGlass>
-        <div className="mx-auto flex max-w-2xl flex-col gap-16">
+      <div className="glass-container mx-auto flex max-w-2xl flex-col gap-16">
           <section>
             <NameHeading showJobTitle={true} />
           </section>
@@ -106,7 +104,6 @@ export default function Home() {
 
           <Footer />
         </div>
-      </SmartGlass>
     </div>
   );
 }

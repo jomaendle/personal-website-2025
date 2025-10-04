@@ -37,7 +37,7 @@ export default function MdxLayout({
       </aside>
 
       <div className="page-container">
-        <div className="glass-bg">
+        <div className="glass-container">
           <div className="z-[51] flex h-24 items-center justify-center gap-12">
             <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
               <div className="absolute left-6 z-10 md:left-12 xl:hidden">

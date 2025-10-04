@@ -143,7 +143,7 @@ export function CraftsOverview() {
                   playsInline
                   height={craft.posterImg.height}
                   width={craft.posterImg.width}
-                  className="w-full max-w-[400px] md:max-w-none"
+                  className="h-full w-full max-w-[400px] object-cover md:max-w-none"
                   poster={craft.posterImg.src}
                   aria-label={craft.title}
                 >
