@@ -11,8 +11,9 @@ import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
-import { OptimizedBackground } from "@/components/ui/optimized-background";
-import { ShaderErrorBoundary } from "@/components/ui/shader-error-boundary";
+
+import bgImage from "../public/assets/bg.webp";
+import Image from "next/image";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -65,10 +66,16 @@ export default function RootLayout({
         <body
           className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
         >
-          <div className="fixed inset-0 z-0">
-            <ShaderErrorBoundary>
-              <OptimizedBackground className="h-full w-full" />
-            </ShaderErrorBoundary>
+          <div className="fixed inset-0 z-10 h-full w-full bg-accent opacity-50">
+            <Image
+              fetchPriority="high"
+              blurDataURL={bgImage.src}
+              placeholder="blur"
+              src={bgImage}
+              alt=""
+              fill
+              className="object-cover"
+            />
           </div>
           <JotaiProvider>
             <ThemeProvider attribute="class" defaultTheme="system">

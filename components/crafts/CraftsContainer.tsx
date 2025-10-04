@@ -23,7 +23,7 @@ export const CraftsContainer = ({
   const containerContent = (
     <div
       className={cn(
-        "absolute inset-0 flex flex-1 items-center justify-center bg-background",
+        "absolute inset-0 flex flex-1 items-center justify-center overflow-hidden bg-transparent",
         innerClassName,
       )}
     >
@@ -60,7 +60,7 @@ export const CraftsContainer = ({
         </Link>
       )}
       {!link && showFadeOut && (
-        <div className="group absolute bottom-0 z-20 flex min-h-20 w-full items-end bg-gradient-to-b from-transparent to-neutral-950 p-3 font-sans text-xs text-white/80">
+        <div className="group absolute bottom-0 z-20 flex min-h-20 w-full items-end p-3 font-sans text-xs text-white/80">
           {titleElement}
         </div>
       )}

@@ -17,7 +17,6 @@
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "15.3.0",
     "@number-flow/react": "^0.5.10",
-    "@paper-design/shaders-react": "^0.0.46",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-slider": "^1.2.2",
@@ -47,8 +46,7 @@
     "resend": "^4.7.0",
     "satori": "^0.16.1",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
-    "web-vitals": "^5.1.0"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

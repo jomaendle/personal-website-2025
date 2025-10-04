@@ -117,7 +117,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
   return (
     <motion.aside
-      className="glass-bg motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-y-auto px-2 py-4 text-sm"
+      className="glass-container motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-y-auto px-2 py-4 text-sm"
       style={{
         scrollbarGutter: "stable",
       }}
