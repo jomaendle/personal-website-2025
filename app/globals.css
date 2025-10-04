@@ -16,7 +16,7 @@
         --secondary-foreground: 0 0% 98%;
         --muted: 0 0% 14.9%;
         --muted-foreground: 0 0% 63.9%;
-        --accent: 210 22% 59%;
+        --accent: 0 0% 14.9%;
         --accent-foreground: 0 0% 98%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
@@ -245,7 +245,7 @@
 
     /* Glass container for content */
     .glass-container {
-        @apply overflow-hidden rounded-3xl border border-white/30 bg-black/30 px-4 py-6 shadow-xl md:p-12;
+        @apply overflow-hidden rounded-3xl border border-white/50 bg-black/40 px-4 py-6 shadow-xl md:p-12;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
     }

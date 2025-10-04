@@ -19,91 +19,91 @@ import { Linkedin } from "lucide-react";
 export default function Home() {
   return (
     <div className="page-container">
-      <div className="glass-container mx-auto flex max-w-2xl flex-col gap-16">
-          <section>
-            <NameHeading showJobTitle={true} />
-          </section>
+      <div className="glass-container mx-auto flex max-w-3xl flex-col gap-16">
+        <section>
+          <NameHeading showJobTitle={true} />
+        </section>
 
-          <section>
-            <H2>Today</H2>
-            <p className="text-muted-foreground">
-              Building modern web applications across the JavaScript ecosystem{" "}
+        <section>
+          <H2>Today</H2>
+          <p className="text-muted-foreground">
+            Building modern web applications across the JavaScript ecosystem{" "}
+            <br />
+            <span className="mx-1 mt-2 inline-flex items-center gap-3">
+              <ReactIcon size={20} />
+              <VueIcon size={20} />
+              <AngularIcon size={20} />
+              <JavaScriptIcon size={20} />
+              <AstroIcon size={20} />
+            </span>
+            <br /> <br />
+            <span className="inline-block max-w-lg">
+              Currently exploring how AI can supercharge development workflows
+              and unlock new possibilities.
+            </span>
+            <br />
+            <br />
+            <span className="inline-flex flex-col items-baseline gap-2">
+              Always up for collaborating on interesting projects.
               <br />
-              <span className="mx-1 mt-2 inline-flex items-center gap-3">
-                <ReactIcon size={20} />
-                <VueIcon size={20} />
-                <AngularIcon size={20} />
-                <JavaScriptIcon size={20} />
-                <AstroIcon size={20} />
+              <span className="mt-2 inline-flex items-center gap-2">
+                <span>Let&apos;s connect on </span>
+                <a
+                  href="https://www.linkedin.com/in/johannes-maendle/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
+                >
+                  <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
+                </a>
               </span>
-              <br /> <br />
-              <span className="inline-block max-w-lg">
-                Currently exploring how AI can supercharge development workflows
-                and unlock new possibilities.
-              </span>
-              <br />
-              <br />
-              <span className="inline-flex flex-col items-baseline gap-2">
-                Always up for collaborating on interesting projects.
-                <br />
-                <span className="mt-2 inline-flex items-center gap-2">
-                  <span>Let&apos;s connect on </span>
-                  <a
-                    href="https://www.linkedin.com/in/johannes-maendle/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
-                  >
-                    <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
-                  </a>
-                </span>
-              </span>
-            </p>
-          </section>
+            </span>
+          </p>
+        </section>
 
-          <section>
-            <H2>Selected Work</H2>
-            {/* use reduced space because items have padding for hover effect */}
-            <div className="space-y-3">
-              <WorkExperience />
-            </div>
-          </section>
+        <section>
+          <H2>Selected Work</H2>
+          {/* use reduced space because items have padding for hover effect */}
+          <div className="space-y-3">
+            <WorkExperience />
+          </div>
+        </section>
 
-          <section>
-            <H2>Crafts</H2>
-            <div className="space-y-3">
-              <CraftsOverview />
-            </div>
-          </section>
+        <section>
+          <H2>Crafts</H2>
+          <div className="space-y-3">
+            <CraftsOverview />
+          </div>
+        </section>
 
-          <section>
-            <H2>Articles</H2>
-            {/* use reduced space because items have padding for hover effect */}
-            <div className="space-y-3">
-              <BlogPosts />
-            </div>
-          </section>
+        <section>
+          <H2>Articles</H2>
+          {/* use reduced space because items have padding for hover effect */}
+          <div className="space-y-3">
+            <BlogPosts />
+          </div>
+        </section>
 
-          <section>
-            <H2>Experience</H2>
-            <div className="space-y-6">
-              <JobPositions />
-            </div>
-          </section>
+        <section>
+          <H2>Experience</H2>
+          <div className="space-y-6">
+            <JobPositions />
+          </div>
+        </section>
 
-          <section>
-            <H2>More</H2>
-            <div className="space-y-2">
-              <MoreLinks />
-            </div>
-          </section>
+        <section>
+          <H2>More</H2>
+          <div className="space-y-2">
+            <MoreLinks />
+          </div>
+        </section>
 
-          <section>
-            <NewsletterForm />
-          </section>
+        <section>
+          <NewsletterForm />
+        </section>
 
-          <Footer />
-        </div>
+        <Footer />
+      </div>
     </div>
   );
 }
