@@ -66,7 +66,7 @@ export default function RootLayout({
         <body
           className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
         >
-          <div className="fixed inset-0 z-10 h-full w-full bg-[#7f96ad] opacity-50">
+          <div className="fixed inset-0 z-10 h-full w-full bg-accent opacity-50">
             <Image
               fetchPriority="high"
               blurDataURL={bgImage.src}

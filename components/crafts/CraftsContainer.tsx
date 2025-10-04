@@ -54,7 +54,7 @@ export const CraftsContainer = ({
         <Link
           href={link}
           target="_self"
-          className="group bottom-0 z-20 flex min-h-20 w-full items-end bg-gradient-to-b from-transparent to-neutral-950 p-3 font-sans text-xs text-white/80 underline"
+          className="group absolute bottom-0 z-20 flex min-h-20 w-full items-end bg-gradient-to-b from-transparent to-neutral-950 p-3 font-sans text-xs text-white/80 underline"
         >
           {titleElement}
         </Link>
