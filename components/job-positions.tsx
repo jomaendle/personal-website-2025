@@ -1,7 +1,7 @@
 const jobPositions = [
   {
     company: "E.ON Digital Technology",
-    role: "Full-Stack Engineer",
+    role: "Senior Full-Stack Engineer",
     startDate: "Sep 2024",
     endDate: "present",
   },
