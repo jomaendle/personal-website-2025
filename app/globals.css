@@ -27,6 +27,30 @@
         --link: 206 100% 62%;
         --link-hover: 214 100% 49%;
     }
+
+    .light {
+        --background: 0 0% 98%;
+        --foreground: 0 0% 10%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 10%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 10%;
+        --primary: 0 0% 10%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 0 0% 96%;
+        --secondary-foreground: 0 0% 10%;
+        --muted: 0 0% 96%;
+        --muted-foreground: 0 0% 45%;
+        --accent: 0 0% 96%;
+        --accent-foreground: 0 0% 10%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 88%;
+        --input: 0 0% 88%;
+        --ring: 0 0% 63.9%;
+        --link: 214 100% 45%;
+        --link-hover: 214 100% 35%;
+    }
 }
 
 @layer base {
@@ -40,6 +64,24 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    /* Dark mode background gradient (default) */
+    :root body {
+        background:
+            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.29) 0%, transparent 50%),
+            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
+            linear-gradient(to bottom, #0a0a0a 0%, #000000 100%);
+    }
+
+    /* Light mode background gradient */
+    .light body {
+        background:
+            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.02) 0%, transparent 70%),
+            linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
     }
 
     .prose {
@@ -63,6 +105,7 @@
         border-bottom: 1px solid hsl(var(--border));
         padding-bottom: 0.5rem;
         scroll-margin-top: 120px; /* Account for sticky header */
+        letter-spacing: 0.01em;
     }
 
     .prose h3 {
@@ -109,8 +152,18 @@
     }
 
     .prose code {
-        @apply bg-secondary text-foreground px-2 py-1 rounded-md text-sm border border-border;
+        @apply px-2 py-1 rounded-md text-sm border;
         font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    /* Dark mode inline code */
+    :root .prose code {
+        @apply bg-secondary text-foreground border-border;
+    }
+
+    /* Light mode inline code - better contrast */
+    .light .prose code {
+        @apply bg-secondary text-secondary-foreground border-border;
     }
 
     .prose pre code {
@@ -189,22 +242,6 @@
         @apply border-t border-border my-12;
     }
 
-    /* Smooth animations for content */
-    .prose {
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     /* Smooth transitions for interactive elements */
     .prose a,
     .prose button,
@@ -235,19 +272,50 @@
         @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
     }
 
-    /* Simple radial gradient background */
-    .bg-gradient-radial {
-        background: radial-gradient(circle at 20% 50%, rgba(187, 163, 195, 0.15) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%, rgba(61, 89, 120, 0.15) 0%, transparent 50%),
-                    radial-gradient(circle at 40% 80%, rgba(26, 26, 26, 0.4) 0%, transparent 50%),
-                    linear-gradient(135deg, #000000 0%, #0a0a0a 100%);
+
+    /* Subtle gradient accent for hover states */
+    .gradient-accent-hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+    }
+
+    /* Theme-aware hover effects for interactive elements */
+    .hover-accent {
+        @apply transition-colors;
+    }
+
+    /* Dark mode hover - subtle white overlay */
+    :root .hover-accent:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Light mode hover - noticeable black overlay for better visibility */
+    .light .hover-accent:hover {
+        background-color: rgba(0, 0, 0, 0.05);
     }
 
     /* Glass container for content */
     .glass-container {
-        @apply overflow-hidden rounded-3xl border border-white/50 bg-black/40 px-4 py-6 shadow-xl md:p-12;
+        @apply overflow-hidden rounded-3xl border px-4 py-6 shadow-xl md:p-12;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
+        will-change: opacity;
+        transform: translateZ(0);
+    }
+
+    /* Dark mode glass container */
+    :root .glass-container {
+        @apply border-white/10 bg-black/40;
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    /* Light mode glass container */
+    .light .glass-container {
+        @apply border-black/10 bg-white/60;
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -259,5 +327,36 @@
 
     .page-container {
         @apply relative z-20 mx-auto max-w-3xl px-3 sm:px-6 py-16;
+    }
+
+    /* View Transitions - Theme Toggle Animation */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+
+    /* Circular reveal animation for theme switching */
+    ::view-transition-new(root) {
+        clip-path: circle(0% at 50% 50%);
+        animation: theme-reveal 1s cubic-bezier(0.4, 0, 0.15, 1) forwards;
+    }
+
+    @keyframes theme-reveal {
+        to {
+            clip-path: circle(150% at 50% 50%);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        ::view-transition-new(root) {
+            animation: none;
+            clip-path: none;
+        }
+    }
+
+    /* Optimize glass-container for transitions */
+    .glass-container {
+        will-change: opacity;
     }
 }

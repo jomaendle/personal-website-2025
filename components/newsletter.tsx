@@ -67,7 +67,7 @@ export default function NewsletterForm() {
           placeholder="your.email@example.com"
           required
           disabled={isLoading}
-          className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
+          className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
           maxLength={254}
           aria-describedby="email-help"
         />

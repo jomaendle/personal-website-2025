@@ -3,14 +3,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
-import Head from "next/head";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
 import { Provider as JotaiProvider } from "jotai";
-import { PersonStructuredData, WebsiteStructuredData } from "@/components/structured-data";
-
-import bgImage from "../public/assets/bg.webp";
-import Image from "next/image";
+import {
+  PersonStructuredData,
+  WebsiteStructuredData,
+} from "@/components/structured-data";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +27,12 @@ export const metadata: Metadata = {
     template: "%s | Jo Mändle",
   },
   description: "Full-Stack developer sharing his thoughts on the web.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon-32x32.png", type: "image/png" },
+    ],
+  },
   openGraph: {
     images: [
       {
@@ -49,34 +54,28 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning
+        data-scroll-behavior="smooth"
         style={{
           scrollbarGutter: "stable",
         }}
       >
-        <Head>
-          <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-          <link rel="icon" type="image/png" href="/favicon-32x32.png" />
-          <link rel="modulepreload" href="/_next/static/chunks/pages/_app.js" />
-          <link rel="modulepreload" href="/_next/static/chunks/webpack.js" />
-          <link rel="modulepreload" href="/_next/static/chunks/main.js" />
-        </Head>
-        <body
-          className={`${inter.variable} min-h-[100dvh] bg-background font-sans text-foreground antialiased`}
-        >
-          <div className="fixed inset-0 -z-10 h-full w-full after:absolute after:inset-0 after:bg-black/35">
-            <Image src={bgImage} alt="" fill className="object-cover" />
-            <div className="absolute inset-0 z-10 h-full w-full blur-xl" />
-          </div>
+        <body className={`${inter.variable} min-h-[100dvh] font-sans text-foreground antialiased`}>
           <JotaiProvider>
-            <ThemeProvider attribute="class" defaultTheme="system">
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem={true}
+              enableColorScheme={true}
+              storageKey="theme"
+            >
               <PlausibleProvider domain="jomaendle.com">
                 {children}
               </PlausibleProvider>
+              <SpeedInsights />
+              <PersonStructuredData />
+              <WebsiteStructuredData />
             </ThemeProvider>
           </JotaiProvider>
-          <SpeedInsights />
-          <PersonStructuredData />
-          <WebsiteStructuredData />
         </body>
       </html>
     </ViewTransitions>

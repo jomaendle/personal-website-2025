@@ -19,7 +19,10 @@ import { Linkedin } from "lucide-react";
 export default function Home() {
   return (
     <div className="page-container">
-      <div className="glass-container mx-auto flex max-w-3xl flex-col gap-16">
+      <div
+        className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
+        style={{ viewTransitionName: "main-content" }}
+      >
         <section>
           <NameHeading showJobTitle={true} />
         </section>
