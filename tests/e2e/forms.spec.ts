@@ -129,9 +129,20 @@ test.describe('Contact Form', () => {
     await messageInput.fill('short'); // Less than minimum (10 chars)
     await submitButton.click();
 
-    // Should show validation error
-    const validationMessage = await messageInput.evaluate((el: HTMLTextAreaElement) => el.validationMessage);
-    expect(validationMessage).toBeTruthy();
+    // Check for validation - either client-side (most browsers) or server-side (Mobile Safari)
+    // Try to check client-side validation first
+    const messageStillVisible = await messageInput.isVisible({ timeout: 1000 }).catch(() => false);
+
+    if (messageStillVisible) {
+      // Client-side validation prevented submission - check validity state
+      const isInvalid = await messageInput.evaluate((el: HTMLTextAreaElement) => {
+        return el.validity.tooShort || !el.checkValidity();
+      });
+      expect(isInvalid).toBeTruthy();
+    } else {
+      // Mobile Safari: form submitted and API rejected it - check for error message
+      await expect(page.getByText(/Please enter at least 10 characters/i)).toBeVisible();
+    }
   });
 
   test('should show character count for message', async ({ page }) => {
