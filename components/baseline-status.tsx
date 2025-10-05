@@ -21,7 +21,7 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
   }
 
   return (
-    <div className="relative mb-8 min-h-[200px] rounded-[.25rem] border border-neutral-800 bg-neutral-950 sm:min-h-[160px] md:min-h-[128px]">
+    <div className="relative mb-8 min-h-[200px] rounded-[.25rem] border border-border bg-card sm:min-h-[160px] md:min-h-[128px]">
       <div className="motion-translate-y-in-25 motion-opacity-in-50">
         <baseline-status
           featureid={featureId}

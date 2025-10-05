@@ -13,7 +13,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
         {filteredArticles.map((article) => (
           <li
             key={article.slug}
-            className="mb-2 rounded-md border border-neutral-800 px-3 py-2 hover:bg-neutral-900"
+            className="mb-2 rounded-md border border-border px-3 py-2 hover:bg-neutral-900"
           >
             <a
               href={`/blog/${article.slug}`}

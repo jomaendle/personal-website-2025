@@ -83,7 +83,7 @@ function SandpackSkeleton({ className }: { className?: string }) {
             <Skeleton className="h-4 w-12" />
           </div>
           {/* Preview Content */}
-          <div className="flex-1 bg-white p-4">
+          <div className="flex-1 bg-background p-4">
             <Skeleton className="h-32 w-full rounded" />
           </div>
         </div>
@@ -94,9 +94,9 @@ function SandpackSkeleton({ className }: { className?: string }) {
 
 function BaselineStatusSkeleton({ className }: { className?: string }) {
   return (
-    <div 
+    <div
       className={cn(
-        "relative mb-8 rounded-[.25rem] border border-neutral-800 bg-neutral-950",
+        "relative mb-8 rounded-[.25rem] border border-border bg-card",
         "min-h-[200px] sm:min-h-[160px] md:min-h-[128px]",
         className
       )}

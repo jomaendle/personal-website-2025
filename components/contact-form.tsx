@@ -53,8 +53,8 @@ export function ContactForm() {
   };
 
   return (
-    <div className="my-8 rounded-lg border border-neutral-800 bg-neutral-950 px-6 pb-6">
-      <h2 className="my-4 text-xl font-semibold text-white">Get in touch</h2>
+    <div className="my-8 rounded-lg border border-border bg-card px-6 pb-6">
+      <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
 
       {submitStatus === "success" ? (
         <div className="rounded-md bg-green-900/20 p-4 text-sm text-green-400">
@@ -67,7 +67,7 @@ export function ContactForm() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="name" className="mb-2 block text-sm text-muted-foreground">
               Name <span className="text-red-400">*</span>
             </label>
             <Input
@@ -76,7 +76,7 @@ export function ContactForm() {
               value={name}
               placeholder="Your Name"
               onChange={(e) => setName(e.target.value)}
-              className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
+              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
               disabled={isSubmitting}
               minLength={2}
@@ -85,7 +85,7 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="email" className="mb-2 block text-sm text-muted-foreground">
               Email <span className="text-red-400">*</span>
             </label>
             <Input
@@ -94,7 +94,7 @@ export function ContactForm() {
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
+              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
               disabled={isSubmitting}
               maxLength={254}
@@ -102,7 +102,7 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="topic" className="mb-2 block text-sm text-white/80">
+            <label htmlFor="topic" className="mb-2 block text-sm text-muted-foreground">
               Message <span className="text-red-400">*</span>
             </label>
             <Textarea
@@ -111,7 +111,7 @@ export function ContactForm() {
               onChange={(e) => setTopic(e.target.value)}
               rows={4}
               placeholder="I'm interested in a new software product and would like to know more about your services."
-              className="w-full bg-neutral-900 transition-colors focus:ring-2 focus:ring-primary/20"
+              className="w-full bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
               disabled={isSubmitting}
               minLength={10}

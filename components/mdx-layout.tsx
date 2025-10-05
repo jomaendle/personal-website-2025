@@ -6,7 +6,6 @@ import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { MobileTableOfContents } from "@/components/table-of-contents";
-import { ReadingTime } from "@/components/reading-time";
 import { BackToTop } from "@/components/back-to-top";
 import { Button } from "@/components/ui/button";
 
@@ -43,7 +42,7 @@ export default function MdxLayout({
         >
           <div className="z-[51] flex h-24 items-center justify-center gap-12">
             <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
-              <div className="absolute left-6 z-10 md:left-12 xl:hidden">
+              <div className="absolute left-0 z-10 md:left-12 xl:hidden">
                 <BackLink />
               </div>
               <Link href="/">
@@ -59,11 +58,9 @@ export default function MdxLayout({
               {/* Add top padding to account for sticky header */}
               <div className="mb-4 h-4"></div>
 
-              <div className="mb-12 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="mb-12 flex items-start justify-between gap-3">
+                <div className="flex flex-col items-start gap-3 text-sm text-muted-foreground">
                   <time dateTime={metadata.date}>{metadata.date}</time>
-                  <span>•</span>
-                  <ReadingTime />
                 </div>
                 <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
               </div>

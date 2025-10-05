@@ -1,9 +1,12 @@
+"use client";
+
 import {
   SandpackCodeEditor,
   SandpackLayout,
   SandpackPreview,
   SandpackProvider,
 } from "@codesandbox/sandpack-react";
+import { useTheme } from "next-themes";
 
 interface SandpackProps {
   files: Record<string, { code: string }>;
@@ -20,35 +23,40 @@ interface SandpackProps {
 const Sandpack = ({
   files,
   template = "vanilla",
-  theme = "dark",
+  theme,
   showLineNumbers = false,
   wrapContent = true,
   showTabs = true,
   showInlineErrors = true,
   closableTabs = true,
-}: SandpackProps) => (
-  <SandpackProvider template={template} theme={theme} files={files}>
-    <SandpackLayout>
-      <SandpackCodeEditor
-        style={{
-          height: "400px",
-          overflowY: "auto",
-        }}
-        showTabs={showTabs}
-        showLineNumbers={showLineNumbers}
-        showInlineErrors={showInlineErrors}
-        wrapContent={wrapContent}
-        closableTabs={closableTabs}
-      />
-      <SandpackPreview
-        style={{
-          height: "400px",
-          overflowY: "auto",
-        }}
-      />
-    </SandpackLayout>
-  </SandpackProvider>
-);
+}: SandpackProps) => {
+  const { theme: currentTheme } = useTheme();
+  const sandpackTheme = theme || (currentTheme === "light" ? "light" : "dark");
+
+  return (
+    <SandpackProvider template={template} theme={sandpackTheme} files={files}>
+      <SandpackLayout>
+        <SandpackCodeEditor
+          style={{
+            height: "400px",
+            overflowY: "auto",
+          }}
+          showTabs={showTabs}
+          showLineNumbers={showLineNumbers}
+          showInlineErrors={showInlineErrors}
+          wrapContent={wrapContent}
+          closableTabs={closableTabs}
+        />
+        <SandpackPreview
+          style={{
+            height: "400px",
+            overflowY: "auto",
+          }}
+        />
+      </SandpackLayout>
+    </SandpackProvider>
+  );
+};
 
 Sandpack.displayName = "Sandpack";
 
