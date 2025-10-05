@@ -19,7 +19,7 @@ import { Linkedin } from "lucide-react";
 export default function Home() {
   return (
     <div className="page-container">
-      <div
+      <main
         className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
@@ -55,6 +55,7 @@ export default function Home() {
                   href="https://www.linkedin.com/in/johannes-maendle/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="LinkedIn"
                   className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
                 >
                   <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
@@ -106,7 +107,7 @@ export default function Home() {
         </section>
 
         <Footer />
-      </div>
+      </main>
     </div>
   );
 }

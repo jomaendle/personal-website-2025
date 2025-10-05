@@ -55,28 +55,33 @@ export default function NewsletterForm() {
     <div className="w-full py-8">
       <div className="mb-6 space-y-2">
         <H2 className="">Newsletter</H2>
-        <p className="text-sm text-muted-foreground">
+        <p id="newsletter-description" className="text-sm text-muted-foreground">
           Subscribe to get notified about new articles and updates.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your.email@example.com"
-          required
-          disabled={isLoading}
-          className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
-          maxLength={254}
-          aria-describedby="email-help"
-        />
+        <div className="flex-1">
+          <label htmlFor="newsletter-email" className="sr-only">
+            Email address
+          </label>
+          <Input
+            id="newsletter-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your.email@example.com"
+            required
+            disabled={isLoading}
+            maxLength={254}
+            aria-describedby="newsletter-description"
+          />
+        </div>
         <motion.button
           type="submit"
           disabled={isLoading}
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
           initial={false}
-          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 md:w-40"
+          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md border border-border/50 bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-md transition-all duration-200 hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 md:w-40"
         >
           <AnimatePresence mode="wait">
             <motion.span
@@ -97,13 +102,21 @@ export default function NewsletterForm() {
       </form>
 
       {status === "success" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="status"
+          aria-live="polite"
+          className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0"
+        >
           Thanks for subscribing! You will receive an email shortly.
         </p>
       )}
 
       {status === "error" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="alert"
+          aria-live="assertive"
+          className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0"
+        >
           {errorMessage || "Failed to subscribe. Please try again."}
         </p>
       )}

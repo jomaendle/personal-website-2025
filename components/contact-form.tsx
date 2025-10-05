@@ -57,11 +57,19 @@ export function ContactForm() {
       <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
 
       {submitStatus === "success" ? (
-        <div className="rounded-md bg-green-900/20 p-4 text-sm text-green-400">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-md bg-green-900/20 p-4 text-sm text-green-400"
+        >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
-        <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-md bg-red-900/20 p-4 text-sm text-red-400"
+        >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>
       ) : (
@@ -76,7 +84,6 @@ export function ContactForm() {
               value={name}
               placeholder="Your Name"
               onChange={(e) => setName(e.target.value)}
-              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
               disabled={isSubmitting}
               minLength={2}
@@ -94,7 +101,6 @@ export function ContactForm() {
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
               disabled={isSubmitting}
               maxLength={254}
@@ -111,7 +117,7 @@ export function ContactForm() {
               onChange={(e) => setTopic(e.target.value)}
               rows={4}
               placeholder="I'm interested in a new software product and would like to know more about your services."
-              className="w-full bg-input transition-colors focus:ring-2 focus:ring-primary/20"
+              className="w-full"
               required
               disabled={isSubmitting}
               minLength={10}
@@ -124,6 +130,7 @@ export function ContactForm() {
 
           <Button
             type="submit"
+            variant="secondary"
             disabled={isSubmitting}
             className="inline-flex items-center justify-center"
           >

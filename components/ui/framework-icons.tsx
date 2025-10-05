@@ -10,10 +10,8 @@ export const ReactIcon = ({ className = "", size = 20 }: IconProps) => (
     className={className}
     width={size}
     height={size}
-    aria-label="React Logo"
-    role="img"
+    aria-hidden="true"
   >
-    <title>React Logo</title>
     <circle cx="0" cy="0" r="2.05" fill="#61dafb" />
     <g stroke="#61dafb" strokeWidth="1" fill="none">
       <ellipse rx="11" ry="4.2" />
@@ -31,8 +29,7 @@ export const VueIcon = ({ className = "", size = 20 }: IconProps) => (
     className={className}
     width={size}
     height={size}
-    aria-label="Vue.js Logo"
-    role="img"
+    aria-hidden="true"
   >
     <g transform="matrix(1.3333 0 0 -1.3333 -76.311 313.34)">
       <g transform="translate(178.06 235.01)">
@@ -59,8 +56,7 @@ export const AngularIcon = ({ className = "", size = 20 }: IconProps) => (
     width={size}
     className={className}
     height={size}
-    aria-label="Angular Logo"
-    role="img"
+    aria-hidden="true"
   >
     <g clipPath="url(#a)">
       <path
@@ -113,8 +109,7 @@ export const JavaScriptIcon = ({ className = "", size = 20 }: IconProps) => (
     className={className}
     width={size}
     height={size}
-    aria-label="JavaScript Logo"
-    role="img"
+    aria-hidden="true"
   >
     <rect width="630" height="630" fill="#f7df1e" />
     <path d="m423.2 492.19c12.69 20.72 29.2 35.95 58.4 35.95 24.53 0 40.2-12.26 40.2-29.2 0-20.3-16.1-27.49-43.1-39.3l-14.8-6.35c-42.72-18.2-71.1-41-71.1-89.2 0-44.4 33.83-78.2 86.7-78.2 37.64 0 64.7 13.1 84.2 47.4l-46.1 29.6c-10.15-18.2-21.1-25.37-38.1-25.37-17.34 0-28.33 11-28.33 25.37 0 17.76 11 24.95 36.4 35.95l14.8 6.34c50.3 21.57 78.7 43.56 78.7 93 0 53.3-41.87 82.5-98.1 82.5-54.98 0-90.5-26.2-107.88-60.54zm-209.13 5.13c9.3 16.5 17.76 30.45 38.1 30.45 19.45 0 31.72-7.61 31.72-37.2v-201.3h59.2v202.1c0 61.3-35.94 89.2-88.4 89.2-47.4 0-74.85-24.53-88.81-54.075z" />
@@ -129,6 +124,7 @@ export const AstroIcon = ({ className = "", size = 20 }: IconProps) => (
     viewBox="0 0 85 107"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
   >
     <path
       d="M27.5894 91.1365C22.7555 86.7178 21.3444 77.4335 23.3583 70.7072C26.8503 74.948 31.6888 76.2914 36.7005 77.0497C44.4375 78.2199 52.0359 77.7822 59.2232 74.2459C60.0454 73.841 60.8052 73.3027 61.7036 72.7574C62.378 74.714 62.5535 76.6892 62.318 78.6996C61.7452 83.5957 59.3086 87.3778 55.4332 90.2448C53.8835 91.3916 52.2437 92.4167 50.6432 93.4979C45.7262 96.8213 44.3959 100.718 46.2435 106.386C46.2874 106.525 46.3267 106.663 46.426 107C43.9155 105.876 42.0817 104.24 40.6845 102.089C39.2087 99.8193 38.5066 97.3081 38.4696 94.5909C38.4511 93.2686 38.4511 91.9345 38.2733 90.6309C37.8391 87.4527 36.3471 86.0297 33.5364 85.9478C30.6518 85.8636 28.37 87.6469 27.7649 90.4554C27.7187 90.6707 27.6517 90.8837 27.5847 91.1341L27.5894 91.1365Z"

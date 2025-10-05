@@ -50,8 +50,10 @@ export function BlogVideo({
         loop={true}
         className="h-full max-h-[400px] w-full object-contain"
         poster={posterSrc}
+        aria-label={caption}
       >
         <source src={src} type="video/mp4" />
+        {/* Visual demonstration video without audio - caption provides context */}
       </video>
       <figcaption>{caption}</figcaption>
     </figure>
