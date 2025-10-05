@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 interface CodeBlockProps {
   language: string;
@@ -13,6 +15,7 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   const copyToClipboard = async () => {
     try {
@@ -24,12 +27,15 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
     }
   };
 
+  // Use dark theme by default for better SSR/hydration
+  const syntaxTheme = resolvedTheme === "light" ? vs : dracula;
+
   return (
     <div className="code-block relative my-6 overflow-hidden rounded-lg border border-border bg-secondary group">
       <div className="absolute right-12 top-3 rounded-md bg-background/80 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm">
         {language}
       </div>
-      
+
       <Button
         variant="ghost"
         size="sm"
@@ -80,7 +86,7 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
 
       <SyntaxHighlighter
         language={language}
-        style={dracula}
+        style={syntaxTheme}
         customStyle={{
           margin: 0,
           padding: "1.5rem 1rem",

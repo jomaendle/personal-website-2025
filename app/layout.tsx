@@ -7,10 +7,11 @@ import Head from "next/head";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
 import { Provider as JotaiProvider } from "jotai";
-import { PersonStructuredData, WebsiteStructuredData } from "@/components/structured-data";
-
-import bgImage from "../public/assets/bg.webp";
-import Image from "next/image";
+import {
+  PersonStructuredData,
+  WebsiteStructuredData,
+} from "@/components/structured-data";
+import { ThemeAwareBody } from "@/components/theme-aware-body";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning
+        data-scroll-behavior="smooth"
         style={{
           scrollbarGutter: "stable",
         }}
@@ -60,24 +62,18 @@ export default function RootLayout({
           <link rel="modulepreload" href="/_next/static/chunks/webpack.js" />
           <link rel="modulepreload" href="/_next/static/chunks/main.js" />
         </Head>
-        <body
-          className={`${inter.variable} min-h-[100dvh] bg-background font-sans text-foreground antialiased`}
-        >
-          <div className="fixed inset-0 -z-10 h-full w-full after:absolute after:inset-0 after:bg-black/35">
-            <Image src={bgImage} alt="" fill className="object-cover" />
-            <div className="absolute inset-0 z-10 h-full w-full blur-xl" />
-          </div>
-          <JotaiProvider>
-            <ThemeProvider attribute="class" defaultTheme="system">
+        <JotaiProvider>
+          <ThemeProvider attribute="class" defaultTheme="system">
+            <ThemeAwareBody className={`${inter.variable} font-sans antialiased`}>
               <PlausibleProvider domain="jomaendle.com">
                 {children}
               </PlausibleProvider>
-            </ThemeProvider>
-          </JotaiProvider>
-          <SpeedInsights />
-          <PersonStructuredData />
-          <WebsiteStructuredData />
-        </body>
+              <SpeedInsights />
+              <PersonStructuredData />
+              <WebsiteStructuredData />
+            </ThemeAwareBody>
+          </ThemeProvider>
+        </JotaiProvider>
       </html>
     </ViewTransitions>
   );

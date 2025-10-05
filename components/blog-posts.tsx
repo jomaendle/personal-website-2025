@@ -15,8 +15,8 @@ export function BlogPosts() {
   const displayedPosts =
     showAll || isCollapsing ? BLOG_POSTS : BLOG_POSTS.slice(0, 4);
 
-  const STAGGER_DELAY = 0.05;
-  const ANIMATION_DURATION = 0.3;
+  const STAGGER_DELAY = 0.04;
+  const ANIMATION_DURATION = 0.25;
 
   // Calculate total exit animation time for button coordination
   const getExitAnimationDuration = () => {
@@ -55,9 +55,9 @@ export function BlogPosts() {
   };
 
   const itemVariants = {
-    initial: { opacity: 0, y: -20 },
+    initial: { opacity: 0, y: -10 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 20 }, // Always exit downward for consistency
+    exit: { opacity: 0, y: 10 },
   };
 
   return (
@@ -91,7 +91,7 @@ export function BlogPosts() {
             >
               <Link
                 href={"/blog/" + post.slug}
-                className="group -mx-3 flex items-center gap-4 rounded-[.25rem] px-3 py-2 transition-colors hover:bg-white/[0.03]"
+                className="group -mx-3 flex items-center gap-4 rounded-[.25rem] px-3 py-2 hover-accent"
                 prefetch={false}
               >
                 <div className="flex-1">

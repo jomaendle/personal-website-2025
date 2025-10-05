@@ -49,7 +49,7 @@ export function WorkExperience() {
         <article key={index}>
           <Link
             href={experience.link}
-            className="group -mx-3 block rounded-[.25rem] px-3 py-2 transition-colors hover:bg-white/[0.03]"
+            className="group -mx-3 block rounded-[.25rem] px-3 py-2 hover-accent"
             target="_blank"
             rel="noopener noreferrer"
           >
