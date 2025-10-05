@@ -67,7 +67,6 @@ export default function NewsletterForm() {
           placeholder="your.email@example.com"
           required
           disabled={isLoading}
-          className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
           maxLength={254}
           aria-describedby="email-help"
         />
@@ -76,7 +75,7 @@ export default function NewsletterForm() {
           disabled={isLoading}
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
           initial={false}
-          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 md:w-40"
+          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md border border-border/50 bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-md transition-all duration-200 hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 md:w-40"
         >
           <AnimatePresence mode="wait">
             <motion.span

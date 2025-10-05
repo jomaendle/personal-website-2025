@@ -2,10 +2,9 @@
 
 import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { dracula, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
 interface CodeBlockProps {
@@ -31,7 +30,7 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
   const syntaxTheme = resolvedTheme === "light" ? vs : dracula;
 
   return (
-    <div className="code-block relative my-6 overflow-hidden rounded-lg border border-border bg-secondary group">
+    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border bg-secondary">
       <div className="absolute right-12 top-3 rounded-md bg-background/80 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm">
         {language}
       </div>
@@ -40,7 +39,7 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
         variant="ghost"
         size="sm"
         onClick={copyToClipboard}
-        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-8 w-8 p-0"
+        className="absolute right-2 top-2 z-20 h-8 w-8 p-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
         aria-label="Copy code"
       >
         <AnimatePresence mode="wait">

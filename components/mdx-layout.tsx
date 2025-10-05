@@ -8,6 +8,7 @@ import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { MobileTableOfContents } from "@/components/table-of-contents";
 import { BackToTop } from "@/components/back-to-top";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function MdxLayout({
   children,
@@ -42,7 +43,7 @@ export default function MdxLayout({
         >
           <div className="z-[51] flex h-24 items-center justify-center gap-12">
             <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
-              <div className="absolute left-0 z-10 md:left-12 xl:hidden">
+              <div className="absolute left-0 z-10 xl:hidden">
                 <BackLink />
               </div>
               <Link href="/">
@@ -50,6 +51,9 @@ export default function MdxLayout({
                   Jo Mändle
                 </p>
               </Link>
+              <div className="absolute right-0 z-10">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
 
@@ -97,6 +101,7 @@ function BackLink() {
   return (
     <Link
       href="/"
+      aria-label="Back to homepage"
       className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200 hover:text-primary"
     >
       <span className="transition-transform duration-200">←</span>
