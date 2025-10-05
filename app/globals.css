@@ -66,6 +66,24 @@
         @apply bg-background text-foreground;
     }
 
+    /* Dark mode background gradient (default) */
+    :root body {
+        background:
+            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.29) 0%, transparent 50%),
+            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
+            linear-gradient(to bottom, #0a0a0a 0%, #000000 100%);
+    }
+
+    /* Light mode background gradient */
+    .light body {
+        background:
+            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.02) 0%, transparent 70%),
+            linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+    }
+
     .prose {
         @apply text-foreground max-w-full;
         font-size: 1.125rem; /* 18px for better readability */
@@ -145,7 +163,7 @@
 
     /* Light mode inline code - better contrast */
     .light .prose code {
-        @apply bg-neutral-100 text-neutral-800 border-neutral-300;
+        @apply bg-secondary text-secondary-foreground border-border;
     }
 
     .prose pre code {
@@ -254,23 +272,6 @@
         @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
     }
 
-    /* Refined dark gradient background - performance optimized */
-    .bg-gradient-dark {
-        background:
-            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.29) 0%, transparent 50%),
-            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
-            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
-            linear-gradient(to bottom, #0a0a0a 0%, #000000 100%);
-    }
-
-    /* Light gradient background - subtle and clean */
-    .bg-gradient-light {
-        background:
-            radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
-            radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
-            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.02) 0%, transparent 70%),
-            linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
-    }
 
     /* Subtle gradient accent for hover states */
     .gradient-accent-hover {
@@ -337,21 +338,20 @@
 
     /* Circular reveal animation for theme switching */
     ::view-transition-new(root) {
-        mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white"/></svg>')
-            center / 0 no-repeat;
+        clip-path: circle(0% at 50% 50%);
         animation: theme-reveal 1s cubic-bezier(0.4, 0, 0.15, 1) forwards;
     }
 
     @keyframes theme-reveal {
         to {
-            mask-size: 200vmax;
+            clip-path: circle(150% at 50% 50%);
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
         ::view-transition-new(root) {
             animation: none;
-            mask: none;
+            clip-path: none;
         }
     }
 
