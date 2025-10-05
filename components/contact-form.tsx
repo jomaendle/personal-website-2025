@@ -57,11 +57,19 @@ export function ContactForm() {
       <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
 
       {submitStatus === "success" ? (
-        <div className="rounded-md bg-green-900/20 p-4 text-sm text-green-400">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-md bg-green-900/20 p-4 text-sm text-green-400"
+        >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
-        <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-md bg-red-900/20 p-4 text-sm text-red-400"
+        >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>
       ) : (

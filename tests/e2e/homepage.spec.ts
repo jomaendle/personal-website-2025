@@ -22,9 +22,11 @@ test.describe('Homepage', () => {
     const todaySection = page.locator('section').filter({ hasText: 'Today' });
     await expect(todaySection).toBeVisible();
 
-    // Icons are SVGs, check for their presence
-    const reactIcon = todaySection.locator('svg[aria-label="React Logo"]');
-    await expect(reactIcon).toBeVisible();
+    // Icons are decorative SVGs with aria-hidden="true", check for their presence
+    const frameworkIcons = todaySection.locator('svg[aria-hidden="true"]');
+    await expect(frameworkIcons.first()).toBeVisible();
+    // Should have multiple framework icons (React, Vue, Angular, JS, Astro)
+    expect(await frameworkIcons.count()).toBeGreaterThanOrEqual(5);
   });
 
   test('should have LinkedIn link', async ({ page }) => {

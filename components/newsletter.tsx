@@ -55,21 +55,27 @@ export default function NewsletterForm() {
     <div className="w-full py-8">
       <div className="mb-6 space-y-2">
         <H2 className="">Newsletter</H2>
-        <p className="text-sm text-muted-foreground">
+        <p id="newsletter-description" className="text-sm text-muted-foreground">
           Subscribe to get notified about new articles and updates.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your.email@example.com"
-          required
-          disabled={isLoading}
-          maxLength={254}
-          aria-describedby="email-help"
-        />
+        <div className="flex-1">
+          <label htmlFor="newsletter-email" className="sr-only">
+            Email address
+          </label>
+          <Input
+            id="newsletter-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your.email@example.com"
+            required
+            disabled={isLoading}
+            maxLength={254}
+            aria-describedby="newsletter-description"
+          />
+        </div>
         <motion.button
           type="submit"
           disabled={isLoading}
@@ -96,13 +102,21 @@ export default function NewsletterForm() {
       </form>
 
       {status === "success" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="status"
+          aria-live="polite"
+          className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0"
+        >
           Thanks for subscribing! You will receive an email shortly.
         </p>
       )}
 
       {status === "error" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="alert"
+          aria-live="assertive"
+          className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0"
+        >
           {errorMessage || "Failed to subscribe. Please try again."}
         </p>
       )}
