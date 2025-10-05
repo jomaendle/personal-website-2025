@@ -63,7 +63,7 @@ export function CraftsOverview() {
         className="flex grid-cols-2 flex-col items-start gap-4 md:grid"
       >
         <motion.div className="w-full">
-          <CraftsContainer title="Shimmer Effect">
+          <CraftsContainer>
             <LoadingGradient className="text-xl">Loading</LoadingGradient>
           </CraftsContainer>
         </motion.div>
@@ -77,9 +77,7 @@ export function CraftsOverview() {
             <motion.div key={craft.src} className="w-full">
               <CraftsContainer
                 style={{ backgroundColor: craft.bgColor }}
-                title={craft.title}
                 className="overflow-hidden"
-                link={craft.link}
               >
                 <video
                   autoPlay

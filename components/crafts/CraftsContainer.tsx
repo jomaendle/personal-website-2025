@@ -4,18 +4,12 @@ import { cn } from "@/lib/utils";
 interface CraftsContainerProps extends HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   innerClassName?: string;
-  title?: string;
-  link?: string | undefined;
-  showFadeOut?: boolean;
 }
 
 export const CraftsContainer = ({
   children,
   className,
   innerClassName,
-  title,
-  link,
-  showFadeOut = true,
   ...props
 }: CraftsContainerProps) => {
   const containerContent = (

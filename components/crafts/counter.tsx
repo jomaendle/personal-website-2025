@@ -47,11 +47,7 @@ export const CounterCraft = () => {
   const digits = String(counter).split("");
 
   return (
-    <CraftsContainer
-      className="flex font-mono"
-      title="Animated Counter"
-      innerClassName="gap-6"
-    >
+    <CraftsContainer className="flex font-mono" innerClassName="gap-6">
       <Button onClick={decrement} disabled={counter === 0} className="h-8 w-8">
         -
       </Button>
