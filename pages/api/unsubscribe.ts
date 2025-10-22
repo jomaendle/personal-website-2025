@@ -7,10 +7,19 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     const { email } = req.query;
+
+    const audienceId = process.env.RESEND_AUDIENCE_ID;
+
+    if (!audienceId) {
+      return res
+        .status(500)
+        .json({ error: "Server configuration error: Missing audience ID" });
+    }
+
     try {
       await resend.contacts.update({
         email: email as string,
-        audienceId: "fc715dff-d469-4c22-ba40-87a4b427ec0f",
+        audienceId,
         unsubscribed: true,
       });
 

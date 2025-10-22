@@ -50,6 +50,7 @@ export function BlogVideo({
         loop={true}
         className="h-full max-h-[400px] w-full object-contain"
         poster={posterSrc}
+        aria-label={caption || "Video content"}
       >
         <source src={src} type="video/mp4" />
       </video>

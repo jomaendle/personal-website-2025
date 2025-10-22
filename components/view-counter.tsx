@@ -1,3 +1,5 @@
+"use client";
+
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { DEFAULT_STALE_TIME, queryClient } from "@/lib/queryClient";

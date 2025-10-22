@@ -1,4 +1,4 @@
-import { ViewCounterWithProvider } from "@/components/view-counter-provider";
+import { ViewCounter } from "@/components/view-counter";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
@@ -62,7 +62,7 @@ export default function MdxLayout({
                 <div className="flex flex-col items-start gap-3 text-sm text-muted-foreground">
                   <time dateTime={metadata.date}>{metadata.date}</time>
                 </div>
-                <ViewCounterWithProvider slug={slug} shouldIncrement={true} />
+                <ViewCounter slug={slug} shouldIncrement={true} />
               </div>
 
               <div className="relative -mt-2 mb-8 h-10 xl:hidden">

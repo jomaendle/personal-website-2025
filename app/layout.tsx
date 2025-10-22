@@ -10,6 +10,7 @@ import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
+import { ReactQueryProvider } from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,22 +61,24 @@ export default function RootLayout({
         }}
       >
         <body className={`${inter.variable} min-h-[100dvh] font-sans text-foreground antialiased`}>
-          <JotaiProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem={true}
-              enableColorScheme={true}
-              storageKey="theme"
-            >
-              <PlausibleProvider domain="jomaendle.com">
-                {children}
-              </PlausibleProvider>
-              <SpeedInsights />
-              <PersonStructuredData />
-              <WebsiteStructuredData />
-            </ThemeProvider>
-          </JotaiProvider>
+          <ReactQueryProvider>
+            <JotaiProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem={true}
+                enableColorScheme={true}
+                storageKey="theme"
+              >
+                <PlausibleProvider domain="jomaendle.com">
+                  {children}
+                </PlausibleProvider>
+                <SpeedInsights />
+                <PersonStructuredData />
+                <WebsiteStructuredData />
+              </ThemeProvider>
+            </JotaiProvider>
+          </ReactQueryProvider>
         </body>
       </html>
     </ViewTransitions>

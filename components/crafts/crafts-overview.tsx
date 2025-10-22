@@ -16,19 +16,6 @@ const crafts: {
   title: string;
   bgColor: string;
 }[] = [
-  /*  {
-    src: "/crafts/ai-chat-demo.mp4",
-    title: "Conversational AI Chat",
-    posterImg: posterAiChat,
-    bgColor: "#0a0a0a",
-  },*/
-  /*{
-    src: "/animated-sign-up-button/tease.mp4",
-    posterImg: posterImg3,
-    title: "Sign Up Button Animation",
-    bgColor: "#060606",
-    link: "/blog/animated-sign-up-button",
-  },*/
   {
     src: "/crafts/animetd-details-demo-website.mp4",
     posterImg: posterImg1,

@@ -26,9 +26,9 @@ const links = [
 export const MoreLinks = () => {
   return (
     <>
-      {links.map((link, index) => (
+      {links.map((link) => (
         <Link
-          key={index}
+          key={link.href}
           href={link.href}
           className="block text-muted-foreground transition-colors hover:text-primary"
           target={link.href.startsWith("mailto:") ? undefined : "_blank"}

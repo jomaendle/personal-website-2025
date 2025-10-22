@@ -1,6 +1,24 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextApiRequest, NextApiResponse } from "next";
 
+/**
+ * IMPORTANT: This API route requires a PostgreSQL function to be created in your Supabase database.
+ * Run this SQL in your Supabase SQL Editor:
+ *
+ * CREATE OR REPLACE FUNCTION increment_page_view(page_slug TEXT)
+ * RETURNS TABLE(views BIGINT) AS $$
+ * BEGIN
+ *   INSERT INTO page_views (slug, views)
+ *   VALUES (page_slug, 1)
+ *   ON CONFLICT (slug)
+ *   DO UPDATE SET views = page_views.views + 1
+ *   RETURNING page_views.views;
+ * END;
+ * $$ LANGUAGE plpgsql;
+ *
+ * This function provides atomic increment operation, eliminating race conditions.
+ */
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -17,36 +35,24 @@ export default async function handler(
       "public, s-maxage=10, stale-while-revalidate=59",
     );
 
-    // Check if the slug exists
-    const { data: page, error } = await supabase
-      .from("page_views")
-      .select("views")
-      .eq("slug", slug)
-      .single();
+    try {
+      // Use RPC to call the PostgreSQL function that handles atomic increment
+      const { data, error } = await supabase.rpc("increment_page_view", {
+        page_slug: slug,
+      });
 
-    if (error) {
-      // If the slug doesn't exist, insert it with initial view count
-      const { error: insertError } = await supabase
-        .from("page_views")
-        .insert({ slug, views: 1 });
-
-      if (insertError) {
-        return res.status(500).json({ error: insertError.message });
+      if (error) {
+        console.error("Error incrementing page view:", error);
+        return res.status(500).json({ error: error.message });
       }
 
-      return res.status(200).json({ views: 1 });
-    } else {
-      // If the slug exists, increment the view count
-      const { error: updateError } = await supabase
-        .from("page_views")
-        .update({ views: page.views + 1 })
-        .eq("slug", slug);
+      // The function returns an array with a single row containing the views count
+      const views = data?.[0]?.views || data?.views || 1;
 
-      if (updateError) {
-        return res.status(500).json({ error: updateError.message });
-      }
-
-      return res.status(200).json({ views: page.views + 1 });
+      return res.status(200).json({ views });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   } else {
     res.setHeader("Allow", ["POST"]);

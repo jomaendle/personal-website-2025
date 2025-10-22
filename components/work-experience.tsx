@@ -3,16 +3,8 @@ import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
 
 const workExperiences = [
-  /*  {
-    title: "OneClient",
-    description:
-      "A platform for freelancers and agencies to manage projects and clients.",
-    link: "https://oneclient.pro",
-    isExternal: true,
-    isNew: true,
-    imgSrc: oneClientImg,
-  },*/
   {
+    id: "beauty-of-earth",
     title: "The Beauty of Earth",
     description:
       "A collection of landscape photography showcasing the beauty of Earth.",
@@ -21,32 +13,27 @@ const workExperiences = [
     isNew: true,
   },
   {
+    id: "music-player",
     title: "Music Player",
     description: "A music player to play songs from my band Car Kids.",
     link: "https://radio.jomaendle.com",
     isExternal: true,
   },
   {
+    id: "photography",
     title: "Jo Maendle Photography",
     description:
       "Personal photography portfolio showcasing portrait and landscape photography.",
     link: "https://photo.jomaendle.com",
     isExternal: true,
   },
-  /*{
-    title: "The Beauty of Earth (deprecated)",
-    description:
-      "A collection of landscape photography showcasing the beauty of Earth.",
-    link: "https://images.jomaendle.com",
-    isExternal: true,
-  },*/
 ];
 
 export function WorkExperience() {
   return (
     <>
-      {workExperiences.map((experience, index) => (
-        <article key={index}>
+      {workExperiences.map((experience) => (
+        <article key={experience.id}>
           <Link
             href={experience.link}
             className="group -mx-3 block rounded-[.25rem] px-3 py-2 hover-accent"

@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -15,7 +13,27 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [syntaxTheme, setSyntaxTheme] = useState<any>(null);
   const { resolvedTheme } = useTheme();
+
+  // Lazy load syntax highlighter themes based on current theme
+  useEffect(() => {
+    const loadTheme = async () => {
+      if (resolvedTheme === "light") {
+        const { vs } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism"
+        );
+        setSyntaxTheme(vs);
+      } else {
+        const { dracula } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism"
+        );
+        setSyntaxTheme(dracula);
+      }
+    };
+
+    loadTheme();
+  }, [resolvedTheme]);
 
   const copyToClipboard = async () => {
     try {
@@ -27,8 +45,14 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
     }
   };
 
-  // Use dark theme by default for better SSR/hydration
-  const syntaxTheme = resolvedTheme === "light" ? vs : dracula;
+  // Show loading state while theme is being loaded
+  if (!syntaxTheme) {
+    return (
+      <div className="code-block relative my-6 overflow-hidden rounded-lg border border-border bg-secondary">
+        <div className="p-6 text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="code-block relative my-6 overflow-hidden rounded-lg border border-border bg-secondary group">
