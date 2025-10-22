@@ -20,7 +20,7 @@ const BlogPostItem = memo(
     post: (typeof BLOG_POSTS)[number];
     index: number;
     shouldShow: boolean;
-    motionProps: any;
+    motionProps: { initial?: string; exit?: string };
     animationDuration: number;
     getItemAnimationDelay: (index: number) => number;
   }) => {

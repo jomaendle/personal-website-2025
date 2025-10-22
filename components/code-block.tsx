@@ -13,7 +13,7 @@ interface CodeBlockProps {
 
 export function CodeBlock({ language, code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
-  const [syntaxTheme, setSyntaxTheme] = useState<any>(null);
+  const [syntaxTheme, setSyntaxTheme] = useState<Record<string, React.CSSProperties> | null>(null);
   const { resolvedTheme } = useTheme();
 
   // Lazy load syntax highlighter themes based on current theme
