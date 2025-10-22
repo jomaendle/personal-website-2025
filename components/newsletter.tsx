@@ -55,6 +55,7 @@ export default function NewsletterForm() {
       const timeoutId = setTimeout(() => setStatus("idle"), 5000);
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [status]);
 
   const isLoading = useMemo(() => status === "loading", [status]);

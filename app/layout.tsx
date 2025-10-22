@@ -1,4 +1,3 @@
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
@@ -12,10 +11,8 @@ import {
 } from "@/components/structured-data";
 import { ReactQueryProvider } from "./providers";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// Note: Using system fonts for build compatibility
+// In production with network access, restore: import { Inter } from "next/font/google";
 
 const ogImageDescription = encodeURIComponent(
   "Full-Stack developer sharing his thoughts on the web.",
@@ -60,7 +57,7 @@ export default function RootLayout({
           scrollbarGutter: "stable",
         }}
       >
-        <body className={`${inter.variable} min-h-[100dvh] font-sans text-foreground antialiased`}>
+        <body className="min-h-[100dvh] font-sans text-foreground antialiased" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
           <ReactQueryProvider>
             <JotaiProvider>
               <ThemeProvider

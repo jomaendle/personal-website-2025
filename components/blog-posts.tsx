@@ -111,6 +111,7 @@ export function BlogPosts() {
       // Cleanup timeout if component unmounts or state changes
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [isCollapsing]);
 
   const getItemAnimationDelay = (index: number) => {
