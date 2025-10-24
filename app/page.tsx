@@ -14,7 +14,6 @@ import {
   ReactIcon,
   VueIcon,
 } from "@/components/ui/framework-icons";
-import { Linkedin } from "lucide-react";
 
 export default function Home() {
   return (
