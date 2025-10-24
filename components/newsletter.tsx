@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { H2 } from "@/components/ui/heading";
 import { AnimatePresence, motion } from "framer-motion";
@@ -32,11 +32,9 @@ export default function NewsletterForm() {
       if (res.ok) {
         setStatus("success");
         setEmail("");
-        setTimeout(() => setStatus("finished"), 3000);
       } else {
         setStatus("error");
         setErrorMessage(data.details || data.error || "Failed to subscribe");
-        setTimeout(() => setStatus("idle"), 5000);
       }
     } catch (error) {
       const errorMessage =
@@ -45,9 +43,20 @@ export default function NewsletterForm() {
       setErrorMessage(
         `Network error. Please check your connection and try again: ${errorMessage}`,
       );
-      setTimeout(() => setStatus("idle"), 5000);
     }
   };
+
+  // Handle status timeout transitions with proper cleanup
+  useEffect(() => {
+    if (status === "success") {
+      const timeoutId = setTimeout(() => setStatus("finished"), 3000);
+      return () => clearTimeout(timeoutId);
+    } else if (status === "error") {
+      const timeoutId = setTimeout(() => setStatus("idle"), 5000);
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [status]);
 
   const isLoading = useMemo(() => status === "loading", [status]);
 
@@ -60,17 +69,22 @@ export default function NewsletterForm() {
         </p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your.email@example.com"
-          required
-          disabled={isLoading}
-          className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
-          maxLength={254}
-          aria-describedby="email-help"
-        />
+        <div className="flex-1">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your.email@example.com"
+            required
+            disabled={isLoading}
+            className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
+            maxLength={254}
+            aria-describedby="email-help"
+          />
+          <p id="email-help" className="sr-only">
+            Enter your email address to subscribe to the newsletter
+          </p>
+        </div>
         <motion.button
           type="submit"
           disabled={isLoading}

@@ -1,4 +1,3 @@
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
@@ -10,11 +9,10 @@ import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
+import { ReactQueryProvider } from "./providers";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// Note: Using system fonts for build compatibility
+// In production with network access, restore: import { Inter } from "next/font/google";
 
 const ogImageDescription = encodeURIComponent(
   "Full-Stack developer sharing his thoughts on the web.",
@@ -59,23 +57,25 @@ export default function RootLayout({
           scrollbarGutter: "stable",
         }}
       >
-        <body className={`${inter.variable} min-h-[100dvh] font-sans text-foreground antialiased`}>
-          <JotaiProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem={true}
-              enableColorScheme={true}
-              storageKey="theme"
-            >
-              <PlausibleProvider domain="jomaendle.com">
-                {children}
-              </PlausibleProvider>
-              <SpeedInsights />
-              <PersonStructuredData />
-              <WebsiteStructuredData />
-            </ThemeProvider>
-          </JotaiProvider>
+        <body className="min-h-[100dvh] font-sans text-foreground antialiased" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+          <ReactQueryProvider>
+            <JotaiProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem={true}
+                enableColorScheme={true}
+                storageKey="theme"
+              >
+                <PlausibleProvider domain="jomaendle.com">
+                  {children}
+                </PlausibleProvider>
+                <SpeedInsights />
+                <PersonStructuredData />
+                <WebsiteStructuredData />
+              </ThemeProvider>
+            </JotaiProvider>
+          </ReactQueryProvider>
         </body>
       </html>
     </ViewTransitions>

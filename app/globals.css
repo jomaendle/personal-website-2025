@@ -359,4 +359,78 @@
     .glass-container {
         will-change: opacity;
     }
+
+    /* Performance optimizations for view transitions */
+    [style*="viewTransitionName"] {
+        contain: layout style paint;
+    }
+
+    /* Optimize main content transition */
+    ::view-transition-old(main-content),
+    ::view-transition-new(main-content) {
+        animation-duration: 0.3s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Subtle fade and scale for blog card elements */
+    ::view-transition-old(blog-card-*) {
+        animation: fade-scale-out 0.25s ease-out;
+    }
+
+    ::view-transition-new(blog-card-*) {
+        animation: fade-scale-in 0.25s ease-in;
+    }
+
+    /* Fade animations for blog post elements */
+    ::view-transition-old(blog-title-*),
+    ::view-transition-old(blog-date-*) {
+        animation: fade-out 0.2s ease-out;
+    }
+
+    ::view-transition-new(blog-title-*),
+    ::view-transition-new(blog-date-*) {
+        animation: fade-in 0.2s ease-in 0.1s;
+    }
+
+    @keyframes fade-scale-out {
+        to {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+    }
+
+    @keyframes fade-scale-in {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+    }
+
+    @keyframes fade-out {
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        [style*="viewTransitionName"] {
+            contain: none;
+        }
+
+        ::view-transition-old(blog-card-*),
+        ::view-transition-new(blog-card-*),
+        ::view-transition-old(blog-title-*),
+        ::view-transition-new(blog-title-*),
+        ::view-transition-old(blog-date-*),
+        ::view-transition-new(blog-date-*) {
+            animation: none;
+        }
+    }
 }
