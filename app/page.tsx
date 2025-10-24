@@ -57,7 +57,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center p-2 text-link transition-colors hover:text-link-hover"
                 >
-                  <Linkedin className="relative -left-1 -top-0.5 size-5 shrink-0" />
+                  LinkedIn.
                 </a>
               </span>
             </span>
