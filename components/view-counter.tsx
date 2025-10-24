@@ -40,10 +40,6 @@ export function ViewCounter({
   const { data: incrementedData, mutate } = useMutation({
     mutationKey: ["views", slug],
     mutationFn: async () => {
-      if (process.env.NODE_ENV === "development") {
-        return new Promise<ViewsResponse>((resolve) => resolve({ views: 0 }));
-      }
-
       const res = await fetch("/api/increment-view", {
         method: "POST",
         headers: {
@@ -51,9 +47,14 @@ export function ViewCounter({
         },
         body: JSON.stringify({ slug }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Failed to increment view: ${res.statusText}`);
+      }
+
       return await res.json();
     },
-    onSettled: (data?: ViewsResponse) => {
+    onSuccess: (data?: ViewsResponse) => {
       // update the queryClient cache with the new data
       const views = data?.views;
       if (!views) {
@@ -63,9 +64,20 @@ export function ViewCounter({
       const currentData: ViewsResponse[] =
         queryClient.getQueryData(["views"]) ?? [];
 
-      const updatedData = currentData.map((item) =>
-        item.slug === slug ? { ...item, views } : item,
-      );
+      // Check if slug exists in current data
+      const slugExists = currentData.some((item) => item.slug === slug);
+
+      let updatedData: ViewsResponse[];
+      if (slugExists) {
+        // Update existing slug
+        updatedData = currentData.map((item) =>
+          item.slug === slug ? { ...item, views } : item,
+        );
+      } else {
+        // Add new slug to the data
+        updatedData = [...currentData, { slug, views }];
+      }
+
       queryClient.setQueryData(["views"], updatedData);
     },
   });
@@ -80,13 +92,16 @@ export function ViewCounter({
     return <Loader2 className="size-4 animate-spin" />;
   }
 
-  if (error || !allViews) {
-    return <p>-</p>;
+  if (error) {
+    return <p className="text-sm text-muted-foreground">- views</p>;
   }
+
+  // Use incremented data if available, otherwise use fetched data, fallback to 0
+  const displayViews = incrementedData?.views ?? allViews ?? 0;
 
   return (
     <p className="motion-preset-fade-md flex items-center gap-1 text-sm text-muted-foreground">
-      <NumberFlow value={incrementedData?.views ?? allViews} /> views
+      <NumberFlow value={displayViews} /> views
     </p>
   );
 }
