@@ -47,7 +47,11 @@ export default async function handler(
       }
 
       // The function returns an array with a single row containing the views count
-      const views = data?.[0]?.views || data?.views || 1;
+      const views = data?.[0]?.views ?? data?.views;
+      if (typeof views !== "number") {
+        console.error("Views count missing in RPC response:", data);
+        return res.status(500).json({ error: "Failed to retrieve views count" });
+      }
 
       return res.status(200).json({ views });
     } catch (error) {
