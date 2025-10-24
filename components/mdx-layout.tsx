@@ -42,7 +42,7 @@ export default function MdxLayout({
         >
           <div className="z-[51] flex h-24 items-center justify-center gap-12">
             <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
-              <div className="absolute left-0 z-10 md:left-12 xl:hidden">
+              <div className="absolute left-0 z-10 xl:hidden">
                 <BackLink />
               </div>
               <Link href="/">
