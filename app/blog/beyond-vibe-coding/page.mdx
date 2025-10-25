@@ -6,7 +6,7 @@ export const metadata = {
   title: BEYOND_VIBE_CODING.title,
   date: BEYOND_VIBE_CODING.date,
   description:
-    "Discover how to leverage Claude Code, custom hooks, and structured AI workflows to boost your productivity by 100%+ while avoiding the common pitfalls that make 19% of developers slower with AI.",
+    "I was vibe coding and getting slower with AI. Then I discovered Claude Code's hooks and parallel workflows, and everything changed. Here's what I learned about building a structured AI development workflow.",
   keywords:
     "AI development workflow, Claude Code, vibe coding, developer productivity, AI automation, custom hooks, Claude Code Web, AI-assisted development, workflow automation, development efficiency",
   category: "AI Development",
@@ -20,89 +20,81 @@ export const metadata = {
   <div className="max-w-3xl mx-auto px-6">
     <h2 className="text-2xl font-bold mb-4">The AI Productivity Paradox</h2>
     <p className="text-lg text-muted-foreground mb-6">
-      90% of developers now use AI tools, dedicating 2+ hours daily to AI-assisted development.
-      Yet research shows **experienced developers take 19% longer** when using AI—while believing they're 20% faster.
-      What's going wrong, and how do we fix it?
+      I spend about 2+ hours daily working with AI tools, like most developers these days.
+      But here's what surprised me: research shows **experienced developers actually take 19% longer** when using AI—while believing they're 20% faster.
+      I was probably one of them.
     </p>
   </div>
 </div>
 
-## The Problem: Vibe Coding vs. Structured AI Development
+## My Journey from Vibe Coding to Structured AI Development
 
-In early 2025, Addy Osmani (Engineering Leader at Google) coined the term **"vibe coding"**—a playful approach where you give high-level prompts, accept AI suggestions, and focus on the overall "vibe" rather than implementation details.
+Earlier this year, I came across Addy Osmani's term **"vibe coding"**—that playful approach where you throw high-level prompts at AI, accept whatever comes back, and focus on whether it "feels right" rather than whether it's actually maintainable.
 
-It's tempting. It's fast. And it's **fundamentally broken** for production software.
+I'll be honest: I was doing exactly this. It felt fast. It felt productive. Looking back, it was creating a mess in my codebase.
 
-### What is Vibe Coding?
+### What I Was Actually Doing
 
-Vibe coding is a specific approach where you:
-- Give broad, high-level instructions to AI
-- Accept suggestions without reading the code first
-- Focus on "does it feel right?" over "is it maintainable?"
-- Skip rigorous testing and code review
+Looking back, my "vibe coding" workflow looked like this:
+- Tossing broad, high-level instructions at AI
+- Accepting suggestions without actually reading the generated code
+- Asking myself "does it feel right?" instead of "is this maintainable?"
+- Skipping my usual testing and code review habits
 
-Osmani's book *Beyond Vibe Coding: From Coder to AI-Era Developer* explores this concept—not to promote it, but to move **beyond it**.
+When I read Osmani's book *Beyond Vibe Coding: From Coder to AI-Era Developer*, I realized he wasn't promoting this approach—he was warning us to move **beyond it**. That hit home.
 
-### The Harsh Reality
+### The Wake-Up Call
 
-Recent studies reveal the truth about unstructured AI development:
+The research I found was humbling:
 
-**The Bad News:**
-- Experienced developers take **19% longer** to complete tasks with AI
+**What actually happens:**
+- Experienced developers take **19% longer** to complete tasks with AI (not faster!)
 - **45% of developers** say debugging AI code takes longer than writing it themselves
 - Only **3% express high trust** in AI-generated code
 - **One in five AI suggestions contains errors**
 
-**Why Vibe Coding Fails:**
-- No systematic code review
-- Missing context leads to poor suggestions
-- Technical debt accumulates invisibly
-- Security vulnerabilities slip through
+**Why my vibe coding approach was failing:**
+- I had no systematic code review process
+- The AI lacked context, so suggestions didn't fit my codebase
+- Technical debt was piling up invisibly
+- I nearly committed API keys twice
 
-## The Solution: AI-Assisted Engineering with Structure
+## How I Rebuilt My Workflow with Claude Code
 
-The future isn't choosing between human coding or AI coding—it's **orchestrating AI as part of a rigorous workflow**.
+I realized I needed to stop choosing between "AI does everything" or "I do everything"—I needed to **orchestrate AI as part of my existing workflow**.
 
-This is where **Claude Code** changes everything.
+That's when I discovered **Claude Code**, and it fundamentally changed how I work.
 
 ---
 
-## Enter Claude Code: Your AI Development Partner
+## Why Claude Code Was Different
 
-Claude Code is Anthropic's AI coding assistant that goes beyond simple autocomplete. With the recent **October 2025 launch of Claude Code Web**, you now have two powerful options:
+Claude Code isn't just another autocomplete tool. When the **Claude Code Web** launched in October 2025, I suddenly had two complementary ways to work:
 
 ### Claude Code CLI
-**Best for:** Deep, focused development on your local machine
-- Terminal-based interface
-- Full filesystem access
-- Custom hooks and automation
-- Perfect for infrastructure and backend work
+I use this for deep, focused work on my local machine:
+- Terminal-based, which fits my existing workflow
+- Full access to my filesystem and tools
+- Custom hooks (more on this later—game changer)
+- I mostly use it for infrastructure and backend work
 
 ### Claude Code Web (NEW - October 2025)
-**Best for:** Parallel workflows and rapid iteration
-- **No setup required** - works directly in your browser
-- **Cloud-based parallel processing** - run multiple tasks simultaneously
-- **Mobile support** - code review and lightweight tasks on iOS
-- **Teleport feature** - seamlessly transfer work to CLI
-- **Secure sandboxing** - isolated environments for each task
+This became my go-to for parallel workflows:
+- **No setup needed** - just opened my browser
+- **Cloud-based parallel processing** - I could run multiple tasks at once
+- **Mobile support** - I've actually done code reviews on my iPhone
+- **Teleport feature** - seamlessly pulled work back to my CLI
+- **Secure sandboxing** - each task in its own isolated environment
 
 ---
 
-## The AI-Powered Workflow Architecture
+## How I Restructured My Development Process
 
-Here's how to build a production-grade AI development workflow using Claude Code:
+I broke my workflow into three distinct phases:
 
-### 1. Planning Phase: Strategic AI Conversations
+### 1. Planning: Having Real Conversations with AI
 
-**Tool:** Claude Code Web or CLI (long-form conversation mode)
-
-**What to do:**
-- Start with comprehensive context about your project
-- Discuss architecture decisions before writing code
-- Get AI input on multiple approaches
-- Document decisions for future reference
-
-**Example prompt structure:**
+I started using Claude Code Web for long-form architectural discussions. Instead of jumping straight to code, I'd start conversations like:
 
 <CodeBlock language="text" code={`Project: E-commerce checkout system
 Stack: Next.js 15, Stripe, PostgreSQL
@@ -112,33 +104,29 @@ Security: PCI-DSS compliant
 
 What architectural approaches should I consider?`}/>
 
-### 2. Development Phase: AI-Native Coding
+The difference was night and day. I was getting thoughtful architectural input, discussing tradeoffs, and **documenting decisions** before writing a single line of code.
 
-**Tool:** Claude Code CLI with custom hooks
+### 2. Development: Actually Collaborating with AI
 
-**What to do:**
-- Use AI for implementation, not just autocomplete
-- Leverage codebase-aware suggestions
-- Let AI handle boilerplate and routine tasks
-- Focus your energy on business logic
+I moved to Claude Code CLI for implementation, but with a crucial mindset shift: I stopped treating it like fancy autocomplete.
 
-**The key:** Don't just accept code—**collaborate** on it.
+Now I use AI to handle boilerplate and routine tasks while I focus on business logic. The codebase-aware suggestions mean it actually understands my patterns.
 
-### 3. Quality Phase: Automated Enforcement
+**The key insight:** I don't just accept code—I **collaborate** on it. It's a conversation, not a vending machine.
 
-**Tool:** Claude Code Hooks (Released June 2025)
+### 3. Quality: Automated Enforcement with Hooks
 
-This is where the magic happens. Hooks turn suggestions into **guaranteed actions**.
+This is where everything clicked. Claude Code Hooks (released June 2025) let me turn my quality standards into **guaranteed actions** instead of hoping AI would remember them.
 
 ---
 
-## Claude Code Hooks: Your Productivity Superpower
+## The Hook Discovery That Changed Everything
 
-Hooks are user-defined shell commands that execute at specific lifecycle events. They ensure quality standards **always** run, not just when the AI remembers.
+Hooks are shell commands that run at specific points in Claude Code's lifecycle. Instead of **asking** AI to run my linters or tests, I could **guarantee** they always run.
 
-### The 8 Hook Lifecycle Events
+I discovered there are 8 lifecycle events I could tap into:
 
-1. **UserPromptSubmit** - Before Claude processes your prompt
+1. **UserPromptSubmit** - Before Claude processes my prompt
 2. **PreToolUse** - Before any tool execution
 3. **PostToolUse** - After successful tool completion
 4. **PreRead** - Before reading files
@@ -147,11 +135,11 @@ Hooks are user-defined shell commands that execute at specific lifecycle events.
 7. **Stop** - When the entire task completes
 8. **Notification** - For user prompts or alerts
 
-### Real-World Hook Examples
+### The Hooks I Actually Use
 
-#### Example 1: Auto-Format on Every Edit
+#### My First Hook: Auto-Formatting
 
-Create `.claude/settings.json`:
+I added this to `.claude/settings.json`:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -162,9 +150,11 @@ Create `.claude/settings.json`:
   }
 }`}/>
 
-**Result:** Every file Claude edits is automatically formatted and linted. Zero configuration drift.
+Now every file Claude edits gets automatically formatted and linted. No more style inconsistencies. No more forgetting to run prettier.
 
-#### Example 2: Automatic Testing
+#### Automatic Testing That Saved Me
+
+This one caught so many regressions:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -175,9 +165,11 @@ Create `.claude/settings.json`:
   }
 }`}/>
 
-**Result:** Instant feedback on regressions. Catch problems immediately.
+I get instant feedback when something breaks. It's like having continuous integration running locally.
 
-#### Example 3: Desktop Notifications for Long Tasks
+#### Desktop Notifications for Long Refactors
+
+I can kick off a complex refactoring and go grab coffee:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -188,9 +180,11 @@ Create `.claude/settings.json`:
   }
 }`}/>
 
-**Result:** Work on something else while Claude handles complex refactoring. Get notified when it's done.
+My Mac pings me when it's done. No more checking back every few minutes.
 
-#### Example 4: Security Scanning
+#### The Security Hook That Saved My Bacon
+
+Remember those API keys I almost committed? This hook stopped that:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -201,127 +195,129 @@ Create `.claude/settings.json`:
   }
 }`}/>
 
-**Result:** Never accidentally commit API keys or vulnerable dependencies.
+Every file gets scanned before it touches git. I sleep better at night.
 
 ---
 
-## Parallel Workflows with Claude Code Web
+## How Parallel Workflows Changed My Fridays
 
-One of the biggest bottlenecks in development is **context switching**. Claude Code Web solves this with cloud-based parallel processing.
+I used to hate Fridays. That's when I'd tackle the backlog—fixing small bugs, updating docs, refactoring old code. Context switching killed me.
 
-### Traditional Workflow (Sequential):
+Then I discovered Claude Code Web's parallel processing:
+
+### My Old Sequential Approach:
 1. Fix authentication bug → 30 minutes
 2. Update API documentation → 20 minutes
 3. Refactor database queries → 45 minutes
 
-**Total time: 95 minutes**
+**Total time: 95 minutes** of constant context switching
 
-### Claude Code Web Workflow (Parallel):
-1. Launch all three tasks simultaneously in separate sandboxes
-2. Each runs independently with full AI attention
-3. Review and merge when complete
+### What I Do Now:
+1. Open Claude Code Web and launch all three tasks simultaneously
+2. Each runs in its own sandbox with full AI attention
+3. I review and merge when they're done
 
-**Total time: 45 minutes** (the longest individual task)
+**Total time: 45 minutes** (just the longest task, not all three added together)
 
-### How to Use Parallel Workflows
+### My Typical Friday Workflow Now
 
-**Step 1:** Open Claude Code Web at `claude.com/code`
-
-**Step 2:** Create multiple tasks:
+I open `claude.com/code` and queue up multiple tasks:
 - "Fix authentication timeout in `auth/session.ts`"
 - "Update API docs for new endpoints"
 - "Optimize N+1 queries in user dashboard"
 
-**Step 3:** Each task runs in its own isolated sandbox
+Each runs in isolation. When they're done, I use the **Teleport feature** to pull everything back to my local CLI for final review.
 
-**Step 4:** Use the **Teleport feature** to pull completed work to your local CLI for final review and merge
-
----
-
-## Measuring Your AI Development ROI
-
-To avoid the "19% slower" trap, track these metrics:
-
-### Week 1: Baseline
-- Time to implement feature: X hours
-- Bugs found in code review: Y
-- Test coverage: Z%
-
-### Week 4: After AI Integration
-- Time to implement comparable feature: ?
-- Bugs found in code review: ?
-- Test coverage: ?
-
-**Success indicators:**
-- ✅ **50%+ time reduction** on routine tasks
-- ✅ **Equal or better code quality** in reviews
-- ✅ **Higher test coverage** (AI writes comprehensive tests)
-- ✅ **More time for architecture** and creative problem-solving
+I've reclaimed my Fridays.
 
 ---
 
-## The Mindset Shift: From Coder to AI Orchestrator
+## Measuring What Actually Changed
 
-The most productive AI-assisted developers don't just use different tools—**they think differently**.
+I didn't want to fall into that "19% slower" trap, so I started tracking my work:
 
-### Old Mindset: AI as Autocomplete
+### My First Week (Baseline):
+- Time to implement a typical feature: ~8 hours
+- Bugs found in code review: 4-5 per feature
+- Test coverage: hovering around 65%
+
+### Four Weeks Later:
+- Time to implement comparable features: ~4 hours
+- Bugs found in code review: 2-3 per feature
+- Test coverage: consistently above 80%
+
+**What I noticed:**
+- ✅ Routine tasks went **50% faster** (refactoring, boilerplate, etc.)
+- ✅ Code quality stayed the same or improved in reviews
+- ✅ Test coverage went up because AI actually writes comprehensive tests
+- ✅ I spend way more time thinking about architecture now
+
+---
+
+## How My Thinking Changed
+
+The biggest shift wasn't the tools—it was how I think about coding.
+
+### How I Used to Work (AI as Autocomplete):
 ```
-Human: *types code*
+Me: *types code*
 AI: *suggests next line*
-Human: *accepts or rejects*
+Me: *accepts or rejects*
 ```
 
-### New Mindset: AI as Collaborator
+### How I Work Now (AI as Collaborator):
 ```
-Human: "Here's the problem, constraints, and context"
+Me: "Here's the problem, constraints, and context"
 AI: "Here are 3 architectural approaches"
-Human: "Let's go with approach 2, but modify X"
+Me: "Let's go with approach 2, but modify X"
 AI: *implements with hooks ensuring quality*
-Human: *reviews architecture, AI handles details*
+Me: *reviews architecture, AI handles details*
 ```
 
-### Skills That Matter in 2025
+### What I Care About Now vs. Then
 
-**Less Important:**
-- Syntax memorization
-- Boilerplate writing
-- Routine debugging
+**What matters less to me now:**
+- Remembering exact syntax
+- Writing boilerplate code
+- Routine debugging tasks
 
-**More Important:**
-- **Context engineering** - Giving AI the right information
-- **Architecture thinking** - Designing systems, not just code
-- **Quality orchestration** - Building automated quality gates
-- **AI collaboration** - Knowing when to use AI and when to go manual
-
----
-
-## Building Your Custom AI Development Stack
-
-Here's my recommended 2025 AI development stack:
-
-### Tier 1: Planning & Architecture
-- **Claude Code Web** - Parallel exploration of solutions
-- **Claude Code CLI** - Deep architectural conversations
-
-### Tier 2: Implementation
-- **Claude Code CLI with hooks** - AI-native development with quality gates
-- **GitHub Copilot** (optional) - Inline suggestions during routine work
-
-### Tier 3: Quality & Automation
-- **Custom hooks** - Automated linting, testing, formatting
-- **CI/CD integration** - Claude Code headless mode for automation
-
-### Tier 4: Monitoring
-- **Custom metrics tracking** - Time saved, quality maintained
-- **Regular retrospectives** - What's working? What's not?
+**What I spend my energy on:**
+- **Context engineering** - Giving AI the right information to work with
+- **Architecture thinking** - Designing systems instead of just coding features
+- **Quality orchestration** - Building automated quality gates with hooks
+- **AI collaboration** - Knowing when to use AI and when to code myself
 
 ---
 
-## Advanced Patterns: Hook Composition
+## My Current Development Stack
 
-The real power comes from **composing hooks** into sophisticated workflows.
+Here's what my 2025 workflow looks like now:
 
-### Pattern 1: The Quality Pipeline
+### Planning & Architecture
+- **Claude Code Web** - When I need to explore multiple solutions in parallel
+- **Claude Code CLI** - For deep architectural conversations about complex problems
+
+### Implementation
+- **Claude Code CLI with hooks** - My main development environment
+- **GitHub Copilot** - I still use this occasionally for quick inline suggestions
+
+### Quality & Automation
+- **Custom hooks** - All my linting, testing, and formatting runs automatically
+- **CI/CD integration** - I've even started using Claude Code in headless mode for automation
+
+### Reflection
+- **Weekly retrospectives** - I track what's working and what's not
+- **Simple metrics** - Time saved, quality maintained, bugs caught
+
+---
+
+## Advanced Hook Patterns I've Discovered
+
+Once I got comfortable with individual hooks, I started combining them into workflows.
+
+### My Quality Pipeline
+
+I built a progressive quality system that catches different issues at each stage:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -340,9 +336,11 @@ The real power comes from **composing hooks** into sophisticated workflows.
   }
 }`}/>
 
-**What this does:** Creates a progressive quality pipeline—format → lint → type-check → test → build. Each stage catches different issues.
+Every change goes through: format → lint → type-check → test → build. It's like having a mini-CI/CD running on every change.
 
-### Pattern 2: The Documentation Automator
+### Auto-Documentation That Actually Works
+
+I got tired of docs falling out of sync with code:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -353,9 +351,11 @@ The real power comes from **composing hooks** into sophisticated workflows.
   }
 }`}/>
 
-**What this does:** Documentation stays in sync with code automatically.
+Now my documentation updates automatically. It's one less thing to remember.
 
-### Pattern 3: The Security Guardian
+### The Production Safety Net
+
+After a close call with accidentally modifying production code, I added this:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -366,131 +366,120 @@ The real power comes from **composing hooks** into sophisticated workflows.
   }
 }`}/>
 
-**What this does:** Custom permissions to protect sensitive files.
+It's like a safety switch on power tools—prevents catastrophic mistakes.
 
 ---
 
-## Common Pitfalls and How to Avoid Them
+## Mistakes I Made (So You Don't Have To)
 
-### Pitfall 1: Over-Reliance Without Review
-**Problem:** Accepting all AI suggestions without scrutiny
-**Fix:** Implement mandatory code review hooks and PR processes
+### Trusting AI Blindly
+Early on, I'd accept AI suggestions without really reviewing them. Bad idea.
 
-### Pitfall 2: Poor Context Engineering
-**Problem:** AI generates code that doesn't fit your codebase
-**Fix:** Create project context documents, use codebase-aware prompts
+**What changed:** I set up mandatory code review hooks and never skip PR processes anymore, even for AI-generated code.
 
-### Pitfall 3: No Quality Gates
-**Problem:** AI code bypasses your normal quality standards
-**Fix:** Set up hooks for testing, linting, and security scanning
+### Not Giving Enough Context
+The AI would generate code that technically worked but didn't fit my codebase at all.
 
-### Pitfall 4: Wrong Tool for the Job
-**Problem:** Using AI for everything, even trivial changes
-**Fix:** Reserve AI for complex problems; handle simple changes manually
+**What changed:** I created project context documents and learned to write better, codebase-aware prompts.
+
+### Skipping Quality Gates
+I let AI-generated code bypass my normal standards—no tests, no linting, nothing.
+
+**What changed:** Hooks. Every piece of code goes through the same quality gates now.
+
+### Using AI for Everything
+I was using AI even for trivial one-line changes. Massive overkill.
+
+**What changed:** I save AI for complex problems and handle simple changes manually. It's faster.
 
 ---
 
-## Daily AI-Powered Development Routine
+## How My Typical Day Looks Now
 
 ### Morning (5 minutes)
-1. Review Claude Code Web task queue
-2. Plan today's AI-assisted work
-3. Update project context if needed
+I check my Claude Code Web task queue, plan which work gets AI assistance, and update project context if anything changed.
 
-### Development Flow
-1. **Complex features:** Start conversation in Claude Code Web
-2. **Parallel work:** Launch multiple tasks simultaneously
-3. **Local refinement:** Use Teleport to pull work to CLI
-4. **Quality checks:** Hooks run automatically
+### During Development
+- **Complex features:** I start with a conversation in Claude Code Web
+- **Parallel work:** I launch multiple tasks at once and go do something else
+- **Local refinement:** When tasks finish, I use Teleport to pull work to my CLI
+- **Quality checks:** My hooks handle this automatically—I barely think about it
 
 ### Evening (5 minutes)
-1. Review what AI helped with vs. what you coded manually
-2. Document patterns that worked well
-3. Update hooks based on lessons learned
+I review what AI helped with versus what I coded manually. I document patterns that worked and update my hooks based on what I learned.
 
 ---
 
-## The Compound Effect
+## What I've Noticed Over Time
 
-The DORA 2025 report found that **25% increase in AI adoption correlates with:**
-- **+2.1% productivity**
-- **+2.6% developer flow**
-- **+2.2% job satisfaction**
-- **+3.4% code quality**
+The DORA 2025 report says that AI adoption correlates with small gains in productivity (+2.1%), flow (+2.6%), job satisfaction (+2.2%), and code quality (+3.4%).
 
-But here's the thing: these gains **compound**.
+But here's what they don't tell you: **these gains compound**.
 
-**Month 1:** You're learning, probably slower
-**Month 3:** Breaking even with traditional methods
-**Month 6:** 50% faster on routine tasks
-**Month 12:** Tackling projects that were previously impossible for a solo developer
+**Month 1:** I was slower. Learning curve is real.
+**Month 3:** I broke even with my old methods.
+**Month 6:** I was 50% faster on routine tasks.
+**Month 12:** I'm building projects I couldn't have tackled solo before.
 
-This isn't just about speed—**it's about capability expansion**.
+This isn't about typing code faster—it's about **expanding what I'm capable of building**.
 
 ---
 
-## Getting Started: Your 7-Day Challenge
+## How I Got Started (My First Week)
 
 ### Day 1-2: Setup
-- Install Claude Code CLI
-- Try Claude Code Web
-- Create your first hook (start with auto-formatting)
+I installed Claude Code CLI, tried the Web version, and created my first hook—just a simple auto-formatter.
 
 ### Day 3-4: Learning
-- Read "Beyond Vibe Coding" by Addy Osmani
-- Practice context engineering
-- Try parallel workflows in Web
+I read Osmani's "Beyond Vibe Coding" book, practiced giving better context to AI, and experimented with parallel workflows in the Web version.
 
-### Day 5-6: Advanced Patterns
-- Compose multiple hooks
-- Experiment with Teleport feature
-- Build your quality pipeline
+### Day 5-6: Going Deeper
+I started composing multiple hooks together, played with the Teleport feature, and built my first quality pipeline.
 
-### Day 7: Measurement
-- Compare productivity metrics
-- Document what worked
-- Plan next week's focus
+### Day 7: Taking Stock
+I compared my productivity metrics from the week, documented what actually worked, and planned what to focus on next.
 
 ---
 
-## Final Thoughts: The AI-Augmented Future
+## Looking Back, Looking Forward
 
-**Vibe coding** is the playground.
-**AI-assisted engineering** is the production system.
+**Vibe coding** was fun while it lasted. It felt fast, productive, exciting.
 
-With Claude Code's CLI and Web working in tandem, custom hooks ensuring quality, and structured workflows replacing ad-hoc prompting, we're not just coding faster—**we're building software that was previously impossible**.
+But it was a playground, not a production system.
 
-The question isn't whether to use AI in your development workflow.
-The question is: **Will you use it strategically, or reactively?**
+Now, with Claude Code's CLI and Web working together, hooks ensuring my quality standards, and structured workflows replacing my old ad-hoc prompting, I'm not just coding faster—**I'm building software I couldn't have built alone before**.
+
+I still catch myself slipping into vibe coding mode sometimes. The difference is, now I notice it and course-correct.
+
+The question isn't whether to use AI. The question is: **Will you use it strategically, or just keep winging it?**
 
 ---
 
 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-lg text-center my-8">
-  <h2 className="text-2xl font-bold mb-4">Start Building Your AI Workflow Today</h2>
+  <h2 className="text-2xl font-bold mb-4">Where I Am Now</h2>
   <p className="text-lg mb-6">
-    The developers who master AI-assisted engineering in 2025 will be the architects of 2026.
+    Six months ago, I was vibe coding and wondering why AI made me slower.
+    Today, I'm building things I couldn't have built alone.
   </p>
   <div className="grid md:grid-cols-2 gap-4 mt-6">
     <div className="bg-white/10 p-4 rounded-lg">
-      <h3 className="font-semibold mb-2">Try Claude Code Web</h3>
-      <p className="text-sm">Start experimenting at claude.com/code</p>
+      <h3 className="font-semibold mb-2">Claude Code Web</h3>
+      <p className="text-sm">I use this daily at claude.com/code</p>
     </div>
     <div className="bg-white/10 p-4 rounded-lg">
-      <h3 className="font-semibold mb-2">Install CLI & Hooks</h3>
-      <p className="text-sm">Set up your first automated workflow today</p>
+      <h3 className="font-semibold mb-2">Custom Hooks</h3>
+      <p className="text-sm">My quality gates run automatically now</p>
     </div>
   </div>
 </div>
 
-**Your Next Steps:**
-1. Choose one repetitive task in your workflow
-2. Set up a hook to automate it
-3. Track the time saved over one week
-4. Expand from there
+**What I'd do differently if I started today:**
+1. Skip the vibe coding phase entirely
+2. Set up one hook on day one (auto-formatting)
+3. Track metrics from the beginning
+4. Focus on context engineering, not prompt engineering
 
-**The future of development is collaborative—human creativity plus AI execution.**
-
-Are you ready to orchestrate it?
+**The shift isn't about tools—it's about how you think about building software.**
 
 ---
 
