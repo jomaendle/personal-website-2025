@@ -3,40 +3,34 @@ import { CodeBlock } from "../../../components/code-block";
 import { BEYOND_VIBE_CODING } from "../../../lib/state/blog";
 
 export const metadata = {
-  title: "Claude Code Power User Guide: Hooks, Notifications & Automation",
+  title: "How I Use Claude Code Hooks in My Workflow",
   date: BEYOND_VIBE_CODING.date,
   description:
-    "Practical tips and tricks for Claude Code power users. Learn how to use hooks for desktop notifications, auto-formatting, security scanning, and automated documentation updates.",
+    "A few practical hooks I've been using with Claude Code for notifications, auto-formatting, and keeping my workflow smooth.",
   keywords:
     "Claude Code, hooks, developer productivity, osascript, notifications, automation, AI development, workflow optimization, CLAUDE.MD, GitHub Actions",
   category: "AI Development",
-  readTime: "6 min read",
+  readTime: "5 min read",
   author: "Johannes Mändle",
 };
 
 # {metadata.title}
 
-Working with Claude Code becomes exponentially more powerful when you leverage **hooks**—automated commands that run at specific points in your workflow. This guide covers the essential hooks and automation strategies I use daily to stay productive and get notified when tasks complete.
+I've been using Claude Code hooks to automate parts of my workflow, and they've made a real difference. Hooks are shell commands that run automatically at specific points—like after editing a file or when a task completes. Here are a few I've found useful.
 
-## What Are Claude Code Hooks?
+## Hook Events I Use
 
-Hooks are shell commands that execute automatically during Claude Code's lifecycle. Think of them as event listeners for your AI coding workflow—you define what happens when files are edited, tasks complete, or specific tools are used.
+You configure hooks in `.claude/settings.json`. The three I use most are:
 
-They're configured in `.claude/settings.json` and give you complete control over your development workflow.
+- **PostEdit** - Runs after Claude edits a file (I use this for auto-formatting)
+- **Stop** - Runs when a task finishes (perfect for notifications)
+- **PostWrite** - Runs after Claude creates new files (useful for security checks)
 
-### The 3 Essential Hook Events
+## Hooks I Actually Use
 
-For most developers, these three hooks cover 90% of productivity needs:
+### Desktop Notifications (macOS)
 
-1. **PostEdit** - Runs after Claude edits any file (perfect for auto-formatting)
-2. **Stop** - Runs when a complete task finishes (ideal for notifications and final checks)
-3. **PostWrite** - Runs after Claude creates new files (great for security scanning)
-
-## Essential Hooks Every Developer Should Use
-
-### 1. Desktop Notifications (macOS)
-
-Never miss when a task completes. This hook uses `osascript` to show a native macOS notification with sound:
+I use this to get notified when long-running tasks finish. It uses `osascript` to show a native macOS notification:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -48,14 +42,14 @@ Never miss when a task completes. This hook uses `osascript` to show a native ma
 }`}/>
 
 > **What is osascript?**
-> `osascript` is macOS's built-in command-line tool for running AppleScript. It lets you control macOS apps, show notifications, display dialogs, and automate system tasks—all from the terminal. No installation needed!
+> `osascript` is macOS's built-in command-line tool for running AppleScript. It lets you control macOS apps, show notifications, and automate system tasks from the terminal.
 > **Windows/Linux alternatives:** `notify-send` (Linux), `msg` or PowerShell's `New-BurntToastNotification` (Windows)
 
-**Why this is game-changing:** Start a complex refactoring, switch to another task, and get notified when Claude finishes. Perfect for long-running operations.
+This lets me start a refactoring, switch to something else, and get pinged when it's done.
 
-### 2. Auto-Format on Every Edit
+### Auto-Format on Every Edit
 
-Ensure consistent code style across your entire project:
+I run Prettier and ESLint on every file Claude touches:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -66,11 +60,11 @@ Ensure consistent code style across your entire project:
   }
 }`}/>
 
-**Result:** Every edit is automatically formatted and linted. Zero configuration drift, zero manual cleanup.
+This keeps formatting consistent without thinking about it.
 
-### 3. Security Scanning on New Files
+### Security Scanning on New Files
 
-Prevent secrets and vulnerabilities from being committed:
+This scans new files for potential secrets:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -81,17 +75,17 @@ Prevent secrets and vulnerabilities from being committed:
   }
 }`}/>
 
-**Result:** Catch API keys, tokens, and credentials before they reach your repository.
+Helps catch API keys or tokens before they get committed.
 
 
 
-## Advanced Automation: Keep Your CLAUDE.MD Up to Date
+## Keeping CLAUDE.MD Current
 
-The `CLAUDE.MD` file is your project's instruction manual for AI assistants. Keeping it current is crucial but easy to forget. Here are two approaches to automate it:
+I often forget to update my `CLAUDE.MD` file after making changes. Here are two ways I've tried to automate reminders:
 
-### Approach 1: Hook-Based CLAUDE.MD Updater
+### Hook-Based Reminder
 
-This hook reminds you to update `CLAUDE.MD` after task completion:
+This hook checks if core files changed and reminds me to update docs:
 
 <CodeBlock language="json" code={`{
   "hooks": {
@@ -102,14 +96,12 @@ This hook reminds you to update `CLAUDE.MD` after task completion:
   }
 }`}/>
 
-**How it works:** After each task, it checks recent changes to core directories and reminds you if documentation should be updated.
-
-**Pro tip:** Create a custom alias to make updates easy:
+I also set up an alias to make updating easier:
 <CodeBlock language="bash" code={`alias update-docs="claude 'Analyze recent changes and update CLAUDE.MD with new architecture details'"`}/>
 
-### Approach 2: Scheduled GitHub Action
+### GitHub Action for Teams
 
-For teams or active projects, automate CLAUDE.MD updates weekly with GitHub Actions:
+For projects with multiple people, I've used a weekly GitHub Action that creates an issue when there are significant changes:
 
 <CodeBlock language="yaml" code={`name: Update CLAUDE.MD
 on:
@@ -154,25 +146,16 @@ jobs:
             });
 `}/>
 
-**What this does:** Every Monday, it analyzes the past week's changes and creates a GitHub issue if significant updates were made, ensuring your documentation never falls out of date.
+This runs every Monday and creates an issue if there were more than 10 file changes that week.
 
-## Quick Tips for Hook Power Users
+## A Few Things I've Learned
 
-### Combining Multiple Hooks
-You can define multiple hooks for the same event by chaining commands with `&&`:
-
+**Chaining commands:** You can run multiple commands in one hook with `&&`:
 <CodeBlock language="bash" code={`"command": "prettier --write {{file_path}} && eslint --fix {{file_path}} && git add {{file_path}}"`}/>
 
-### Debugging Hook Failures
-If a hook isn't working:
-1. Check `.claude/settings.json` syntax (valid JSON required)
-2. Test the command manually in your terminal
-3. Use `echo` statements to verify variables: `echo "File: {{file_path}}"`
-4. Check Claude Code's output—hook errors are displayed inline
+**Debugging:** If a hook fails, test the command manually in your terminal first. Hook errors show up in Claude Code's output.
 
-### Platform-Specific Hooks
-Use conditional commands for cross-platform compatibility:
-
+**Cross-platform:** Use conditional commands if you work across different OSes:
 <CodeBlock language="json" code={`{
   "hooks": {
     "Stop": {
@@ -182,26 +165,21 @@ Use conditional commands for cross-platform compatibility:
   }
 }`}/>
 
-### Hook Variables You Can Use
-- `{{file_path}}` - Full path to the file being processed
-- `{{tool_name}}` - Name of the tool being used (Write, Edit, Read, etc.)
-- `{{project_root}}` - Root directory of your project
+**Variables:** Hooks support `{{file_path}}`, `{{tool_name}}`, and `{{project_root}}`.
 
 ---
 
-## Resources & Next Steps
+## Resources
 
-**Official Documentation:**
-- [Claude Code Hooks Guide](https://docs.claude.com/en/docs/claude-code/hooks-guide) - Complete hook reference
-- [Claude Code Settings](https://docs.claude.com/en/docs/claude-code/settings) - Configuration options
-- [Claude Code on the Web](https://www.anthropic.com/news/claude-code-on-the-web) - Product announcement
+**Docs:**
+- [Claude Code Hooks Guide](https://docs.claude.com/en/docs/claude-code/hooks-guide)
+- [Claude Code Settings](https://docs.claude.com/en/docs/claude-code/settings)
 
-**Tools & Scripts:**
-- [git-secrets](https://github.com/awslabs/git-secrets) - Prevent committing secrets
-- [osascript Examples](https://ss64.com/osx/osascript.html) - macOS automation reference
-- [GitHub Actions Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions) - Workflow automation
+**Tools:**
+- [git-secrets](https://github.com/awslabs/git-secrets) - Scan for leaked credentials
+- [osascript Examples](https://ss64.com/osx/osascript.html) - macOS automation
 
-**Pro Tip:** Start with one hook (I recommend the notification hook), use it for a week, then add more. Hooks work best when they become invisible parts of your workflow.
+**My advice:** Start with one hook (notifications work well), use it for a week, then add more as you find friction points in your workflow.
 
 export default function Page({ children }) {
   return (
