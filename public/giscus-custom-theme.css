@@ -26,7 +26,7 @@
   /* Border colors */
   --color-border-default: #222;
   --color-border-muted: #404040;
-    --color-border-primary: #2997ff;
+  --color-border-primary: #2997ff;
 
   /* Link colors - matching website */
   --color-accent-fg: #2997ff;
@@ -107,8 +107,8 @@
     --color-fg-subtle: #a3a3a3;
 
     /* Border colors */
-    --color-border-default: red;
-    --color-border-muted: blue;
+    --color-border-default: #e5e5e5;
+    --color-border-muted: #d4d4d4;
 
     /* Link colors */
     --color-accent-fg: #0070f3;
@@ -171,6 +171,85 @@
     --color-prettylights-syntax-sublimelinter-gutter-mark: #8c959f;
     --color-prettylights-syntax-constant-other-reference-link: #0a3069;
   }
+}
+
+/* Class-based theming for app-level control */
+.giscus[data-theme="light"] {
+  /* Canvas colors */
+  --color-canvas-default: #fafafa;
+  --color-canvas-overlay: #ffffff;
+  --color-canvas-inset: #f5f5f5;
+  --color-canvas-subtle: rgba(0, 0, 0, 0.03);
+
+  /* Text colors */
+  --color-fg-default: #1a1a1a;
+  --color-fg-muted: #737373;
+  --color-fg-subtle: #a3a3a3;
+
+  /* Border colors */
+  --color-border-default: #e5e5e5;
+  --color-border-muted: #d4d4d4;
+
+  /* Link colors */
+  --color-accent-fg: #0070f3;
+  --color-accent-emphasis: #0051cc;
+
+  /* Success/Danger colors */
+  --color-success-fg: #1a7f37;
+  --color-success-emphasis: #116329;
+  --color-danger-fg: #d1242f;
+  --color-danger-emphasis: #a40e26;
+
+  /* Button colors */
+  --color-btn-text: #1a1a1a;
+  --color-btn-bg: #f5f5f5;
+  --color-btn-border: #e0e0e0;
+  --color-btn-hover-bg: #e8e8e8;
+  --color-btn-hover-border: #d0d0d0;
+  --color-btn-active-bg: #ffffff;
+
+  /* Primary button */
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-bg: #0070f3;
+  --color-btn-primary-border: #0070f3;
+  --color-btn-primary-hover-bg: #0051cc;
+  --color-btn-primary-hover-border: #0051cc;
+
+  /* Input colors */
+  --color-input-bg: #ffffff;
+  --color-input-border: #e0e0e0;
+
+  /* Syntax highlighting for light mode */
+  --color-prettylights-syntax-comment: #6e7781;
+  --color-prettylights-syntax-constant: #0550ae;
+  --color-prettylights-syntax-entity: #8250df;
+  --color-prettylights-syntax-storage-modifier-import: #24292f;
+  --color-prettylights-syntax-entity-tag: #116329;
+  --color-prettylights-syntax-keyword: #cf222e;
+  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-variable: #953800;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #82071e;
+  --color-prettylights-syntax-invalid-illegal-text: #f6f8fa;
+  --color-prettylights-syntax-invalid-illegal-bg: #82071e;
+  --color-prettylights-syntax-carriage-return-text: #f6f8fa;
+  --color-prettylights-syntax-carriage-return-bg: #cf222e;
+  --color-prettylights-syntax-string-regexp: #116329;
+  --color-prettylights-syntax-markup-list: #3b2300;
+  --color-prettylights-syntax-markup-heading: #0550ae;
+  --color-prettylights-syntax-markup-italic: #24292f;
+  --color-prettylights-syntax-markup-bold: #24292f;
+  --color-prettylights-syntax-markup-deleted-text: #82071e;
+  --color-prettylights-syntax-markup-deleted-bg: #ffebe9;
+  --color-prettylights-syntax-markup-inserted-text: #116329;
+  --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
+  --color-prettylights-syntax-markup-changed-text: #953800;
+  --color-prettylights-syntax-markup-changed-bg: #ffd8b5;
+  --color-prettylights-syntax-markup-ignored-text: #eaeef2;
+  --color-prettylights-syntax-markup-ignored-bg: #0550ae;
+  --color-prettylights-syntax-meta-diff-range: #8250df;
+  --color-prettylights-syntax-brackethighlighter-angle: #57606a;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #8c959f;
+  --color-prettylights-syntax-constant-other-reference-link: #0a3069;
 }
 
 /* ============================================

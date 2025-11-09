@@ -55,14 +55,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       // notify owner
-      void resend.emails.send({
-        from: "Jo <jo@contact.jomaendle.com>",
-        to: "johannes.maendle@outlook.de",
-        subject: "New Newsletter Subscriber",
-        html: `
+      const notificationEmail = process.env.NOTIFICATION_EMAIL;
+      if (notificationEmail) {
+        void resend.emails.send({
+          from: "Jo <jo@contact.jomaendle.com>",
+          to: notificationEmail,
+          subject: "New Newsletter Subscriber",
+          html: `
 <p>New subscriber: ${sanitizedEmail}</p>
 `,
-      });
+        }).catch((err) => {
+          console.error("Failed to send notification email:", err);
+        });
+      }
 
       if (sendMailRes.error) {
         return res.status(500).json({ error: sendMailRes.error.message });
