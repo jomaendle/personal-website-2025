@@ -7,6 +7,7 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
 
   useEffect(() => {
     // Dynamically import and define the custom element
+    // @ts-expect-error - baseline-status module doesn't have proper type definitions
     import("baseline-status").then((module) => {
       // Ensure the component is defined only once
       if (!customElements.get("baseline-status")) {

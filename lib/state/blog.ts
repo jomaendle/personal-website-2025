@@ -32,12 +32,6 @@ export const BLOG_POSTS: {
   date: string;
   slug: string;
 }[] = [
-  /* {
-    title:
-      "AI Code Assistants vs AI App Builders: A Strategic Guide to Modern Development Tools",
-    slug: "ai-code-assistants-vs-app-builders",
-    date: "Aug 15, 2025",
-  },*/
   {
     title: "Animating Gradients in CSS",
     date: "Dec 5, 2023",

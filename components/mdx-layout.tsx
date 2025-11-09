@@ -8,6 +8,8 @@ import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { MobileTableOfContents } from "@/components/table-of-contents";
 import { BackToTop } from "@/components/back-to-top";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import GiscusComments from "@/components/giscus-comments-lazy";
 
 export default function MdxLayout({
   children,
@@ -50,6 +52,10 @@ export default function MdxLayout({
                   Jo Mändle
                 </p>
               </Link>
+
+              <div className="absolute right-0 z-10">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
 
@@ -76,6 +82,10 @@ export default function MdxLayout({
               </div>
 
               <div className="prose">{children}</div>
+
+              <hr className="my-12" />
+
+              <GiscusComments slug={slug} />
 
               <hr className="my-12" />
 

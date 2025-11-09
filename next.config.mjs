@@ -5,7 +5,14 @@ const nextConfig = {
   pageExtensions: ["mdx", "jsx", "js", "ts", "tsx"],
   experimental: {
     viewTransition: true,
-    optimizePackageImports: ["framer-motion", "lucide-react", "@radix-ui/react-slot"],
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "@radix-ui/react-slot",
+      "@codesandbox/sandpack-react",
+      "@codesandbox/sandpack-themes",
+      "@react-email/components",
+    ],
   },
   images: {
     formats: ["image/webp", "image/avif"],
@@ -22,6 +29,37 @@ const nextConfig = {
   trailingSlash: false,
   async headers() {
     return [
+      // Giscus theme endpoint - needs CORS and caching for external iframe access
+      {
+        source: "/api/giscus-theme",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/css; charset=utf-8",
+          },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+          {
+            key: "Vary",
+            value: "Origin",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=60, stale-while-revalidate=300",
+          },
+        ],
+      },
+      // Generic security headers for all routes
       {
         source: "/(.*)",
         headers: [
@@ -39,8 +77,45 @@ const nextConfig = {
           },
         ],
       },
+      // Specific API routes that need no-cache
       {
-        source: "/api/(.*)",
+        source: "/api/contact",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/subscribe",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/unsubscribe",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/increment-view",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/api/list-view-count",
         headers: [
           {
             key: "Cache-Control",
