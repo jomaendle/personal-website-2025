@@ -10,6 +10,7 @@ import {
   WebsiteStructuredData,
 } from "@/components/structured-data";
 import { ReactQueryProvider } from "./providers";
+import { Analytics } from "@vercel/analytics/next";
 
 // Note: Using system fonts for build compatibility
 // In production with network access, restore: import { Inter } from "next/font/google";
@@ -57,7 +58,13 @@ export default function RootLayout({
           scrollbarGutter: "stable",
         }}
       >
-        <body className="min-h-[100dvh] font-sans text-foreground antialiased" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+        <body
+          className="min-h-[100dvh] font-sans text-foreground antialiased"
+          style={{
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          }}
+        >
           <ReactQueryProvider>
             <JotaiProvider>
               <ThemeProvider
@@ -76,6 +83,7 @@ export default function RootLayout({
               </ThemeProvider>
             </JotaiProvider>
           </ReactQueryProvider>
+          <Analytics />
         </body>
       </html>
     </ViewTransitions>
