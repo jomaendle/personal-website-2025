@@ -29,6 +29,14 @@ export const CraftsContainer = ({
         "relative flex h-full min-h-60 w-full items-center justify-center overflow-hidden rounded-lg border",
         className,
       )}
+      style={{
+        // Use content-visibility for better rendering performance
+        // This tells the browser it can skip rendering off-screen content
+        contentVisibility: "auto",
+        // Provide a contain-intrinsic-size hint for layout stability
+        containIntrinsicSize: "auto 240px",
+        ...props.style,
+      }}
       {...props}
     >
       {containerContent}
