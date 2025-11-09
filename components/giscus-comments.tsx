@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 interface GiscusCommentsProps {
   slug: string;
@@ -8,6 +9,7 @@ interface GiscusCommentsProps {
 
 export function GiscusComments({ slug }: GiscusCommentsProps) {
   const commentsRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (!commentsRef.current) return;
@@ -27,14 +29,17 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
     script.setAttribute("data-reactions-enabled", "1");
     script.setAttribute("data-emit-metadata", "0");
     script.setAttribute("data-input-position", "top");
-    script.setAttribute("data-theme", "dark");
+    script.setAttribute(
+      "data-theme",
+      `${window.location.origin}/api/giscus-theme`,
+    );
     script.setAttribute("data-lang", "en");
     script.setAttribute("data-loading", "lazy");
     script.crossOrigin = "anonymous";
     script.async = true;
 
     commentsRef.current.appendChild(script);
-  }, [slug]);
+  }, [slug, resolvedTheme]);
 
   return (
     <div className="mt-16">

@@ -27,12 +27,6 @@ export const CSS_CAROUSEL = {
   slug: "css-carousel",
 };
 
-export const BEYOND_VIBE_CODING = {
-  title: "Beyond Vibe Coding: Building an AI-Powered Development Workflow That Actually Works",
-  date: "Oct 25, 2025",
-  slug: "beyond-vibe-coding",
-};
-
 export const BLOG_POSTS: {
   title: string;
   date: string;
@@ -64,5 +58,4 @@ export const BLOG_POSTS: {
   HTML_POPOVER,
   FREELANCE_TOOL,
   CSS_CAROUSEL,
-  BEYOND_VIBE_CODING,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

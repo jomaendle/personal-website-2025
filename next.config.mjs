@@ -5,7 +5,11 @@ const nextConfig = {
   pageExtensions: ["mdx", "jsx", "js", "ts", "tsx"],
   experimental: {
     viewTransition: true,
-    optimizePackageImports: ["framer-motion", "lucide-react", "@radix-ui/react-slot"],
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "@radix-ui/react-slot",
+    ],
   },
   images: {
     formats: ["image/webp", "image/avif"],

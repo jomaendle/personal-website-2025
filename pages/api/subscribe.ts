@@ -1,40 +1,40 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
+import NewsletterWelcome from "@/emails/newsletter-welcome";
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { email } = req.body;
 
     // Enhanced validation
     if (!email) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Email is required",
-        details: "Please enter your email address"
+        details: "Please enter your email address",
       });
     }
 
-    if (typeof email !== 'string') {
+    if (typeof email !== "string") {
       return res.status(400).json({ error: "Invalid email format" });
     }
 
     const sanitizedEmail = email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (!emailRegex.test(sanitizedEmail)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid email format",
-        details: "Please enter a valid email address"
+        details: "Please enter a valid email address",
       });
     }
 
     try {
       const audienceId = process.env.RESEND_AUDIENCE_ID;
       if (!audienceId) {
-        return res.status(500).json({ error: "Newsletter configuration error" });
+        return res
+          .status(500)
+          .json({ error: "Newsletter configuration error" });
       }
 
       const contactRes = await resend.contacts.create({
@@ -50,22 +50,17 @@ async function handler(
       const sendMailRes = await resend.emails.send({
         from: "Jo <jo@contact.jomaendle.com>",
         to: sanitizedEmail,
-        subject: "Welcome to the newsletter!",
+        subject: "Welcome to Jo's Newsletter!",
+        react: NewsletterWelcome({ email: sanitizedEmail }),
+      });
+
+      // notify owner
+      void resend.emails.send({
+        from: "Jo <jo@contact.jomaendle.com>",
+        to: "johannes.maendle@outlook.de",
+        subject: "New Newsletter Subscriber",
         html: `
-<h1> Hi there! </h1>
-<p>Thanks for subscribing to my newsletter.</p>
-
-<p>
-If you want to unsubscribe, you can do so by clicking <a href="https://jomaendle.com/api/unsubscribe?email=${sanitizedEmail}">here</a>.
-</p>
-
-<small>
-You are receiving this email because you subscribed to the newsletter. If you didn't subscribe, please ignore this email.
-</small>
-
-<p>
-Jo Mändle
-</p>
+<p>New subscriber: ${sanitizedEmail}</p>
 `,
       });
 
@@ -86,5 +81,5 @@ Jo Mändle
 export default withRateLimit(handler, {
   maxRequests: 3,
   windowMs: 10 * 60 * 1000, // 10 minutes
-  message: "Too many subscription attempts, please try again later"
+  message: "Too many subscription attempts, please try again later",
 });
