@@ -9,6 +9,8 @@ const nextConfig = {
       "framer-motion",
       "lucide-react",
       "@radix-ui/react-slot",
+      "@codesandbox/sandpack-react",
+      "@react-email/components",
     ],
   },
   images: {

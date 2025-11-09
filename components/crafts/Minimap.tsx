@@ -15,7 +15,7 @@ const getMarkerCount = () => {
   if (typeof window === "undefined") {
     return 41;
   }
-  return isTouchDevice() ? 21 : 41; // Reduced count for mobile performance
+  return isTouchDevice() ? 16 : 41; // Reduced count for mobile performance
 };
 
 // Cached marker position data
@@ -29,6 +29,7 @@ interface MarkerPosition {
 export function Minimap() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [markerCount] = useState(getMarkerCount());
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   // Refs for DOM elements and cached data
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,23 +51,81 @@ export function Minimap() {
   const lastSoundTimeRef = useRef(0);
 
   // Marker components with optimized rendering
-  const marker = <div className="marker h-6 w-[1px] bg-white/50"></div>;
-  const largerMarker = <div className="marker h-10 w-[1px] bg-white"></div>;
-  const largestMarker = <div className="marker h-20 w-[1px] bg-white"></div>;
+  const marker = <div className="marker h-6 w-[1px] bg-foreground/50"></div>;
+  const largerMarker = (
+    <div className="marker h-10 w-[1px] bg-foreground/80"></div>
+  );
+  const largestMarker = (
+    <div className="marker h-20 w-[1px] bg-foreground"></div>
+  );
 
-  const playTickSound = useCallback(
-    (marker: Element) => {
-      if (!soundEnabled) return;
+  // Initialize and unlock AudioContext (required for iOS)
+  const unlockAudio = useCallback(async () => {
+    if (audioUnlocked || !soundEnabled) return;
 
-      // Create AudioContext lazily
+    try {
+      // Create AudioContext if it doesn't exist
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext ||
           window.webkitAudioContext)();
       }
 
       const ctx = audioContextRef.current;
+
+      // Resume the context if suspended
       if (ctx.state === "suspended") {
-        void ctx.resume(); // Resume asynchronously without blocking
+        await ctx.resume();
+      }
+
+      // Play a silent sound to fully unlock audio on iOS
+      // This is required because iOS Safari needs both context creation AND a sound
+      // to be played during a user gesture
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      gainNode.gain.value = 0; // Silent
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.01);
+
+      setAudioUnlocked(true);
+    } catch (error) {
+      console.error("Failed to unlock audio:", error);
+    }
+  }, [audioUnlocked, soundEnabled]);
+
+  const playTickSound = useCallback(
+    async (marker: Element) => {
+      if (!soundEnabled) return;
+
+      // Create AudioContext lazily if it doesn't exist
+      if (!audioContextRef.current) {
+        try {
+          audioContextRef.current = new (window.AudioContext ||
+            window.webkitAudioContext)();
+        } catch (error) {
+          console.error("Failed to create AudioContext:", error);
+          return;
+        }
+      }
+
+      const ctx = audioContextRef.current;
+
+      // Ensure AudioContext is running
+      if (ctx.state === "suspended") {
+        try {
+          await ctx.resume();
+        } catch (error) {
+          console.error("Failed to resume AudioContext:", error);
+          return;
+        }
+      }
+
+      // Additional safety check - don't play if context isn't running
+      if (ctx.state !== "running") {
+        return;
       }
 
       const now = ctx.currentTime;
@@ -163,6 +222,9 @@ export function Minimap() {
 
     markerPositionsRef.current = Array.from(markers).map((marker, index) => {
       const rect = marker.getBoundingClientRect();
+      // Set transition property for smooth scale animations
+      marker.style.transition = "transform 0.15s ease-out";
+      marker.style.willChange = "transform";
       return {
         element: marker,
         // Store positions relative to viewport for now, will adjust during interaction
@@ -270,7 +332,7 @@ export function Minimap() {
 
           // Play sound if marker changed
           if (previousMarkerRef.current !== nearest.element) {
-            playTickSound(nearest.element);
+            void playTickSound(nearest.element);
             previousMarkerRef.current = nearest.element;
           }
 
@@ -355,6 +417,10 @@ export function Minimap() {
             const touch = e.touches[0];
             if (touch) {
               handleInteraction(touch.clientX, touch.clientY);
+              // Unlock audio on first touch (iOS requirement)
+              if (soundEnabled && !audioUnlocked) {
+                void unlockAudio();
+              }
             }
           },
           { passive: false },
@@ -384,6 +450,9 @@ export function Minimap() {
     handleInteraction,
     handlePointerMove,
     handlePointerLeave,
+    soundEnabled,
+    audioUnlocked,
+    unlockAudio,
   ]);
 
   return (
@@ -393,8 +462,15 @@ export function Minimap() {
     >
       {/* Sound Toggle Button */}
       <Button
-        onClick={() => setSoundEnabled(!soundEnabled)}
-        className={`absolute right-4 top-4 rounded-lg p-3 transition-all duration-200`}
+        onClick={() => {
+          const newSoundState = !soundEnabled;
+          setSoundEnabled(newSoundState);
+          // Unlock audio on iOS when enabling sound
+          if (newSoundState) {
+            void unlockAudio();
+          }
+        }}
+        className={`absolute right-4 top-4 z-10 rounded-lg p-3 transition-all duration-200`}
         variant={soundEnabled ? "outline" : "outline"}
         aria-label={soundEnabled ? "Disable sound" : "Enable sound"}
         title={soundEnabled ? "Sound On" : "Sound Off"}
@@ -456,7 +532,7 @@ export function Minimap() {
             className={`z-0 ${isTouchDevice() ? "px-2" : "px-1.5"}`} // Larger spacing on mobile
             style={{
               // Add larger touch targets for mobile
-              minWidth: isTouchDevice() ? "44px" : "auto",
+              minWidth: isTouchDevice() ? "20px" : "auto",
               minHeight: isTouchDevice() ? "44px" : "auto",
               display: "flex",
               alignItems: "center",
