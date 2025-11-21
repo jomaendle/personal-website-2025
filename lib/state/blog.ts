@@ -26,6 +26,29 @@ export const CSS_CAROUSEL = {
   date: "Apr 25, 2025",
   slug: "css-carousel",
 };
+export const CLAUDE_CODE_LESSONS_LEARNED = {
+  title: "Lessons Learned from using Claude Code",
+  date: "Nov 23, 2025",
+  slug: "claude-code-lessons-learned",
+};
+
+export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
+  title: "Claude Code Essentials: Foundation for Effective AI Development",
+  date: "Nov 23, 2025",
+  slug: "claude-code-essentials-foundations",
+};
+
+export const CLAUDE_CODE_ADVANCED_WORKFLOWS = {
+  title: "Advanced Claude Code: Automation, Agents, and Power Workflows",
+  date: "Nov 23, 2025",
+  slug: "claude-code-advanced-workflows",
+};
+
+export const CLAUDE_CODE_PRODUCTION_SECURITY = {
+  title: "Production-Ready Claude Code: Testing and Security Best Practices",
+  date: "Nov 23, 2025",
+  slug: "claude-code-production-security",
+};
 
 export const BLOG_POSTS: {
   title: string;
@@ -52,4 +75,7 @@ export const BLOG_POSTS: {
   HTML_POPOVER,
   FREELANCE_TOOL,
   CSS_CAROUSEL,
+  CLAUDE_CODE_ESSENTIALS_FOUNDATIONS,
+  CLAUDE_CODE_ADVANCED_WORKFLOWS,
+  CLAUDE_CODE_PRODUCTION_SECURITY,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

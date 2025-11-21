@@ -171,6 +171,10 @@
         font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
     }
 
+    .prose .code-block code {
+        @apply bg-transparent;
+    }
+
     .prose kbd {
         @apply border border-border text-foreground rounded-sm text-sm px-1 py-0.5;
     }
@@ -326,7 +330,7 @@
     }
 
     .page-container {
-        @apply relative z-20 mx-auto max-w-3xl px-3 sm:px-6 py-16;
+        @apply relative z-20 mx-auto max-w-3xl 2xl:max-w-4xl px-3 sm:px-6 py-16;
     }
 
     /* View Transitions - Theme Toggle Animation */

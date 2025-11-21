@@ -1,0 +1,283 @@
+import React from "react";
+import MdxLayout from "../../../components/mdx-layout";
+import { CLAUDE_CODE_ESSENTIALS_FOUNDATIONS } from "../../../lib/state/blog";
+import { BlogImage } from "../../../components/blog-image";
+import UltrathinkTerminal from "../../../components/UltrathinkTerminal";
+import { CodeBlock } from "../../../components/code-block";
+
+export const metadata = {
+  title: CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.title,
+  date: CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.date
+};
+
+# {metadata.title}
+
+<div className="series-notice">
+  **This is Part 1 of a 3-part series on working effectively with Claude Code.**
+
+  - **Part 1 (this post): Essential foundations and basic workflows**
+  - Part 2: Advanced automation with agents, commands, and hooks
+  - Part 3: Production readiness with TDD and security
+
+  We'll start with the fundamentals you need to get productive immediately.
+</div>
+
+We're living in a time when AI tools are becoming an integral part of our development workflow. Using tools like Claude Code, GitHub Copilot or OpenAI Codex, we can now generate more code than ever before.
+
+But guiding an AI agent to produce high-quality code is an engineering art in itself. Since the field of AI is evolving so quickly, so do all the tools, best practices and strategies around it.
+
+In this series, I want to share the most important lessons I've learned while working with Claude Code over the past months. This first part covers the essential foundations that make everything else work better.
+
+## 1. Be Specific
+
+If you expect great results, you need to provide great input. This means that you should be as specific as possible when describing your requirements.
+
+The more context and detail you provide, the better Claude can understand your intent and generate appropriate code.
+
+**Examples:**
+
+<CodeBlock language="markdown" code={`
+❌ Bad: "Create an API endpoint"
+
+✅ Good: "Build me a responsive portfolio website using React and Tailwind CSS,
+with a homepage, about page, and contact form. The design should be modern and
+minimalist, with a focus on typography and whitespace."`} />
+
+
+**Beyond basic text - provide more context:**
+
+<BlogImage
+  src="/claude-code-essentials-foundations/at-filepath.png"
+  caption="Figure 1: Claude Code supports rich context inputs like file references, screenshots, and data samples. Here's an example of referencing a specific file using @filepath."
+/>
+
+- **Screenshots**: Drag and drop or paste (Ctrl+V on macOS) screenshots of designs, error states, or UI issues you want Claude to fix
+- **File references**: Use [`@filename` syntax](https://code.claude.com/docs/en/common-workflows#reference-files-and-directories) to reference specific files. Claude gets full context and you can tab-complete filenames
+- **Data samples**: [Pipe data directly via stdin](https://code.claude.com/docs/en/headless#streaming-json-input) for analysis: `cat error.log | claude` or `cat data.csv | claude`
+- **URLs**: Share documentation URLs for specific libraries or APIs you want Claude to use
+
+**Why specificity matters:**
+When you're vague, Claude has to make assumptions. With specific requirements, first-attempt success rates increase dramatically. Think of it like briefing a colleague - the clearer your requirements, the better the output.
+
+## 2. Master `CLAUDE.md` Files
+
+Before diving into specific techniques and workflows, let's start with the single most important feature for production usage: [`CLAUDE.md` files](https://code.claude.com/docs/en/settings#key-points-about-the-configuration-system).
+
+`CLAUDE.md` is THE foundation that makes everything else work better. While you can use Claude without it, you'd be starting from scratch every session - explaining your stack, conventions, and project structure repeatedly.
+
+**Why `CLAUDE.md` is critical:**
+
+Without it, Claude has no memory between sessions. Every conversation starts from scratch.
+
+With it, you create a comprehensive knowledge base that makes Claude vastly more effective.
+
+**How it works:**
+
+[`CLAUDE.md` files are loaded hierarchically](https://code.claude.com/docs/en/memory):
+1. User-level: `~/.claude/CLAUDE.md` (personal defaults)
+2. Project root: `/your-project/CLAUDE.md` (project-wide)
+3. Subdirectories: `/your-project/backend/CLAUDE.md` (focused guidance)
+
+**What to include:**
+
+<CodeBlock language="markdown" code={`
+# Project: E-commerce Platform
+
+## Architecture
+- Monorepo structure: /frontend (React), /backend (Node.js), /shared
+- Database: PostgreSQL via Prisma ORM
+- Authentication: JWT tokens with refresh rotation
+- State management: Zustand (not Redux)
+
+## Tech Stack
+- Frontend: React 19, TypeScript, Tailwind CSS, Vite
+- Backend: Node.js 22, NestJS v11, Prisma
+- Testing: Vitest (unit), Playwright (e2e)
+- CI/CD: GitHub Actions
+
+## Commands
+- 'npm run dev' - Start dev server (frontend + backend)
+- 'npm run test' - Run all Vitest tests
+- 'npm run test:e2e' - Run Playwright tests (requires running dev server)
+- 'npm run db:migrate' - Apply database migrations
+- 'npm run db:seed' - Seed database with test data
+
+  ## Code Conventions
+  - Use TypeScript strict mode, no 'any' types
+- Functional components with hooks (no class components)
+- API routes in '/backend/src/routes/', grouped by domain
+- Place tests in '__tests__' directories next to source files
+- Use Zod for all runtime validation
+- Error handling: custom AppError class, never throw raw errors
+
+  ## File Organization
+  - Components: '/frontend/src/components/[feature]/ComponentName.tsx'
+- Hooks: '/frontend/src/hooks/useHookName.ts'
+- Utils: '/shared/utils/utilName.ts'
+- Types: Co-located with implementation, exported from index
+
+  ## Important Rules
+  - NEVER modify migrations after they're merged to main
+  - NEVER commit .env files
+  - ALWAYS run tests before committing
+  - ALWAYS use Zod schemas for API request/response validation
+  - Database queries must use Prisma (no raw SQL except for complex analytics)
+
+  ## Known Issues
+  - The legacy payment processing code in '/backend/src/legacy/' should not be modified
+- User profile images require CDN URL transformation (see utils/cdnTransform.ts)
+- WebSocket connections need manual reconnection logic in frontend
+`} />
+
+**Best practices:**
+
+1. **Keep it under 100 lines** - Claude loads this every session; keep it focused
+2. **Test and refine** - Like production prompts, test effectiveness and remove fluff
+3. **Use [the # key](https://code.claude.com/docs/en/memory#quickly-add-memories-with-the-#-shortcut)** - During sessions, press `#` to have Claude add new patterns to remember, then move winners to CLAUDE.md
+4. **Version control project files** - Check them into git for team collaboration
+5. **Create multiple CLAUDE.md files** - Root + subdirectory (frontend/CLAUDE.md, backend/CLAUDE.md) for focused guidance
+6. **Initialize with [`/init`](https://code.claude.com/docs/en/slash-commands#built-in-slash-commands)** - Claude can generate a starter CLAUDE.md for your project
+
+**The difference it makes:**
+
+*Without CLAUDE.md:* "Can you add validation to this form?" → Claude guesses your validation library and patterns
+
+*With CLAUDE.md:* "Add validation to the login form" → Claude uses Zod (as specified), follows your error handling patterns, places files correctly, runs your test commands
+
+**Pro tip:**
+
+Think of CLAUDE.md as onboarding documentation for a new team member who has perfect memory. What would they need to be productive immediately? Architecture, conventions, gotchas, commands, and patterns.
+
+## 3. Use Plan Mode
+
+<BlogImage
+  src="/claude-code-essentials-foundations/plan-mode.webp"
+  caption="Figure 2: Plan Mode helps you think through complex features before implementation."
+/>
+
+Now that you've established your project's foundation with CLAUDE.md, let's explore the primary workflow for tackling complex features: [Plan Mode](https://code.claude.com/docs/en/common-workflows#how-to-use-plan-mode).
+
+Before starting any non-trivial task, enter Plan Mode. Claude will review your requirements and codebase, then provide an implementation plan before writing any code.
+
+**How to enter Plan Mode:**
+- Press **Shift+Tab twice** (fastest method)
+- Type [`/plan`](https://code.claude.com/docs/en/common-workflows#how-to-use-plan-mode) command
+- Include "plan this first" in your request
+
+**Extended thinking levels:**
+
+Claude supports different levels of [extended thinking](https://code.claude.com/docs/en/common-workflows#use-extended-thinking) within Plan Mode that help with various complexity levels:
+
+1. **`think`** - Basic analysis, good for straightforward tasks
+2. **`think hard`** - Moderate complexity, considers edge cases and alternatives
+3. **`think harder`** - Deep analysis for complex problems with multiple constraints
+4. <UltrathinkTerminal  /> - Maximum depth analysis for architectural decisions, thorough exploration of trade-offs
+
+**When to use Plan Mode (and which thinking level):**
+- Multi-file refactors or architectural changes (`think harder` or `ultrathink`)
+- Complex features touching multiple systems (`think hard` or `think harder`)
+- Security-sensitive implementations (`ultrathink`)
+- Unclear requirements that need exploration (`think hard`)
+- Large migrations or database schema changes (`ultrathink`)
+- Architectural decisions affecting multiple systems (`ultrathink`)
+- Unfamiliar problem domains (`think harder`)
+
+**How to use extended thinking effectively:**
+
+```
+"ultrathink about the best way to implement real-time collaboration in our
+React app. Consider WebSockets vs Server-Sent Events vs polling, database
+requirements, conflict resolution, and scalability to 10k concurrent users."
+```
+
+The deeper thinking helps Claude:
+- Explore multiple approaches systematically
+- Consider edge cases and failure modes
+- Identify potential issues early
+- Provide more thoughtful recommendations
+- Explain trade-offs clearly
+
+**Why it saves time and money:**
+Catching design issues early prevents costly rewrites. A 5-minute planning phase with extended thinking can save hours of implementation and debugging.
+
+Plus, reviewing the plan ensures Claude understood your requirements correctly and considered all the important trade-offs before consuming tokens on implementation.
+
+## 4. Break It Down & Manage Context
+
+Even with Plan Mode helping you think through complex problems, you still need to manage Claude's context window effectively.
+
+Context is king when working with AI agents, but context windows have limits. Large requests can overwhelm Claude or lead to less focused solutions.
+
+**The problem with context pollution:**
+- [Auto-compact feature](https://code.claude.com/docs/en/costs#reduce-token-usage) can consume significant tokens just summarizing your conversation
+- Long conversations accumulate error logs, permission prompts, and redundant information
+- Each [MCP server](https://code.claude.com/docs/en/third-party-integrations#5-leverage-mcp-for-integrations) consumes 10-20k tokens depending on complexity
+- Context "rot" reduces accuracy as conversations grow
+
+**Best practices for context management:**
+
+**1. Use [`/clear`](https://code.claude.com/docs/en/slash-commands#built-in-slash-commands) frequently**
+Clear your conversation every 1-3 messages when switching to unrelated tasks. Claude has no memory between sessions anyway, so keeping old context serves no purpose once a task is complete.
+
+**2. Break large tasks into phases**
+```
+Phase 1: "Review the authentication system and identify all endpoints"
+[Review results, then clear]
+
+Phase 2: "Add rate limiting to the login endpoint at /api/auth/login"
+[Implement, test, commit, then clear]
+
+Phase 3: "Add rate limiting to remaining auth endpoints..."
+```
+
+**3. Be surgical with file references**
+Instead of: "Look at everything in the /components folder"
+Try: "Review @components/AuthForm.tsx and @hooks/useAuth.ts"
+
+**4. Let Claude generate task breakdowns**
+For complex work, have Claude create a checklist:
+```
+"Generate a checklist of all files that need updating to migrate from
+Redux to Zustand. For each file, describe the required changes."
+```
+
+Then tackle each item in a focused conversation.
+
+**5. Use GitHub/GitLab CLI for tickets**
+```
+"Generate 5 GitHub issues for this migration. Use the gh CLI to create them
+with proper labels and link them to the epic."
+```
+
+**The guiding principle:**
+Find the smallest set of high-signal tokens that maximize the likelihood of your desired outcome.
+
+---
+
+## What's Next
+
+In **Part 2: Advanced Claude Code Workflows**, we'll explore power features that take your productivity to the next level:
+
+- **Delegating to specialized sub-agents** for complex, focused tasks
+- **Custom slash commands** for reusable workflows
+- **The # key** for quick memory management
+- **Custom hooks** to automate your development process
+
+These foundations you've learned in Part 1 - specificity, CLAUDE.md, Plan Mode, and context management - are essential for making the most of the advanced features we'll cover next.
+
+[Continue to Part 2 →](/blog/claude-code-advanced-workflows)
+
+---
+
+**Resources:**
+- [Official Claude Code Documentation](https://code.claude.com/docs)
+- [Claude Code Best Practices - Anthropic Engineering](https://www.anthropic.com/engineering/claude-code-best-practices)
+
+
+export default function Page({ children }) {
+  return (
+  <MdxLayout metadata={metadata} slug={CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.slug}>
+    {children}
+  </MdxLayout>
+)
+}

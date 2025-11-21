@@ -1,0 +1,353 @@
+import React from "react";
+import MdxLayout from "../../../components/mdx-layout";
+import { CLAUDE_CODE_PRODUCTION_SECURITY } from "../../../lib/state/blog";
+
+export const metadata = {
+  title: CLAUDE_CODE_PRODUCTION_SECURITY.title,
+  date: CLAUDE_CODE_PRODUCTION_SECURITY.date
+};
+
+# {metadata.title}
+
+<div className="series-notice">
+  **This is Part 3 of a 3-part series on working effectively with Claude Code.**
+
+  - [Part 1: Essential foundations and basic workflows](/blog/claude-code-essentials-foundations)
+  - [Part 2: Advanced automation with agents, commands, and hooks](/blog/claude-code-advanced-workflows)
+  - **Part 3 (this post): Production readiness with TDD and security**
+
+  In Parts 1 and 2, we covered foundations and advanced workflows. Now let's explore how to ship AI-generated code safely to production.
+</div>
+
+You've learned the foundations and advanced workflows. Now comes the critical question: how do you ensure AI-generated code is production-ready? This final part covers the quality gates and practices that make the difference between experimental code and production-grade software.
+
+## 9. Test-Driven Development with Claude
+
+Test-Driven Development (TDD) works exceptionally well with AI code generation. Tests provide clear requirements and guard rails, while catching hallucinations early through fast feedback loops.
+
+**Why TDD + AI is powerful:**
+
+- **Prevents hallucinations** - Failing tests immediately reveal when AI invents non-existent APIs or makes incorrect assumptions
+- **Catches issues early** - Tests verify correctness before code reaches production
+- **Provides clear requirements** - Tests are unambiguous specifications of expected behavior
+- **Prevents overfitting** - Guards against solutions that only work for happy paths
+- **Enables confident refactoring** - Change implementation freely as long as tests pass
+
+**The TDD workflow with Claude:**
+
+**1. Write tests first**
+
+```javascript
+// tests/formatCurrency.test.ts
+import { describe, it, expect } from 'vitest'
+import { formatCurrency } from '../utils/formatCurrency'
+
+describe('formatCurrency', () => {
+  it('formats positive amounts correctly', () => {
+    expect(formatCurrency(1234.56, 'USD')).toBe('$1,234.56')
+  })
+
+  it('handles zero', () => {
+    expect(formatCurrency(0, 'USD')).toBe('$0.00')
+  })
+
+  it('handles negative amounts', () => {
+    expect(formatCurrency(-500, 'USD')).toBe('-$500.00')
+  })
+
+  it('supports different currencies', () => {
+    expect(formatCurrency(1000, 'EUR')).toBe('€1,000.00')
+  })
+
+  it('throws on invalid currency codes', () => {
+    expect(() => formatCurrency(100, 'INVALID')).toThrow()
+  })
+})
+```
+
+**2. Verify tests fail**
+
+```bash
+npm run test
+# Should fail - function doesn't exist yet
+```
+
+**3. Commit the tests**
+
+```bash
+git add tests/formatCurrency.test.ts
+git commit -m "Add tests for formatCurrency utility"
+```
+
+**4. Have Claude implement**
+
+```
+"Implement the formatCurrency function to make all tests in
+@tests/formatCurrency.test.ts pass. Use the Intl.NumberFormat API."
+```
+
+**5. Verify tests pass**
+
+Claude should run the tests and iterate until all pass:
+
+```bash
+npm run test
+# All tests passing ✅
+```
+
+**Communicating your test setup to Claude:**
+
+Add to your CLAUDE.md:
+
+```markdown
+## Testing
+
+Framework: Vitest
+Test location: Place tests in `__tests__` directories next to source files
+Naming: `filename.test.ts` or `filename.spec.ts`
+
+Commands:
+- `npm run test` - Run all tests
+- `npm run test:watch` - Watch mode
+- `npm run test:coverage` - Generate coverage report
+
+Coverage target: 80% minimum
+
+When writing tests:
+1. Test happy paths
+2. Test edge cases (empty, null, undefined, boundary values)
+3. Test error conditions
+4. Use descriptive test names
+5. Verify tests fail before implementing
+6. Run tests after implementation to confirm they pass
+```
+
+**Common pitfalls to avoid:**
+
+⚠️ **AI may propose changing tests instead of fixing code**
+- Review test changes critically
+- Tests should only change if requirements changed
+
+⚠️ **Watch for tests that don't actually test anything**
+- Verify assertions are meaningful
+- Check that tests would fail if implementation was wrong
+
+⚠️ **Don't skip the "verify tests fail" step**
+- Tests that pass without implementation are useless
+- Always confirm tests fail first
+
+**Advanced: Test-Driven Generation (TDG)**
+
+Combine TDD + Pair Programming + AI:
+
+1. **You write tests** describing expected behavior including edge cases
+2. **Claude implements** code until tests pass
+3. **You review** implementation for quality, security, performance
+4. **Iterate** on both tests and implementation together
+
+**Example prompt:**
+
+```
+"I've written comprehensive tests for the user authentication flow in
+@tests/auth.test.ts. Implement the authentication system to make all tests pass.
+
+Focus on:
+- Security (bcrypt for passwords, JWT tokens)
+- Rate limiting for failed login attempts
+- Proper error messages
+- Edge cases (expired tokens, invalid credentials, etc.)
+
+Follow the patterns in CLAUDE.md and ensure all tests pass before finishing."
+```
+
+**Benefits for production teams:**
+
+- **Faster debugging** - Failed tests pinpoint exact issues
+- **Living documentation** - Tests document expected behavior
+- **Fearless refactoring** - Change implementation with confidence
+- **Reduced regression bugs** - Tests catch breaking changes
+- **Better AI output** - Clear requirements produce better code
+
+**Pro tip:**
+
+Use sub-agents for testing. Create a test-specialist agent (as shown in Part 2) that focuses exclusively on writing comprehensive tests. Then have your main conversation focus on implementation.
+
+## 10. Security & Production Readiness
+
+AI-generated code requires extra scrutiny. Research shows developers are more likely to approve insecure AI suggestions without the same rigor applied to human-written code. This creates serious production risks.
+
+**The core problem:**
+
+When code comes from AI, we unconsciously trust it more than we should. The "automation bias" - our tendency to trust automated systems - means AI-generated code often bypasses the same security and quality checks we'd apply to code from junior developers.
+
+**Essential security practices:**
+
+**1. Enable sandboxing**
+
+Use the `/sandbox` command to enable Claude's native sandboxing:
+- Filesystem isolation (access only to working directory)
+- Network isolation (confirms new domains)
+- Reduces permission prompts by 84%
+- Protects against prompt injection attacks
+
+**2. Set appropriate permission modes**
+
+```bash
+# For exploration and planning
+claude --mode plan
+
+# For development (asks before operations)
+claude --mode default
+
+# For trusted file edits only
+claude --mode acceptEdits
+
+# NEVER use in production environments
+claude --mode bypassPermissions  # Only for isolated containers
+```
+
+**3. Mandatory quality gates**
+
+Before any AI code reaches production:
+
+✅ **Static analysis** - SonarQube, ESLint, TypeScript strict mode
+✅ **Security scanning** - Dependency audits, SAST tools
+✅ **Code review** - Human review despite AI origin
+✅ **Comprehensive testing** - Unit, integration, e2e tests must pass
+✅ **SBOM generation** - Track all dependencies
+
+**4. Review with security in mind**
+
+Always check AI-generated code for:
+- **SQL injection** - Parameterized queries, ORM usage
+- **XSS vulnerabilities** - Proper input sanitization, output encoding
+- **Authentication/authorization** - Proper checks, no bypasses
+- **Sensitive data exposure** - Credentials, PII, API keys
+- **CSRF protection** - Token validation, SameSite cookies
+- **Input validation** - Both client and server-side
+
+**5. CI/CD integration**
+
+Integrate security tools into your pipeline:
+
+```yaml
+# .github/workflows/ai-code-check.yml
+name: AI Code Security Check
+
+on: [pull_request]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run security scan
+        run: npm run security:scan
+      - name: Dependency audit
+        run: npm audit --audit-level=moderate
+      - name: Static analysis
+        run: npm run lint:security
+```
+
+**6. Never commit secrets**
+
+Claude should never commit:
+- `.env` files
+- `credentials.json` or similar
+- API keys, tokens, passwords
+- Private keys or certificates
+
+Add checks in CLAUDE.md:
+```markdown
+## Security Rules
+- NEVER commit .env files
+- NEVER hardcode API keys or secrets
+- ALWAYS use environment variables for sensitive config
+- WARN me if I'm about to commit sensitive files
+```
+
+**7. Production deployment checklist**
+
+Before deploying AI-generated code:
+
+- [ ] All tests passing (unit, integration, e2e)
+- [ ] Security scan completed with no high/critical issues
+- [ ] Dependency audit passed
+- [ ] Code reviewed by human with security mindset
+- [ ] Monitoring and logging in place
+- [ ] Rollback plan documented
+- [ ] No hardcoded secrets or credentials
+- [ ] Rate limiting and input validation implemented
+
+**Best practice:**
+
+Treat Claude like a very fast intern - capable and eager, but requiring supervision. Your responsibility for code quality and security doesn't diminish just because AI wrote it.
+
+**Tools to consider:**
+
+- **SonarQube** - Code quality and security analysis
+- **Snyk** - Dependency vulnerability scanning
+- **Qodo/CodeRabbit** - AI-specific code review tools
+- **npm audit / yarn audit** - Dependency security checks
+- **OWASP ZAP** - Dynamic security testing
+
+---
+
+## Key Takeaways: The Complete Series
+
+Working effectively with Claude Code is about establishing the right patterns, guardrails, and workflows to ship production-quality code faster.
+
+**The essentials from all three parts:**
+
+**Part 1: Foundations**
+1. **Be specific** - Provide clear context with screenshots, file references, and detailed requirements
+2. **CLAUDE.md is non-negotiable** - Your most important tool for consistent, context-aware assistance
+3. **Plan before you code** - Use Plan Mode (Shift+Tab twice) to catch issues early
+4. **Manage context actively** - Use `/clear` frequently, be surgical with file references
+
+**Part 2: Advanced Workflows**
+5. **Delegate to specialists** - Sub-agents handle complex tasks with focused expertise
+6. **Automate with commands** - Custom slash commands eliminate repetitive work
+7. **Use the # key** - Capture important decisions for permanent memory
+8. **Build custom workflows** - Hooks automate your development process
+
+**Part 3: Production Readiness**
+9. **TDD amplifies AI effectiveness** - Tests prevent hallucinations and provide clear requirements
+10. **Security can't be optional** - Enable sandboxing, use quality gates, human review is mandatory
+
+**The mental model:**
+
+Think of Claude Code as an exceptionally capable intern with perfect memory - eager to help, incredibly fast, but requiring clear direction and supervision. Your responsibility for code quality, security, and architecture doesn't diminish just because AI wrote it.
+
+**Start here:**
+
+1. Create a CLAUDE.md file for your project (use `/init`)
+2. Enable sandboxing (`/sandbox`)
+3. Add one custom slash command for your most repeated task
+4. Try Plan Mode on your next complex feature
+5. Write tests first for your next feature implementation
+
+**Resources:**
+
+- [Official Claude Code Documentation](https://code.claude.com/docs)
+- [Sub-Agents Guide](https://code.claude.com/docs/en/sub-agents)
+- [CLAUDE.md Best Practices](https://code.claude.com/docs/en/claudemd)
+
+**Final thought:**
+
+We're in the early days of AI-assisted development. The developers who learn to effectively collaborate with AI tools while maintaining high quality and security standards will have a significant competitive advantage. The goal isn't to let AI write all your code - it's to use AI as a force multiplier for your expertise and judgment.
+
+Thanks for reading this series, and see you in the next one!
+
+---
+
+[← Back to Part 2](/blog/claude-code-advanced-workflows) | [View Full Series](/blog/claude-code-lessons-learned)
+
+
+export default function Page({ children }) {
+  return (
+  <MdxLayout metadata={metadata} slug={CLAUDE_CODE_PRODUCTION_SECURITY.slug}>
+    {children}
+  </MdxLayout>
+)
+}
