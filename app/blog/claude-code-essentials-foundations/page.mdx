@@ -22,17 +22,13 @@ export const metadata = {
   We'll start with the fundamentals you need to get productive immediately.
 </div>
 
-We're living in a time when AI tools are becoming an integral part of our development workflow. Using tools like Claude Code, GitHub Copilot or OpenAI Codex, we can now generate more code than ever before.
+AI tools like Claude Code, GitHub Copilot, and OpenAI Codex are transforming how we write code. But getting high-quality results from AI agents requires skill and strategy.
 
-But guiding an AI agent to produce high-quality code is an engineering art in itself. Since the field of AI is evolving so quickly, so do all the tools, best practices and strategies around it.
-
-In this series, I want to share the most important lessons I've learned while working with Claude Code over the past months. This first part covers the essential foundations that make everything else work better.
+In this series, I'll share the most important lessons I've learned working with Claude Code. This first part covers the essential foundations that make everything else work better.
 
 ## 1. Be Specific
 
-If you expect great results, you need to provide great input. This means that you should be as specific as possible when describing your requirements.
-
-The more context and detail you provide, the better Claude can understand your intent and generate appropriate code.
+If you expect great results, you need to provide great input. The more context and detail you provide, the better Claude can understand your intent and generate appropriate code.
 
 **Examples:**
 
@@ -56,20 +52,13 @@ minimalist, with a focus on typography and whitespace."`} />
 - **Data samples**: [Pipe data directly via stdin](https://code.claude.com/docs/en/headless#streaming-json-input) for analysis: `cat error.log | claude` or `cat data.csv | claude`
 - **URLs**: Share documentation URLs for specific libraries or APIs you want Claude to use
 
-**Why specificity matters:**
-When you're vague, Claude has to make assumptions. With specific requirements, first-attempt success rates increase dramatically. Think of it like briefing a colleague - the clearer your requirements, the better the output.
+When you're vague, Claude makes assumptions. With specific requirements, first-attempt success rates increase significantly. Think of it like briefing a colleague - clearer requirements yield better output.
 
 ## 2. Master `CLAUDE.md` Files
 
-Before diving into specific techniques and workflows, let's start with the single most important feature for production usage: [`CLAUDE.md` files](https://code.claude.com/docs/en/settings#key-points-about-the-configuration-system).
+`CLAUDE.md` is the foundation that makes everything else work better. Without it, Claude has no memory between sessions - you'll repeatedly explain your stack, conventions, and project structure.
 
-`CLAUDE.md` is THE foundation that makes everything else work better. While you can use Claude without it, you'd be starting from scratch every session - explaining your stack, conventions, and project structure repeatedly.
-
-**Why `CLAUDE.md` is critical:**
-
-Without it, Claude has no memory between sessions. Every conversation starts from scratch.
-
-With it, you create a comprehensive knowledge base that makes Claude vastly more effective.
+With it, you create a comprehensive knowledge base that makes Claude more effective.
 
 **How it works:**
 
@@ -144,20 +133,14 @@ With it, you create a comprehensive knowledge base that makes Claude vastly more
 
 *With CLAUDE.md:* "Add validation to the login form" → Claude uses Zod (as specified), follows your error handling patterns, places files correctly, runs your test commands
 
-**Pro tip:**
-
-Think of CLAUDE.md as onboarding documentation for a new team member who has perfect memory. What would they need to be productive immediately? Architecture, conventions, gotchas, commands, and patterns.
-
 ## 3. Use Plan Mode
 
 <BlogImage
-  src="/claude-code-essentials-foundations/plan-mode.webp"
+  src="/claude-code-essentials-foundations/plan-mode2.webp"
   caption="Figure 2: Plan Mode helps you think through complex features before implementation."
 />
 
-Now that you've established your project's foundation with CLAUDE.md, let's explore the primary workflow for tackling complex features: [Plan Mode](https://code.claude.com/docs/en/common-workflows#how-to-use-plan-mode).
-
-Before starting any non-trivial task, enter Plan Mode. Claude will review your requirements and codebase, then provide an implementation plan before writing any code.
+Before starting any non-trivial task, enter [Plan Mode](https://code.claude.com/docs/en/common-workflows#how-to-use-plan-mode). Claude will review your requirements and codebase, then provide an implementation plan before writing code.
 
 **How to enter Plan Mode:**
 - Press **Shift+Tab twice** (fastest method)
@@ -190,28 +173,19 @@ React app. Consider WebSockets vs Server-Sent Events vs polling, database
 requirements, conflict resolution, and scalability to 10k concurrent users."
 ```
 
-The deeper thinking helps Claude:
-- Explore multiple approaches systematically
-- Consider edge cases and failure modes
-- Identify potential issues early
-- Provide more thoughtful recommendations
-- Explain trade-offs clearly
+The deeper thinking helps Claude explore multiple approaches systematically, consider edge cases and failure modes, and identify potential issues before implementation.
 
-**Why it saves time and money:**
-Catching design issues early prevents costly rewrites. A 5-minute planning phase with extended thinking can save hours of implementation and debugging.
-
-Plus, reviewing the plan ensures Claude understood your requirements correctly and considered all the important trade-offs before consuming tokens on implementation.
+**Why it saves time:**
+Catching design issues early prevents costly rewrites. A 5-minute planning phase can save hours of implementation and debugging, and ensures Claude understood your requirements correctly before consuming tokens on implementation.
 
 ## 4. Break It Down & Manage Context
 
-Even with Plan Mode helping you think through complex problems, you still need to manage Claude's context window effectively.
-
-Context is king when working with AI agents, but context windows have limits. Large requests can overwhelm Claude or lead to less focused solutions.
+Even with Plan Mode, you need to manage Claude's context window effectively. Context windows have limits, and large requests can overwhelm Claude or lead to less focused solutions.
 
 **The problem with context pollution:**
-- [Auto-compact feature](https://code.claude.com/docs/en/costs#reduce-token-usage) can consume significant tokens just summarizing your conversation
+- [Auto-compact](https://code.claude.com/docs/en/costs#reduce-token-usage) consumes significant tokens summarizing your conversation
 - Long conversations accumulate error logs, permission prompts, and redundant information
-- Each [MCP server](https://code.claude.com/docs/en/third-party-integrations#5-leverage-mcp-for-integrations) consumes 10-20k tokens depending on complexity
+- Each [MCP server](https://code.claude.com/docs/en/third-party-integrations#5-leverage-mcp-for-integrations) consumes 10-20k tokens
 - Context "rot" reduces accuracy as conversations grow
 
 **Best practices for context management:**
