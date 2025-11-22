@@ -7,7 +7,6 @@ import NumberFlow from "@number-flow/react";
 import { useEffect } from "react";
 
 const isDevelopment = process.env.NODE_ENV === "development";
-const environment = isDevelopment ? "development" : "production";
 
 interface ViewsResponse {
   views: number;
