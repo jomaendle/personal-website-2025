@@ -29,7 +29,7 @@ export const CSS_CAROUSEL = {
 
 export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   title: "Claude Code Essentials: Foundation for Effective AI Development",
-  date: "Nov 23, 2025",
+  date: "Nov 22, 2025",
   slug: "claude-code-essentials-foundations",
 };
 
