@@ -6,6 +6,9 @@ import { DEFAULT_STALE_TIME, queryClient } from "@/lib/queryClient";
 import NumberFlow from "@number-flow/react";
 import { useEffect } from "react";
 
+const isDevelopment = process.env.NODE_ENV === "development";
+const environment = isDevelopment ? "development" : "production";
+
 interface ViewsResponse {
   views: number;
   slug?: string;
@@ -40,6 +43,11 @@ export function ViewCounter({
   const { data: incrementedData, mutate } = useMutation({
     mutationKey: ["views", slug],
     mutationFn: async () => {
+      if (isDevelopment) {
+        // In development, skip incrementing views to avoid skewing data
+        return { views: allViews ?? 0, slug };
+      }
+
       const res = await fetch("/api/increment-view", {
         method: "POST",
         headers: {

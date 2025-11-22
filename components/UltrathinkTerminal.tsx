@@ -2,23 +2,24 @@
 
 export default function UltrathinkTerminal() {
   const characters = [
-    { char: "u", color: "#fca5a5" }, // red-300
-    { char: "l", color: "#fcb04d" }, // amber-300
-    { char: "t", color: "#fdef93" }, // green-300
-    { char: "r", color: "#a1fd93" }, // blue-300
-    { char: "a", color: "#c4b5fd" }, // violet-300
-    { char: "t", color: "#f0abfc" }, // fuchsia-300
-    { char: "h", color: "#d9a4fc" }, // rose-300
-    { char: "i", color: "#fca5a5" }, // yellow-300
-    { char: "n", color: "#fcb04d" }, // orange-400
-    { char: "k", color: "#fdef93" }, // yellow-400
+    { char: "u", className: "text-red-500 dark:text-[#fca5a5]" },
+    { char: "l", className: "text-orange-500 dark:text-[#fcb04d]" },
+    { char: "t", className: "text-yellow-500 dark:text-[#fdef93]" },
+    { char: "r", className: "text-green-500 dark:text-[#a1fd93]" },
+    { char: "a", className: "text-violet-500 dark:text-[#c4b5fd]" },
+    { char: "t", className: "text-fuchsia-500 dark:text-[#f0abfc]" },
+    { char: "h", className: "text-purple-500 dark:text-[#d9a4fc]" },
+    { char: "i", className: "text-red-500 dark:text-[#fca5a5]" },
+    { char: "n", className: "text-orange-500 dark:text-[#fcb04d]" },
+    { char: "k", className: "text-yellow-500 dark:text-[#fdef93]" },
   ];
 
+
   return (
-    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-1 py-0.5 font-mono text-sm shadow-lg">
+    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-1 py-0.5 font-mono text-sm shadow-sm">
       <span className="flex items-center tracking-wide">
         {characters.map((item, index) => (
-          <span key={index} style={{ color: item.color }}>
+          <span key={index} className={item.className}>
             {item.char}
           </span>
         ))}

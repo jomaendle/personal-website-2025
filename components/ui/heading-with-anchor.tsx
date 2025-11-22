@@ -8,43 +8,43 @@ import { useCallback } from "react";
 function generateSlug(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single
     .trim();
 }
 
-interface HeadingWithAnchorProps extends React.HTMLAttributes<HTMLHeadingElement> {
+interface HeadingWithAnchorProps
+  extends React.HTMLAttributes<HTMLHeadingElement> {
   level: 2 | 3;
   children: React.ReactNode;
 }
 
-export function HeadingWithAnchor({ 
-  level, 
-  children, 
+export function HeadingWithAnchor({
+  level,
+  children,
   className,
   id,
-  ...props 
+  ...props
 }: HeadingWithAnchorProps) {
   // Extract text content for slug generation
-  const textContent = typeof children === 'string' 
-    ? children 
-    : children?.toString() || '';
-  
+  const textContent =
+    typeof children === "string" ? children : children?.toString() || "";
+
   // Use provided id or generate from text
   const headingId = id || generateSlug(textContent);
-  
+
   const copyToClipboard = useCallback(async () => {
     const url = `${window.location.origin}${window.location.pathname}#${headingId}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
       // Fallback for older browsers
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = url;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(textArea);
     }
   }, [headingId]);
@@ -52,10 +52,10 @@ export function HeadingWithAnchor({
   // Base styles for different heading levels (matching existing H2/H3 components)
   const getHeadingStyles = () => {
     if (level === 2) {
-      return "text-sm uppercase tracking-wider text-muted-foreground mb-6";
+      return "text-sm font-[display] tracking-wider text-muted-foreground mb-4";
     }
     if (level === 3) {
-      return "text-foreground group-hover:text-underline transition-colors";
+      return "text-foreground font-extrabold group-hover:text-underline transition-colors";
     }
     return "";
   };
@@ -63,7 +63,7 @@ export function HeadingWithAnchor({
   const headingProps = {
     id: headingId,
     className: cn("group relative", getHeadingStyles(), className),
-    ...props
+    ...props,
   };
 
   return level === 2 ? (
@@ -71,7 +71,7 @@ export function HeadingWithAnchor({
       {children}
       <button
         onClick={copyToClipboard}
-        className="anchor-link ml-2 inline-flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-60 hover:opacity-100"
+        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
         tabIndex={-1}
       >
@@ -83,7 +83,7 @@ export function HeadingWithAnchor({
       {children}
       <button
         onClick={copyToClipboard}
-        className="anchor-link ml-2 inline-flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-60 hover:opacity-100"
+        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
         tabIndex={-1}
       >

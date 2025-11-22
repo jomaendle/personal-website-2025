@@ -5,11 +5,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CodeBlockProps {
   language: string;
@@ -18,7 +14,12 @@ interface CodeBlockProps {
   collapsible?: boolean;
 }
 
-export function CodeBlock({ language, code, wrapLines, collapsible }: CodeBlockProps) {
+export function CodeBlock({
+  language,
+  code,
+  wrapLines,
+  collapsible,
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [syntaxTheme, setSyntaxTheme] = useState<Record<
@@ -93,7 +94,7 @@ export function CodeBlock({ language, code, wrapLines, collapsible }: CodeBlockP
 
   const content = (
     <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-muted/30 shadow-sm dark:bg-muted/20">
-      <div className="absolute right-12 top-3 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm">
+      <div className="absolute right-12 top-3 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm transition-opacity hover:opacity-0">
         {language}
       </div>
 
