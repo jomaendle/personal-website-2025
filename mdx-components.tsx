@@ -7,7 +7,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h1: ({ children, ...props }) => {
       return (
         <h1
-          className="blog-title mb-8 text-2xl font-normal tracking-tight"
+          className="blog-title mb-8 font-[display] text-2xl font-normal tracking-tight"
           {...props}
         >
           {children}

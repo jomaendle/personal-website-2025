@@ -99,3 +99,4 @@ The site uses a custom dark-first design system built on Tailwind CSS:
 - Supabase client is configured in `lib/supabaseClient.ts`
 - Environment variables required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Resend client in `lib/resend.ts` for email functionality
+- always use the codeblock component when showing code in the articles

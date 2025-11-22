@@ -18,6 +18,30 @@ const getMarkerCount = () => {
   return isTouchDevice() ? 16 : 41; // Reduced count for mobile performance
 };
 
+const toneProfiles = {
+  largest: {
+    frequency: 392,
+    attack: 0.1,
+    sustain: 0.1,
+    release: 0.6,
+    volume: 0.1,
+  },
+  larger: {
+    frequency: 329,
+    attack: 0.05,
+    sustain: 0.4,
+    release: 0.76,
+    volume: 0.14,
+  },
+  regular: {
+    frequency: 261,
+    attack: 0.05,
+    sustain: 1,
+    release: 0.9,
+    volume: 0.1,
+  },
+} as const;
+
 // Cached marker position data
 interface MarkerPosition {
   element: HTMLElement;
@@ -96,7 +120,7 @@ export function Minimap() {
     }
   }, [audioUnlocked, soundEnabled]);
 
-  const playTickSound = useCallback(
+  /*const playTickSound = useCallback(
     async (marker: Element) => {
       if (!soundEnabled) return;
 
@@ -208,6 +232,107 @@ export function Minimap() {
           }
         },
         duration * 1000 + 10,
+      );
+    },
+    [soundEnabled],
+  );*/
+
+  const playTickSound = useCallback(
+    async (marker: Element) => {
+      if (!soundEnabled) return;
+
+      if (!audioContextRef.current) {
+        try {
+          audioContextRef.current = new (window.AudioContext ||
+            window.webkitAudioContext)();
+        } catch (error) {
+          console.error("Failed to create AudioContext:", error);
+          return;
+        }
+      }
+
+      const ctx = audioContextRef.current;
+      if (ctx.state === "suspended") {
+        try {
+          await ctx.resume();
+        } catch (error) {
+          console.error("Failed to resume AudioContext:", error);
+          return;
+        }
+      }
+      if (ctx.state !== "running") return;
+
+      const now = ctx.currentTime;
+      if (now - lastSoundTimeRef.current < 0.03) return;
+      lastSoundTimeRef.current = now;
+
+      if (currentGainRef.current && currentOscillatorRef.current) {
+        const prevGain = currentGainRef.current;
+        const prevOsc = currentOscillatorRef.current;
+        prevGain.gain.cancelScheduledValues(now);
+        prevGain.gain.setValueAtTime(prevGain.gain.value, now);
+        prevGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+        setTimeout(() => {
+          try {
+            prevOsc.stop();
+          } catch {
+            /* noop */
+          }
+        }, 120);
+      }
+
+      const markerHeight = marker.classList.contains("h-20")
+        ? "largest"
+        : marker.classList.contains("h-10")
+          ? "larger"
+          : "regular";
+
+      const profile = toneProfiles[markerHeight as keyof typeof toneProfiles];
+      const oscillator = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gainNode = ctx.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.value = profile.frequency;
+      /*oscillator.detune.value = (Math.random() - 0.5) * 20; // subtle warmth*/
+
+      filter.type = "lowpass";
+      filter.frequency.value = 6000;
+      filter.Q.value = 1;
+
+      oscillator.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(
+        profile.volume,
+        now + profile.attack,
+      );
+      gainNode.gain.setTargetAtTime(
+        profile.volume,
+        now + profile.attack,
+        profile.sustain,
+      );
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + profile.attack + profile.release,
+      );
+
+      oscillator.start(now);
+      oscillator.stop(now + profile.attack + profile.release + 0.05);
+
+      currentOscillatorRef.current = oscillator;
+      currentGainRef.current = gainNode;
+
+      setTimeout(
+        () => {
+          if (currentOscillatorRef.current === oscillator) {
+            currentOscillatorRef.current = null;
+            currentGainRef.current = null;
+          }
+        },
+        (profile.attack + profile.release + 0.1) * 1000,
       );
     },
     [soundEnabled],

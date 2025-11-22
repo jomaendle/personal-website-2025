@@ -25,7 +25,7 @@ export default function MdxLayout({
       <ScrollProgress />
 
       <aside
-        className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 overflow-y-hidden xl:flex 2xl:w-[300px]"
+        className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 xl:flex 3xl:w-[300px]"
         style={{
           maxHeight: "calc(100svh - 200px)",
         }}
@@ -107,7 +107,7 @@ function BackLink() {
   return (
     <Link
       href="/"
-      className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200 hover:text-primary"
+      className="group inline-flex items-center gap-2 text-sm text-foreground transition-all duration-200 hover:text-muted-foreground"
     >
       <span className="transition-transform duration-200">←</span>
       Back
