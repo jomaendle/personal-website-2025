@@ -28,9 +28,9 @@ export const CSS_CAROUSEL = {
 };
 
 export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
-  title: "Claude Code Essentials: Foundation for Effective AI Development",
+  title: "Claude Code Essentials for Effective AI-Assisted Development",
   date: "Nov 22, 2025",
-  slug: "claude-code-essentials-foundations",
+  slug: "claude-code-essentials",
 };
 
 export const CLAUDE_CODE_ADVANCED_WORKFLOWS = {

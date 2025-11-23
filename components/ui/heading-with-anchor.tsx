@@ -52,7 +52,7 @@ export function HeadingWithAnchor({
   // Base styles for different heading levels (matching existing H2/H3 components)
   const getHeadingStyles = () => {
     if (level === 2) {
-      return "text-sm font-[display] tracking-wider text-muted-foreground mb-4";
+      return "text-sm tracking-wider text-muted-foreground mb-4";
     }
     if (level === 3) {
       return "text-foreground font-extrabold group-hover:text-underline transition-colors";
