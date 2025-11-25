@@ -1,0 +1,1079 @@
+import React from "react";
+import { CLAUDE_CODE_PROMPT_ENGINEERING } from "../../../lib/state/blog";
+import { BlogImage } from "../../../components/blog-image";
+import { CodeBlock } from "../../../components/code-block";
+import MdxLayout from "../../../components/mdx-layout";
+
+export const metadata = {
+  title: CLAUDE_CODE_PROMPT_ENGINEERING.title,
+  date: CLAUDE_CODE_PROMPT_ENGINEERING.date
+};
+
+# {metadata.title}
+
+{/*
+  Image description for hero image (claude-code-prompt-engineering.webp):
+  Visual concept: A layered diagram showing structured prompts with XML-like tags flowing into
+  Claude Code terminal. The image should convey hierarchy, structure, and precision.
+  Suggested elements: XML brackets, nested structure visualization, clean monospace typography,
+  gradient from chaos (unstructured text) to order (structured prompts).
+  Dimensions: 1200x600px, optimized .webp format
+*/}
+
+After mastering the [Claude Code essentials](/blog/claude-code-essentials-foundations), you're ready to move beyond basic prompting. This guide covers advanced techniques used in production environments where precision, consistency, and scalability matter.
+
+These patterns aren't theoretical—they're battle-tested approaches for complex codebases, multi-step refactors, and situations where "just asking Claude" isn't enough.
+
+1. [XML Tags for Structure](#1-xml-tags-for-structure-and-control) - Structured prompts that scale
+2. [Prompt Chaining](#2-prompt-chaining-for-complex-workflows) - Multi-step workflows that maintain context
+3. [Few-Shot and Chain-of-Thought](#3-few-shot-and-chain-of-thought-prompting) - Teaching by example and explicit reasoning
+4. [Metaprompts and Self-Refinement](#4-metaprompts-and-self-refinement) - Prompts that generate and improve prompts
+5. [Temperature and Thinking Levels](#5-temperature-and-thinking-levels) - Fine-tuning output determinism
+6. [Integration Patterns](#6-integration-patterns-combining-techniques) - When to use what
+
+## 1. XML Tags for Structure and Control
+
+Claude interprets XML-like tags as semantic boundaries for different types of information. This isn't just formatting—it fundamentally changes how Claude processes your request.
+
+### Why XML tags work
+
+Without structure, Claude treats your entire prompt as a single blob of requirements. With XML tags, it can distinguish between context, constraints, examples, and desired output format—and weight each appropriately.
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+❌ Without structure:
+"Refactor the UserAuth component to use the new authentication hook. Make sure to
+handle edge cases like expired tokens and network failures. Follow our existing
+error handling patterns and maintain TypeScript strict mode. Output should include
+tests and proper error boundaries."
+
+✅ With XML structure:
+<task>
+Refactor the UserAuth component to use the new authentication hook
+</task>
+
+<constraints>
+- Maintain TypeScript strict mode
+- Follow existing error handling patterns (see @lib/errors.ts)
+- Include proper error boundaries
+</constraints>
+
+<edge_cases>
+- Expired tokens (should redirect to login)
+- Network failures (should show retry UI)
+- Concurrent auth attempts (should debounce)
+</edge_cases>
+
+<output_format>
+- Refactored component code
+- Unit tests for all edge cases
+- Integration test for the auth flow
+</output_format>
+`} />
+
+The structured version makes it explicit what's negotiable (implementation details) versus non-negotiable (constraints), and what success looks like (output format).
+
+### Common tag patterns
+
+Here are the tags I use most frequently, organized by use case:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<requirements>
+Core functionality that must be implemented
+</requirements>
+
+<constraints>
+Hard limits: technology choices, performance budgets, compatibility requirements
+</constraints>
+
+<context>
+Background information, existing architecture, related systems
+Tip: Use @file references here to avoid copying large code blocks
+</context>
+
+<examples>
+Concrete examples of desired patterns or existing implementations to follow
+</examples>
+
+<output_format>
+Exact structure of what you want back (e.g., "JSON array", "Markdown checklist", "TypeScript types")
+</output_format>
+
+<edge_cases>
+Specific scenarios to handle (null values, concurrent operations, error states)
+</edge_cases>
+
+<success_criteria>
+How to verify the solution works (test cases, performance metrics, user acceptance)
+</success_criteria>
+`} />
+
+### Real-world example: Database migration
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<task>
+Migrate user authentication from Firebase to Supabase
+</task>
+
+<context>
+Current setup: @lib/firebase/auth.ts handles all auth operations
+Supabase client: @lib/supabase/client.ts (already configured)
+Affected components: @components/LoginForm.tsx, @components/SignUpForm.tsx, @hooks/useAuth.ts
+</context>
+
+<requirements>
+1. Replace Firebase auth calls with Supabase equivalents
+2. Maintain existing API surface for components (no component changes)
+3. Migrate existing user sessions without logout
+4. Preserve user metadata and custom claims
+</requirements>
+
+<constraints>
+- Zero downtime migration (use feature flag if needed)
+- Must support both Firebase and Supabase during transition period
+- TypeScript strict mode compliance
+- All existing tests must pass
+</constraints>
+
+<edge_cases>
+- Users mid-session during migration
+- Users with Firebase-only auth methods (Google, Apple)
+- Custom claims that don't map 1:1 to Supabase
+- Rate limiting during bulk user migration
+</edge_cases>
+
+<output_format>
+Phase 1: Migration plan with rollback strategy
+Phase 2: Implementation code with feature flag
+Phase 3: Data migration script with progress tracking
+Phase 4: Test suite updates
+</output_format>
+
+<success_criteria>
+- All 2,347 existing users migrated successfully
+- Auth latency remains under 200ms (p95)
+- Zero failed logins during migration window
+- All integration tests green
+</success_criteria>
+`} />
+
+This level of structure transforms a vague "migrate our auth" request into a precise specification that Claude can execute reliably.
+
+### Nested structures for complex specifications
+
+For multi-layered requirements, nest tags to create hierarchy:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<task>
+Build a real-time collaborative code editor feature
+</task>
+
+<requirements>
+  <core_functionality>
+    - Multi-user editing with operational transform (OT)
+    - Syntax highlighting for 5 languages: TS, JS, Python, Go, Rust
+    - Cursor position tracking for all active users
+  </core_functionality>
+
+  <performance>
+    - Max latency: 50ms for local edits
+    - Max latency: 150ms for synced edits
+    - Support up to 10 concurrent users per document
+  </performance>
+
+  <ui_ux>
+    - User avatars show at cursor position
+    - Highlight other users' selections in unique colors
+    - Show presence indicators in sidebar
+  </ui_ux>
+</requirements>
+
+<technical_approach>
+  <backend>
+    - WebSocket server using Socket.io
+    - Redis for operational transform queue
+    - PostgreSQL for document persistence
+  </backend>
+
+  <frontend>
+    - CodeMirror 6 as editor foundation
+    - Yjs for CRDT-based conflict resolution
+    - React 19 with concurrent features
+  </frontend>
+</technical_approach>
+`} />
+
+### Best practices for XML prompting
+
+1. **Keep tag names semantic**: Use `<constraints>` not `<rules>`, `<edge_cases>` not `<problems>`
+2. **Don't over-structure**: If you have 2-3 simple requirements, tags add noise. Use them when complexity demands it.
+3. **Combine with @file references**: Instead of pasting code inside `<context>`, reference files: `<context>See @components/Example.tsx for the pattern to follow</context>`
+4. **Use in CLAUDE.md**: Store frequently-used tag structures in your project's `CLAUDE.md` as templates
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+## Prompt Templates
+
+When requesting new React components, use this structure:
+
+<requirements>
+[Component functionality]
+</requirements>
+
+<constraints>
+- TypeScript strict mode
+- Accessible (WCAG 2.1 AA)
+- Mobile-responsive
+- Dark mode support
+</constraints>
+
+<output_format>
+- Component code
+- Storybook story
+- Unit tests for interactions
+</output_format>
+`} />
+
+## 2. Prompt Chaining for Complex Workflows
+
+Some tasks can't be completed in a single prompt, even with perfect structure. Prompt chaining breaks large problems into sequential steps, each with its own focused conversation.
+
+### When to use chaining vs. a single prompt
+
+**Single prompt:** Task fits in one clear specification, requires < 5 file modifications, no exploratory work needed
+
+**Prompt chain:** Task requires exploration → analysis → planning → implementation, touches > 10 files, or has decision points that need human review
+
+### The basic chain pattern
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1 (Exploration):
+"Analyze our current error handling approach across the codebase. Identify all
+patterns in use and note inconsistencies. Output a markdown report to
+@docs/error-handling-audit.md"
+
+[Review results, make decisions]
+[/clear to reset context]
+
+Step 2 (Planning):
+"Based on the audit in @docs/error-handling-audit.md, create a standardized
+error handling system. Plan the implementation in @docs/error-handling-plan.md
+including migration strategy."
+
+[Review plan, adjust if needed]
+[/clear]
+
+Step 3 (Implementation - Phase 1):
+"Implement the core error handling system from @docs/error-handling-plan.md.
+Focus only on the base infrastructure: error classes, error boundary, and
+logging service."
+
+[Test, commit]
+[/clear]
+
+Step 4 (Implementation - Phase 2):
+"Migrate all components in @components/dashboard/* to use the new error handling
+system from @lib/errors/*. Update one component at a time, running tests after
+each."
+
+[Verify each migration]
+[/clear]
+
+Step 5 (Implementation - Phase 3):
+"Migrate remaining components in @components/auth/* and @components/settings/*..."
+`} />
+
+### Why this works better than one giant prompt
+
+1. **Context stays focused**: Each step has only the information needed for that phase
+2. **Human decision points**: You review outputs before proceeding
+3. **Incremental commits**: Smaller, safer changes with clear commit messages
+4. **Fail-safe**: If Claude hallucinates in step 3, you haven't wasted tokens on steps 4-5
+5. **Resumable**: Can pause, fix issues manually, then continue the chain
+
+### Using files to maintain state between chain steps
+
+The key to effective chaining is using files as the "memory" between steps:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1: "Analyze all API endpoints and output findings to @docs/api-audit.json"
+
+Step 2: "Read @docs/api-audit.json and generate a migration checklist in
+@docs/api-migration-tasks.md. Include estimated effort for each task."
+
+Step 3: "Complete the first 5 tasks from @docs/api-migration-tasks.md. Mark
+completed tasks with [x] in the file as you finish each one."
+
+Step 4: "Continue with the next 5 tasks from @docs/api-migration-tasks.md..."
+`} />
+
+This creates a persistent record of progress that survives `/clear` operations.
+
+### Advanced: Self-documenting chains
+
+Have Claude document its own chain progress:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"As you complete this migration, maintain a log in @docs/migration-log.md with:
+- Timestamp for each file modified
+- What changed and why
+- Any unexpected issues encountered
+- Test results
+
+Update this log after each file is migrated."
+`} />
+
+Now you have a complete record of the chain execution, useful for code review and debugging.
+
+### Combining chains with Plan Mode
+
+For maximum control, start each chain step with Plan Mode:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step N: "think hard about the best approach to migrate @components/UserProfile.tsx
+to the new state management system. Consider:
+- Current dependencies on Redux
+- Potential side effects
+- Testing strategy
+
+After planning, implement the migration."
+`} />
+
+This gives you a reviewable plan before any code changes happen in that step.
+
+## 3. Few-Shot and Chain-of-Thought Prompting
+
+Two powerful techniques for improving output quality: teaching by example (few-shot) and making reasoning explicit (chain-of-thought).
+
+### Few-shot prompting: Teaching by example
+
+Instead of explaining what you want, show Claude 2-3 examples. This is especially effective for style, tone, formatting, or complex patterns.
+
+**Example: Consistent commit message style**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Generate a commit message for these changes. Follow our style:
+
+<examples>
+Example 1:
+feat(auth): add OAuth2 provider support
+
+- Implement Google and GitHub OAuth2 flows
+- Add provider selection UI to login page
+- Update auth hook to handle provider-specific tokens
+
+Closes #245
+
+Example 2:
+fix(api): prevent race condition in user session refresh
+
+- Add mutex lock to token refresh endpoint
+- Implement retry logic with exponential backoff
+- Add integration test for concurrent refresh attempts
+
+Fixes #389
+
+Example 3:
+refactor(components): extract reusable FormField component
+
+- Move common form field logic to shared component
+- Update LoginForm and SignUpForm to use FormField
+- Add Storybook stories for all field variants
+
+Related to #412
+</examples>
+
+Now generate a commit message for the current staged changes following this pattern."
+`} />
+
+Claude will match the format, tone, and level of detail from your examples.
+
+**Example: Code review comment style**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Review this PR and provide feedback in our standard format:
+
+<examples>
+Example 1:
+**Security Issue** ⚠️
+Line 47: User input is passed directly to SQL query without sanitization.
+Use parameterized queries to prevent SQL injection.
+Suggested fix: \`db.query('SELECT * FROM users WHERE id = ?', [userId])\`
+
+Example 2:
+**Performance Concern** 🐌
+Lines 89-102: Nested loops create O(n²) complexity for large datasets.
+Consider using a Map for O(n) lookup instead.
+Suggested refactor: [code example]
+
+Example 3:
+**Accessibility** ♿
+Line 156: Button has no accessible label for screen readers.
+Add aria-label or wrap icon in <span aria-label="...">
+</examples>
+
+Review the code at @src/components/DataTable.tsx using this format."
+`} />
+
+### How many examples do you need?
+
+- **One-shot** (1 example): Good for simple formatting or style matching
+- **Few-shot** (2-3 examples): Ideal for most use cases, shows pattern variation
+- **Many-shot** (5+ examples): Only needed for complex, nuanced patterns or when examples show edge cases
+
+### Chain-of-thought: Making reasoning visible
+
+Chain-of-thought prompting asks Claude to show its work before giving an answer. This dramatically improves quality for complex reasoning tasks.
+
+**Basic pattern:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Before implementing the caching layer, think through:
+1. What data needs caching? (frequency of access, size, volatility)
+2. What's the appropriate TTL for each data type?
+3. What are the cache invalidation triggers?
+4. How do we handle cache misses?
+5. What's the fallback strategy if cache is unavailable?
+
+After reasoning through these questions, implement the solution."
+`} />
+
+**Advanced: Explicit reasoning steps**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<reasoning_process>
+1. Analyze the problem and state assumptions
+2. Consider at least 3 different approaches
+3. Evaluate trade-offs for each approach (performance, complexity, maintainability)
+4. Select the best approach and justify why
+5. Identify potential edge cases or failure modes
+6. Design the solution
+</reasoning_process>
+
+<task>
+Design a rate limiting system for our API that:
+- Supports per-user and per-IP limits
+- Handles distributed deployments (multiple server instances)
+- Provides graceful degradation if rate limit store is down
+</task>
+
+Follow the reasoning process above, then implement your chosen solution.
+`} />
+
+This forces thorough analysis before implementation, catching issues early.
+
+### Combining few-shot and chain-of-thought
+
+The most powerful combination: examples + explicit reasoning.
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Design a React component for a data grid. First, analyze these existing examples:
+
+<examples>
+[Example 1: Simple table component]
+[Example 2: Sortable table component]
+[Example 3: Virtualized grid component]
+</examples>
+
+Now, think through:
+1. What patterns do these examples share?
+2. What's missing from them that we need?
+3. How can we combine their best features?
+4. What are the performance implications of each approach?
+
+After your analysis, design and implement the component."
+`} />
+
+### Using CoT with Plan Mode
+
+Chain-of-thought is built into Plan Mode's extended thinking levels:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"think harder about the best architecture for this real-time notification system.
+Consider WebSockets vs Server-Sent Events vs long polling. Evaluate:
+- Browser compatibility
+- Scalability to 100k concurrent connections
+- Message delivery guarantees
+- Reconnection handling
+- Infrastructure costs
+
+After thorough analysis, implement your recommended approach."
+`} />
+
+The `think harder` directive triggers extended reasoning before implementation.
+
+## 4. Metaprompts and Self-Refinement
+
+Metaprompts are prompts that generate or improve other prompts. Self-refinement is having Claude critique and iterate on its own output.
+
+### Metaprompts: Prompts that generate prompts
+
+Instead of crafting the perfect prompt manually, have Claude design it for you.
+
+**Example: Generating a custom slash command**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Design a prompt for a custom slash command called /review-security.
+This command should:
+- Analyze a given file for security vulnerabilities
+- Check for: SQL injection, XSS, CSRF, insecure dependencies, exposed secrets
+- Output findings in severity order (critical, high, medium, low)
+- Provide specific remediation suggestions with code examples
+
+Generate the optimal prompt structure for this command, using XML tags for clarity."
+`} />
+
+Claude generates:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<task>
+Perform a comprehensive security audit of the specified file
+</task>
+
+<security_checks>
+  <injection_attacks>
+    - SQL injection vulnerabilities
+    - NoSQL injection vulnerabilities
+    - Command injection vulnerabilities
+    - XSS (reflected, stored, DOM-based)
+  </injection_attacks>
+
+  <authentication_authorization>
+    - CSRF protection
+    - Authentication bypasses
+    - Authorization issues
+    - Session management flaws
+  </authentication_authorization>
+
+  <dependencies>
+    - Known CVEs in dependencies
+    - Outdated packages with security patches
+    - Insecure package configurations
+  </dependencies>
+
+  <secrets_exposure>
+    - Hardcoded API keys
+    - Exposed credentials
+    - Sensitive data in logs
+  </secrets_exposure>
+</security_checks>
+
+<output_format>
+For each finding:
+**[SEVERITY]** Finding Title
+File: [path]:[line]
+Issue: [detailed description]
+Impact: [security impact]
+Remediation:
+\`\`\`[language]
+[secure code example]
+\`\`\`
+
+Sort by: Critical → High → Medium → Low
+</output_format>
+`} />
+
+Now save this to `.claude/commands/review-security.md` and use it with `/review-security`.
+
+### Self-refinement: Iterative improvement
+
+Have Claude critique and improve its own work.
+
+**Pattern 1: Generate then critique**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1: "Generate a React component for an autocomplete search input with
+keyboard navigation and async results."
+
+[Claude generates initial implementation]
+
+Step 2: "Review your implementation above. Critique it for:
+- Accessibility (keyboard navigation, screen reader support)
+- Performance (debouncing, result caching, preventing unnecessary re-renders)
+- Edge cases (empty results, error states, concurrent requests)
+
+Identify specific improvements and implement them."
+`} />
+
+**Pattern 2: Multi-round refinement**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Round 1: "Implement a caching layer for our API client."
+
+Round 2: "Review your implementation. Does it handle:
+- Cache invalidation strategies?
+- Memory limits?
+- Concurrent cache access?
+- Stale-while-revalidate patterns?
+
+Improve your implementation to address any gaps."
+
+Round 3: "Now optimize for performance. Identify bottlenecks and refactor."
+
+Round 4: "Add comprehensive error handling and edge case coverage."
+`} />
+
+Each round builds on the previous, progressively improving quality.
+
+**Pattern 3: Specification refinement**
+
+Use metaprompts to improve your requirements before implementation:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"I need a feature for users to export their data. Here's my initial spec:
+
+<initial_spec>
+Users should be able to export their data to CSV or JSON format.
+The export should include all their content.
+</initial_spec>
+
+Critique this specification. What's missing? What's ambiguous? What edge cases
+should be considered? Generate an improved, production-ready specification."
+`} />
+
+Claude refines:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+<refined_spec>
+  <requirements>
+    - Support CSV and JSON export formats
+    - Include all user-generated content: posts, comments, profile data
+    - Exclude system data: internal IDs, timestamps, audit logs
+    - Maximum export size: 100MB (require pagination for larger datasets)
+  </requirements>
+
+  <edge_cases>
+    - Users with > 100MB of data (implement paginated export)
+    - Export requests timing out (implement async job queue)
+    - Concurrent export requests (rate limit: 1 export per user per 5 minutes)
+    - Deleted content (exclude or include with deleted_at timestamp?)
+  </edge_cases>
+
+  <ui_ux>
+    - Show export progress for large datasets
+    - Email download link when export is ready
+    - Expire download links after 7 days
+    - Allow cancellation of in-progress exports
+  </ui_ux>
+
+  <security>
+    - Require re-authentication for export request
+    - Encrypt export files at rest
+    - Audit log all export requests
+    - Rate limit to prevent data scraping
+  </security>
+
+  <questions_to_answer>
+    - Should exports include related user data (followers, following)?
+    - What date range should be supported (all time, last year, custom)?
+    - Should this be self-service or require admin approval?
+  </questions_to_answer>
+</refined_spec>
+`} />
+
+This transformed a vague requirement into a comprehensive specification ready for implementation.
+
+### Combining metaprompts with other techniques
+
+**Metaprompt + Few-shot:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"Generate a prompt template for creating API endpoint documentation. Base it on
+these examples:
+
+<examples>
+[Example 1: GET /users endpoint docs]
+[Example 2: POST /auth/login endpoint docs]
+[Example 3: DELETE /posts/:id endpoint docs]
+</examples>
+
+The template should be reusable for any endpoint type and capture all the patterns
+from these examples."
+`} />
+
+**Metaprompt + Prompt chaining:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1: "Generate an optimal prompt for migrating Redux to Zustand in our codebase."
+
+Step 2: "Now use that prompt you generated to actually perform the migration on
+@stores/userStore.ts"
+`} />
+
+## 5. Temperature and Thinking Levels
+
+Fine-tuning Claude's behavior through inference parameters and extended thinking.
+
+### Temperature: Controlling determinism
+
+Temperature controls randomness in Claude's outputs. Lower temperature = more deterministic, higher = more creative.
+
+**Default behavior:** Claude Code automatically uses optimal temperature for most code tasks (low for consistency)
+
+**When to override:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Low temperature (0.0 - 0.3):
+- Code generation where consistency matters
+- Refactoring with strict requirements
+- Data transformations
+- Test writing
+- Following exact patterns from examples
+
+Medium temperature (0.4 - 0.7):
+- Code reviews (want some variation in feedback)
+- Documentation writing
+- Exploratory analysis
+- Brainstorming architectural approaches
+
+High temperature (0.8 - 1.0):
+- Rarely useful for development work
+- Creative naming (product features, variables)
+- Generating diverse test data
+`} />
+
+**How to specify (in API usage, not typically in Claude Code terminal):**
+
+<CodeBlock language="typescript" wrapLines={true} code={`
+// Via Anthropic API
+const response = await anthropic.messages.create({
+  model: "claude-sonnet-4-5-20250929",
+  max_tokens: 4096,
+  temperature: 0.0, // Maximum determinism for code generation
+  messages: [...]
+});
+`} />
+
+In Claude Code terminal, temperature is optimized automatically, but you can influence it through your prompt:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+For more deterministic output:
+"Follow this pattern exactly: [example]"
+"Use the same structure as @existing/file.ts"
+"Maintain strict consistency with our coding standards"
+
+For more creative output:
+"Brainstorm 5 different approaches"
+"Suggest creative alternatives"
+"Explore unconventional solutions"
+`} />
+
+### Extended thinking levels
+
+From the [Claude Code essentials guide](/blog/claude-code-essentials-foundations), extended thinking controls analysis depth:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+think          - Basic analysis (straightforward tasks)
+think hard     - Moderate complexity (edge cases, alternatives)
+think harder   - Deep analysis (complex problems, multiple constraints)
+ultrathink     - Maximum depth (architectural decisions, trade-offs)
+`} />
+
+### Combining temperature concepts with thinking levels
+
+**For production code generation:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"think hard about implementing this authentication flow. Follow our existing
+patterns exactly (see @lib/auth/*). I need deterministic output that matches
+our established architecture."
+`} />
+
+This combines extended thinking (analysis depth) with implicit low temperature (pattern matching, consistency).
+
+**For architectural exploration:**
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+"ultrathink about different approaches to solving this scalability problem.
+Consider unconventional solutions and evaluate creative trade-offs. I want to
+explore the full solution space before deciding."
+`} />
+
+This uses maximum thinking depth with implicit higher temperature (exploration, creativity).
+
+### Practical decision matrix
+
+| Task Type | Thinking Level | Temperature Guidance | Example |
+|-----------|---------------|---------------------|---------|
+| Refactoring existing code | `think` to `think hard` | Low (follow patterns) | "Refactor this to match @lib/patterns.ts exactly" |
+| Bug fixing | `think hard` | Low (deterministic) | "Fix this race condition using standard mutex patterns" |
+| Feature implementation | `think hard` to `think harder` | Low to medium | "Implement OAuth2 flow following @docs/auth-spec.md" |
+| Architectural design | `think harder` to `ultrathink` | Medium | "Design a caching strategy. Consider 3-4 different approaches" |
+| Code review | `think` to `think hard` | Medium (varied feedback) | "Review this PR for security, performance, and maintainability" |
+| Documentation | `think` | Medium | "Document this API following our style guide" |
+| Exploratory analysis | `think harder` to `ultrathink` | Medium to high | "Analyze our data model and suggest improvements" |
+
+### Advanced: Controlling output variability in chains
+
+For multi-step chains where consistency matters:
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1: "Generate a TypeScript type for our API response. Follow our naming
+conventions exactly: @types/api/*.ts"
+
+Step 2: "Generate request/response types for all endpoints, following the exact
+same pattern as Step 1. Maintain perfect consistency."
+
+Step 3: "Generate API client methods using these types. Match the structure of
+@lib/api/baseClient.ts exactly."
+`} />
+
+The language ("exactly", "same pattern", "perfect consistency") signals you want deterministic output across all steps.
+
+## 6. Integration Patterns: Combining Techniques
+
+Real-world development rarely uses just one technique. Here's how to combine them effectively.
+
+### Pattern 1: Structured chain with checkpoints
+
+Combines: XML tags + Prompt chaining + File-based state
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1 - Analysis:
+<task>Audit our component library for accessibility issues</task>
+<output_format>
+JSON file at @docs/a11y-audit.json with structure:
+{
+  "components": [
+    {
+      "name": "string",
+      "file": "string",
+      "issues": [{ "severity": "critical|high|medium|low", "description": "string" }]
+    }
+  ]
+}
+</output_format>
+
+[Review @docs/a11y-audit.json]
+[/clear]
+
+Step 2 - Planning:
+<task>Generate fix plan from audit results</task>
+<context>Read @docs/a11y-audit.json for issues found</context>
+<output_format>
+Markdown checklist at @docs/a11y-fixes.md:
+- [ ] Component name (severity): issue description - estimated effort
+Group by severity, sort by effort within each group
+</output_format>
+
+[Review @docs/a11y-fixes.md, adjust priorities]
+[/clear]
+
+Step 3 - Implementation:
+<task>Fix all critical severity issues from @docs/a11y-fixes.md</task>
+<constraints>
+- Fix one component at a time
+- Run accessibility tests after each fix
+- Mark items complete in @docs/a11y-fixes.md as you go
+- Update @docs/a11y-fixes.md with actual effort vs estimated
+</constraints>
+
+[Review fixes, commit]
+[/clear]
+
+Step 4 - Verification:
+<task>Run full accessibility test suite and verify all critical issues resolved</task>
+<success_criteria>
+- All critical issues marked [x] in @docs/a11y-fixes.md
+- Zero failing accessibility tests
+- Generate summary report in @docs/a11y-complete.md
+</success_criteria>
+`} />
+
+### Pattern 2: Few-shot + CoT + Self-refinement
+
+Combines: Examples + Reasoning + Iteration
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Round 1 - Initial with examples:
+"Create a React hook for managing form state. Follow these patterns:
+
+<examples>
+[Example 1: useAuth hook]
+[Example 2: useApi hook]
+</examples>
+
+Think through:
+1. What form state needs to be tracked?
+2. How should validation work?
+3. What's the API surface (what do components need)?
+
+Then implement the hook."
+
+[Claude generates v1]
+
+Round 2 - Refinement:
+"Review your implementation. Does it:
+- Handle async validation?
+- Support field-level and form-level errors?
+- Provide loading states?
+- Handle submission errors gracefully?
+- Follow the patterns from the examples?
+
+Identify gaps and implement improvements."
+
+[Claude generates v2]
+
+Round 3 - Edge cases:
+"Now think through edge cases:
+- Form reset while validation is in progress
+- Multiple rapid submissions
+- Field validation dependencies (password confirmation)
+- Dynamic fields (add/remove)
+
+Add handling for these scenarios."
+`} />
+
+### Pattern 3: Metaprompt → Few-shot → Implementation
+
+Combines: Prompt generation + Examples + Execution
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Phase 1 - Generate prompt template:
+"Create a reusable prompt template for implementing API endpoints in our
+Express.js backend. It should ensure:
+- Consistent error handling
+- Request validation using Zod
+- Proper TypeScript types
+- OpenAPI documentation
+- Unit and integration tests
+
+Base it on our existing endpoints at @routes/users.ts and @routes/posts.ts"
+
+[Claude generates template, save to .claude/commands/new-endpoint.md]
+
+Phase 2 - Use template:
+"Using the prompt template at @.claude/commands/new-endpoint.md, implement a
+new endpoint: POST /api/comments that allows users to comment on posts."
+`} />
+
+### Pattern 4: Progressive complexity chain
+
+Combines: Chaining + Thinking levels + XML structure
+
+<CodeBlock language="markdown" wrapLines={true} code={`
+Step 1 - Simple (think):
+<task>Implement basic WebSocket connection</task>
+<requirements>Connect, disconnect, handle reconnection</requirements>
+
+[Test basic functionality]
+[/clear]
+
+Step 2 - Moderate (think hard):
+<task>Add message queuing and delivery guarantees</task>
+<requirements>
+- Queue messages when disconnected
+- Deliver on reconnection
+- Handle message acknowledgments
+</requirements>
+<constraints>Memory-bounded queue (max 1000 messages)</constraints>
+
+[Test with network interruptions]
+[/clear]
+
+Step 3 - Complex (think harder):
+<task>Add presence system and room management</task>
+<requirements>
+- Track online/offline status
+- Support multiple rooms
+- Handle room join/leave
+- Broadcast presence to room members
+</requirements>
+<edge_cases>
+- User in multiple rooms
+- Concurrent join/leave
+- Room cleanup when empty
+</edge_cases>
+
+[Test with multiple users and rooms]
+[/clear]
+
+Step 4 - Architectural (ultrathink):
+<task>Design horizontal scaling strategy</task>
+<requirements>
+- Multiple WebSocket server instances
+- Shared state across instances
+- Message routing between instances
+- Session affinity or sticky sessions
+</requirements>
+
+Think through:
+1. Redis pub/sub vs message queue?
+2. Sticky sessions vs stateless design?
+3. How to handle server failures?
+4. What are the trade-offs?
+
+Then implement your recommended approach.
+`} />
+
+### Decision framework: Which techniques when?
+
+**Simple, isolated task:**
+- Just ask clearly, maybe use Plan Mode
+- No need for advanced techniques
+
+**Complex but well-defined task:**
+- XML structure for clarity
+- Think hard or think harder for analysis
+- Few-shot if matching existing patterns
+
+**Multi-step or exploratory task:**
+- Prompt chaining
+- File-based state between steps
+- XML structure in each step
+- Thinking levels matched to step complexity
+
+**Novel problem without clear solution:**
+- Chain-of-thought or ultrathink
+- Self-refinement iterations
+- Possibly metaprompts to refine requirements first
+
+**Repetitive tasks that need consistency:**
+- Metaprompts to generate slash commands
+- Few-shot with strong examples
+- Low-temperature language ("exactly", "same pattern")
+
+## Putting It All Together
+
+These techniques aren't just theoretical—they're how experienced practitioners achieve consistent, high-quality results with Claude Code.
+
+### Start here
+
+If you're new to advanced prompting:
+
+1. **Master XML structure first** - It has the highest ROI for immediate results
+2. **Practice prompt chaining** - Learn to break down complex work
+3. **Use few-shot liberally** - Examples are clearer than explanations
+4. **Add thinking levels strategically** - Match analysis depth to task complexity
+
+### Advanced patterns to explore
+
+Once you're comfortable with basics:
+
+- **Build a library of metaprompts** - Prompts that generate domain-specific prompts
+- **Experiment with self-refinement loops** - Especially for creative or exploratory work
+- **Combine techniques in chains** - XML structure + CoT + few-shot in sequential steps
+- **Create custom slash commands** - Encode your most frequent patterns
+
+### The meta-skill
+
+The real skill isn't memorizing these techniques—it's developing judgment for *when to use what*. That comes from experimentation and iteration.
+
+Try these patterns on your actual work. Notice what improves quality, what saves time, what makes prompts more maintainable. Build your own library of effective combinations.
+
+The goal is reliable, high-quality output that scales with your codebase's complexity.
+
+## Resources
+
+- [Claude Code Documentation](https://code.claude.com/docs)
+- [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview)
+- [Claude Code Essentials (Part 1)](/blog/claude-code-essentials-foundations)
+- [Advanced Workflows (Part 2)](/blog/claude-code-advanced-workflows)
+- [Production Security (Part 3)](/blog/claude-code-production-security)
+
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={CLAUDE_CODE_PROMPT_ENGINEERING.slug}>
+      {children}
+    </MdxLayout>
+  )
+}
