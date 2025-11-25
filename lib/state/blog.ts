@@ -45,6 +45,12 @@ export const CLAUDE_CODE_PRODUCTION_SECURITY = {
   slug: "claude-code-production-security",
 };
 
+export const CLAUDE_CODE_PROMPT_ENGINEERING = {
+  title: "Advanced Prompt Engineering for Claude Code: XML, Chaining, and Self-Refinement",
+  date: "Nov 24, 2025",
+  slug: "claude-code-prompt-engineering",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;
@@ -71,4 +77,5 @@ export const BLOG_POSTS: {
   FREELANCE_TOOL,
   CSS_CAROUSEL,
   CLAUDE_CODE_ESSENTIALS_FOUNDATIONS,
+  CLAUDE_CODE_PROMPT_ENGINEERING,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

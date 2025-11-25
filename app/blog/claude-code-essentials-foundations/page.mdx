@@ -65,6 +65,8 @@ Depending on the task, supplement your prompt with additional context types:
 
 After I adopted this structured approach, I went from averaging 3-4 iterations per feature to usually getting it right on the first try.
 
+> **Going Deeper:** This is the foundation of effective prompting. Advanced techniques like XML structuring for complex prompts, few-shot learning with examples, and chain-of-thought reasoning build on this core principle of specificity. These patterns become essential when orchestrating multi-agent workflows or building production AI systems.
+
 Being specific in individual prompts is a good and necessary foundation, but having to explain your tech stack every session is neither scalable nor efficient. That's where CLAUDE.md comes in.
 
 ## 2. Master `CLAUDE.md` Files
@@ -202,6 +204,7 @@ requirements, conflict resolution, and scalability to 10k concurrent users."
 
 Extended thinking makes Claude explore trade-offs more thoroughly and catch edge cases you might miss in a quick pass.
 
+> **Model & Temperature Settings:** Claude Code automatically optimizes settings for code generation tasks—using lower temperature values (closer to 0) for deterministic, logical outputs and selecting the appropriate model based on task complexity. You can override these defaults by explicitly requesting a specific model (e.g., "use Sonnet for this" or "use Haiku for quick refactoring") when needed.
 
 ### Store Plans as Files
 
@@ -281,6 +284,10 @@ with proper labels and link them to the epic."
 ### The guiding principle
 
 Give Claude exactly what it needs to succeed, nothing more. Every extra file, every old error log, every tangential detail makes the signal harder to find.
+
+---
+
+> **Security & Verification:** AI-generated code requires the same rigorous scrutiny as any third-party dependency. Never deploy AI-generated code without thorough verification through testing, code review, and security scanning. Test-Driven Development (TDD), compiler feedback, and automated security tools (SAST/DAST) are essential verification layers. We'll cover comprehensive security practices, production readiness checklists, and verification strategies in **Part 3: Production-Ready Claude Code**.
 
 <div hidden={true}>
 
