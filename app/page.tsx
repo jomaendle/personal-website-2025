@@ -54,10 +54,11 @@ export default function Home() {
                   href="https://www.linkedin.com/in/johannes-maendle/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center p-2 -m-2 -ml-[10px] text-link transition-colors hover:text-link-hover"
+                  className="-m-2 -ml-[10px] inline-flex items-center p-2 pr-0 underline transition-colors hover:text-link"
                 >
-                  LinkedIn.
+                  LinkedIn
                 </a>
+                .
               </span>
             </span>
           </p>

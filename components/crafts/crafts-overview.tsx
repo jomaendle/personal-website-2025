@@ -167,7 +167,7 @@ export function CraftsOverview() {
 
       <div className="flex grid-cols-2 flex-col items-start gap-4 md:grid">
         {/* Minimap - lazy loaded */}
-        <CraftsContainer className="relative col-span-2">
+        <CraftsContainer className="relative col-span-2" title="Minimap">
           <AnimatePresence mode="wait">
             {isVisible ? (
               <Suspense fallback={<MinimapSkeleton />}>

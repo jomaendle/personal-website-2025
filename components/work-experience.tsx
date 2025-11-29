@@ -10,7 +10,6 @@ const workExperiences = [
       "A collection of landscape photography showcasing the beauty of Earth.",
     link: "https://thebeautyof.earth",
     isExternal: true,
-    isNew: true,
   },
   {
     id: "music-player",
@@ -36,7 +35,7 @@ export function WorkExperience() {
         <article key={experience.id}>
           <Link
             href={experience.link}
-            className="group -mx-3 block rounded-[.25rem] px-3 py-2 hover-accent"
+            className="hover-accent group -mx-3 block rounded-[.25rem] px-3 py-2"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -29,7 +29,7 @@ After months of daily use with Claude Code work and personal projects, I've lear
 
 Here are four practices that made the difference for me: they enable faster iteration while keeping quality, security, and maintainability front and center.
 
-1. [Context Specificity](#1-be-specific) - Stop being vague, start being surgical
+1. [Context Specificity](#1-be-specific) - Provide rich, precise input
 2. [CLAUDE.md configuration](#2-master-object-object-files) - Teach Claude your codebase once
 3. [Plan Mode](#3-use-plan-mode), - Let Claude think before coding
 4. [Context Window Management](#4-break-it-down-manage-context) - Keep conversations tight and focused
@@ -43,14 +43,14 @@ Getting these four things right is the foundation for what makes Claude Code bei
   caption="Claude Code accepts screenshots, file references via @filepath, piped data, and URLs."
 />
 
-Vague prompts get vague code. I learned this the hard way when Claude generated a "modern portfolio website" with a carousel and a visitor counter—nothing I actually wanted.
+The less specific you are with task-specific details, the more room you give the LLM to make assumptions that rarely match your expectations.
 
 ### Example
 
 <CodeBlock language="markdown" wrapLines={true} code={`
 ❌ Bad: "Build a portfolio website."
 
-✅ Good: "Build me a responsive portfolio website using React 19 and Tailwind CSS v4, with a homepage, about page, and contact form. The design should be modern, accessible and minimalist, with a focus on typography and whitespace."`} />
+✅ Good: "Build me a responsive portfolio website using React 19 and Tailwind CSS v4, with a homepage, about page, and contact form. The design should be Vercel-like brutal minimalism, accessible and minimalist, with a focus on typography and whitespace."`} />
 
 The key difference: be explicit about your specific technology choices, framework versions, and the exact outcomes you expect. Explain what it should look like, how it should behave, and which tools should power it.
 
@@ -65,7 +65,7 @@ Depending on the task, supplement your prompt with additional context types:
 
 After I adopted this structured approach, I went from averaging 3-4 iterations per feature to usually getting it right on the first try.
 
-Being specific in individual prompts is a good and necessary foundation, but having to explain your tech stack every session is neither scalable nor efficient. That's where CLAUDE.md comes in.
+Being specific in individual prompts is a good and necessary foundation, but having to explain your tech stack every session is neither scalable nor efficient. That's where `CLAUDE.md` comes in.
 
 ## 2. Master `CLAUDE.md` Files
 
@@ -74,7 +74,7 @@ Being specific in individual prompts is a good and necessary foundation, but hav
   caption="Describe your project's architecture, tech stack, conventions, and rules in CLAUDE.md files."
 />
 
-Before I started using `CLAUDE.md`, I was repeatedly explaining our codebase setup & structure, <i className="font-serif">every single session.</i> Setting up this file once saves me now about 10 minutes at the start of every Claude session.
+Before I started using `CLAUDE.md`, I was repeatedly explaining our codebase setup & structure, <i className="font-serif">every single session.</i>
 
 ### How it works
 
@@ -95,8 +95,6 @@ When you start a new Claude Code session, it automatically loads the relevant `C
 ## Architecture
   - Next.js 15 app router with TypeScript
   - MDX for blog content
-  - React 19 for components
-  - Tailwind CSS v4 for styling
 
 ## Tech Stack
   - Framework: Next.js 15, React 19, TypeScript
@@ -280,7 +278,7 @@ with proper labels and link them to the epic."
 
 ### The guiding principle
 
-Give Claude exactly what it needs to succeed, nothing more. Every extra file, every old error log, every tangential detail makes the signal harder to find.
+Maximize the signal-to-noise ratio in Claude's context window. Keep conversations tight, focused, and relevant to the immediate task.
 
 <div hidden={true}>
 
