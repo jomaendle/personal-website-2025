@@ -46,11 +46,11 @@ export function WorkExperience() {
                   {experience.isExternal && (
                     <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0" />
                   )}
-                  {experience.isNew && (
+                  {/*{experience.isNew && (
                     <span className="ml-2 inline-block flex-shrink-0 rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs font-semibold text-white">
                       New
                     </span>
-                  )}
+                  )}*/}
                 </H3>
                 <p className="text-muted-foreground">
                   {experience.description}
