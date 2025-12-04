@@ -59,6 +59,57 @@ const nextConfig = {
           },
         ],
       },
+      // === AGGRESSIVE CDN CACHING ===
+      // 1. Next.js Static Assets (JavaScript, CSS, Media)
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // 2. Public Static Assets (Images, Fonts, Favicons)
+      {
+        source: "/(.*)\\.(jpg|jpeg|png|webp|avif|gif|svg|ico|woff|woff2|ttf|otf|eot)$",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // 3. Static Text Files (Sitemap, Robots)
+      {
+        source: "/(sitemap\\.xml|robots\\.txt)$",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=86400",
+          },
+        ],
+      },
+      // 4. OG Image API (Cache for 1 week)
+      {
+        source: "/api/og-image",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, s-maxage=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      // 5. Static HTML Pages (Homepage & Blog Posts)
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
+          },
+        ],
+      },
       // Generic security headers for all routes
       {
         source: "/(.*)",
