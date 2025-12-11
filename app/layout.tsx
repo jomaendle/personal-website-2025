@@ -2,7 +2,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
 import { Provider as JotaiProvider } from "jotai";
 import {
@@ -10,7 +9,7 @@ import {
   WebsiteStructuredData,
 } from "@/components/structured-data";
 import { ReactQueryProvider } from "./providers";
-import { Analytics } from "@vercel/analytics/next";
+import { DeferredAnalytics } from "@/components/deferred-analytics";
 
 // Note: Using system fonts for build compatibility
 // In production with network access, restore: import { Inter } from "next/font/google";
@@ -58,6 +57,16 @@ export default function RootLayout({
           scrollbarGutter: "stable",
         }}
       >
+        <head>
+          {/* Preconnect to external domains for faster resource loading */}
+          <link rel="preconnect" href="https://plausible.io" />
+          <link rel="dns-prefetch" href="https://plausible.io" />
+          {/* Supabase for view counters */}
+          <link
+            rel="preconnect"
+            href={process.env.NEXT_PUBLIC_SUPABASE_URL || ""}
+          />
+        </head>
         <body
           className="min-h-[100dvh] font-sans text-foreground antialiased"
           style={{
@@ -77,13 +86,12 @@ export default function RootLayout({
                 <PlausibleProvider domain="jomaendle.com">
                   {children}
                 </PlausibleProvider>
-                <SpeedInsights />
                 <PersonStructuredData />
                 <WebsiteStructuredData />
               </ThemeProvider>
             </JotaiProvider>
           </ReactQueryProvider>
-          <Analytics />
+          <DeferredAnalytics />
         </body>
       </html>
     </ViewTransitions>
