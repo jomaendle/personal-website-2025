@@ -7,6 +7,8 @@ import { BLOG_POSTS } from "@/lib/state/blog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
+const MotionLink = motion.create(Link);
+
 // Memoized blog post item to prevent unnecessary re-renders
 const BlogPostItem = memo(
   ({
@@ -46,10 +48,12 @@ const BlogPostItem = memo(
         style={{ viewTransitionName: `blog-card-${post.slug}` }}
         {...motionProps}
       >
-        <Link
+        <MotionLink
           href={"/blog/" + post.slug}
           className="group -mx-3 flex items-center gap-4 rounded-[.25rem] px-3 py-2 hover-accent"
           prefetch={false}
+          whileHover={{ y: -2 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <div className="flex-1">
             <H3
@@ -66,7 +70,7 @@ const BlogPostItem = memo(
             </p>
           </div>
           <ViewCounter slug={post.slug} shouldIncrement={false} />
-        </Link>
+        </MotionLink>
       </motion.article>
     );
   },

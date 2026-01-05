@@ -114,15 +114,6 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: "/api/list-view-count",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate",
-          },
-        ],
-      },
     ];
   },
 };

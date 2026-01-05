@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // Detect if device is mobile/touch-enabled
 const isTouchDevice = () => {
@@ -18,30 +16,6 @@ const getMarkerCount = () => {
   return isTouchDevice() ? 16 : 41; // Reduced count for mobile performance
 };
 
-const toneProfiles = {
-  largest: {
-    frequency: 392,
-    attack: 0.1,
-    sustain: 0.1,
-    release: 0.6,
-    volume: 0.1,
-  },
-  larger: {
-    frequency: 329,
-    attack: 0.05,
-    sustain: 0.4,
-    release: 0.76,
-    volume: 0.14,
-  },
-  regular: {
-    frequency: 261,
-    attack: 0.05,
-    sustain: 1,
-    release: 0.9,
-    volume: 0.1,
-  },
-} as const;
-
 // Cached marker position data
 interface MarkerPosition {
   element: HTMLElement;
@@ -51,9 +25,7 @@ interface MarkerPosition {
 }
 
 export function Minimap() {
-  const [soundEnabled, setSoundEnabled] = useState(false);
   const [markerCount] = useState(getMarkerCount());
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   // Refs for DOM elements and cached data
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,13 +39,6 @@ export function Minimap() {
   const lastUpdateTimeRef = useRef(0);
   const isInteractingRef = useRef(false);
 
-  // Audio refs
-  const previousMarkerRef = useRef<Element | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const currentOscillatorRef = useRef<OscillatorNode | null>(null);
-  const currentGainRef = useRef<GainNode | null>(null);
-  const lastSoundTimeRef = useRef(0);
-
   // Marker components with optimized rendering
   const marker = <div className="marker h-6 w-[1px] bg-foreground/50"></div>;
   const largerMarker = (
@@ -81,261 +46,6 @@ export function Minimap() {
   );
   const largestMarker = (
     <div className="marker h-20 w-[1px] bg-foreground"></div>
-  );
-
-  // Initialize and unlock AudioContext (required for iOS)
-  const unlockAudio = useCallback(async () => {
-    if (audioUnlocked || !soundEnabled) return;
-
-    try {
-      // Create AudioContext if it doesn't exist
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
-      }
-
-      const ctx = audioContextRef.current;
-
-      // Resume the context if suspended
-      if (ctx.state === "suspended") {
-        await ctx.resume();
-      }
-
-      // Play a silent sound to fully unlock audio on iOS
-      // This is required because iOS Safari needs both context creation AND a sound
-      // to be played during a user gesture
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      gainNode.gain.value = 0; // Silent
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.01);
-
-      setAudioUnlocked(true);
-    } catch (error) {
-      console.error("Failed to unlock audio:", error);
-    }
-  }, [audioUnlocked, soundEnabled]);
-
-  /*const playTickSound = useCallback(
-    async (marker: Element) => {
-      if (!soundEnabled) return;
-
-      // Create AudioContext lazily if it doesn't exist
-      if (!audioContextRef.current) {
-        try {
-          audioContextRef.current = new (window.AudioContext ||
-            window.webkitAudioContext)();
-        } catch (error) {
-          console.error("Failed to create AudioContext:", error);
-          return;
-        }
-      }
-
-      const ctx = audioContextRef.current;
-
-      // Ensure AudioContext is running
-      if (ctx.state === "suspended") {
-        try {
-          await ctx.resume();
-        } catch (error) {
-          console.error("Failed to resume AudioContext:", error);
-          return;
-        }
-      }
-
-      // Additional safety check - don't play if context isn't running
-      if (ctx.state !== "running") {
-        return;
-      }
-
-      const now = ctx.currentTime;
-
-      // Throttle sounds - minimum 30ms between sounds
-      if (now - lastSoundTimeRef.current < 0.03) {
-        return;
-      }
-
-      lastSoundTimeRef.current = now;
-
-      // Fade out previous sound
-      if (currentGainRef.current && currentOscillatorRef.current) {
-        try {
-          const prevGain = currentGainRef.current;
-          const prevOsc = currentOscillatorRef.current;
-
-          prevGain.gain.cancelScheduledValues(now);
-          prevGain.gain.setValueAtTime(prevGain.gain.value, now);
-          prevGain.gain.linearRampToValueAtTime(0.001, now + 0.015);
-
-          setTimeout(() => {
-            try {
-              prevOsc.stop();
-            } catch {
-              // Already stopped
-            }
-          }, 20);
-        } catch {
-          // Oscillator may have already stopped
-        }
-      }
-
-      // Determine marker type and sound properties
-      const markerHeight = marker.classList.contains("h-20")
-        ? "largest"
-        : marker.classList.contains("h-10")
-          ? "larger"
-          : "regular";
-
-      let frequency, volume, duration;
-      if (markerHeight === "largest") {
-        frequency = 600;
-        volume = 0.4;
-        duration = 0.05;
-      } else if (markerHeight === "larger") {
-        frequency = 650;
-        volume = 0.35;
-        duration = 0.06;
-      } else {
-        frequency = 700;
-        volume = 0.3;
-        duration = 0.05;
-      }
-
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = "sine";
-
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(volume, now + 0.005);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-      oscillator.start(now);
-      oscillator.stop(now + duration);
-
-      currentOscillatorRef.current = oscillator;
-      currentGainRef.current = gainNode;
-
-      setTimeout(
-        () => {
-          if (currentOscillatorRef.current === oscillator) {
-            currentOscillatorRef.current = null;
-            currentGainRef.current = null;
-          }
-        },
-        duration * 1000 + 10,
-      );
-    },
-    [soundEnabled],
-  );*/
-
-  const playTickSound = useCallback(
-    async (marker: Element) => {
-      if (!soundEnabled) return;
-
-      if (!audioContextRef.current) {
-        try {
-          audioContextRef.current = new (window.AudioContext ||
-            window.webkitAudioContext)();
-        } catch (error) {
-          console.error("Failed to create AudioContext:", error);
-          return;
-        }
-      }
-
-      const ctx = audioContextRef.current;
-      if (ctx.state === "suspended") {
-        try {
-          await ctx.resume();
-        } catch (error) {
-          console.error("Failed to resume AudioContext:", error);
-          return;
-        }
-      }
-      if (ctx.state !== "running") return;
-
-      const now = ctx.currentTime;
-      if (now - lastSoundTimeRef.current < 0.03) return;
-      lastSoundTimeRef.current = now;
-
-      if (currentGainRef.current && currentOscillatorRef.current) {
-        const prevGain = currentGainRef.current;
-        const prevOsc = currentOscillatorRef.current;
-        prevGain.gain.cancelScheduledValues(now);
-        prevGain.gain.setValueAtTime(prevGain.gain.value, now);
-        prevGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-        setTimeout(() => {
-          try {
-            prevOsc.stop();
-          } catch {
-            /* noop */
-          }
-        }, 120);
-      }
-
-      const markerHeight = marker.classList.contains("h-20")
-        ? "largest"
-        : marker.classList.contains("h-10")
-          ? "larger"
-          : "regular";
-
-      const profile = toneProfiles[markerHeight as keyof typeof toneProfiles];
-      const oscillator = ctx.createOscillator();
-      const filter = ctx.createBiquadFilter();
-      const gainNode = ctx.createGain();
-
-      oscillator.type = "triangle";
-      oscillator.frequency.value = profile.frequency;
-      /*oscillator.detune.value = (Math.random() - 0.5) * 20; // subtle warmth*/
-
-      filter.type = "lowpass";
-      filter.frequency.value = 6000;
-      filter.Q.value = 1;
-
-      oscillator.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(
-        profile.volume,
-        now + profile.attack,
-      );
-      gainNode.gain.setTargetAtTime(
-        profile.volume,
-        now + profile.attack,
-        profile.sustain,
-      );
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.0001,
-        now + profile.attack + profile.release,
-      );
-
-      oscillator.start(now);
-      oscillator.stop(now + profile.attack + profile.release + 0.05);
-
-      currentOscillatorRef.current = oscillator;
-      currentGainRef.current = gainNode;
-
-      setTimeout(
-        () => {
-          if (currentOscillatorRef.current === oscillator) {
-            currentOscillatorRef.current = null;
-            currentGainRef.current = null;
-          }
-        },
-        (profile.attack + profile.release + 0.1) * 1000,
-      );
-    },
-    [soundEnabled],
   );
 
   // Cache marker positions - called on mount and resize
@@ -361,127 +71,118 @@ export function Minimap() {
   }, []);
 
   // Optimized interaction handler using RAF
-  const handleInteraction = useCallback(
-    (clientX: number, clientY: number) => {
-      // Throttle to 60fps (16ms)
-      const now = performance.now();
-      if (now - lastUpdateTimeRef.current < 16) {
+  const handleInteraction = useCallback((clientX: number, clientY: number) => {
+    // Throttle to 60fps (16ms)
+    const now = performance.now();
+    if (now - lastUpdateTimeRef.current < 16) {
+      return;
+    }
+    lastUpdateTimeRef.current = now;
+
+    // Cancel any pending RAF
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    // Schedule update in next animation frame
+    rafIdRef.current = requestAnimationFrame(() => {
+      if (!markerWrapperRef.current || !currentMarkerRef.current) {
         return;
       }
-      lastUpdateTimeRef.current = now;
 
-      // Cancel any pending RAF
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
+      const markerWrapper = markerWrapperRef.current;
+      const areaRect = markerWrapper.getBoundingClientRect();
+
+      // Early exit if outside interaction area
+      if (
+        clientX < areaRect.left ||
+        clientX > areaRect.right ||
+        clientY < areaRect.top ||
+        clientY > areaRect.bottom
+      ) {
+        return;
       }
 
-      // Schedule update in next animation frame
-      rafIdRef.current = requestAnimationFrame(() => {
-        if (!markerWrapperRef.current || !currentMarkerRef.current) {
-          return;
+      const maxDistance = 100;
+      let nearestMarker:
+        | (MarkerPosition & { centerX: number; centerY: number })
+        | null = null;
+      let minDistanceSquared = Infinity; // Use squared distance to avoid sqrt
+
+      // Re-calculate positions on each interaction (handles scroll/resize)
+      const markers = markerPositionsRef.current;
+
+      markers.forEach((markerPos) => {
+        const rect = markerPos.element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Calculate squared distance (faster than Math.sqrt)
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+        const distanceSquared = dx * dx + dy * dy;
+
+        // Track nearest marker
+        if (distanceSquared < minDistanceSquared) {
+          minDistanceSquared = distanceSquared;
+          nearestMarker = { ...markerPos, centerX, centerY };
         }
 
-        const markerWrapper = markerWrapperRef.current;
-        const areaRect = markerWrapper.getBoundingClientRect();
-
-        // Early exit if outside interaction area
-        if (
-          clientX < areaRect.left ||
-          clientX > areaRect.right ||
-          clientY < areaRect.top ||
-          clientY > areaRect.bottom
-        ) {
-          return;
-        }
-
-        const maxDistance = 100;
-        let nearestMarker:
-          | (MarkerPosition & { centerX: number; centerY: number })
-          | null = null;
-        let minDistanceSquared = Infinity; // Use squared distance to avoid sqrt
-
-        // Re-calculate positions on each interaction (handles scroll/resize)
-        const markers = markerPositionsRef.current;
-
-        markers.forEach((markerPos) => {
-          const rect = markerPos.element.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-
-          // Calculate squared distance (faster than Math.sqrt)
-          const dx = clientX - centerX;
-          const dy = clientY - centerY;
-          const distanceSquared = dx * dx + dy * dy;
-
-          // Track nearest marker
-          if (distanceSquared < minDistanceSquared) {
-            minDistanceSquared = distanceSquared;
-            nearestMarker = { ...markerPos, centerX, centerY };
-          }
-
-          // Apply scale effect based on distance (use actual distance here)
-          const distance = Math.sqrt(distanceSquared);
-          if (distance < maxDistance) {
-            const scale = 2.5 - distance / maxDistance;
-            // Use transform for GPU acceleration
-            markerPos.element.style.transform = `scaleY(${scale})`;
-          } else {
-            markerPos.element.style.transform = "scaleY(1)";
-          }
-        });
-
-        // Update pointer position
-        if (nearestMarker !== null && currentMarkerRef.current) {
-          const containerRect = markerWrapper.getBoundingClientRect();
-          const containerCenterX = containerRect.width / 2;
-          const nearest: MarkerPosition & { centerX: number; centerY: number } =
-            nearestMarker;
-          let snapX = nearest.centerX - containerRect.left;
-
-          // Constrain to first and last marker
-          if (markers.length > 0) {
-            const firstMarker = markers[0];
-            const lastMarker = markers[markers.length - 1];
-            if (firstMarker && lastMarker) {
-              const firstRect = firstMarker.element.getBoundingClientRect();
-              const lastRect = lastMarker.element.getBoundingClientRect();
-
-              const firstX =
-                firstRect.left + firstRect.width / 2 - containerRect.left;
-              const lastX =
-                lastRect.left + lastRect.width / 2 - containerRect.left;
-
-              snapX = Math.max(firstX, Math.min(lastX, snapX));
-            }
-          }
-
-          // Play sound if marker changed
-          if (previousMarkerRef.current !== nearest.element) {
-            void playTickSound(nearest.element);
-            previousMarkerRef.current = nearest.element;
-          }
-
-          // Use transform for better performance
-          // Transform is relative to element's current position, so adjust from container center
-          const currentMarker = currentMarkerRef.current;
-          const translateX =
-            snapX - containerCenterX + 9 - currentMarker.clientWidth / 2;
-          currentMarker.style.transition = "transform 0.2s ease-out";
-          // Include rotation in transform to maintain the rotate-180 class effect
-          currentMarker.style.transform = `translate(${translateX}px, -60px) rotate(180deg)`;
-
-          // Update line position (also relative to container center)
-          if (currentMarkerLineRef.current) {
-            const line = currentMarkerLineRef.current;
-            const lineTranslateX = snapX - containerCenterX;
-            line.style.transition = "transform 0.2s ease-out";
-            line.style.transform = `translateX(${lineTranslateX}px)`;
-          }
+        // Apply scale effect based on distance (use actual distance here)
+        const distance = Math.sqrt(distanceSquared);
+        if (distance < maxDistance) {
+          const scale = 2.5 - distance / maxDistance;
+          // Use transform for GPU acceleration
+          markerPos.element.style.transform = `scaleY(${scale})`;
+        } else {
+          markerPos.element.style.transform = "scaleY(1)";
         }
       });
-    },
-    [playTickSound],
-  );
+
+      // Update pointer position
+      if (nearestMarker !== null && currentMarkerRef.current) {
+        const containerRect = markerWrapper.getBoundingClientRect();
+        const containerCenterX = containerRect.width / 2;
+        const nearest: MarkerPosition & { centerX: number; centerY: number } =
+          nearestMarker;
+        let snapX = nearest.centerX - containerRect.left;
+
+        // Constrain to first and last marker
+        if (markers.length > 0) {
+          const firstMarker = markers[0];
+          const lastMarker = markers[markers.length - 1];
+          if (firstMarker && lastMarker) {
+            const firstRect = firstMarker.element.getBoundingClientRect();
+            const lastRect = lastMarker.element.getBoundingClientRect();
+
+            const firstX =
+              firstRect.left + firstRect.width / 2 - containerRect.left;
+            const lastX =
+              lastRect.left + lastRect.width / 2 - containerRect.left;
+
+            snapX = Math.max(firstX, Math.min(lastX, snapX));
+          }
+        }
+
+        // Use transform for better performance
+        // Transform is relative to element's current position, so adjust from container center
+        const currentMarker = currentMarkerRef.current;
+        const translateX =
+          snapX - containerCenterX + 9 - currentMarker.clientWidth / 2;
+        currentMarker.style.transition = "transform 0.2s ease-out";
+        // Include rotation in transform to maintain the rotate-180 class effect
+        currentMarker.style.transform = `translate(${translateX}px, -60px) rotate(180deg)`;
+
+        // Update line position (also relative to container center)
+        if (currentMarkerLineRef.current) {
+          const line = currentMarkerLineRef.current;
+          const lineTranslateX = snapX - containerCenterX;
+          line.style.transition = "transform 0.2s ease-out";
+          line.style.transform = `translateX(${lineTranslateX}px)`;
+        }
+      }
+    });
+  }, []);
 
   // Unified pointer event handler for mouse and touch
   const handlePointerMove = useCallback(
@@ -542,10 +243,6 @@ export function Minimap() {
             const touch = e.touches[0];
             if (touch) {
               handleInteraction(touch.clientX, touch.clientY);
-              // Unlock audio on first touch (iOS requirement)
-              if (soundEnabled && !audioUnlocked) {
-                void unlockAudio();
-              }
             }
           },
           { passive: false },
@@ -575,9 +272,6 @@ export function Minimap() {
     handleInteraction,
     handlePointerMove,
     handlePointerLeave,
-    soundEnabled,
-    audioUnlocked,
-    unlockAudio,
   ]);
 
   return (
@@ -585,28 +279,6 @@ export function Minimap() {
       ref={containerRef}
       className="flex size-full flex-col items-center justify-center"
     >
-      {/* Sound Toggle Button */}
-      <Button
-        onClick={() => {
-          const newSoundState = !soundEnabled;
-          setSoundEnabled(newSoundState);
-          // Unlock audio on iOS when enabling sound
-          if (newSoundState) {
-            void unlockAudio();
-          }
-        }}
-        className={`absolute right-4 top-4 z-10 rounded-lg p-3 transition-all duration-200`}
-        variant={soundEnabled ? "outline" : "outline"}
-        aria-label={soundEnabled ? "Disable sound" : "Enable sound"}
-        title={soundEnabled ? "Sound On" : "Sound Off"}
-      >
-        {soundEnabled ? (
-          <Volume2 className="size-6 stroke-current" />
-        ) : (
-          <VolumeX className="size-6 stroke-current" />
-        )}
-      </Button>
-
       <div className="relative flex w-full items-center justify-center">
         <svg
           ref={currentMarkerRef}
