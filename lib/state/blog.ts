@@ -33,18 +33,6 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
-export const CLAUDE_CODE_ADVANCED_WORKFLOWS = {
-  title: "Advanced Claude Code: Automation, Agents, and Power Workflows",
-  date: "Nov 23, 2025",
-  slug: "claude-code-advanced-workflows",
-};
-
-export const CLAUDE_CODE_PRODUCTION_SECURITY = {
-  title: "Production-Ready Claude Code: Testing and Security Best Practices",
-  date: "Nov 23, 2025",
-  slug: "claude-code-production-security",
-};
-
 export const BLOG_POSTS: {
   title: string;
   date: string;

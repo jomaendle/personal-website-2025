@@ -12,6 +12,14 @@ const workExperiences = [
     isExternal: true,
   },
   {
+    id: "links",
+    title: "Links Collection",
+    description:
+      "A curated collection of useful links and resources on programming, design, and productivity.",
+    link: "https://links.jomaendle.com",
+    isExternal: true,
+  },
+  {
     id: "music-player",
     title: "Music Player",
     description: "A music player to play songs from my band Car Kids.",
