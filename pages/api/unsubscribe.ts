@@ -2,6 +2,17 @@ import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
 
+function escapeHtml(text: string): string {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] ?? char);
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const { email } = req.query;
@@ -153,7 +164,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           <body>
             <h1>Successfully Unsubscribed</h1>
             <p>You have been unsubscribed from Jo's newsletter.</p>
-            <p class="email">${sanitizedEmail}</p>
+            <p class="email">${escapeHtml(sanitizedEmail)}</p>
             <p>You will no longer receive email updates. We're sorry to see you go!</p>
             <p>
               <a href="https://jomaendle.com">Return to homepage</a>

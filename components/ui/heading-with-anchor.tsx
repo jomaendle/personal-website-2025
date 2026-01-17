@@ -39,13 +39,8 @@ export function HeadingWithAnchor({
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
+      // Modern Clipboard API has 97%+ browser support
+      // Silently fail on unsupported browsers
     }
   }, [headingId]);
 
@@ -71,9 +66,8 @@ export function HeadingWithAnchor({
       {children}
       <button
         onClick={copyToClipboard}
-        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 group-hover:opacity-60 sm:inline-flex"
+        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
-        tabIndex={-1}
       >
         <Link2 className="h-4 w-4 text-muted-foreground" />
       </button>
@@ -83,9 +77,8 @@ export function HeadingWithAnchor({
       {children}
       <button
         onClick={copyToClipboard}
-        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 group-hover:opacity-60 sm:inline-flex"
+        className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
-        tabIndex={-1}
       >
         <Link2 className="h-4 w-4 text-muted-foreground" />
       </button>

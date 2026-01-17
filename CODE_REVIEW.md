@@ -39,6 +39,10 @@ Comprehensive review identified **45+ issues** across security, code quality, an
 | ✅ | Unused `onHover` prop | `components/component-preview.tsx` | Removed unused prop |
 | ✅ | Using `<a>` instead of `<Link>` | `components/read-more-articles.tsx` | Replaced with `Link` |
 | ✅ | Unused `@react-email/components` | `next.config.mjs` | Removed from optimizePackageImports |
+| ✅ | HTML injection in unsubscribe | `pages/api/unsubscribe.ts` | Added `escapeHtml()` function |
+| ✅ | Copy button not keyboard accessible | `components/ui/heading-with-anchor.tsx` | Removed `tabIndex={-1}`, added focus styles |
+| ✅ | Deprecated clipboard API fallback | `components/ui/heading-with-anchor.tsx` | Removed deprecated `execCommand("copy")` |
+| ✅ | O(n²) complexity in sidebar | `components/sidebar-navigation.tsx` | Changed to use `index` from map callback |
 
 ---
 
@@ -51,10 +55,6 @@ Comprehensive review identified **45+ issues** across security, code quality, an
 | Medium | Email exposed in unsubscribe URL | `pages/api/subscribe.ts` | 58 | Use signed tokens instead |
 | Medium | Missing CSRF protection | All POST endpoints | - | Implement CSRF tokens |
 | Medium | Weak email validation regex | Multiple API files | - | Use robust validation library |
-| Medium | HTML injection in unsubscribe | `pages/api/unsubscribe.ts` | 156 | Add HTML escaping |
-| Medium | Copy button not keyboard accessible | `components/ui/heading-with-anchor.tsx` | 72-91 | Remove `tabIndex={-1}` |
-| Medium | Deprecated clipboard API fallback | `components/ui/heading-with-anchor.tsx` | 43-48 | Use modern Clipboard API only |
-| Medium | O(n²) complexity in sidebar | `components/sidebar-navigation.tsx` | 157 | Use index from map callback |
 
 ### Low Severity
 
@@ -105,8 +105,11 @@ npm run build: Success (17 static pages generated)
 pages/api/contact.ts         - Added HTML escaping
 pages/api/increment-view.ts  - Added rate limiting, slug validation, generic errors
 pages/api/list-view-count.ts - Added rate limiting, generic errors
+pages/api/unsubscribe.ts     - Added HTML escaping for email display
 components/component-preview.tsx - Removed unused prop
 components/read-more-articles.tsx - Replaced <a> with <Link>
+components/ui/heading-with-anchor.tsx - Fixed keyboard accessibility, removed deprecated API
+components/sidebar-navigation.tsx - Fixed O(n²) complexity in TOC animation
 next.config.mjs              - Removed unused import
 package.json                 - Updated dependencies (npm audit fix)
 package-lock.json            - Updated lockfile
@@ -119,15 +122,15 @@ package-lock.json            - Updated lockfile
 ### Phase 1: Security Hardening (Recommended)
 1. Implement CSRF protection on all POST endpoints
 2. Use signed tokens for unsubscribe links
-3. Add HTML escaping to `pages/api/unsubscribe.ts`
+3. Use a robust email validation library
 
 ### Phase 2: Scalability
 4. Migrate rate limiting to Redis or Vercel Edge Middleware
 5. Plan ESLint migration before Next.js 16
 
-### Phase 3: Code Quality
-6. Fix keyboard accessibility for copy buttons
-7. Optimize O(n²) complexity in sidebar navigation
+### Phase 3: Low Priority Polish
+6. Restrict CORS on giscus-theme endpoint
+7. Add CSS fallback for `content-visibility`
 8. Add error handling for video autoplay failures
 
 ---
