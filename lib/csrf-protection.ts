@@ -58,8 +58,6 @@ export interface CsrfOptions {
   message?: string;
   /** HTTP methods that require CSRF validation (default: POST, PUT, PATCH, DELETE) */
   methods?: string[];
-  /** Skip validation for these paths */
-  skipPaths?: string[];
 }
 
 /**

@@ -4,6 +4,7 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 import { isValidEmail, sanitizeEmail } from "@/lib/email-validation";
+import { escapeHtml, escapeHtmlAttribute } from "@/lib/html-utils";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -54,7 +55,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 <p>Thanks for subscribing to my newsletter.</p>
 
 <p>
-If you want to unsubscribe, you can do so by clicking <a href="${unsubscribeUrl}">here</a>.
+If you want to unsubscribe, you can do so by clicking <a href="${escapeHtmlAttribute(unsubscribeUrl)}">here</a>.
 </p>
 
 <small>
@@ -76,7 +77,7 @@ Jo Mändle
             to: notificationEmail,
             subject: "New Newsletter Subscriber",
             html: `
-<p>New subscriber: ${sanitizedEmail}</p>
+<p>New subscriber: ${escapeHtml(sanitizedEmail)}</p>
 `,
           })
           .catch((err) => {

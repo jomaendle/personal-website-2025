@@ -73,12 +73,17 @@ export function verifyUnsubscribeToken(token: string): VerifyResult {
     return { valid: false, error: "Invalid token format" };
   }
 
-  // Verify signature
+  // Verify signature with length check to prevent timing attack
+  // (timingSafeEqual throws if buffers have different lengths, leaking info)
   const expectedSignature = createSignature(payloadBase64);
-  if (!crypto.timingSafeEqual(
-    Buffer.from(providedSignature),
-    Buffer.from(expectedSignature)
-  )) {
+  const expectedBuffer = Buffer.from(expectedSignature);
+  const providedBuffer = Buffer.from(providedSignature);
+
+  if (providedBuffer.length !== expectedBuffer.length) {
+    return { valid: false, error: "Invalid token signature" };
+  }
+
+  if (!crypto.timingSafeEqual(providedBuffer, expectedBuffer)) {
     return { valid: false, error: "Invalid token signature" };
   }
 

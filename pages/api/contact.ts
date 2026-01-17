@@ -3,20 +3,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
+import { escapeHtml } from "@/lib/html-utils";
 
 function sanitizeInput(input: string): string {
   return input.trim().slice(0, 1000); // Limit length and trim whitespace
-}
-
-function escapeHtml(text: string): string {
-  const htmlEscapes: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  };
-  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] ?? char);
 }
 
 async function handler(
