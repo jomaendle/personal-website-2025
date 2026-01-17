@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
+import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 
 // Validate slug format: only lowercase letters, numbers, and hyphens
 function isValidSlug(slug: unknown): slug is string {
@@ -103,8 +104,13 @@ async function handler(
   }
 }
 
-export default withRateLimit(handler, {
-  maxRequests: 30,
-  windowMs: 60 * 1000, // 30 requests per minute per IP
-  message: "Too many requests, please try again later"
-});
+const middleware = composeMiddleware(
+  withCsrfProtection,
+  (h) => withRateLimit(h, {
+    maxRequests: 30,
+    windowMs: 60 * 1000, // 30 requests per minute per IP
+    message: "Too many requests, please try again later"
+  })
+);
+
+export default middleware(handler);

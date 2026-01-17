@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Comprehensive review identified **45+ issues** across security, code quality, and configuration. Critical and high-severity issues have been resolved. The application now passes all security audits and builds successfully.
+Comprehensive review identified **45+ issues** across security, code quality, and configuration. **All critical, high, and medium-severity issues have been resolved.** Phase 1 security hardening is complete, including CSRF protection, signed unsubscribe tokens, and robust email validation. Only low-priority items remain.
 
 ---
 
@@ -32,6 +32,14 @@ Comprehensive review identified **45+ issues** across security, code quality, an
 | ✅ | Database errors leaked to client | `pages/api/increment-view.ts` | Generic error messages |
 | ✅ | Database errors leaked to client | `pages/api/list-view-count.ts` | Generic error messages |
 
+### Medium Severity Security (Phase 1 Complete)
+
+| Status | Issue | File | Action Taken |
+|--------|-------|------|--------------|
+| ✅ | Email exposed in unsubscribe URL | `pages/api/subscribe.ts` | Implemented signed HMAC-SHA256 tokens |
+| ✅ | Missing CSRF protection | All POST endpoints | Added Origin/Referer validation middleware |
+| ✅ | Weak email validation regex | Multiple API files | Created robust `lib/email-validation.ts` |
+
 ### Code Quality
 
 | Status | Issue | File | Action Taken |
@@ -47,14 +55,6 @@ Comprehensive review identified **45+ issues** across security, code quality, an
 ---
 
 ## Remaining Issues (Lower Priority)
-
-### Medium Severity
-
-| Priority | Issue | File | Lines | Recommendation |
-|----------|-------|------|-------|----------------|
-| Medium | Email exposed in unsubscribe URL | `pages/api/subscribe.ts` | 58 | Use signed tokens instead |
-| Medium | Missing CSRF protection | All POST endpoints | - | Implement CSRF tokens |
-| Medium | Weak email validation regex | Multiple API files | - | Use robust validation library |
 
 ### Low Severity
 
@@ -102,10 +102,11 @@ npm run build: Success (17 static pages generated)
 ## Files Modified
 
 ```
-pages/api/contact.ts         - Added HTML escaping
-pages/api/increment-view.ts  - Added rate limiting, slug validation, generic errors
+pages/api/contact.ts         - Added HTML escaping, CSRF protection, centralized email validation
+pages/api/increment-view.ts  - Added rate limiting, slug validation, generic errors, CSRF protection
 pages/api/list-view-count.ts - Added rate limiting, generic errors
-pages/api/unsubscribe.ts     - Added HTML escaping for email display
+pages/api/subscribe.ts       - Added signed token unsubscribe URLs, CSRF protection, centralized email validation
+pages/api/unsubscribe.ts     - Added HTML escaping, token verification, centralized email validation
 components/component-preview.tsx - Removed unused prop
 components/read-more-articles.tsx - Replaced <a> with <Link>
 components/ui/heading-with-anchor.tsx - Fixed keyboard accessibility, removed deprecated API
@@ -113,25 +114,29 @@ components/sidebar-navigation.tsx - Fixed O(n²) complexity in TOC animation
 next.config.mjs              - Removed unused import
 package.json                 - Updated dependencies (npm audit fix)
 package-lock.json            - Updated lockfile
+lib/unsubscribe-token.ts     - NEW: Signed token generation/verification for unsubscribe links
+lib/csrf-protection.ts       - NEW: Origin/Referer CSRF protection middleware
+lib/email-validation.ts      - NEW: Robust email validation utility
 ```
 
 ---
 
 ## Next Steps
 
-### Phase 1: Security Hardening (Recommended)
-1. Implement CSRF protection on all POST endpoints
-2. Use signed tokens for unsubscribe links
-3. Use a robust email validation library
+### Phase 1: Security Hardening ✅ COMPLETE
+- ~~Implement CSRF protection on all POST endpoints~~ ✅
+- ~~Use signed tokens for unsubscribe links~~ ✅
+- ~~Use a robust email validation library~~ ✅
 
-### Phase 2: Scalability
-4. Migrate rate limiting to Redis or Vercel Edge Middleware
-5. Plan ESLint migration before Next.js 16
+### Phase 2: Scalability (Next Priority)
+1. Migrate rate limiting to Redis or Vercel Edge Middleware
+2. Plan ESLint migration before Next.js 16
+3. Add `UNSUBSCRIBE_TOKEN_SECRET` environment variable (optional, currently uses derived key)
 
 ### Phase 3: Low Priority Polish
-6. Restrict CORS on giscus-theme endpoint
-7. Add CSS fallback for `content-visibility`
-8. Add error handling for video autoplay failures
+4. Restrict CORS on giscus-theme endpoint
+5. Add CSS fallback for `content-visibility`
+6. Add error handling for video autoplay failures
 
 ---
 

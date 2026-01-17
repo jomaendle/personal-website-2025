@@ -1,11 +1,8 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
-
-function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
+import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
+import { isValidEmail } from "@/lib/email-validation";
 
 function sanitizeInput(input: string): string {
   return input.trim().slice(0, 1000); // Limit length and trim whitespace
@@ -94,8 +91,13 @@ async function handler(
   }
 }
 
-export default withRateLimit(handler, {
-  maxRequests: 5,
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  message: "Too many contact form submissions, please try again later"
-});
+const middleware = composeMiddleware(
+  withCsrfProtection,
+  (h) => withRateLimit(h, {
+    maxRequests: 5,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    message: "Too many contact form submissions, please try again later"
+  })
+);
+
+export default middleware(handler);

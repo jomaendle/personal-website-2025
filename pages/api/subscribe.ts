@@ -1,32 +1,30 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
+import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
+import { isValidEmail, sanitizeEmail } from "@/lib/email-validation";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { email } = req.body;
 
     // Enhanced validation
-    if (!email) {
+    if (!email || typeof email !== "string") {
       return res.status(400).json({
         error: "Email is required",
         details: "Please enter your email address",
       });
     }
 
-    if (typeof email !== "string") {
-      return res.status(400).json({ error: "Invalid email format" });
-    }
-
-    const sanitizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(sanitizedEmail)) {
+    if (!isValidEmail(email)) {
       return res.status(400).json({
         error: "Invalid email format",
         details: "Please enter a valid email address",
       });
     }
+
+    const sanitizedEmail = sanitizeEmail(email);
 
     try {
       const audienceId = process.env.RESEND_AUDIENCE_ID;
@@ -46,6 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // send a welcome email
+      const unsubscribeUrl = generateUnsubscribeUrl(sanitizedEmail);
       const sendMailRes = await resend.emails.send({
         from: "Jo <jo@contact.jomaendle.com>",
         to: sanitizedEmail,
@@ -55,7 +54,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 <p>Thanks for subscribing to my newsletter.</p>
 
 <p>
-If you want to unsubscribe, you can do so by clicking <a href="https://jomaendle.com/api/unsubscribe?email=${sanitizedEmail}">here</a>.
+If you want to unsubscribe, you can do so by clicking <a href="${unsubscribeUrl}">here</a>.
 </p>
 
 <small>
@@ -99,8 +98,13 @@ Jo Mändle
   }
 }
 
-export default withRateLimit(handler, {
-  maxRequests: 3,
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  message: "Too many subscription attempts, please try again later",
-});
+const middleware = composeMiddleware(
+  withCsrfProtection,
+  (h) => withRateLimit(h, {
+    maxRequests: 3,
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    message: "Too many subscription attempts, please try again later",
+  })
+);
+
+export default middleware(handler);

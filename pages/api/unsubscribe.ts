@@ -1,6 +1,8 @@
 import resend from "@/lib/resend";
 import { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
+import { verifyUnsubscribeToken } from "@/lib/unsubscribe-token";
+import { isValidEmail, sanitizeEmail } from "@/lib/email-validation";
 
 function escapeHtml(text: string): string {
   const htmlEscapes: Record<string, string> = {
@@ -15,10 +17,80 @@ function escapeHtml(text: string): string {
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    const { email } = req.query;
+    const { token, email } = req.query;
 
-    // Validation
-    if (!email || typeof email !== "string") {
+    let sanitizedEmail: string;
+
+    // Prefer token-based authentication (more secure)
+    if (token && typeof token === "string") {
+      const result = verifyUnsubscribeToken(token);
+      if (!result.valid || !result.email) {
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Invalid or Expired Link</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  max-width: 600px;
+                  margin: 80px auto;
+                  padding: 0 20px;
+                  text-align: center;
+                }
+                h1 { color: #ff6b6b; margin-bottom: 16px; }
+                p { color: #666; line-height: 1.6; margin-bottom: 24px; }
+                a { color: #2997ff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+              </style>
+            </head>
+            <body>
+              <h1>Invalid or Expired Link</h1>
+              <p>${escapeHtml(result.error || "This unsubscribe link is invalid or has expired.")}</p>
+              <p>Please use a recent unsubscribe link from your email, or contact support.</p>
+              <p><a href="https://jomaendle.com">Return to homepage</a></p>
+            </body>
+          </html>
+        `);
+      }
+      sanitizedEmail = result.email;
+    }
+    // Fallback to email parameter for backwards compatibility with older links
+    else if (email && typeof email === "string") {
+      if (!isValidEmail(email)) {
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Invalid Email</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  max-width: 600px;
+                  margin: 80px auto;
+                  padding: 0 20px;
+                  text-align: center;
+                }
+                h1 { color: #ff6b6b; margin-bottom: 16px; }
+                p { color: #666; line-height: 1.6; margin-bottom: 24px; }
+                a { color: #2997ff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+              </style>
+            </head>
+            <body>
+              <h1>Invalid Email Address</h1>
+              <p>The email address provided is not valid.</p>
+              <p><a href="https://jomaendle.com">Return to homepage</a></p>
+            </body>
+          </html>
+        `);
+      }
+      sanitizedEmail = sanitizeEmail(email);
+    }
+    // No valid parameter provided
+    else {
       return res.status(400).send(`
         <!DOCTYPE html>
         <html>
@@ -41,40 +113,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           </head>
           <body>
             <h1>Invalid Request</h1>
-            <p>No email address was provided. Please use the unsubscribe link from your email.</p>
-            <p><a href="https://jomaendle.com">Return to homepage</a></p>
-          </body>
-        </html>
-      `);
-    }
-
-    const sanitizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(sanitizedEmail)) {
-      return res.status(400).send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Invalid Email</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                max-width: 600px;
-                margin: 80px auto;
-                padding: 0 20px;
-                text-align: center;
-              }
-              h1 { color: #ff6b6b; margin-bottom: 16px; }
-              p { color: #666; line-height: 1.6; margin-bottom: 24px; }
-              a { color: #2997ff; text-decoration: none; }
-              a:hover { text-decoration: underline; }
-            </style>
-          </head>
-          <body>
-            <h1>Invalid Email Address</h1>
-            <p>The email address provided is not valid.</p>
+            <p>No valid unsubscribe link was provided. Please use the unsubscribe link from your email.</p>
             <p><a href="https://jomaendle.com">Return to homepage</a></p>
           </body>
         </html>
