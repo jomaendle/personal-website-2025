@@ -11,6 +11,17 @@ function sanitizeInput(input: string): string {
   return input.trim().slice(0, 1000); // Limit length and trim whitespace
 }
 
+function escapeHtml(text: string): string {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] ?? char);
+}
+
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -62,9 +73,9 @@ async function handler(
         subject: `New contact form message from ${sanitizedName}`,
         html: `
 <h1>New Contact Form Submission</h1>
-<p><strong>Name:</strong> ${sanitizedName}</p>
-<p><strong>Email:</strong> ${sanitizedEmail}</p>
-<p><strong>Message:</strong> ${sanitizedTopic}</p>
+<p><strong>Name:</strong> ${escapeHtml(sanitizedName)}</p>
+<p><strong>Email:</strong> ${escapeHtml(sanitizedEmail)}</p>
+<p><strong>Message:</strong> ${escapeHtml(sanitizedTopic)}</p>
 `,
         replyTo: sanitizedEmail,
       });

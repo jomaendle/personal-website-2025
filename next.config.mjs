@@ -11,7 +11,6 @@ const nextConfig = {
       "@radix-ui/react-slot",
       "@codesandbox/sandpack-react",
       "@codesandbox/sandpack-themes",
-      "@react-email/components",
     ],
   },
   images: {

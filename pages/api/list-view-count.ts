@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
+import { withRateLimit } from "@/lib/rate-limit";
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -20,8 +21,15 @@ export default async function handler(
     .select("slug, views");
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Error fetching view counts:", error);
+    return res.status(500).json({ error: "Failed to fetch view counts" });
   }
 
   return res.status(200).json(pageViews);
 }
+
+export default withRateLimit(handler, {
+  maxRequests: 60,
+  windowMs: 60 * 1000, // 60 requests per minute per IP
+  message: "Too many requests, please try again later"
+});

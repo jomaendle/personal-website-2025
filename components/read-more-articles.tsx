@@ -1,5 +1,6 @@
 import { BLOG_POSTS } from "@/lib/state/blog";
 import { H2 } from "@/components/ui/heading";
+import { Link } from "next-view-transitions";
 
 export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
   const filteredArticles = BLOG_POSTS.filter(
@@ -15,7 +16,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
             key={article.slug}
             className="mb-2 rounded-md border border-border px-3 py-2 hover:bg-muted"
           >
-            <a
+            <Link
               href={`/blog/${article.slug}`}
               className="flex flex-col text-primary"
             >
@@ -23,7 +24,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
               <span className="text-xs text-muted-foreground">
                 {article.date}
               </span>
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
