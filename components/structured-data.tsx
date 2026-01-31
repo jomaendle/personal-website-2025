@@ -4,6 +4,7 @@ interface PersonStructuredData {
   "@context": "https://schema.org";
   "@type": "Person";
   name: string;
+  alternateName?: string[];
   jobTitle: string;
   url: string;
   sameAs: string[];
@@ -64,6 +65,13 @@ export function PersonStructuredData() {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Johannes Mändle",
+    alternateName: [
+      "Jo Mändle",
+      "jo maendle",
+      "johannes maendle",
+      "Jo Maendle",
+      "Johannes Maendle",
+    ],
     jobTitle: "Full-Stack Developer",
     url: "https://jomaendle.com",
     sameAs: [

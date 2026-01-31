@@ -26,6 +26,16 @@ export const metadata: Metadata = {
     template: "%s | Jo Mändle",
   },
   description: "Full-Stack developer sharing his thoughts on the web.",
+  keywords: [
+    "Jo Mändle",
+    "Johannes Mändle",
+    "jo maendle",
+    "johannes maendle",
+    "Full-Stack Developer",
+    "Web Development",
+  ],
+  authors: [{ name: "Johannes Mändle", url: "https://jomaendle.com" }],
+  creator: "Johannes Mändle",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },
