@@ -1,15 +1,23 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withRateLimit } from "@/lib/rate-limit";
+import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 
-export default async function handler(
+// Validate slug format: only lowercase letters, numbers, and hyphens
+function isValidSlug(slug: unknown): slug is string {
+  if (typeof slug !== 'string') return false;
+  return /^[a-z0-9-]+$/.test(slug) && slug.length <= 100;
+}
+
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method === "POST") {
     const { slug } = req.body;
 
-    if (!slug) {
-      return res.status(400).json({ error: "Slug is required" });
+    if (!slug || !isValidSlug(slug)) {
+      return res.status(400).json({ error: "Invalid or missing slug" });
     }
 
     res.setHeader(
@@ -28,7 +36,7 @@ export default async function handler(
       if (selectError && selectError.code !== "PGRST116") {
         // PGRST116 is "no rows returned", which is fine
         console.error("Error fetching page view:", selectError);
-        return res.status(500).json({ error: selectError.message });
+        return res.status(500).json({ error: "Failed to fetch view count" });
       }
 
       if (existingData) {
@@ -41,7 +49,7 @@ export default async function handler(
 
         if (updateError) {
           console.error("Error updating page view:", updateError);
-          return res.status(500).json({ error: updateError.message });
+          return res.status(500).json({ error: "Failed to update view count" });
         }
 
         return res.status(200).json({ views: newViews });
@@ -63,7 +71,7 @@ export default async function handler(
 
             if (retryError) {
               console.error("Error on retry:", retryError);
-              return res.status(500).json({ error: retryError.message });
+              return res.status(500).json({ error: "Failed to fetch view count" });
             }
 
             const newViews = retryData.views + 1;
@@ -74,14 +82,14 @@ export default async function handler(
 
             if (retryUpdateError) {
               console.error("Error updating on retry:", retryUpdateError);
-              return res.status(500).json({ error: retryUpdateError.message });
+              return res.status(500).json({ error: "Failed to update view count" });
             }
 
             return res.status(200).json({ views: newViews });
           }
 
           console.error("Error inserting page view:", insertError);
-          return res.status(500).json({ error: insertError.message });
+          return res.status(500).json({ error: "Failed to record view" });
         }
 
         return res.status(200).json({ views: 1 });
@@ -95,3 +103,14 @@ export default async function handler(
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+const middleware = composeMiddleware(
+  withCsrfProtection,
+  (h) => withRateLimit(h, {
+    maxRequests: 30,
+    windowMs: 60 * 1000, // 30 requests per minute per IP
+    message: "Too many requests, please try again later"
+  })
+);
+
+export default middleware(handler);

@@ -24,12 +24,36 @@ export interface RateLimitOptions {
   message?: string;
 }
 
+/**
+ * Extract the client IP address from request headers.
+ * Handles x-forwarded-for as array or comma-separated string.
+ * Takes the rightmost IP (closest to server) as it's most trustworthy.
+ */
+function getClientIp(req: NextApiRequest): string {
+  const forwarded = req.headers["x-forwarded-for"];
+
+  if (forwarded) {
+    // Handle both array and string formats
+    const ips = Array.isArray(forwarded) ? forwarded[0] ?? "" : forwarded;
+    if (ips) {
+      // Split by comma and get the rightmost (most trusted) IP
+      const ipList = ips.split(",").map((ip) => ip.trim());
+      return ipList[ipList.length - 1] || "unknown";
+    }
+  }
+
+  const realIp = req.headers["x-real-ip"];
+  if (realIp) {
+    const ip = Array.isArray(realIp) ? realIp[0] : realIp;
+    if (ip) return ip;
+  }
+
+  return req.socket.remoteAddress || "unknown";
+}
+
 export function rateLimit(options: RateLimitOptions) {
   return (req: NextApiRequest, res: NextApiResponse, next: () => void) => {
-    const ip = req.headers['x-forwarded-for'] as string || 
-               req.headers['x-real-ip'] as string ||
-               req.socket.remoteAddress ||
-               'unknown';
+    const ip = getClientIp(req);
     
     const key = `${ip}:${req.url}`;
     const now = Date.now();

@@ -53,7 +53,7 @@ export const FocusZoomAtProperty = () => {
   }, [previewRef]);
 
   return (
-    <ComponentPreview ref={previewRef} classList={styles.gradient}>
+    <ComponentPreview ref={previewRef} className={styles.gradient}>
       <div className="text-white">
         Press <kbd>Opt/Alt</kbd> to see the spotlight effect
       </div>

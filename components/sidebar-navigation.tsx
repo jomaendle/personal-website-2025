@@ -148,13 +148,13 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
               >
                 <div className="space-y-2 pt-2">
                   <div className="flex flex-col space-y-1">
-                    {tocItems.map((item) => (
+                    {tocItems.map((item, index) => (
                       <motion.div
                         key={item.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{
-                          delay: tocItems.indexOf(item) * 0.05,
+                          delay: index * 0.05,
                           type: "tween",
                         }}
                         className="flex w-full items-center"
