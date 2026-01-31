@@ -42,6 +42,7 @@ export function MobileTableOfContents() {
       items.push({ id, title, level });
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing with DOM headings (external system)
     setTocItems(items);
   }, []);
 

@@ -44,6 +44,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
 
   // Handle mounting to prevent SSR/hydration mismatches
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: standard hydration pattern
     setIsMounted(true);
   }, []);
 
@@ -66,6 +67,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
       items.push({ id, title, level });
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing with DOM headings (external system)
     setTocItems(items);
 
     // Smart auto-expand logic for "On This Page" section

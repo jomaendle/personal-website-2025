@@ -16,6 +16,7 @@ export function ReadingTime({ content, className = "" }: ReadingTimeProps) {
     
     if (textContent) {
       const time = calculateReadingTime(textContent);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing with DOM content (external system)
       setReadingTime(time);
     }
   }, [content]);

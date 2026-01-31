@@ -25,6 +25,7 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
 
     // Clear any existing Giscus instance
     currentRef.innerHTML = "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset state when re-initializing external Giscus script
     setError(null);
     setIsLoaded(false);
 
@@ -66,7 +67,6 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
         setIsLoaded(false);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   // Handle theme changes by switching to built-in giscus themes

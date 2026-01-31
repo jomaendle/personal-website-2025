@@ -66,7 +66,7 @@ export function ThemeToggle() {
             exit={{ scale: 0, rotate: 180 }}
             transition={{
               duration: 0.3,
-              ease: [0.4, 0, 0.2, 1],
+              ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
             }}
           >
             <Moon className="h-5 w-5" />
@@ -79,7 +79,7 @@ export function ThemeToggle() {
             exit={{ scale: 0, rotate: -180 }}
             transition={{
               duration: 0.3,
-              ease: [0.4, 0, 0.2, 1],
+              ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
             }}
           >
             <Sun className="h-5 w-5" />
