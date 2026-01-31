@@ -48,12 +48,19 @@ function extractHeadingsFromDOM(): TocItem[] {
 // Deep equality check for TocItem arrays
 function headingsEqual(a: TocItem[], b: TocItem[]): boolean {
   if (a.length !== b.length) return false;
-  return a.every(
-    (item, i) =>
-      item.id === b[i].id &&
-      item.title === b[i].title &&
-      item.level === b[i].level
-  );
+  for (let i = 0; i < a.length; i++) {
+    const itemA = a[i];
+    const itemB = b[i];
+    if (!itemA || !itemB) return false;
+    if (
+      itemA.id !== itemB.id ||
+      itemA.title !== itemB.title ||
+      itemA.level !== itemB.level
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function updateCachedHeadings(): void {
