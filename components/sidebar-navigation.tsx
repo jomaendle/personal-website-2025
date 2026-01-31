@@ -13,19 +13,15 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-
-interface TocItem {
-  id: string;
-  title: string;
-  level: number;
-}
+import { useDomHeadings, useIsMounted } from "@/lib/hooks";
 
 interface SidebarNavigationProps {
   currentSlug: string;
 }
 
 export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
-  const [tocItems, setTocItems] = useState<TocItem[]>([]);
+  const tocItems = useDomHeadings();
+  const isMounted = useIsMounted();
   const [activeId, setActiveId] = useState<string>("");
   const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(
     sidebarMorePostsOpenAtom,
@@ -36,52 +32,30 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(
     tocAutoExpandEnabledAtom,
   );
-  const [isMounted, setIsMounted] = useState(false);
 
   const currentBlogPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => post.slug !== currentSlug);
   }, [currentSlug]);
 
-  // Handle mounting to prevent SSR/hydration mismatches
+  // Smart auto-expand logic for "On This Page" section
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: standard hydration pattern
-    setIsMounted(true);
-  }, []);
-
-  // TOC logic from original TableOfContents component
-  useEffect(() => {
-    // Generate TOC from headings in the prose content
-    const headings = document.querySelectorAll(".prose h2, .prose h3");
-    const items: TocItem[] = [];
-
-    headings.forEach((heading, index) => {
-      const id = heading.id || `heading-${index}`;
-      const title = heading.textContent || "";
-      const level = parseInt(heading.tagName.charAt(1));
-
-      // Add ID to heading if it doesn't have one
-      if (!heading.id) {
-        heading.id = id;
-      }
-
-      items.push({ id, title, level });
-    });
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing with DOM headings (external system)
-    setTocItems(items);
-
-    // Smart auto-expand logic for "On This Page" section
-    // Only auto-expand if:
-    // 1. TOC items exist
-    // 2. Auto-expansion is still enabled (first-time behavior)
-    // 3. Component has mounted (to ensure localStorage is loaded)
-    if (items.length > 0 && tocAutoExpandEnabled && isMounted) {
+    if (tocItems.length > 0 && tocAutoExpandEnabled && isMounted) {
       setIsOnThisPageOpen(true);
-      // Disable auto-expansion after first use to respect user preference going forward
       setTocAutoExpandEnabled(false);
     }
+  }, [
+    tocItems.length,
+    isMounted,
+    tocAutoExpandEnabled,
+    setIsOnThisPageOpen,
+    setTocAutoExpandEnabled,
+  ]);
 
-    // Intersection Observer for active heading tracking
+  // Intersection Observer for active heading tracking
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const headings = document.querySelectorAll(".prose h2, .prose h3");
     const observerOptions = {
       rootMargin: "-80px 0px -80% 0px",
       threshold: 0,
@@ -98,12 +72,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     headings.forEach((heading) => observer.observe(heading));
 
     return () => observer.disconnect();
-  }, [
-    isMounted,
-    tocAutoExpandEnabled,
-    setIsOnThisPageOpen,
-    setTocAutoExpandEnabled,
-  ]);
+  }, [isMounted, tocItems]);
 
   // Handle manual TOC toggle - disable auto-expand when user manually interacts
   const handleTocToggle = (open: boolean) => {
