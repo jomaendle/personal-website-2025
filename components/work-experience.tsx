@@ -52,7 +52,7 @@ export function WorkExperience() {
           viewport={{ once: true, margin: "-50px" }}
           transition={{
             duration: 0.4,
-            ease: [0.25, 0.1, 0.25, 1],
+            ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
             delay: index * 0.05,
           }}
         >

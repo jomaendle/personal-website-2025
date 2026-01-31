@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
 const links = [
@@ -29,7 +29,7 @@ const links = [
 
 const MotionLink = motion.create(Link);
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 1 },
   visible: {
     opacity: 1,
@@ -39,14 +39,14 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, x: -10 },
   visible: {
     opacity: 1,
     x: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.1, 0.25, 1],
+      ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
     },
   },
 };

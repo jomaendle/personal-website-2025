@@ -1,49 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "next-view-transitions";
-
-// Generate slug from text (matching HeadingWithAnchor component)
-function generateSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and hyphens
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/-+/g, "-") // Replace multiple hyphens with single
-    .trim();
-}
-
-interface TocItem {
-  id: string;
-  title: string;
-  level: number;
-}
+import { useDomHeadings } from "@/lib/hooks";
 
 export function MobileTableOfContents() {
-  const [tocItems, setTocItems] = useState<TocItem[]>([]);
+  const tocItems = useDomHeadings();
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const headings = document.querySelectorAll(".prose h2, .prose h3");
-    const items: TocItem[] = [];
-
-    headings.forEach((heading, index) => {
-      const title = heading.textContent || "";
-      // Use existing ID (from HeadingWithAnchor) or generate one as fallback
-      const id = heading.id || generateSlug(title) || `heading-${index}`;
-      const level = parseInt(heading.tagName.charAt(1));
-
-      // Ensure heading has the ID
-      if (!heading.id) {
-        heading.id = id;
-      }
-
-      items.push({ id, title, level });
-    });
-
-    setTocItems(items);
-  }, []);
 
   const handleTocClick = () => {
     setIsOpen(false);

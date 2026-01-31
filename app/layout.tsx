@@ -58,11 +58,25 @@ export default function RootLayout({
           scrollbarGutter: "stable",
         }}
       >
+        <head>
+          {/* DNS prefetch for lazy-loaded external domains */}
+          <link rel="dns-prefetch" href="https://giscus.app" />
+          <link rel="dns-prefetch" href="https://plausible.io" />
+
+          {/* Preload critical font */}
+          <link
+            rel="preload"
+            href="/fonts/GeistVF.woff"
+            as="font"
+            type="font/woff"
+            crossOrigin="anonymous"
+          />
+        </head>
         <body
           className="min-h-[100dvh] font-sans text-foreground antialiased"
           style={{
             fontFamily:
-              'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           <ReactQueryProvider>

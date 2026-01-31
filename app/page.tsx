@@ -15,6 +15,9 @@ import {
   VueIcon,
 } from "@/components/ui/framework-icons";
 
+// Static generation
+export const dynamic = "force-static";
+
 export default function Home() {
   return (
     <div className="page-container">

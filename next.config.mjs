@@ -9,6 +9,9 @@ const nextConfig = {
       "framer-motion",
       "lucide-react",
       "@radix-ui/react-slot",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-collapsible",
+      "@radix-ui/react-tabs",
       "@codesandbox/sandpack-react",
       "@codesandbox/sandpack-themes",
     ],
@@ -28,6 +31,55 @@ const nextConfig = {
   trailingSlash: false,
   async headers() {
     return [
+      // Immutable Next.js static chunks (hashed JS/CSS)
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // Self-hosted fonts
+      {
+        source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // Images and videos in public directory
+      ...["webp", "png", "jpg", "gif", "mp4"].map((ext) => ({
+        source: `/:slug/:path*.${ext}`,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, stale-while-revalidate=86400",
+          },
+        ],
+      })),
+      // Favicons
+      {
+        source: "/favicon-:size.png",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
+        source: "/favicon.ico",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
       // Giscus theme endpoint - needs CORS and caching for external iframe access
       {
         source: "/api/giscus-theme",
@@ -73,6 +125,18 @@ const nextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },
