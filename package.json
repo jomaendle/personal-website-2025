@@ -1,11 +1,11 @@
 {
   "name": "jo-maendle-website",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "author": "Jo Maendle",
   "description": "Jo Maendle's personal website",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",

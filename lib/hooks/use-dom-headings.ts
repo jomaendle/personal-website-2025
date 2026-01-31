@@ -18,7 +18,12 @@ function generateSlug(text: string): string {
     .trim();
 }
 
-function getHeadingsSnapshot(): TocItem[] {
+// Module-level cache for the headings snapshot
+// This is the key fix: useSyncExternalStore requires getSnapshot to return
+// the same reference if data hasn't changed
+let cachedHeadings: TocItem[] = [];
+
+function extractHeadingsFromDOM(): TocItem[] {
   if (typeof document === "undefined") return [];
 
   const headings = document.querySelectorAll(".prose h2, .prose h3");
@@ -40,13 +45,44 @@ function getHeadingsSnapshot(): TocItem[] {
   return items;
 }
 
+// Deep equality check for TocItem arrays
+function headingsEqual(a: TocItem[], b: TocItem[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(
+    (item, i) =>
+      item.id === b[i].id &&
+      item.title === b[i].title &&
+      item.level === b[i].level
+  );
+}
+
+function updateCachedHeadings(): void {
+  const newHeadings = extractHeadingsFromDOM();
+  // Only update cache if content actually changed (avoids unnecessary re-renders)
+  if (!headingsEqual(cachedHeadings, newHeadings)) {
+    cachedHeadings = newHeadings;
+  }
+}
+
+function getHeadingsSnapshot(): TocItem[] {
+  // Return cached value - this MUST return same reference if data unchanged
+  return cachedHeadings;
+}
+
 function getServerSnapshot(): TocItem[] {
   return [];
 }
 
 function subscribeToHeadings(callback: () => void): () => void {
+  // Update cache on initial subscription
+  updateCachedHeadings();
+
   // Use MutationObserver to detect when headings change
-  const observer = new MutationObserver(callback);
+  const observer = new MutationObserver(() => {
+    updateCachedHeadings();
+    callback();
+  });
+
   const proseElement = document.querySelector(".prose");
 
   if (proseElement) {
@@ -56,7 +92,7 @@ function subscribeToHeadings(callback: () => void): () => void {
     });
   }
 
-  // Also trigger on initial mount
+  // Trigger initial callback after cache is populated
   callback();
 
   return () => observer.disconnect();
