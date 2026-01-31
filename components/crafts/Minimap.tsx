@@ -290,8 +290,8 @@ export function Minimap() {
             // Use transform for positioning instead of left/top
             // Rotation is included in transform to prevent override
             transform: "translate(0, -60px) rotate(180deg)",
-            // eslint-disable-next-line react-hooks/refs -- intentional: willChange hint doesn't affect render correctness
-            willChange: isInteractingRef.current ? "transform" : "auto",
+            // Static willChange since this element is animated via JS transforms
+            willChange: "transform",
           }}
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -308,8 +308,8 @@ export function Minimap() {
             top: "-12px",
             bottom: "-50vh",
             transform: "translateX(0)",
-            // eslint-disable-next-line react-hooks/refs -- intentional: willChange hint doesn't affect render correctness
-            willChange: isInteractingRef.current ? "transform" : "auto",
+            // Static willChange since this element is animated via JS transforms
+            willChange: "transform",
             backgroundImage:
               "repeating-linear-gradient(to bottom, #f97316 0, #f97316 4px, transparent 4px, transparent 8px)",
           }}
