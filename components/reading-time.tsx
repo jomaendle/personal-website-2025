@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useReadingTime as useReadingTimeHook,
-  calculateReadingTime,
-} from "@/lib/hooks";
+import { useReadingTime } from "@/lib/hooks";
 
 interface ReadingTimeProps {
   content?: string;
@@ -11,7 +8,7 @@ interface ReadingTimeProps {
 }
 
 export function ReadingTime({ content, className = "" }: ReadingTimeProps) {
-  const readingTime = useReadingTimeHook(content);
+  const readingTime = useReadingTime(content);
 
   return (
     <span className={`text-sm text-muted-foreground ${className}`}>
@@ -19,9 +16,3 @@ export function ReadingTime({ content, className = "" }: ReadingTimeProps) {
     </span>
   );
 }
-
-// Re-export for backwards compatibility
-export { calculateReadingTime };
-
-// Re-export hook for backwards compatibility
-export { useReadingTimeHook as useReadingTime };

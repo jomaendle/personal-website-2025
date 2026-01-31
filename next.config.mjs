@@ -51,53 +51,16 @@ const nextConfig = {
           },
         ],
       },
-      // Images in public directory
-      {
-        source: "/:slug/:path*.webp",
+      // Images and videos in public directory
+      ...["webp", "png", "jpg", "gif", "mp4"].map((ext) => ({
+        source: `/:slug/:path*.${ext}`,
         headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, stale-while-revalidate=86400",
           },
         ],
-      },
-      {
-        source: "/:slug/:path*.png",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/:slug/:path*.jpg",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/:slug/:path*.gif",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      // Videos
-      {
-        source: "/:slug/:path*.mp4",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, stale-while-revalidate=86400",
-          },
-        ],
-      },
+      })),
       // Favicons
       {
         source: "/favicon-:size.png",

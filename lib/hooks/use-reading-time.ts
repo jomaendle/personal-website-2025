@@ -10,9 +10,20 @@ function calculateReadingTime(text: string): string {
   return `${minutes} min read`;
 }
 
+// Module-level cache: useSyncExternalStore requires getSnapshot to return
+// the same reference if data hasn't changed
+let cachedContent = "";
+
+function updateCachedContent(): void {
+  if (typeof document === "undefined") return;
+  const newContent = document.querySelector(".prose")?.textContent || "";
+  if (cachedContent !== newContent) {
+    cachedContent = newContent;
+  }
+}
+
 function getProseContentSnapshot(): string {
-  if (typeof document === "undefined") return "";
-  return document.querySelector(".prose")?.textContent || "";
+  return cachedContent;
 }
 
 function getServerSnapshot(): string {
@@ -20,7 +31,13 @@ function getServerSnapshot(): string {
 }
 
 function subscribeToProseContent(callback: () => void): () => void {
-  const observer = new MutationObserver(callback);
+  updateCachedContent();
+
+  const observer = new MutationObserver(() => {
+    updateCachedContent();
+    callback();
+  });
+
   const proseElement = document.querySelector(".prose");
 
   if (proseElement) {
@@ -30,6 +47,8 @@ function subscribeToProseContent(callback: () => void): () => void {
       characterData: true,
     });
   }
+
+  callback();
 
   return () => observer.disconnect();
 }
