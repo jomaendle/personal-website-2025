@@ -10,9 +10,9 @@ import { CraftsOverview } from "@/components/crafts/crafts-overview";
 import {
   AngularIcon,
   AstroIcon,
+  ClaudeCodeIcon,
   JavaScriptIcon,
   ReactIcon,
-  VueIcon,
 } from "@/components/ui/framework-icons";
 
 // Static generation
@@ -36,7 +36,6 @@ export default function Home() {
             <br />
             <span className="mx-1 mt-2 inline-flex items-center gap-3">
               <ReactIcon size={20} />
-              <VueIcon size={20} />
               <AngularIcon size={20} />
               <JavaScriptIcon size={20} />
               <AstroIcon size={20} />
@@ -45,6 +44,7 @@ export default function Home() {
             <span className="inline-block max-w-lg">
               Currently exploring how AI can supercharge development workflows
               and unlock new possibilities.
+              <ClaudeCodeIcon />
             </span>
             <br />
             <br />
