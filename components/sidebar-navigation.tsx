@@ -10,7 +10,7 @@ import {
   sidebarOnThisPageOpenAtom,
   tocAutoExpandEnabledAtom,
 } from "@/lib/state/sidebar";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { useDomHeadings, useIsMounted } from "@/lib/hooks";

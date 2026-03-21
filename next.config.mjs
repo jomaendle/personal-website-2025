@@ -6,7 +6,7 @@ const nextConfig = {
   experimental: {
     viewTransition: true,
     optimizePackageImports: [
-      "framer-motion",
+      "motion",
       "lucide-react",
       "@radix-ui/react-slot",
       "@radix-ui/react-dialog",
