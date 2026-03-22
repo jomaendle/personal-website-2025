@@ -1,15 +1,9 @@
 import { BlogImage } from "../../../components/blog-image";
 import { CodeBlock } from "../../../components/code-block";
-import MdxLayout from "../../../components/mdx-layout";
 
-export const metadata = {
-  title: "Align Dates in Tabular Data",
-  date: "Sep 29, 2024",
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Align Dates in Tabular Data
 
 Have you ever had the issue when working with tabular data that the dates aren’t aligned across the entire column? This can create visual inconsistency, making it harder to read and compare values quickly.
 
@@ -157,10 +151,3 @@ Additionally, we reduce the letter spacing to improve the visual balance.
 `}
 />
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug="align-dates-in-tables">
-      {children}
-    </MdxLayout>
-  );
-}

@@ -1,18 +1,11 @@
-import MdxLayout from "../../../components/mdx-layout";
-import { FREELANCE_TOOL } from "../../../lib/state/blog";
 import { BlogVideo } from "../../../components/blog-image";
 
 import previewImg from "../../../public/freelance-tool/preview.webp";
 import { ContactForm } from "../../../components/contact-form";
 
-export const metadata = {
-  title: FREELANCE_TOOL.title,
-  date: FREELANCE_TOOL.date,
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Vibe-coding my own Freelance-Tracking Tool
 
 As a part-time freelancer, I was looking for a simple tool to manage my work.
 
@@ -70,10 +63,3 @@ I'll be happy to help you out.
 <ContactForm />
 
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug={FREELANCE_TOOL.slug}>
-      {children}
-    </MdxLayout>
-  )
-}

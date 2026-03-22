@@ -1,18 +1,11 @@
 import React from "react";
-import { CLAUDE_CODE_ESSENTIALS_FOUNDATIONS } from "../../../lib/state/blog";
 import { BlogImage } from "../../../components/blog-image";
 import UltrathinkTerminal from "../../../components/UltrathinkTerminal";
 import { CodeBlock } from "../../../components/code-block";
-import MdxLayout from "../../../components/mdx-layout";
 
-export const metadata = {
-  title: CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.title,
-  date: CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.date
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Claude Code Essentials for Effective AI-Assisted Development
 
 <div className="series-notice hidden">
   **This is Part 1 of a 3-part series on working effectively with Claude Code.**
@@ -305,10 +298,3 @@ These foundations you've learned in Part 1 - specificity, CLAUDE.md, Plan Mode, 
 - [Claude Code Best Practices - Anthropic Engineering](https://www.anthropic.com/engineering/claude-code-best-practices)
 
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug={CLAUDE_CODE_ESSENTIALS_FOUNDATIONS.slug}>
-      {children}
-    </MdxLayout>
-  )
-}

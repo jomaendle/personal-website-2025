@@ -2,17 +2,10 @@ import { FocusZoomAtProperty } from "./focus-zoom";
 import { CodeBlock } from "../../../components/code-block";
 import React from "react";
 import BaselineStatus from "../../../components/baseline-status";
-import MdxLayout from "../../../components/mdx-layout";
-import { FOCUS_ZOOM_MASK_IMAGE } from "../../../lib/state/blog";
 
-export const metadata = {
-  title: FOCUS_ZOOM_MASK_IMAGE.title,
-  date: FOCUS_ZOOM_MASK_IMAGE.date
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Dynamic Focus Zoom Effect with CSS @property
 
 
 <FocusZoomAtProperty />
@@ -109,10 +102,3 @@ Below you can see the current browser support for the features used in this demo
 Thanks for reading and see you in the next one 👋
 
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug={FOCUS_ZOOM_MASK_IMAGE.slug}>
-      {children}
-    </MdxLayout>
-  )
-}
