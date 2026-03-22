@@ -40,7 +40,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-syntax-highlighter": "^16.1.1",
-    "resend": "^4.8.0",
+    "resend": "^6.9.4",
     "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7"
   },
