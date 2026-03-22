@@ -1,7 +1,7 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 
 export const config = {
-  runtime: "edge", // ensure the Edge runtime is used
+  runtime: "edge",
 };
 
 /**
