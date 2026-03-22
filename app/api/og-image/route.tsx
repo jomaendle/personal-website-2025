@@ -1,29 +1,23 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 
-export const config = {
-  runtime: "edge", // ensure the Edge runtime is used
-};
+export const runtime = "edge";
 
-/**
- * Sanitize OG image parameters to prevent abuse.
- * Limits length and trims whitespace.
- */
 function sanitizeOgParam(
   param: string | null,
   maxLength: number,
-  defaultValue: string
+  defaultValue: string,
 ): string {
   if (!param) return defaultValue;
   return param.trim().slice(0, maxLength);
 }
 
-export default async function GET(request: Request) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = sanitizeOgParam(searchParams.get("title"), 100, "Jo Maendle");
   const description = sanitizeOgParam(
     searchParams.get("description"),
     200,
-    "Building for the Web."
+    "Building for the Web.",
   );
 
   return new ImageResponse(

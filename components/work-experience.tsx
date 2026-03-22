@@ -3,7 +3,7 @@
 import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const workExperiences = [
   {

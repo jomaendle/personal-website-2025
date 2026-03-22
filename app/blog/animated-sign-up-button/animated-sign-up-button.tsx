@@ -1,5 +1,5 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { JSX, useState } from "react";
 import { Loader2 } from "lucide-react";
 
