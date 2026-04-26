@@ -48,6 +48,9 @@ This is a Next.js 15 personal website built with the App Router, featuring a blo
 - Contact form uses Resend for email delivery
 - View counter uses Supabase for persistence
 
+#### Documented Solutions
+- `docs/solutions/` - documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`)
+
 ### Design System
 
 The site uses a custom dark-first design system built on Tailwind CSS:

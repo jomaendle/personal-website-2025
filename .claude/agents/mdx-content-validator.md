@@ -15,21 +15,19 @@ Given a blog post slug or path, inspect the following:
 - Is it added to the `BLOG_POSTS` array at the bottom of the file?
 - Does the `slug` value exactly match the directory name in `app/blog/`?
 
-### 2. `app/blog/[slug]/page.tsx`
-- Does it import the metadata constant from `@/lib/state/blog`?
-- Does it import `MdxLayout` from `@/components/mdx-layout`?
-- Does it import `Content` from `./content.mdx`?
-- Does it export `metadata` using the constant's `title` field?
+### 2. `app/blog/[slug]/page.mdx`
+- Does the file exist? (All posts use a single `page.mdx` — there is no separate `page.tsx`.)
+- Does it import the metadata constant using a **relative path** (e.g. `../../../lib/state/blog`)? (`@/` aliases are not resolved by the MDX compiler.)
+- Does it import `MdxLayout` using a **relative path** (e.g. `../../../components/mdx-layout`)?
+- Does it export `metadata` with **both** `title` and `date` fields from the constant?
 - Does it export `dynamic = "force-static"`?
-- Does `MdxLayout` receive `metadata.date` and `slug` from the constant?
-
-### 3. `app/blog/[slug]/content.mdx`
-- Does the file exist? (Note: no frontmatter required — metadata lives in blog.ts)
+- Does it have a `default export function Page({ children })` at the bottom that wraps `{children}` in `MdxLayout`, passing `metadata` and `slug`?
 - Are all code samples using `<CodeBlock>` component, **not** markdown triple-backtick fences?
 - Are all React components used in the file imported at the top?
-- Do any image paths use `/[slug]/filename` format (not relative paths)?
+- Do image paths use `/[slug]/filename` format (not relative paths)?
+- Are comments written as `{/* */}` — not HTML `<!-- -->` comments? (HTML comments are invalid in MDX and cause a build error.)
 
-### 4. Public assets
+### 3. Public assets
 - Does `public/[slug]/` directory exist if the post references any images?
 
 ## Output format
@@ -39,8 +37,9 @@ Report each check as PASS or FAIL with a one-line explanation. For failures, inc
 ```
 ✅ lib/state/blog.ts export — PASS
 ❌ lib/state/blog.ts BLOG_POSTS — FAIL: MY_POST not added to the array
-✅ page.tsx structure — PASS
-❌ content.mdx code blocks — FAIL: Line 42 uses triple-backtick fence, replace with <CodeBlock language="ts">
+✅ page.mdx exists — PASS
+❌ page.mdx metadata — FAIL: missing `date` field, add `date: MY_POST.date` to the metadata export
+❌ page.mdx code blocks — FAIL: Line 42 uses triple-backtick fence, replace with <CodeBlock language="ts">
 ```
 
 End with a summary: "X checks passed, Y failed" and list the files that need changes.
