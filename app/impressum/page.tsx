@@ -28,8 +28,8 @@ export default function ImpressumPage() {
           <H2>Anbieter</H2>
           <div className="space-y-1 text-muted-foreground">
             <p>Johannes Mändle</p>
-            <p>[Straße und Hausnummer]</p>
-            <p>[PLZ Ort]</p>
+            <p>Elbstr. 81</p>
+            <p>28199 Bremen</p>
             <p>Deutschland</p>
           </div>
         </section>
@@ -40,10 +40,10 @@ export default function ImpressumPage() {
             <p>
               E-Mail:{" "}
               <a
-                href="mailto:hello@jomaendle.com"
+                href="mailto:meo@jomaendle.com"
                 className="underline transition-colors hover:text-primary"
               >
-                hello@jomaendle.com
+                meo@jomaendle.com
               </a>
             </p>
             <p>Telefon: [optional]</p>

@@ -181,7 +181,14 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
         ? "Full-Stack Developer für Unternehmen"
         : "Full-Stack Developer for Businesses",
       url: "https://jomaendle.com",
-      email: "mailto:hello@jomaendle.com",
+      email: "mailto:meo@jomaendle.com",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Elbstr. 81",
+        postalCode: "28199",
+        addressLocality: "Bremen",
+        addressCountry: "DE",
+      },
       sameAs: [
         "https://www.linkedin.com/in/johannes-maendle/",
         "https://github.com/jomaendle",
@@ -219,7 +226,7 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: isDe ? "Vertrieb" : "Sales",
-      email: "hello@jomaendle.com",
+      email: "meo@jomaendle.com",
       url: "https://www.linkedin.com/in/johannes-maendle/",
       availableLanguage: ["de", "en"],
     },

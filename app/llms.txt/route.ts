@@ -5,7 +5,7 @@ const content = `# Jo Mändle
 > Senior full-stack web developer based in Germany. Six plus years of TypeScript, React and Next.js experience. Available for freelance projects with small and mid-sized businesses — real estate agencies, SaaS companies, photographers and similar.
 
 Contact:
-- Email: hello@jomaendle.com
+- Email: meo@jomaendle.com
 - LinkedIn: https://www.linkedin.com/in/johannes-maendle/
 - GitHub: https://github.com/jomaendle
 

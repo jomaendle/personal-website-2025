@@ -28,15 +28,15 @@ export default function DatenschutzPage() {
           <H2>Verantwortlicher</H2>
           <div className="space-y-1 text-muted-foreground">
             <p>Johannes Mändle</p>
-            <p>[Straße und Hausnummer]</p>
-            <p>[PLZ Ort]</p>
+            <p>Elbstr. 81</p>
+            <p>28199 Bremen</p>
             <p>
               E-Mail:{" "}
               <a
-                href="mailto:hello@jomaendle.com"
+                href="mailto:meo@jomaendle.com"
                 className="underline transition-colors hover:text-primary"
               >
-                hello@jomaendle.com
+                meo@jomaendle.com
               </a>
             </p>
           </div>

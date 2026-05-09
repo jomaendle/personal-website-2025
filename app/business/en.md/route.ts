@@ -5,7 +5,7 @@ const md = `# Web Development for Businesses — Jo Mändle
 Senior full-stack developer for small and mid-sized businesses.
 Next.js · React · TypeScript · GDPR-aware · since 2022.
 
-- Email: hello@jomaendle.com
+- Email: meo@jomaendle.com
 - LinkedIn: https://www.linkedin.com/in/johannes-maendle/
 
 ## What I do
@@ -74,7 +74,7 @@ Personal photography portfolio with portrait and landscape work.
 
 ## Contact
 
-- Email: hello@jomaendle.com
+- Email: meo@jomaendle.com
 - LinkedIn: https://www.linkedin.com/in/johannes-maendle/
 - HTML version: https://jomaendle.com/business/en
 - German version: https://jomaendle.com/business
