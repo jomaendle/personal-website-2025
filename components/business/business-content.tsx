@@ -162,7 +162,7 @@ const COPY = {
       heading: "Worum es geht",
       paragraphs: [
         "Ich entwickle zuverlässige Webprodukte für kleine und mittelständische Unternehmen — Maklerbüros, SaaS-Anbieter, Fotograf:innen und alles dazwischen.",
-        "Über sechs Jahre Erfahrung mit TypeScript, React und Next.js. Aktuell bei E.ON, davor bei StudySmarter und Memberspot. Ich kenne die Anforderungen an Performance, Wartbarkeit und Compliance, die zählen, wenn eine Website wirklich Geschäft tragen muss.",
+        "Über sechs Jahre Erfahrung mit TypeScript, React und Next.js. Aktuell als Principal Solution Architect bei E.ON, davor bei StudySmarter und Memberspot. Ich kenne die Anforderungen an Performance, Wartbarkeit und Compliance, die zählen, wenn eine Website wirklich Geschäft tragen muss.",
       ],
     },
     services: {
@@ -251,7 +251,7 @@ const COPY = {
       heading: "What I do",
       paragraphs: [
         "I build reliable web products for small and mid-sized businesses — real estate agencies, SaaS companies, photographers and everything in between.",
-        "Six plus years of TypeScript, React and Next.js experience. Currently at E.ON, previously at StudySmarter and Memberspot. I know the performance, maintainability and compliance bar a website needs to clear when it actually carries the business.",
+        "Six plus years of TypeScript, React and Next.js experience. Currently a Principal Solution Architect at E.ON, previously at StudySmarter and Memberspot. I know the performance, maintainability and compliance bar a website needs to clear when it actually carries the business.",
       ],
     },
     services: {

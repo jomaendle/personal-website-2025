@@ -12,7 +12,7 @@ Next.js · React · TypeScript · GDPR-aware · since 2022.
 
 I build reliable web products for small and mid-sized businesses — real estate agencies, SaaS companies, photographers and everything in between.
 
-Six plus years of TypeScript, React and Next.js experience. Currently at E.ON, previously at StudySmarter and Memberspot.
+Six plus years of TypeScript, React and Next.js experience. Currently a Principal Solution Architect at E.ON, previously at StudySmarter and Memberspot.
 
 ## Services
 

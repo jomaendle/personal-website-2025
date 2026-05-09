@@ -31,7 +31,7 @@ Contact:
 
 ## Background
 
-- Currently: E.ON (in-house full-stack)
+- Currently: Principal Solution Architect at E.ON Digital Technology
 - Previously: StudySmarter, Memberspot
 - Languages: German (native), English (fluent)
 - Stack focus: TypeScript, React, Next.js, Astro, Tailwind CSS

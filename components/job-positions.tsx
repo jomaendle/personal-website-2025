@@ -5,7 +5,7 @@ import { motion, type Variants } from "framer-motion";
 const jobPositions = [
   {
     company: "E.ON Digital Technology",
-    role: "Senior Full-Stack Engineer",
+    role: "Principal Solution Architect",
     startDate: "Sep 2024",
     endDate: "present",
   },
