@@ -34,12 +34,49 @@ function getBlogPosts() {
 export default function sitemap(): MetadataRoute.Sitemap {
   const blogPosts = getBlogPosts();
 
+  const now = new Date();
   const staticPages = [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/business`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+      alternates: {
+        languages: {
+          de: `${baseUrl}/business`,
+          en: `${baseUrl}/business/en`,
+        },
+      },
+    },
+    {
+      url: `${baseUrl}/business/en`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          de: `${baseUrl}/business`,
+          en: `${baseUrl}/business/en`,
+        },
+      },
+    },
+    {
+      url: `${baseUrl}/impressum`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/datenschutz`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
     },
   ];
 

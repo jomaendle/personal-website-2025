@@ -4,7 +4,13 @@ import { H1 } from "@/components/ui/heading";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useRef } from "react";
 
-export const NameHeading = ({ showJobTitle }: { showJobTitle?: boolean }) => {
+export const NameHeading = ({
+  showJobTitle,
+  jobTitle = "Full-Stack Developer",
+}: {
+  showJobTitle?: boolean;
+  jobTitle?: string;
+}) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   return (
@@ -22,7 +28,7 @@ export const NameHeading = ({ showJobTitle }: { showJobTitle?: boolean }) => {
         <div>
           <H1>Jo Mändle</H1>
           {showJobTitle && (
-            <p className="text-muted-foreground">Full-Stack Developer</p>
+            <p className="text-muted-foreground">{jobTitle}</p>
           )}
         </div>
       </div>
