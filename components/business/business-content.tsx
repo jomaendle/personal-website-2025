@@ -230,7 +230,7 @@ const COPY = {
     },
     contact: {
       heading: "Kontakt",
-      email: "meo@jomaendle.com",
+      email: "me@jomaendle.com",
       emailLabel: "E-Mail",
       linkedin: "LinkedIn",
     },
@@ -319,7 +319,7 @@ const COPY = {
     },
     contact: {
       heading: "Contact",
-      email: "meo@jomaendle.com",
+      email: "me@jomaendle.com",
       emailLabel: "Email",
       linkedin: "LinkedIn",
     },

@@ -33,10 +33,10 @@ export default function DatenschutzPage() {
             <p>
               E-Mail:{" "}
               <a
-                href="mailto:meo@jomaendle.com"
+                href="mailto:me@jomaendle.com"
                 className="underline transition-colors hover:text-primary"
               >
-                meo@jomaendle.com
+                me@jomaendle.com
               </a>
             </p>
           </div>

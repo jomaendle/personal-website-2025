@@ -40,10 +40,10 @@ export default function ImpressumPage() {
             <p>
               E-Mail:{" "}
               <a
-                href="mailto:meo@jomaendle.com"
+                href="mailto:me@jomaendle.com"
                 className="underline transition-colors hover:text-primary"
               >
-                meo@jomaendle.com
+                me@jomaendle.com
               </a>
             </p>
             <p>Telefon: [optional]</p>
