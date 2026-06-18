@@ -72,7 +72,7 @@ export function PersonStructuredData() {
       "Jo Maendle",
       "Johannes Maendle",
     ],
-    jobTitle: "Full-Stack Developer",
+    jobTitle: "Principal Solution Architect",
     url: "https://jomaendle.com",
     sameAs: [
       "https://www.linkedin.com/in/johannes-maendle/",

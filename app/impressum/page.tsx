@@ -46,7 +46,6 @@ export default function ImpressumPage() {
                 me@jomaendle.com
               </a>
             </p>
-            <p>Telefon: [optional]</p>
           </div>
         </section>
 
