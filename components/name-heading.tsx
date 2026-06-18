@@ -6,7 +6,7 @@ import { useRef } from "react";
 
 export const NameHeading = ({
   showJobTitle,
-  jobTitle = "Principal Solution Architect",
+  jobTitle = "Principal Solution Architect – AI in SDLC",
 }: {
   showJobTitle?: boolean;
   jobTitle?: string;
