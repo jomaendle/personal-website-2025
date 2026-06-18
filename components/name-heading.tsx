@@ -6,7 +6,7 @@ import { useRef } from "react";
 
 export const NameHeading = ({
   showJobTitle,
-  jobTitle = "Full-Stack Developer",
+  jobTitle = "Principal Solution Architect",
 }: {
   showJobTitle?: boolean;
   jobTitle?: string;
