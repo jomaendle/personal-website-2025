@@ -1,17 +1,10 @@
 import { AnimatedSignUpButton } from "./animated-sign-up-button";
 import { CodeBlock } from "../../../components/code-block";
 import { BlogVideo } from "../../../components/blog-image";
-import MdxLayout from "../../../components/mdx-layout";
-import { ANIMATED_SIGN_UP_BUTTON } from "../../../lib/state/blog";
 
-export const metadata = {
-    title: ANIMATED_SIGN_UP_BUTTON.title,
-    date: ANIMATED_SIGN_UP_BUTTON.date,
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Creating an Animated Sign Up Button
 
 In this article, I'm rebuilding the animated sign-up button I've encountered in Emil Kowalski's [Animations on the Web](https://animations.dev/) course.
 
@@ -137,10 +130,3 @@ Here you can play around with the button and see how it behaves in different sta
 <AnimatedSignUpButton/>
 
 
-export default function Page({children}) {
-    return (
-        <MdxLayout metadata={metadata} slug={ANIMATED_SIGN_UP_BUTTON.slug}>
-            {children}
-        </MdxLayout>
-    )
-}

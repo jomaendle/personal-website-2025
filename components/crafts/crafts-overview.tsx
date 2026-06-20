@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CounterCraft } from "@/components/crafts/counter";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { LoadingGradient } from "@/components/ui/loading-gradient";
 
 // Lazy load heavy components

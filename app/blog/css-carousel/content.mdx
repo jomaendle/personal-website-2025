@@ -1,4 +1,3 @@
-import { CSS_CAROUSEL } from "../../../lib/state/blog";
 import { CarouselDemo } from "./CarouselDemo";
 import { ScrollButtonAnatomy } from "./ScrollButtonAnatomy";
 import { BlogVideo } from "../../../components/blog-image";
@@ -6,16 +5,10 @@ import { BlogVideo } from "../../../components/blog-image";
 import videoPoster from "../../../public/css-carousel/video-poster.webp";
 import { CarouselCode } from "./CarouselCode";
 import BaselineStatus from "../../../components/baseline-status";
-import MdxLayout from "../../../components/mdx-layout";
 
-export const metadata = {
-  title: CSS_CAROUSEL.title,
-  date: CSS_CAROUSEL.date,
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Native CSS Carousels with ::scroll-button and ::scroll-marker
 
 <BlogVideo
   src="/css-carousel/demo.mp4"
@@ -75,10 +68,3 @@ No tedious JavaScript or 3rd-party libraries are needed.
 <BaselineStatus featureId="scroll-markers" />
 
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
-      {children}
-    </MdxLayout>
-  )
-}

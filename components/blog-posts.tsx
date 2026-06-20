@@ -4,7 +4,7 @@ import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounter } from "@/components/view-counter";
 import { BLOG_POSTS } from "@/lib/state/blog";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 
 const MotionLink = motion.create(Link);

@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { H2 } from "@/components/ui/heading";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 
 export default function NewsletterForm() {

@@ -1,18 +1,11 @@
 import { CodeBlock } from "../../../components/code-block";
-import { HTML_POPOVER } from "../../../lib/state/blog";
 import { PopoverPlayground } from "./PopoverPlayground";
 import BaselineStatus from "../../../components/baseline-status";
-import MdxLayout from "../../../components/mdx-layout";
 import { PopoverCode } from "./PopoverCode";
 
-export const metadata = {
-  title: HTML_POPOVER.title,
-  date: HTML_POPOVER.date,
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# HTML Popover reached Baseline Support
 
 <PopoverPlayground />
 
@@ -102,10 +95,3 @@ Below is a playground where you can experiment with the `popover` element 🛝.
 
 Thanks for reading and see you in the next one 👋
 
-export default function Page({ children }) {
-  return (
-    <MdxLayout metadata={metadata} slug={HTML_POPOVER.slug}>
-      {children}
-    </MdxLayout>
-  )
-}

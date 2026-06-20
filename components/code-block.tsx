@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 

@@ -1,16 +1,10 @@
 import { CodeBlock } from "../../../components/code-block";
 import { BlogVideo } from "../../../components/blog-image";
-import MdxLayout from "../../../components/mdx-layout";
 import BaselineStatus from "../../../components/baseline-status";
 
-export const metadata = {
-    title: "Animating Gradients in CSS",
-    date: "Dec 5, 2023",
-};
 
-export const dynamic = 'force-static'
 
-# {metadata.title}
+# Animating Gradients in CSS
 
 <BaselineStatus featureId="registered-custom-properties" />
 
@@ -133,13 +127,3 @@ body {
 />
 
 A smooth transition between the color changes 🎉
-
-export default function Page({children}) {
-    return (
-    <MdxLayout metadata={metadata} slug="animations">
-        {children}
-    </MdxLayout>
-)
-
-
-}

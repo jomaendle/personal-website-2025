@@ -33,26 +33,32 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
+export const ANIMATIONS = {
+  title: "Animating Gradients in CSS",
+  date: "Dec 5, 2023",
+  slug: "animations",
+};
+
+export const RESPONSIVE_UI_COMPONENTS = {
+  title: "Making Responsive UI Components with display: contents",
+  date: "Sep 15, 2024",
+  slug: "responsive-ui-components",
+};
+
+export const ALIGN_DATES_IN_TABLES = {
+  title: "Align Dates in Tabular Data",
+  date: "Sep 29, 2024",
+  slug: "align-dates-in-tables",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;
   slug: string;
 }[] = [
-  {
-    title: "Animating Gradients in CSS",
-    date: "Dec 5, 2023",
-    slug: "animations",
-  },
-  {
-    title: "Making Responsive UI Components with display: contents",
-    date: "Sep 15, 2024",
-    slug: "responsive-ui-components",
-  },
-  {
-    title: "Aligning Dates in Tabular Data",
-    date: "Sep 29, 2024",
-    slug: "align-dates-in-tables",
-  },
+  ANIMATIONS,
+  RESPONSIVE_UI_COMPONENTS,
+  ALIGN_DATES_IN_TABLES,
   ANIMATED_SIGN_UP_BUTTON,
   FOCUS_ZOOM_MASK_IMAGE,
   HTML_POPOVER,
