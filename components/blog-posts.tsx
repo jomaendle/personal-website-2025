@@ -4,12 +4,21 @@ import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { ViewCounter } from "@/components/view-counter";
 import { BLOG_POSTS } from "@/lib/state/blog";
+import { categoryFor } from "@/lib/state/writing-categories";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
+/**
+ * BlogPosts — Editorial design layer.
+ *
+ * All of the show-more / collapse / view-transition logic is preserved
+ * verbatim; only the row presentation changes: hairline ledger rows, a mono
+ * category eyebrow, serif title, and an ink fill-on-hover (text inverts to
+ * paper). Category comes from `lib/state/writing-categories.ts`.
+ */
+
 const MotionLink = motion.create(Link);
 
-// Memoized blog post item to prevent unnecessary re-renders
 const BlogPostItem = memo(
   ({
     post,
@@ -50,26 +59,29 @@ const BlogPostItem = memo(
       >
         <MotionLink
           href={"/blog/" + post.slug}
-          className="group -mx-3 flex items-center gap-4 rounded-[.25rem] px-3 py-2 hover-accent"
+          className="group flex items-center gap-4 border-b border-border px-3 py-4 transition-colors hover:bg-foreground"
           prefetch={false}
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
         >
+          <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
+            {categoryFor(post.slug)}
+          </span>
           <div className="flex-1">
             <H3
-              className="blog-title line-clamp-2"
+              className="blog-title line-clamp-2 group-hover:!text-background"
               style={{ viewTransitionName: `blog-title-${post.slug}` }}
             >
               {post.title}
             </H3>
             <p
-              className="text-sm text-muted-foreground"
               style={{ viewTransitionName: `blog-date-${post.slug}` }}
+              className="mt-1 font-mono text-xs text-muted-foreground transition-colors group-hover:text-background/70"
             >
               {post.date}
             </p>
           </div>
-          <ViewCounter slug={post.slug} shouldIncrement={false} />
+          <span className="transition-colors group-hover:text-background">
+            <ViewCounter slug={post.slug} shouldIncrement={false} />
+          </span>
         </MotionLink>
       </motion.article>
     );
@@ -82,14 +94,12 @@ export function BlogPosts() {
   const [showAll, setShowAll] = useState(false);
   const [isCollapsing, setIsCollapsing] = useState(false);
 
-  // Keep showing all posts during collapse animation
   const displayedPosts =
     showAll || isCollapsing ? BLOG_POSTS : BLOG_POSTS.slice(0, 4);
 
   const STAGGER_DELAY = 0.04;
   const ANIMATION_DURATION = 0.25;
 
-  // Calculate total exit animation time for button coordination
   const getExitAnimationDuration = () => {
     const itemsToRemove = BLOG_POSTS.length - 4;
     return ANIMATION_DURATION + (itemsToRemove - 1) * STAGGER_DELAY;
@@ -104,39 +114,31 @@ export function BlogPosts() {
     }
   };
 
-  // Handle cleanup of collapsing state with proper timeout cleanup
   useEffect(() => {
     if (isCollapsing) {
-      // Reset collapsing state after animations complete
       const timeoutId = setTimeout(() => {
         setIsCollapsing(false);
       }, getExitAnimationDuration() * 200);
-
-      // Cleanup timeout if component unmounts or state changes
       return () => clearTimeout(timeoutId);
     }
     return undefined;
   }, [isCollapsing]);
 
   const getItemAnimationDelay = (index: number) => {
-    // When expanding: stagger from top to bottom (only new items)
     if (showAll && !isCollapsing) {
       return index > 3 ? (index - 4) * STAGGER_DELAY : 0;
     }
-
-    // When collapsing: stagger from bottom to top (items beyond index 3)
     if (isCollapsing && index > 3) {
       const itemsToRemove = BLOG_POSTS.length - 4;
-      const relativePosition = index - 4; // Position among items to be removed (0-based)
+      const relativePosition = index - 4;
       const positionFromEnd = itemsToRemove - 1 - relativePosition;
       return positionFromEnd * STAGGER_DELAY;
     }
-
     return 0;
   };
 
   return (
-    <motion.div layout className="flex flex-col gap-4">
+    <motion.div layout className="-mx-3 flex flex-col">
       <AnimatePresence initial={false}>
         {displayedPosts.map((post, index) => {
           const shouldShow =
@@ -166,19 +168,10 @@ export function BlogPosts() {
       {BLOG_POSTS.length > 4 && (
         <motion.div
           layout
-          className="mt-2 flex justify-center"
-          transition={{
-            layout: {
-              duration: ANIMATION_DURATION,
-              ease: "easeInOut",
-            },
-          }}
+          className="mt-6 flex justify-center"
+          transition={{ layout: { duration: ANIMATION_DURATION, ease: "easeInOut" } }}
         >
-          <Button
-            variant="outline"
-            onClick={handleToggle}
-            disabled={isCollapsing}
-          >
+          <Button variant="outline" onClick={handleToggle} disabled={isCollapsing}>
             {showAll ? "Show Less" : "Show More"}
           </Button>
         </motion.div>
