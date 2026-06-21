@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+import "./editorial-theme.css";
 import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -73,12 +74,19 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://giscus.app" />
           <link rel="dns-prefetch" href="https://plausible.io" />
 
-          {/* Preload critical font */}
+          {/* Preload critical fonts */}
           <link
             rel="preload"
             href="/fonts/GeistVF.woff"
             as="font"
             type="font/woff"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="/fonts/NewsreaderVF.woff2"
+            as="font"
+            type="font/woff2"
             crossOrigin="anonymous"
           />
         </head>

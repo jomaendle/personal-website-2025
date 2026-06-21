@@ -1,0 +1,203 @@
+/* =============================================================
+   EDITORIAL DESIGN LAYER — jomaendle.com
+   -------------------------------------------------------------
+   A single, reversible theme layer. It re-skins the entire site
+   by overriding the shadcn semantic tokens — no feature logic,
+   data, or view-transition code is touched.
+
+   INSTALL: in `app/layout.tsx`, import this file directly AFTER
+   globals so its rules win by source order:
+
+       import "./globals.css";
+       import "./editorial-theme.css";   // <-- add this line
+
+   To remove the redesign, delete that one import line.
+
+   Palette:  Paper  #F7F4EE   Ink #17140F   Vermilion #C13B22
+   Type:     Newsreader (serif headings) · Geist (body) · Geist Mono (labels)
+   ============================================================= */
+
+/* ---- Self-hosted Newsreader (matches the self-hosted Geist) ------ */
+/* Variable fonts: opsz 6..72, wght 300..600 (roman) / 300..500 (italic).
+   Only the `latin` subset is shipped — it covers Latin-1 (incl. ä). */
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/NewsreaderVF.woff2') format('woff2');
+  font-weight: 300 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/NewsreaderItalicVF.woff2') format('woff2');
+  font-weight: 300 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---- Design tokens ------------------------------------------------ */
+/* Unlayered rules intentionally win over globals' @layer base tokens. */
+
+/* LIGHT — "paper" (recommended default) */
+:root,
+.light {
+  --background: 40 33% 95%;
+  --foreground: 38 24% 8%;
+
+  --card: 40 30% 92%;
+  --card-foreground: 38 24% 8%;
+  --popover: 40 33% 96%;
+  --popover-foreground: 38 24% 8%;
+
+  --primary: 38 24% 8%;            /* ink — primary buttons */
+  --primary-foreground: 40 33% 96%;
+  --secondary: 40 20% 88%;
+  --secondary-foreground: 38 24% 8%;
+  --muted: 40 20% 90%;
+  --muted-foreground: 36 9% 38%;
+  --accent: 40 24% 89%;
+  --accent-foreground: 38 24% 8%;
+  --destructive: 0 70% 45%;
+  --destructive-foreground: 40 33% 96%;
+
+  --border: 38 16% 84%;
+  --input: 38 16% 84%;
+  --ring: 9 70% 45%;
+  --radius: 0.4rem;
+
+  --link: 9 70% 45%;               /* vermilion */
+  --link-hover: 9 72% 38%;
+
+  /* New brand accent used by the reskinned primitives */
+  --brand: 9 70% 45%;
+  --brand-soft: 12 62% 56%;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+}
+
+/* DARK — warm editorial (deep ink + paper text) */
+:root:not(.light) {
+  --background: 36 12% 7%;
+  --foreground: 40 30% 94%;
+
+  --card: 36 10% 11%;
+  --card-foreground: 40 30% 94%;
+  --popover: 36 10% 11%;
+  --popover-foreground: 40 30% 94%;
+
+  --primary: 40 30% 94%;
+  --primary-foreground: 36 12% 7%;
+  --secondary: 36 8% 16%;
+  --secondary-foreground: 40 30% 94%;
+  --muted: 36 8% 16%;
+  --muted-foreground: 40 10% 62%;
+  --accent: 36 8% 18%;
+  --accent-foreground: 40 30% 94%;
+  --destructive: 4 72% 52%;
+  --destructive-foreground: 40 30% 94%;
+
+  --border: 36 8% 22%;
+  --input: 36 8% 22%;
+  --ring: 12 80% 60%;
+
+  --link: 12 84% 64%;
+  --link-hover: 12 84% 72%;
+
+  --brand: 12 84% 64%;
+  --brand-soft: 12 70% 58%;
+}
+
+/* ---- Surface: flatten the gradient/glass into editorial paper ---- */
+
+/* Remove the blue/purple radial glow; use a single calm paper field. */
+:root body,
+.light body {
+  background: hsl(var(--background)) !important;
+}
+
+/* Turn the glass card into a quiet paper sheet with a hairline edge. */
+.glass-container {
+  border-radius: 1rem !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 768px) {
+  .glass-container { padding: 0 !important; }
+}
+
+/* ---- Typography: serif headings, refined rhythm ------------------ */
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.prose h1 {
+  font-weight: 400;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.04;
+}
+
+.prose h2 {
+  border-bottom-color: hsl(var(--border));
+}
+
+/* First-letter drop cap on the opening paragraph of an article. */
+.prose > p:first-of-type::first-letter {
+  font-family: var(--font-serif);
+  font-size: 3.6em;
+  line-height: 0.72;
+  float: left;
+  padding: 0.06em 0.12em 0 0;
+  color: hsl(var(--brand));
+}
+
+/* Pull-quote treatment for blockquotes. */
+.prose blockquote {
+  border-left: 3px solid hsl(var(--brand));
+  background: transparent;
+  border-radius: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+  padding-left: 1.5rem;
+}
+
+/* List markers in brand vermilion. */
+.prose ul li::marker,
+.prose ol li::marker {
+  color: hsl(var(--brand));
+}
+
+/* Links pick up the editorial accent everywhere. */
+.prose a {
+  color: hsl(var(--link));
+  text-decoration-color: hsl(var(--link) / 0.4);
+}
+.prose a:hover {
+  color: hsl(var(--link-hover));
+}
+
+/* ---- Row hover: warmer, tighter, editorial ----------------------- */
+
+.light .hover-accent:hover {
+  background-color: hsl(var(--brand) / 0.06);
+}
+:root .hover-accent:hover {
+  background-color: hsl(var(--brand) / 0.10);
+}
+
+::selection {
+  background: hsl(var(--brand));
+  color: hsl(var(--background));
+}
