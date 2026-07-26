@@ -3,7 +3,9 @@ import Image from "next/image";
 import { Link } from "next-view-transitions";
 import { H1 } from "@/components/ui/heading";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { SITE } from "@/lib/config/site";
 import { PRIMARY_NAV } from "@/lib/config/navigation";
 
@@ -24,28 +26,68 @@ export const NameHeading = ({
   jobTitle?: string;
 }) => {
   const imageRef = useRef<HTMLImageElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
-        <span className="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.16em] text-brand">
-          {jobTitle}
-        </span>
-        <div className="flex items-center gap-5">
-          <nav className="hidden items-center gap-5 text-sm text-muted-foreground sm:flex">
+      <Collapsible.Root
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        className="flex flex-col gap-4"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <span className="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.16em] text-brand">
+            {jobTitle}
+          </span>
+          <div className="flex items-center gap-5">
+            <nav
+              aria-label="Primary"
+              className="hidden items-center gap-5 text-sm text-muted-foreground sm:flex"
+            >
+              {PRIMARY_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="transition-colors hover:text-brand"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <ThemeToggle />
+            <Collapsible.Trigger asChild>
+              <button
+                type="button"
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:hidden"
+              >
+                {menuOpen ? (
+                  <X className="size-5" />
+                ) : (
+                  <Menu className="size-5" />
+                )}
+              </button>
+            </Collapsible.Trigger>
+          </div>
+        </div>
+        <Collapsible.Content className="sm:hidden">
+          <nav
+            aria-label="Primary"
+            className="flex flex-col gap-3 border-t border-border pt-4 text-sm text-muted-foreground"
+          >
             {PRIMARY_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMenuOpen(false)}
                 className="transition-colors hover:text-brand"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <ThemeToggle />
-        </div>
-      </div>
+        </Collapsible.Content>
+      </Collapsible.Root>
 
       <div className="flex items-center gap-5">
         <Image

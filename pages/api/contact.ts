@@ -68,7 +68,9 @@ async function handler(
       });
 
       if (sendMailRes.error) {
-        return res.status(500).json({ error: sendMailRes.error.message });
+        // Log the full provider error server-side; never leak it to the client.
+        console.error("Contact form email failed:", sendMailRes.error);
+        return res.status(500).json({ error: "Failed to send message" });
       }
 
       res.status(200).json({ message: "Message sent successfully" });

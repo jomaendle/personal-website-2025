@@ -334,8 +334,6 @@ const SERVICE_ICONS = {
   linechart: LineChart,
 } as const;
 
-const MotionLink = motion.create(Link);
-
 const containerVariants: Variants = {
   hidden: { opacity: 1 },
   visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
@@ -589,7 +587,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 <span>
                   {t.contact.emailLabel} — {t.contact.email}
                 </span>
-                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" />
               </a>
             </motion.div>
             <motion.div variants={itemVariants}>
@@ -600,7 +598,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 className="group inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
               >
                 <span>{t.contact.linkedin}</span>
-                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" />
               </a>
             </motion.div>
             <motion.div variants={itemVariants}>
@@ -613,7 +611,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                     ? "Diese Seite als Markdown ansehen"
                     : "View this page as Markdown"}
                 </span>
-                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" />
               </a>
             </motion.div>
           </motion.address>

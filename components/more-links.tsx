@@ -73,7 +73,10 @@ export const MoreLinks = () => {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <span>{link.text}</span>
-            <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+            <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" />
+            {!link.href.startsWith("mailto:") && (
+              <span className="sr-only"> (opens in new window)</span>
+            )}
           </MotionLink>
         </motion.div>
       ))}

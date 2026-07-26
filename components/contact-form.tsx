@@ -57,11 +57,18 @@ export function ContactForm() {
       <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
 
       {submitStatus === "success" ? (
-        <div className="rounded-md bg-green-900/20 p-4 text-sm text-green-400">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-md bg-green-900/20 p-4 text-sm text-green-400"
+        >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
-        <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400">
+        <div
+          role="alert"
+          className="rounded-md bg-red-900/20 p-4 text-sm text-red-400"
+        >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>
       ) : (
@@ -78,6 +85,7 @@ export function ContactForm() {
               onChange={(e) => setName(e.target.value)}
               className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              aria-required="true"
               disabled={isSubmitting}
               minLength={2}
               maxLength={100}
@@ -96,6 +104,7 @@ export function ContactForm() {
               onChange={(e) => setEmail(e.target.value)}
               className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              aria-required="true"
               disabled={isSubmitting}
               maxLength={254}
             />
@@ -113,6 +122,7 @@ export function ContactForm() {
               placeholder="I'm interested in a new software product and would like to know more about your services."
               className="w-full bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              aria-required="true"
               disabled={isSubmitting}
               minLength={10}
               maxLength={1000}

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function WritingPage() {
   return (
-    <div className="page-container">
+    <main id="main-content" className="page-container">
       <div
         className="glass-container mx-auto flex max-w-3xl flex-col gap-12"
         style={{ viewTransitionName: "main-content" }}
@@ -40,6 +40,6 @@ export default function WritingPage() {
         <NewsletterForm />
         <Footer />
       </div>
-    </div>
+    </main>
   );
 }

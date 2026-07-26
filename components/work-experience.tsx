@@ -56,6 +56,7 @@ export function WorkExperience() {
                 ↗
               </span>
             </div>
+            <span className="sr-only"> (opens in new window)</span>
           </MotionLink>
         </motion.article>
       ))}

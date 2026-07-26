@@ -111,13 +111,20 @@ export default function NewsletterForm() {
       </form>
 
       {status === "success" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="status"
+          aria-live="polite"
+          className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0"
+        >
           Thanks for subscribing! You will receive an email shortly.
         </p>
       )}
 
       {status === "error" && (
-        <p className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0">
+        <p
+          role="alert"
+          className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0"
+        >
           {errorMessage || "Failed to subscribe. Please try again."}
         </p>
       )}

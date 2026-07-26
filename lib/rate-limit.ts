@@ -5,7 +5,14 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-// In-memory store for rate limiting (consider using Redis in production)
+// In-memory store for rate limiting.
+//
+// LIMITATION: On serverless/edge (e.g. Vercel), each function instance has its
+// own module memory, so this counter is per-instance and best-effort only — a
+// client whose requests land on different instances effectively gets a higher
+// limit, and counts reset on cold starts. This is acceptable as a lightweight
+// abuse deterrent for a low-traffic personal site. If abuse appears, upgrade to
+// a shared store (Upstash Redis / Vercel KV) keyed the same way.
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries periodically
@@ -51,7 +58,7 @@ function getClientIp(req: NextApiRequest): string {
   return req.socket.remoteAddress || "unknown";
 }
 
-export function rateLimit(options: RateLimitOptions) {
+function rateLimit(options: RateLimitOptions) {
   return (req: NextApiRequest, res: NextApiResponse, next: () => void) => {
     const ip = getClientIp(req);
     

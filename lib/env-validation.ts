@@ -15,6 +15,14 @@ const serverEnvVars: EnvVar[] = [
     name: "RESEND_AUDIENCE_ID",
     required: true,
     validate: (value) => value.length > 10
+  },
+  {
+    // Dedicated HMAC signing key for unsubscribe tokens. Required — there is
+    // intentionally no fallback (see lib/unsubscribe-token.ts). Must be set in
+    // the deployment environment or newsletter subscribe/unsubscribe will fail.
+    name: "UNSUBSCRIBE_TOKEN_SECRET",
+    required: true,
+    validate: (value) => value.length >= 16
   }
 ];
 

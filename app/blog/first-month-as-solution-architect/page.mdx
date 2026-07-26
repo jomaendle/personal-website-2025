@@ -1,0 +1,21 @@
+import { CSS_CAROUSEL } from "../../../lib/state/blog";
+import MdxLayout from "../../../components/mdx-layout";
+
+export const metadata = {
+  title: CSS_CAROUSEL.title,
+  date: CSS_CAROUSEL.date,
+};
+
+export const dynamic = 'force-static'
+
+# {metadata.title}
+
+
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+      {children}
+    </MdxLayout>
+  )
+}

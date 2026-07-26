@@ -457,3 +457,21 @@
         }
     }
 }
+
+/* Global reduced-motion fallback for CSS-driven animation (animate-pulse,
+   tailwindcss-motion presets, spinners, transitions). Framer Motion is handled
+   separately via <MotionConfig reducedMotion="user"> in app/providers.tsx. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .animate-pulse {
+        animation: none !important;
+    }
+}

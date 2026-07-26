@@ -20,7 +20,7 @@ export const dynamic = "force-static";
 
 export default function Home() {
   return (
-    <div className="page-container">
+    <main id="main-content" className="page-container">
       <div
         className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
         style={{ viewTransitionName: "main-content" }}
@@ -110,6 +110,6 @@ export default function Home() {
 
         <Footer />
       </div>
-    </div>
+    </main>
   );
 }
