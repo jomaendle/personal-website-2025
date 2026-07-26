@@ -174,7 +174,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     },
     engage: {
       heading: "Zusammenarbeit anfragen",
-      lede: "Beschreiben Sie kurz, worum es geht — ich melde mich in der Regel innerhalb von zwei Werktagen. Lieber direkt sprechen? Buchen Sie ein Gespräch.",
+      lede: "Beschreiben Sie kurz, worum es geht — ich melde mich innerhalb von 24 Stunden. Lieber direkt sprechen? Buchen Sie ein Gespräch.",
       bookingTitle: "Lieber direkt sprechen?",
       bookingDesc: "30 Minuten, unverbindlich, in Ihrem Kalender.",
       bookingCta: "Gespräch buchen",
@@ -211,7 +211,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       submit: "Anfrage senden",
       submitting: "Wird gesendet …",
       success:
-        "Danke — Ihre Anfrage ist angekommen. Ich melde mich in der Regel innerhalb von zwei Werktagen.",
+        "Danke — Ihre Anfrage ist angekommen. Ich melde mich innerhalb von 24 Stunden.",
       genericError:
         "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
       networkError:
@@ -292,7 +292,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     },
     engage: {
       heading: "Start a conversation",
-      lede: "Tell me briefly what you're working on — I usually reply within two business days. Prefer to talk it through? Book a call.",
+      lede: "Tell me briefly what you're working on — I'll get back to you within 24 hours. Prefer to talk it through? Book a call.",
       bookingTitle: "Rather talk it through?",
       bookingDesc: "30 minutes, no strings, straight into your calendar.",
       bookingCta: "Book a call",
@@ -329,7 +329,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       submit: "Send inquiry",
       submitting: "Sending …",
       success:
-        "Thanks — your inquiry came through. I usually reply within two business days.",
+        "Thanks — your inquiry came through. I'll get back to you within 24 hours.",
       genericError: "Couldn't send your inquiry. Please try again.",
       networkError:
         "Network error. Please check your connection and try again.",
