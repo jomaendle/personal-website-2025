@@ -117,7 +117,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "Worum es geht",
       paragraphs: [
         "Die meisten Teams brauchen keine weitere Website — sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features liefert, die im Betrieb halten. Genau da setze ich an.",
-        "Hauptberuflich bin ich Principal Solution Architect bei E.ON Digital Technology und verantworte dort, wie KI in den Software-Entwicklungszyklus einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten der Teams. Davor StudySmarter und Memberspot. Über sechs Jahre TypeScript, React und Next.js in Produktion.",
+        "Hauptberuflich arbeite ich als Principal Solution Architect daran, wie KI in den Entwicklungszyklus großer Teams einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten. Über sechs Jahre TypeScript, React und Next.js in Produktion.",
         "Was mich von einem reinen Frontend-Freelancer unterscheidet: Ich baue LLM-Integrationen, die den Weg in die Produktion tatsächlich schaffen — mit Kontextgrenzen, Evaluierung und einem Menschen an der richtigen Stelle im Review. Keine Demo, die im Meeting glänzt und im Alltag scheitert.",
       ],
     },
@@ -235,7 +235,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "What I do",
       paragraphs: [
         "Most teams don't need another website — they need someone who can get inside a mature codebase, carry architecture decisions with them, and ship features that hold up in production. That's the seat I take.",
-        "In my day job I'm Principal Solution Architect at E.ON Digital Technology, where I own how AI enters the software development lifecycle — from architecture and tooling to the daily habits of the teams shipping the work. Before that, StudySmarter and Memberspot. Six-plus years of TypeScript, React and Next.js in production.",
+        "In my day job I'm a Principal Solution Architect working on how AI enters the development lifecycle of large teams — from architecture and tooling to the daily habits. Six-plus years of TypeScript, React and Next.js in production.",
         "What separates me from a pure frontend contractor: I build LLM integrations that genuinely reach production — context boundaries, evaluation, guardrails, cost. Not demo magic, but systems that survive contact with real usage.",
       ],
     },
