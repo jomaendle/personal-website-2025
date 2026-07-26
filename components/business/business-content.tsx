@@ -238,10 +238,14 @@ export function BusinessContent({ lang }: { lang: Lang }) {
 
           <InquiryForm lang={lang} />
 
-          <div className="mt-10 flex flex-col gap-4 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
+          {/* Booking panel. Lifted out of a plain hairline row into a tinted
+              panel so the lower-commitment path is visible to someone who
+              won't fill in a form — but kept as an outlined button so it does
+              not compete with the form's solid ink submit directly above. */}
+          <div className="mt-10 flex flex-col gap-5 rounded-[0.35rem] border border-brand/25 bg-brand/[0.05] p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
             <div>
-              <H3 className="text-[1.15rem]">{t.engage.bookingTitle}</H3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <H3>{t.engage.bookingTitle}</H3>
+              <p className="mt-1.5 text-[0.95rem] text-muted-foreground">
                 {t.engage.bookingDesc}
               </p>
             </div>
@@ -249,7 +253,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               href={SITE.contact.booking}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-[0.25rem] border border-border px-6 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-foreground transition-colors hover:border-brand hover:text-brand"
+              className="inline-flex h-12 shrink-0 items-center justify-center rounded-[0.25rem] border border-brand/50 px-7 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand transition-colors hover:bg-brand hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {t.engage.bookingCta}
               <span className="sr-only"> (opens in new window)</span>

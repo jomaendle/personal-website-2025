@@ -149,7 +149,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "01",
           title: "Gespräch",
-          desc: "30 Minuten, unverbindlich. Was steht an, was ist der Engpass, passt das fachlich überhaupt?",
+          desc: "15 Minuten, unverbindlich. Was steht an, was ist der Engpass, passt das fachlich überhaupt?",
         },
         {
           num: "02",
@@ -176,7 +176,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "Zusammenarbeit anfragen",
       lede: "Beschreiben Sie kurz, worum es geht — ich melde mich innerhalb von 24 Stunden. Lieber direkt sprechen? Buchen Sie ein Gespräch.",
       bookingTitle: "Lieber direkt sprechen?",
-      bookingDesc: "30 Minuten, unverbindlich, in Ihrem Kalender.",
+      bookingDesc: "15 Minuten, unverbindlich, in Ihrem Kalender.",
       bookingCta: "Gespräch buchen",
       emailLabel: "Oder per E-Mail",
       markdownLabel: "Diese Seite als Markdown ansehen",
@@ -267,7 +267,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "01",
           title: "Conversation",
-          desc: "30 minutes, no strings. What's on the table, where's the bottleneck, is this even the right fit?",
+          desc: "15 minutes, no strings. What's on the table, where's the bottleneck, is this even the right fit?",
         },
         {
           num: "02",
@@ -294,7 +294,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "Start a conversation",
       lede: "Tell me briefly what you're working on — I'll get back to you within 24 hours. Prefer to talk it through? Book a call.",
       bookingTitle: "Rather talk it through?",
-      bookingDesc: "30 minutes, no strings, straight into your calendar.",
+      bookingDesc: "15 minutes, no strings, straight into your calendar.",
       bookingCta: "Book a call",
       emailLabel: "Or by email",
       markdownLabel: "View this page as Markdown",
