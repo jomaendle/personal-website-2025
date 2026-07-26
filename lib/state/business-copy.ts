@@ -62,7 +62,14 @@ export interface BusinessCopy {
     eyebrow: string;
     heading: string;
     lede: string;
-    available: string;
+    /**
+     * Earliest start for new engagements. Stated up front so nobody reads the
+     * whole page before learning the timeline, and repeated in process step 02
+     * where scope and capacity are settled. Deliberately says *when work
+     * starts* and nothing about capacity or employment status — neither is
+     * decided, and the page must stay true either way.
+     */
+    availability: string;
     ctaPrimary: string;
     ctaSecondary: string;
   };
@@ -98,6 +105,9 @@ export interface BusinessCopy {
     timelineOptions: SelectOption[];
     optional: string;
     required: string;
+    /** Art. 13 DSGVO notice shown at the point of collection, above submit. */
+    privacyNote: string;
+    privacyLinkLabel: string;
     submit: string;
     submitting: string;
     success: string;
@@ -115,7 +125,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior Frontend-Engineering — und KI, die es in Produktion schafft.",
       lede: "Ich arbeite mit Produktteams an den schwierigen Teilen des Frontends — unabhängig vom Framework — und bringe LLMs in Produkte, die Menschen tatsächlich benutzen.",
-      available: "Verfügbar für neue Projekte",
+      availability: "Verfügbar ab Q1 2027",
       ctaPrimary: "Projekt anfragen",
       ctaSecondary: "Gespräch buchen",
     },
@@ -185,7 +195,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "02",
           title: "Zuschnitt",
-          desc: "Wir klären Umfang, Auslastung und Rahmen — schriftlich, bevor jemand Zeit investiert.",
+          desc: "Wir klären Umfang, Auslastung und Rahmen — schriftlich, bevor jemand Zeit investiert. Projektstart ab Q1 2027.",
         },
         {
           num: "03",
@@ -239,6 +249,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       ],
       optional: "optional",
       required: "Pflichtfeld",
+      privacyNote:
+        "Ihre Angaben verwende ich ausschließlich zur Bearbeitung dieser Anfrage. Details in der",
+      privacyLinkLabel: "Datenschutzerklärung",
       submit: "Anfrage senden",
       submitting: "Wird gesendet …",
       success:
@@ -257,7 +270,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior frontend engineering, with AI that actually ships.",
       lede: "I work with product teams on the hard parts of the frontend — whatever the framework — and bring LLMs into products people actually use.",
-      available: "Available for new engagements",
+      availability: "Available from Q1 2027",
       ctaPrimary: "Start an inquiry",
       ctaSecondary: "Book a call",
     },
@@ -327,7 +340,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "02",
           title: "Shape",
-          desc: "We settle scope, capacity and terms — in writing, before anyone invests time.",
+          desc: "We settle scope, capacity and terms — in writing, before anyone invests time. Engagements start from Q1 2027.",
         },
         {
           num: "03",
@@ -381,6 +394,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       ],
       optional: "optional",
       required: "required",
+      privacyNote:
+        "I use your details solely to respond to this inquiry. Details in the",
+      privacyLinkLabel: "privacy policy",
       submit: "Send inquiry",
       submitting: "Sending …",
       success:

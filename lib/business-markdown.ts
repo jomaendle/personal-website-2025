@@ -34,6 +34,8 @@ ${t.hero.eyebrow}
 
 ${t.hero.lede}
 
+**${t.hero.availability}**
+
 - ${isDe ? "E-Mail" : "Email"}: ${SITE.contact.email}
 - ${isDe ? "Gespräch buchen" : "Book a call"}: ${SITE.contact.booking}
 - LinkedIn: ${SITE.social.linkedin}

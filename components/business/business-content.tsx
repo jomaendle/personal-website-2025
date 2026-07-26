@@ -59,12 +59,12 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {t.hero.lede}
           </p>
 
-          {SITE.availableForWork && (
-            <span className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground">
-              <span className="inline-block size-[7px] animate-pulse rounded-full bg-emerald-500" />
-              {t.hero.available}
-            </span>
-          )}
+          {/* Earliest start, stated before the CTAs rather than buried in the
+              process section — someone who can't wait until Q1 2027 should
+              learn that before writing a message, not after. */}
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand">
+            {t.hero.availability}
+          </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <a
@@ -113,8 +113,8 @@ export function BusinessContent({ lang }: { lang: Lang }) {
         <section>
           <H2>{t.pitch.heading}</H2>
           <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] leading-relaxed text-foreground/90">
-            {t.pitch.paragraphs.map((paragraph) => (
-              <p key={paragraph.slice(0, 32)}>{paragraph}</p>
+            {t.pitch.paragraphs.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
             ))}
           </div>
         </section>

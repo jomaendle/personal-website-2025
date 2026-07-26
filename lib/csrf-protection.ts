@@ -13,6 +13,14 @@ if (process.env.NODE_ENV === "development") {
   ALLOWED_ORIGINS.push("http://127.0.0.1:3000");
 }
 
+// Vercel preview deployments run on a generated *.vercel.app origin, so without
+// this the form-backed routes 403 on the very deployment that exists to review
+// them. Gated on VERCEL_ENV === "preview" specifically: production also sets
+// VERCEL_URL, and allowing it there would weaken the check where it matters.
+if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+  ALLOWED_ORIGINS.push(`https://${process.env.VERCEL_URL}`);
+}
+
 /**
  * Extracts the origin from a URL string.
  * Returns null if the URL is invalid.

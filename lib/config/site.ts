@@ -25,8 +25,6 @@ export interface SiteConfig {
   shortRole: string;
   /** Avatar served from `public/`. */
   avatar: string;
-  /** Whether to surface the "Available for work" status chip. */
-  availableForWork: boolean;
   social: SocialLinks;
   contact: ContactChannels;
 }
@@ -36,7 +34,6 @@ export const SITE: SiteConfig = {
   role: "Principal Solution Architect – AI in SDLC",
   shortRole: "Principal Solution Architect",
   avatar: "/avatar.jpeg",
-  availableForWork: true,
   social: {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
   },

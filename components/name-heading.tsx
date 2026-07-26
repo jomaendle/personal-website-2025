@@ -104,12 +104,6 @@ export const NameHeading = ({
           {showJobTitle && (
             <p className="text-muted-foreground">{jobTitle}</p>
           )}
-          {showJobTitle && SITE.availableForWork && (
-            <span className="mt-0.5 inline-flex w-fit items-center gap-2 text-sm text-muted-foreground">
-              <span className="inline-block size-[7px] animate-pulse rounded-full bg-emerald-500" />
-              Available for work
-            </span>
-          )}
         </div>
       </div>
     </div>

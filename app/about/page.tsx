@@ -31,21 +31,13 @@ export default function AboutPage() {
           <H1 className="max-w-[18ch]">
             Engineer by craft, architect by trade, writer by habit.
           </H1>
-          <div className="flex items-center gap-5">
-            <Image
-              src={SITE.avatar}
-              alt={SITE.name}
-              width={96}
-              height={96}
-              className="size-20 rounded-full object-cover md:size-24"
-            />
-            {SITE.availableForWork && (
-              <span className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground">
-                <span className="inline-block size-[7px] animate-pulse rounded-full bg-emerald-500" />
-                Available for work
-              </span>
-            )}
-          </div>
+          <Image
+            src={SITE.avatar}
+            alt={SITE.name}
+            width={96}
+            height={96}
+            className="size-20 rounded-full object-cover md:size-24"
+          />
         </header>
 
         {/* Bio */}

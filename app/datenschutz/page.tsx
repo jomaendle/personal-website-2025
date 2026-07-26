@@ -109,8 +109,62 @@ export default function DatenschutzPage() {
             Wenn Sie mich per E-Mail kontaktieren, werden Ihre Angaben zur
             Bearbeitung der Anfrage und für den Fall von Anschlussfragen
             gespeichert (Art. 6 Abs. 1 lit. b und f DSGVO). Eine Weitergabe an
-            Dritte erfolgt nicht.
+            Dritte erfolgt nur, soweit sie zur Bearbeitung erforderlich ist —
+            siehe den folgenden Abschnitt zum eingesetzten E-Mail-Dienstleister.
           </p>
+        </section>
+
+        <section>
+          <H2>Kontakt- und Anfrageformulare</H2>
+          <div className="space-y-4 text-muted-foreground">
+            <p>
+              Über das Anfrageformular auf{" "}
+              <a
+                href="/business"
+                className="underline transition-colors hover:text-brand"
+              >
+                /business
+              </a>{" "}
+              sowie über das Kontaktformular verarbeite ich die von Ihnen
+              angegebenen Daten: Name, E-Mail-Adresse und Ihre Nachricht
+              (Pflichtangaben) sowie optional Unternehmen, Art der
+              Zusammenarbeit und Zeitrahmen. Die Verarbeitung erfolgt
+              ausschließlich zur Bearbeitung Ihrer Anfrage und für den Fall von
+              Anschlussfragen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO
+              (vorvertragliche Maßnahmen), im Übrigen Art. 6 Abs. 1 lit. f
+              DSGVO.
+            </p>
+            <p>
+              Für den Versand dieser Nachrichten setze ich Resend (Resend, Inc.,
+              2261 Market Street #5039, San Francisco, CA 94114, USA) als
+              Auftragsverarbeiter ein. Dabei werden die Formulardaten in die USA
+              übermittelt. Grundlage der Übermittlung ist der{" "}
+              <a
+                href="https://resend.com/legal/dpa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline transition-colors hover:text-brand"
+              >
+                Auftragsverarbeitungsvertrag von Resend
+              </a>
+              , der die EU-Standardvertragsklauseln (Modul 2) einbezieht. Die
+              von Resend eingesetzten Unterauftragsverarbeiter sind{" "}
+              <a
+                href="https://resend.com/legal/subprocessors"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline transition-colors hover:text-brand"
+              >
+                hier
+              </a>{" "}
+              einsehbar.
+            </p>
+            <p>
+              Ihre Angaben werden gelöscht, sobald die Anfrage abschließend
+              bearbeitet ist und keine gesetzlichen Aufbewahrungspflichten
+              entgegenstehen.
+            </p>
+          </div>
         </section>
 
         <section>

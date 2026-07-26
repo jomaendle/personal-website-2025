@@ -113,7 +113,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate={false}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="inquiry-name" className={labelBase}>
@@ -256,12 +256,26 @@ export function InquiryForm({ lang }: { lang: Lang }) {
           </p>
         </div>
 
+        {/* Art. 13 DSGVO notice at the point of collection — the form takes
+            personal data before the visitor has any reason to visit the footer. */}
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {t.privacyNote}{" "}
+          <a
+            href="/datenschutz"
+            className="underline underline-offset-2 transition-colors hover:text-brand"
+          >
+            {t.privacyLinkLabel}
+          </a>
+          .
+        </p>
+
         <button
           type="submit"
           disabled={isLoading}
-          // `self-start` (not `w-auto`) is what un-stretches the button: this is
-          // a `flex flex-col`, whose default `align-items: stretch` overrides
-          // any cross-axis width utility.
+          // On mobile the button fills the column; from `sm` up it shrinks to
+          // its content. `sm:self-start` is the part that does the work — this
+          // is a `flex flex-col`, whose default `align-items: stretch` would
+          // otherwise override `sm:w-auto` on the cross axis.
           className="inline-flex h-11 w-full items-center justify-center gap-2 self-stretch rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:self-start"
         >
           {isLoading && <Loader2 className="size-4 animate-spin" />}

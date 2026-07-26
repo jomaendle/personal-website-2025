@@ -4,7 +4,10 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
-import { sanitizeInput } from "@/lib/input-sanitization";
+import {
+  sanitizeInput,
+  sanitizeSubjectInput,
+} from "@/lib/input-sanitization";
 import {
   BUSINESS_COPY,
   ENGAGEMENT_TYPES,
@@ -130,7 +133,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const sendMailRes = await resend.emails.send({
       from: "Business Inquiry <jo@contact.jomaendle.com>",
       to: RECIPIENT,
-      subject: `Projektanfrage: ${sanitizedCompany || sanitizedName}`,
+      subject: `Projektanfrage: ${sanitizeSubjectInput(
+        sanitizedCompany || sanitizedName,
+        100,
+      )}`,
       html: `
 <h1 style="font-size:18px;margin:0 0 16px;">New business inquiry</h1>
 <table style="border-collapse:collapse;font-size:14px;line-height:1.5;">${rows}</table>

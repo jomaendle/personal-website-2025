@@ -4,7 +4,10 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
-import { sanitizeInput } from "@/lib/input-sanitization";
+import {
+  sanitizeInput,
+  sanitizeSubjectInput,
+} from "@/lib/input-sanitization";
 
 async function handler(
   req: NextApiRequest,
@@ -54,7 +57,7 @@ async function handler(
       const sendMailRes = await resend.emails.send({
         from: "Contact Form <jo@contact.jomaendle.com>",
         to: "johannes.maendle@outlook.de",
-        subject: `New contact form message from ${sanitizedName}`,
+        subject: `New contact form message from ${sanitizeSubjectInput(sanitizedName)}`,
         html: `
 <h1>New Contact Form Submission</h1>
 <p><strong>Name:</strong> ${escapeHtml(sanitizedName)}</p>

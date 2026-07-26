@@ -1,45 +1,88 @@
+/**
+ * Agent-readable site summary.
+ *
+ * The business sections are derived from `BUSINESS_COPY` and `CLIENT_PROJECTS`
+ * — the same sources `lib/business-markdown.ts` renders the `/business.md`
+ * mirrors from. This file was previously a hand-maintained literal and had
+ * drifted badly: it still advertised fixed-price website builds for
+ * photographers and listed retired photo projects as client work long after
+ * /business was repositioned. Since `app/robots.ts` explicitly admits eighteen
+ * AI crawlers to this path, that drift was invisible to exactly the audience
+ * the file exists for.
+ *
+ * English throughout — `llms.txt` is an English-language convention, so the
+ * copy is read from `BUSINESS_COPY.en` regardless of the DE route existing.
+ *
+ * The "Background", "Personal site" and "Legal" sections stay literals: they
+ * describe the person and the site, not the offer, and have no canonical
+ * source to derive from.
+ */
+
+import { SITE } from "@/lib/config/site";
+import { BUSINESS_COPY } from "@/lib/state/business-copy";
+import { CLIENT_PROJECTS } from "@/lib/state/business-projects";
+
 export const dynamic = "force-static";
 
-const content = `# Jo Mändle
+const t = BUSINESS_COPY.en;
 
-> Senior full-stack web developer based in Germany. Six plus years of TypeScript, React and Next.js experience. Available for freelance projects with small and mid-sized businesses — real estate agencies, SaaS companies, photographers and similar.
+const services = t.services.items
+  .map((item) => `- **${item.title}** — ${item.desc}`)
+  .join("\n");
+
+const stack = t.stack.groups
+  .map((group) => `- **${group.label}**: ${group.items.join(", ")}`)
+  .join("\n");
+
+const clientWork = CLIENT_PROJECTS.map(
+  (project) =>
+    `- [${project.title}](${project.href}) — ${project.period.en} · ${project.role.en}. ${project.context.en}`,
+).join("\n");
+
+const content = `# ${SITE.name}
+
+> ${t.hero.lede} Freelance contract engineering with product teams and engineering leads.
+
+**${t.hero.availability}.** New engagements are not taken on before that date.
 
 Contact:
-- Email: me@jomaendle.com
-- LinkedIn: https://www.linkedin.com/in/johannes-maendle/
+- Email: ${SITE.contact.email}
+- Book a call: ${SITE.contact.booking}
+- LinkedIn: ${SITE.social.linkedin}
 - GitHub: https://github.com/jomaendle
 
 ## For businesses (hire me)
 
-- [Webentwicklung für Unternehmen (DE)](https://jomaendle.com/business): German landing page describing services, selected client work, and a 3-step engagement process.
-- [Web Development for Businesses (EN)](https://jomaendle.com/business/en): English version of the business landing page.
+- [Freelance Frontend & AI Engineering (DE)](https://jomaendle.com/business): German page describing services, stack, selected client work and how an engagement starts.
+- [Freelance Frontend & AI Engineering (EN)](https://jomaendle.com/business/en): English version of the same page.
+- [Markdown version (EN)](https://jomaendle.com/business/en.md): the full page as plain markdown.
 
 ## Core services
 
-- Website rebuilds and greenfield builds (Next.js, Astro, static-site setups)
-- Performance and SEO audits (Lighthouse 95+, Core Web Vitals)
-- Headless CMS and API/CRM integrations
-- Ongoing maintenance and iteration
-- GDPR-aware implementation (DSGVO)
+${services}
+
+## Stack
+
+${stack}
+
+${t.stack.note}
 
 ## Selected client work
 
-- [ImmoKäpsele](https://immokaepsele.de): Real estate website with property listings, valuation calculator, and Flowfact CRM integration. Statically generated property pages, daily CRM sync, Lighthouse 95+.
-- [Emerge Tech — EasyEngage](https://emerge-tech.io/): Astro-based platform that renders bespoke customer funnels in a multi-tenant architecture.
-- [The Beauty of Earth](https://thebeautyof.earth): Landscape photography collection with performant lazy-loaded AVIF/WebP image delivery.
-- [Jo Maendle Photography](https://photo.jomaendle.com): Personal photography portfolio. Fully static, 100/100 Lighthouse performance.
+${clientWork}
 
 ## Background
 
 - Currently: Principal Solution Architect at E.ON Digital Technology
-- Previously: StudySmarter, Memberspot
+- Previously: Memberspot, StudySmarter, Micro Focus
+- Six-plus years of TypeScript in production, in Angular as much as React and Next.js
 - Languages: German (native), English (fluent)
-- Stack focus: TypeScript, React, Next.js, Astro, Tailwind CSS
 
 ## Personal site
 
 - [Homepage](https://jomaendle.com): Personal portfolio, articles, and crafts.
-- [Blog](https://jomaendle.com/blog): Articles on web development, animations, and AI tooling.
+- [About](https://jomaendle.com/about): Background, principles, and work history.
+- [Blog](https://jomaendle.com/blog): Articles on web development, AI tooling, and the software development lifecycle.
 
 ## Legal
 

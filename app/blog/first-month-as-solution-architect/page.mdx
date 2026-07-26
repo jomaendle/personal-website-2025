@@ -10,7 +10,54 @@ export const dynamic = 'force-static'
 
 # {metadata.title}
 
+{/*
+  DRAFT — interview prompts. Answer inline under each question in whatever form
+  is easiest (fragments beat prose); the answers get rewritten into the article,
+  and this whole block is deleted before publishing.
 
+  Deliberately kept out of `BLOG_POSTS` (lib/state/blog.ts) so the post stays
+  off /blog, and `app/sitemap.ts` now filters against that list so this route
+  cannot reach sitemap.xml while it is unfinished.
+
+  ── SPINE ─────────────────────────────────────────────────────────────────
+  One spine beats five good observations. Which is the honest arc here?
+    (a) the job is less technical than I expected
+    (b) AI adoption is a people problem, not a tooling problem
+    (c) something else — say what
+
+
+  ── 1. WHAT ACTUALLY CHANGED ──────────────────────────────────────────────
+  Frontend Engineer → Principal Solution Architect. What does the calendar
+  look like now that it didn't before? And what did you stop doing that you
+  actually missed?
+
+
+  ── 2. WHAT SURPRISED YOU ─────────────────────────────────────────────────
+  The thing you'd have bet against a month earlier.
+
+
+  ── 3. THE AI-IN-SDLC MANDATE, CONCRETELY ─────────────────────────────────
+  What does "leading how AI enters the development lifecycle" mean in month
+  one — tooling rollout, architecture, convincing people, writing guidance?
+  Where did you meet resistance?
+
+
+  ── 4. WHAT YOU GOT WRONG ─────────────────────────────────────────────────
+  One decision or assumption that didn't survive contact. Usually the part
+  that makes a post worth reading.
+
+
+  ── 5. THE ADVICE ─────────────────────────────────────────────────────────
+  What would you tell an engineer about to make the same move?
+
+
+  ── GROUND RULES FOR THE DRAFT ────────────────────────────────────────────
+  Your own experience and generalisable craft only. No internal E.ON
+  architecture, no unreleased plans, no named colleagues, nothing that reads
+  as speaking for the company — this site also sells competing services, so
+  that line matters more than usual.
+  Per CLAUDE.md: any code samples use the CodeBlock component.
+*/}
 
 export default function Page({ children }) {
   return (
