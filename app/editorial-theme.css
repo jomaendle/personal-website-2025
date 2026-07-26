@@ -202,6 +202,46 @@
   background-color: hsl(var(--brand) / 0.10);
 }
 
+/* Ledger rows (selected work, services, article index).
+   Previously these inverted the whole row — background to --foreground, text to
+   --background. At row scale that paints a near-white slab in dark mode and
+   makes an incidental mouse-over the loudest thing on the page. Print signals a
+   current row with a margin rule and a faint wash, so that is what this does:
+   a vermilion rule wiping down the margin plus a low-alpha tint, while the
+   title picks up the brand color from H3's own group-hover. */
+.ledger-row {
+  position: relative;
+  transition: background-color 180ms ease;
+}
+
+.ledger-row::before {
+  content: "";
+  position: absolute;
+  inset-block: -1px 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background-color: hsl(var(--brand));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 180ms ease;
+}
+
+.ledger-row:hover::before,
+.ledger-row:focus-visible::before,
+.ledger-row:focus-within::before {
+  transform: scaleY(1);
+}
+
+.light .ledger-row:hover,
+.light .ledger-row:focus-within {
+  background-color: hsl(var(--brand) / 0.05);
+}
+
+:root:not(.light) .ledger-row:hover,
+:root:not(.light) .ledger-row:focus-within {
+  background-color: hsl(var(--brand) / 0.08);
+}
+
 ::selection {
   background: hsl(var(--brand));
   color: hsl(var(--background));

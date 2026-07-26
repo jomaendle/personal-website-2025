@@ -72,15 +72,15 @@ export function WritingIndex() {
             <MotionLink
               href={`/blog/${post.slug}`}
               prefetch={false}
-              className="group flex flex-col gap-1 border-b border-border px-3 py-5 transition-colors hover:bg-foreground sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
+              className="group flex flex-col gap-1 border-b border-border px-3 py-5 ledger-row sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
             >
               <span className="font-mono text-xs uppercase tracking-[0.05em] text-brand">
                 {post.category}
               </span>
-              <span className="font-serif text-[clamp(1.25rem,2.4vw,1.7rem)] leading-[1.2] tracking-[-0.01em] text-foreground transition-colors group-hover:text-background">
+              <span className="font-serif text-[clamp(1.25rem,2.4vw,1.7rem)] leading-[1.2] tracking-[-0.01em] text-foreground transition-colors group-hover:text-brand">
                 {post.title}
               </span>
-              <span className="font-mono text-xs text-muted-foreground transition-colors group-hover:text-background/70 sm:justify-self-end">
+              <span className="font-mono text-xs text-muted-foreground transition-colors sm:justify-self-end">
                 {post.date}
               </span>
             </MotionLink>

@@ -59,7 +59,7 @@ const BlogPostItem = memo(
       >
         <MotionLink
           href={"/blog/" + post.slug}
-          className="group flex items-center gap-4 border-b border-border px-3 py-4 transition-colors hover:bg-foreground"
+          className="group flex items-center gap-4 border-b border-border px-3 py-4 ledger-row"
           prefetch={false}
         >
           <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
@@ -67,19 +67,19 @@ const BlogPostItem = memo(
           </span>
           <div className="flex-1">
             <H3
-              className="blog-title line-clamp-2 group-hover:!text-background"
+              className="blog-title line-clamp-2"
               style={{ viewTransitionName: `blog-title-${post.slug}` }}
             >
               {post.title}
             </H3>
             <p
               style={{ viewTransitionName: `blog-date-${post.slug}` }}
-              className="mt-1 font-mono text-xs text-muted-foreground transition-colors group-hover:text-background/70"
+              className="mt-1 font-mono text-xs text-muted-foreground transition-colors"
             >
               {post.date}
             </p>
           </div>
-          <span className="transition-colors group-hover:text-background">
+          <span className="transition-colors group-hover:text-brand">
             <ViewCounter slug={post.slug} shouldIncrement={false} />
           </span>
         </MotionLink>

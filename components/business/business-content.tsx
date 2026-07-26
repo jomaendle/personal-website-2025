@@ -119,10 +119,10 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {t.services.items.map((item) => (
               <div
                 key={item.title}
-                className="group border-b border-border px-3 py-4 transition-colors hover:bg-foreground"
+                className="group border-b border-border px-3 py-4 ledger-row"
               >
-                <H3 className="group-hover:!text-background">{item.title}</H3>
-                <p className="mt-1 text-muted-foreground transition-colors group-hover:text-background/70">
+                <H3>{item.title}</H3>
+                <p className="mt-1 text-muted-foreground transition-colors">
                   {item.desc}
                 </p>
               </div>
@@ -137,7 +137,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {CLIENT_PROJECTS.map((project) => (
               <article
                 key={project.id}
-                className="group border-b border-border px-3 py-6 transition-colors hover:bg-foreground"
+                className="group border-b border-border px-3 py-6 ledger-row"
                 itemScope
                 itemType="https://schema.org/CreativeWork"
               >
@@ -149,38 +149,33 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                     className="inline-flex items-baseline gap-1.5"
                     itemProp="url"
                   >
-                    <H3
-                      className="group-hover:!text-background"
-                      itemProp="name"
-                    >
-                      {project.title}
-                    </H3>
+                    <H3 itemProp="name">{project.title}</H3>
                     <span
                       aria-hidden="true"
-                      className="font-mono text-muted-foreground transition-colors group-hover:text-background"
+                      className="font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
                     >
                       ↗
                     </span>
                     <span className="sr-only"> (opens in new window)</span>
                   </a>
-                  <p className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground transition-colors group-hover:text-background/70">
+                  <p className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground transition-colors">
                     {project.period[lang]} · {project.role[lang]}
                   </p>
                 </header>
 
                 <p
-                  className="mt-2 max-w-[62ch] text-muted-foreground transition-colors group-hover:text-background/70"
+                  className="mt-2 max-w-[62ch] text-muted-foreground transition-colors"
                   itemProp="description"
                 >
                   {project.context[lang]}
                 </p>
 
-                <ul className="mt-4 flex flex-col gap-1.5 text-sm text-muted-foreground transition-colors group-hover:text-background/70">
+                <ul className="mt-4 flex flex-col gap-1.5 text-sm text-muted-foreground transition-colors">
                   {project.highlights[lang].map((highlight) => (
                     <li key={highlight} className="flex gap-2">
                       <span
                         aria-hidden="true"
-                        className="shrink-0 text-brand transition-colors group-hover:text-background/50"
+                        className="shrink-0 text-brand transition-colors"
                       >
                         →
                       </span>
@@ -193,7 +188,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                   {project.stack.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground transition-colors group-hover:border-background/30 group-hover:text-background/70"
+                      className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground transition-colors"
                     >
                       {tag}
                     </span>

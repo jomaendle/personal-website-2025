@@ -33,25 +33,25 @@ export function WorkExperience() {
         >
           <MotionLink
             href={experience.link}
-            className="group block border-b border-border px-3 py-4 transition-colors hover:bg-foreground"
+            className="ledger-row group block border-b border-border px-3 py-4"
             target="_blank"
             rel="noopener noreferrer"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <H3 className="flex flex-wrap items-center group-hover:!text-background">
+                <H3 className="flex flex-wrap items-center">
                   {experience.title}
                   {experience.isExternal && (
                     <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   )}
                 </H3>
-                <p className="mt-1 text-muted-foreground transition-colors group-hover:text-background/70">
+                <p className="mt-1 text-muted-foreground">
                   {experience.description}
                 </p>
               </div>
               <span
                 aria-hidden="true"
-                className="mt-1 shrink-0 font-mono text-muted-foreground transition-colors group-hover:text-background"
+                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
               >
                 ↗
               </span>

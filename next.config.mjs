@@ -47,8 +47,12 @@ const nextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline' https://giscus.app",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io https://giscus.app https://*.codesandbox.io",
-      "connect-src 'self' https://*.supabase.co https://plausible.io https://giscus.app https://*.codesandbox.io https://api.webstatus.dev",
+      // va.vercel-scripts.com serves both @vercel/analytics and
+      // @vercel/speed-insights. Both are mounted in app/layout.tsx but were
+      // absent from this policy, so the browser blocked them in production as
+      // well as dev — the site shipped both libraries and recorded nothing.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io https://giscus.app https://*.codesandbox.io https://va.vercel-scripts.com",
+      "connect-src 'self' https://*.supabase.co https://plausible.io https://giscus.app https://*.codesandbox.io https://api.webstatus.dev https://va.vercel-scripts.com https://vitals.vercel-insights.com",
       "frame-src 'self' https://giscus.app https://codesandbox.io https://*.codesandbox.io",
       "worker-src 'self' blob:",
       "child-src 'self' blob:",
