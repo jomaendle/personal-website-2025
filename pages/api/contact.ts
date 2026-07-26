@@ -4,10 +4,7 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
-
-function sanitizeInput(input: string): string {
-  return input.trim().slice(0, 1000); // Limit length and trim whitespace
-}
+import { sanitizeInput } from "@/lib/input-sanitization";
 
 async function handler(
   req: NextApiRequest,

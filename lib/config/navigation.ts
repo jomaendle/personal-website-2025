@@ -14,6 +14,7 @@ export interface NavLink {
 export const PRIMARY_NAV: NavLink[] = [
   { label: "Writing", href: "/blog" },
   { label: "About", href: "/about" },
+  { label: "Work with me", href: "/business" },
 ];
 
 /** Legal links surfaced in the footer (German imprint + privacy). */

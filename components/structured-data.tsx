@@ -157,11 +157,11 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     "@type": "ProfessionalService",
     "@id": `${url}#service`,
     name: isDe
-      ? "Webentwicklung für Unternehmen — Jo Mändle"
-      : "Web Development for Businesses — Jo Mändle",
+      ? "Freelance Frontend- & AI-Engineering — Jo Mändle"
+      : "Freelance Frontend & AI Engineering — Jo Mändle",
     description: isDe
-      ? "Senior Full-Stack Developer für kleine und mittelständische Unternehmen. Next.js, React, TypeScript. DSGVO-bewusst, performant, wartbar."
-      : "Senior full-stack developer for small and mid-sized businesses. Next.js, React, TypeScript. GDPR-aware, performant, maintainable.",
+      ? "Senior Contract Engineering für Produktteams: React und Next.js auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen."
+      : "Senior contract engineering for product teams: React and Next.js at enterprise scale, plus LLM integrations that actually reach production.",
     url,
     inLanguage: isDe ? "de-DE" : "en-US",
     image: "https://jomaendle.com/avatar.jpeg",
@@ -178,8 +178,8 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
       name: "Johannes Mändle",
       alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
       jobTitle: isDe
-        ? "Full-Stack Developer für Unternehmen"
-        : "Full-Stack Developer for Businesses",
+        ? "Freelance Frontend- & AI-Engineer"
+        : "Freelance Frontend & AI Engineer",
       url: "https://jomaendle.com",
       email: "mailto:me@jomaendle.com",
       address: {
@@ -197,37 +197,37 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
         "Next.js",
         "React",
         "TypeScript",
-        "Static Site Generation",
+        "Frontend Architecture",
+        "Large Language Models",
+        "LLM Integration",
+        "Model Context Protocol",
         "Web Performance",
+        "Legacy Frontend Migration",
         "GDPR",
         "DSGVO",
-        "Headless CMS",
-        "SEO",
       ],
       knowsLanguage: ["de", "en"],
     },
     serviceType: isDe
       ? [
-          "Website-Relaunch",
-          "Next.js-Entwicklung",
-          "Performance-Audit",
-          "API- und CMS-Integration",
-          "Wartung und Weiterentwicklung",
-          "Technisches SEO",
+          "Embedded Contract Engineering",
+          "Frontend-Entwicklung (React, Next.js)",
+          "KI- und LLM-Produktintegration",
+          "Next.js-Architektur und Performance",
+          "Frontend-Modernisierung und Migration",
         ]
       : [
-          "Website rebuild",
-          "Next.js development",
-          "Performance audit",
-          "API and CMS integration",
-          "Maintenance and iteration",
-          "Technical SEO",
+          "Embedded contract engineering",
+          "Frontend engineering (React, Next.js)",
+          "AI and LLM product integration",
+          "Next.js architecture and performance",
+          "Frontend modernization and migration",
         ],
     contactPoint: {
       "@type": "ContactPoint",
-      contactType: isDe ? "Vertrieb" : "Sales",
+      contactType: isDe ? "Projektanfrage" : "Business inquiries",
       email: "me@jomaendle.com",
-      url: "https://www.linkedin.com/in/johannes-maendle/",
+      url: `${url}#engage`,
       availableLanguage: ["de", "en"],
     },
   };

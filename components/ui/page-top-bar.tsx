@@ -5,17 +5,22 @@ import { SITE } from "@/lib/config/site";
 /**
  * PageTopBar — Editorial design layer.
  *
- * Shared top bar used by the /blog and /about routes: a mono "← back" link on
- * the left and the ThemeToggle on the right. Defaults to the homepage and the
- * site name; pass `backHref` / `label` to override.
+ * Shared top bar used by the /blog, /about and /business routes: a mono
+ * "← back" link on the left and the ThemeToggle on the right. Defaults to the
+ * homepage and the site name; pass `backHref` / `label` to override.
+ *
+ * `trailing` renders immediately before the ThemeToggle — /business hangs its
+ * DE/EN language switch there. Callers that omit it are unaffected.
  */
 
 export function PageTopBar({
   backHref = "/",
   label = SITE.name,
+  trailing,
 }: {
   backHref?: string;
   label?: string;
+  trailing?: React.ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between">
@@ -25,7 +30,10 @@ export function PageTopBar({
       >
         ← {label}
       </Link>
-      <ThemeToggle />
+      <div className="flex items-center gap-4">
+        {trailing}
+        <ThemeToggle />
+      </div>
     </div>
   );
 }

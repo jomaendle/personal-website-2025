@@ -4,19 +4,26 @@ import { BusinessStructuredData } from "@/components/structured-data";
 
 export const dynamic = "force-static";
 
+const title = "Freelance Frontend- & AI-Engineering";
 const description =
-  "Senior Full-Stack Developer für kleine und mittelständische Unternehmen. Next.js, React, TypeScript. DSGVO-bewusst, performant, wartbar.";
+  "Senior Contract Engineering für Produktteams: React und Next.js auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen.";
+
+const ogImage = `/api/og-image?title=${encodeURIComponent(
+  "Freelance Frontend & AI Engineering",
+)}&description=${encodeURIComponent(
+  "React/Next.js auf Enterprise-Niveau — und KI, die wirklich ausliefert.",
+)}`;
 
 export const metadata: Metadata = {
-  title: "Webentwicklung für Unternehmen",
+  title,
   description,
   keywords: [
-    "Webentwicklung Stuttgart",
-    "Next.js Entwickler",
-    "Freelance Full-Stack Developer",
-    "DSGVO konforme Website",
-    "Maklerwebsite",
-    "SaaS Website",
+    "Freelance Frontend Engineer",
+    "Next.js Freelancer",
+    "React Contract Engineering",
+    "LLM Integration Entwickler",
+    "AI Engineering Freelance",
+    "TypeScript Contractor",
   ],
   alternates: {
     canonical: "/business",
@@ -29,16 +36,18 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Webentwicklung für Unternehmen | Jo Mändle",
+    title: `${title} | Jo Mändle`,
     description,
     url: "https://jomaendle.com/business",
     locale: "de_DE",
     type: "website",
+    images: [{ url: ogImage }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Webentwicklung für Unternehmen | Jo Mändle",
+    title: `${title} | Jo Mändle`,
     description,
+    images: [ogImage],
   },
 };
 

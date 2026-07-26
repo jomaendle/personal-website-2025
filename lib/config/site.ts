@@ -9,6 +9,13 @@ export interface SocialLinks {
   linkedin: string;
 }
 
+export interface ContactChannels {
+  /** Business inbox — where inquiry-form leads and direct mail land. */
+  email: string;
+  /** Public Google Calendar booking page for intro calls. */
+  booking: string;
+}
+
 export interface SiteConfig {
   /** Display name / wordmark used across the masthead, footer and article meta. */
   name: string;
@@ -21,6 +28,7 @@ export interface SiteConfig {
   /** Whether to surface the "Available for work" status chip. */
   availableForWork: boolean;
   social: SocialLinks;
+  contact: ContactChannels;
 }
 
 export const SITE: SiteConfig = {
@@ -31,5 +39,9 @@ export const SITE: SiteConfig = {
   availableForWork: true,
   social: {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
+  },
+  contact: {
+    email: "me@jomaendle.com",
+    booking: "https://calendar.app.google/jpSRhy2ekZWZEv3W7",
   },
 };

@@ -4,19 +4,26 @@ import { BusinessStructuredData } from "@/components/structured-data";
 
 export const dynamic = "force-static";
 
+const title = "Freelance Frontend & AI Engineering";
 const description =
-  "Senior full-stack developer for small and mid-sized businesses. Next.js, React, TypeScript. GDPR-aware, performant, maintainable.";
+  "Senior contract engineering for product teams: React and Next.js at enterprise scale, plus LLM integrations that actually reach production.";
+
+const ogImage = `/api/og-image?title=${encodeURIComponent(
+  "Freelance Frontend & AI Engineering",
+)}&description=${encodeURIComponent(
+  "React/Next.js at enterprise scale — and AI that actually ships.",
+)}`;
 
 export const metadata: Metadata = {
-  title: "Web Development for Businesses",
+  title,
   description,
   keywords: [
-    "Next.js developer",
-    "Freelance full-stack developer",
-    "GDPR-compliant website",
-    "Real estate website",
-    "SaaS marketing site",
-    "Astro developer",
+    "Freelance frontend engineer",
+    "Next.js contractor",
+    "React contract engineering",
+    "LLM integration developer",
+    "AI engineering freelance",
+    "TypeScript contractor",
   ],
   alternates: {
     canonical: "/business/en",
@@ -29,16 +36,18 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Web Development for Businesses | Jo Mändle",
+    title: `${title} | Jo Mändle`,
     description,
     url: "https://jomaendle.com/business/en",
     locale: "en_US",
     type: "website",
+    images: [{ url: ogImage }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Web Development for Businesses | Jo Mändle",
+    title: `${title} | Jo Mändle`,
     description,
+    images: [ogImage],
   },
 };
 
