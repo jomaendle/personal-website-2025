@@ -33,6 +33,8 @@ export interface LocalizedList {
 export interface ClientProject {
   id: string;
   title: string;
+  /** Condensed name for the client strip, where the full title is too long. */
+  shortName?: string;
   href: string;
   period: Localized;
   role: Localized;
@@ -82,6 +84,7 @@ export const CLIENT_PROJECTS: ClientProject[] = [
   {
     id: "emerge-tech",
     title: "Emerge Tech — EasyEngage",
+    shortName: "Emerge Tech",
     href: "https://emerge-tech.io/",
     period: { de: "2024 – heute", en: "2024 – present" },
     role: {
@@ -132,5 +135,13 @@ export const CLIENT_PROJECTS: ClientProject[] = [
   },
 ];
 
-/** Trust strip — freelance clients only, matching `CLIENT_PROJECTS` above. */
-export const CLIENTS = ["ImmoKäpsele", "Emerge Tech", "Memberspot"];
+/**
+ * Trust strip — derived from `CLIENT_PROJECTS` rather than hand-maintained, so
+ * the strip and the case studies below it can never list different clients.
+ * `anchor` targets the matching `<article>` in the selected-work section.
+ */
+export const CLIENTS = CLIENT_PROJECTS.map((project) => ({
+  id: project.id,
+  name: project.shortName ?? project.title,
+  anchor: `#client-${project.id}`,
+}));

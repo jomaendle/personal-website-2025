@@ -88,15 +88,22 @@ export function BusinessContent({ lang }: { lang: Lang }) {
         {/* Client strip */}
         <section>
           <H2>{t.clients.heading}</H2>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[0.8rem] uppercase tracking-[0.1em] text-muted-foreground">
-            {CLIENTS.map((name, i) => (
-              <span key={name} className="contents">
+          {/* Each client jumps to its own case study below, so the strip is a
+              way in rather than a dead list of names. */}
+          <div className="flex flex-wrap items-center gap-x-3 font-mono text-[0.8rem] uppercase tracking-[0.1em] text-muted-foreground">
+            {CLIENTS.map((client, i) => (
+              <span key={client.id} className="contents">
                 {i > 0 && (
                   <span aria-hidden="true" className="text-border">
                     ·
                   </span>
                 )}
-                <span>{name}</span>
+                <a
+                  href={client.anchor}
+                  className="inline-flex min-h-[36px] items-center underline decoration-border decoration-from-font underline-offset-[6px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  {client.name}
+                </a>
               </span>
             ))}
           </div>
@@ -137,7 +144,8 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {CLIENT_PROJECTS.map((project) => (
               <article
                 key={project.id}
-                className="group border-b border-border px-3 py-6 ledger-row"
+                id={`client-${project.id}`}
+                className="group scroll-mt-16 border-b border-border px-3 py-6 ledger-row"
                 itemScope
                 itemType="https://schema.org/CreativeWork"
               >

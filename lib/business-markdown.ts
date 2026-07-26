@@ -40,7 +40,7 @@ ${t.hero.lede}
 
 ## ${t.clients.heading}
 
-${CLIENTS.join(" · ")}
+${CLIENTS.map((client) => client.name).join(" · ")}
 
 ## ${t.pitch.heading}
 
