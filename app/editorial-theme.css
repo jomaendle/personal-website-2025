@@ -184,8 +184,13 @@
   color: hsl(var(--link));
   text-decoration-color: hsl(var(--link) / 0.4);
 }
+/* Hover must restate text-decoration-color. Without it, globals'
+   `hover:decoration-primary/60` wins and the underline jumps from vermilion to
+   ink — a hue change that reads far heavier than intended. Keep the hover in
+   the link's own hue and let the underline strengthen only slightly. */
 .prose a:hover {
   color: hsl(var(--link-hover));
+  text-decoration-color: hsl(var(--link) / 0.65);
 }
 
 /* ---- Row hover: warmer, tighter, editorial ----------------------- */

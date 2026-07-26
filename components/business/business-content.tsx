@@ -31,12 +31,15 @@ export function BusinessContent({ lang }: { lang: Lang }) {
         itemType="https://schema.org/ProfessionalService"
       >
         <PageTopBar
+          currentPath="/business"
           trailing={
             <Link
               href={t.switchHref}
               hrefLang={lang === "de" ? "en" : "de"}
               aria-label={t.switchLabel}
-              className="font-mono text-sm tracking-[0.04em] text-muted-foreground transition-colors hover:text-brand"
+              // -mx-2 keeps the optical position while the padding lifts the
+              // tap target to 44px tall (WCAG 2.5.8 needs 24x24; 18x20 failed).
+              className="-mx-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 font-mono text-sm tracking-[0.04em] text-muted-foreground transition-colors hover:text-brand"
             >
               {t.switchTo}
             </Link>

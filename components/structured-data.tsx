@@ -184,9 +184,9 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
       email: "mailto:me@jomaendle.com",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Elbstr. 81",
-        postalCode: "28199",
-        addressLocality: "Bremen",
+        streetAddress: "Im Hirschmorgen 12",
+        postalCode: "69181",
+        addressLocality: "Leimen",
         addressCountry: "DE",
       },
       sameAs: [

@@ -64,7 +64,7 @@ export const MoreLinks = () => {
         <motion.div key={link.href} variants={itemVariants}>
           <MotionLink
             href={link.href}
-            className="group inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+            className="group inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-brand"
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={
               link.href.startsWith("mailto:") ? undefined : "noopener noreferrer"

@@ -20,7 +20,7 @@ export default function WritingPage() {
         className="glass-container mx-auto flex max-w-3xl flex-col gap-12"
         style={{ viewTransitionName: "main-content" }}
       >
-        <PageTopBar />
+        <PageTopBar currentPath="/blog" />
 
         {/* Masthead */}
         <header className="flex flex-col gap-5">

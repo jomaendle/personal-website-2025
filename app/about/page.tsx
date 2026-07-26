@@ -23,7 +23,7 @@ export default function AboutPage() {
         className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
-        <PageTopBar />
+        <PageTopBar currentPath="/about" />
 
         {/* Masthead */}
         <header className="flex flex-col gap-6">

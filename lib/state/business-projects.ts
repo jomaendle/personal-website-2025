@@ -6,8 +6,11 @@
  * Mirrors the `lib/state/projects.ts` pattern; every human-facing string is
  * bilingual so the DE and EN routes share one dataset.
  *
- * Note: E.ON is deliberately absent — it is Jo's employer, not a client. That
- * credential lives in `BUSINESS_COPY.pitch` instead.
+ * Employers are deliberately absent — E.ON, Memberspot and StudySmarter are
+ * jobs, not clients, and listing them here would be contradicted by the CV on
+ * /about (`components/job-positions.tsx`), which any prospect can reach in one
+ * click. Those credentials live in `BUSINESS_COPY.pitch` instead. Only genuine
+ * freelance engagements belong in this file.
  */
 
 /** A string rendered in both site languages. */
@@ -86,50 +89,18 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     highlights: {
       de: [
         "Multi-Tenant-Architektur mit isolierten Datenpfaden und kundenspezifischen Themes",
-        "Deutlich kürzere Build-Zeiten durch inkrementelle Generierung und gezieltes Caching",
+        "Inkrementelle Generierung und gezieltes Caching, um die Build-Zeiten bei wachsender Mandantenzahl stabil zu halten",
         "Komponenten-Bibliothek, die Editor und ausgelieferter Funnel gemeinsam nutzen",
       ],
       en: [
         "Multi-tenant architecture with isolated data paths and per-customer theming",
-        "Substantially shorter build times through incremental generation and targeted caching",
+        "Incremental generation and targeted caching to keep build times stable as tenant count grows",
         "A component library shared by both the editor and the rendered funnel",
       ],
     },
     stack: ["Astro", "TypeScript", "Multi-Tenant", "Tailwind"],
   },
-  {
-    id: "memberspot",
-    title: "Memberspot",
-    href: "https://memberspot.de",
-    period: { de: "2022 – 2023", en: "2022 – 2023" },
-    role: {
-      de: "Senior Frontend Engineer",
-      en: "Senior frontend engineer",
-    },
-    context: {
-      de: "Frontend-Entwicklung an einer produktiven SaaS-Plattform für Online-Kurse — eingebettet im Produktteam, mit Verantwortung für Architekturentscheidungen im Frontend und die Qualität der ausgelieferten Features.",
-      en: "Frontend engineering on a production SaaS platform for online courses — embedded in the product team, owning frontend architecture decisions and the quality bar of shipped features.",
-    },
-    highlights: {
-      de: [
-        "Feature-Entwicklung in einer gewachsenen Codebase mit echten Nutzer:innen und echtem Umsatz",
-        "Refactorings, die Ladezeiten und Wartbarkeit messbar verbessert haben",
-        "Enge Abstimmung zwischen Produkt, Design und Backend",
-      ],
-      en: [
-        "Feature work in a mature codebase with real users and real revenue behind it",
-        "Refactors that measurably improved load times and maintainability",
-        "Close collaboration across product, design and backend",
-      ],
-    },
-    stack: ["Angular", "TypeScript", "SaaS"],
-  },
 ];
 
-/** Trust strip — organizations Jo has shipped production work for. */
-export const CLIENTS = [
-  "StudySmarter",
-  "Memberspot",
-  "ImmoKäpsele",
-  "Emerge Tech",
-];
+/** Trust strip — freelance clients only, matching `CLIENT_PROJECTS` above. */
+export const CLIENTS = ["ImmoKäpsele", "Emerge Tech"];

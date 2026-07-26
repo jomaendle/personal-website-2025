@@ -28,13 +28,13 @@ export default function DatenschutzPage() {
           <H2>Verantwortlicher</H2>
           <div className="space-y-1 text-muted-foreground">
             <p>Johannes Mändle</p>
-            <p>Elbstr. 81</p>
-            <p>28199 Bremen</p>
+            <p>Im Hirschmorgen 12</p>
+            <p>69181 Leimen</p>
             <p>
               E-Mail:{" "}
               <a
                 href="mailto:me@jomaendle.com"
-                className="underline transition-colors hover:text-primary"
+                className="underline transition-colors hover:text-brand"
               >
                 me@jomaendle.com
               </a>
@@ -72,7 +72,7 @@ export default function DatenschutzPage() {
               href="https://plausible.io/data-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline transition-colors hover:text-primary"
+              className="underline transition-colors hover:text-brand"
             >
               Plausible Analytics
             </a>
@@ -92,7 +92,7 @@ export default function DatenschutzPage() {
               href="https://giscus.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline transition-colors hover:text-primary"
+              className="underline transition-colors hover:text-brand"
             >
               Giscus
             </a>{" "}

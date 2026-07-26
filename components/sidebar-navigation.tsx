@@ -188,7 +188,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                         className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
                         prefetch={false}
                       >
-                        <H3 className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-primary">
+                        <H3 className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-brand">
                           {post.title}
                         </H3>
                         <div className="mt-1 flex items-center justify-between">

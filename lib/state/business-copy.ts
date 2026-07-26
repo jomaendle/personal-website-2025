@@ -106,19 +106,19 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     switchLabel: "Switch to English",
     hero: {
       eyebrow: "Freelance · Frontend & AI Engineering",
-      heading: "Senior Frontend-Engineering, mit KI die wirklich ausliefert.",
+      heading: "Senior Frontend-Engineering — und KI, die es in Produktion schafft.",
       lede: "Ich arbeite mit Produktteams an React/Next.js auf Enterprise-Niveau — und bringe LLMs in Produkte, die Menschen tatsächlich benutzen.",
       available: "Verfügbar für neue Projekte",
       ctaPrimary: "Projekt anfragen",
       ctaSecondary: "Gespräch buchen",
     },
-    clients: { heading: "Im Einsatz bei" },
+    clients: { heading: "Aktuelle Kunden" },
     pitch: {
       heading: "Worum es geht",
       paragraphs: [
-        "Die meisten Teams brauchen keine weitere Website — sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features ausliefert, die im Betrieb halten. Genau dafür komme ich dazu.",
+        "Die meisten Teams brauchen keine weitere Website — sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features liefert, die im Betrieb halten. Genau da setze ich an.",
         "Hauptberuflich bin ich Principal Solution Architect bei E.ON Digital Technology und verantworte dort, wie KI in den Software-Entwicklungszyklus einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten der Teams. Davor StudySmarter und Memberspot. Über sechs Jahre TypeScript, React und Next.js in Produktion.",
-        "Was mich von einem reinen Frontend-Freelancer unterscheidet: Ich baue LLM-Integrationen, die den Weg in die Produktion tatsächlich schaffen — mit Kontextgrenzen, Evaluierung und einem Menschen an der richtigen Stelle im Review. Kein Demo-Zauber, sondern Systeme, die dem Alltag standhalten.",
+        "Was mich von einem reinen Frontend-Freelancer unterscheidet: Ich baue LLM-Integrationen, die den Weg in die Produktion tatsächlich schaffen — mit Kontextgrenzen, Evaluierung und einem Menschen an der richtigen Stelle im Review. Keine Demo, die im Meeting glänzt und im Alltag scheitert.",
       ],
     },
     services: {
@@ -126,7 +126,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       items: [
         {
           title: "Embedded Contract Engineering",
-          desc: "Ich arbeite als Teil Ihres Teams — Sprints, Reviews, Bereitschaft. Kein isolierter Zulieferer.",
+          desc: "Ich arbeite als Teil Ihres Teams — Sprints, Reviews, gemeinsame Verantwortung. Kein isolierter Zulieferer.",
         },
         {
           title: "KI- & LLM-Produktintegration",
@@ -169,7 +169,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         "Senior In-House-Erfahrung — ich kenne die Zwänge, unter denen Ihr Team arbeitet, weil ich unter denselben arbeite",
         "KI-Integration aus der Praxis, nicht aus dem Blogpost",
         "Architekturentscheidungen, die ich auch begründen kann — schriftlich, nachvollziehbar",
-        "Deutsch und Englisch auf Augenhöhe, Zusammenarbeit über Zeitzonen hinweg gewohnt",
+        "Verhandlungssicher in Deutsch und Englisch, Zusammenarbeit über Zeitzonen hinweg gewohnt",
       ],
     },
     engage: {
@@ -230,7 +230,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       ctaPrimary: "Start an inquiry",
       ctaSecondary: "Book a call",
     },
-    clients: { heading: "Trusted by" },
+    clients: { heading: "Recent clients" },
     pitch: {
       heading: "What I do",
       paragraphs: [

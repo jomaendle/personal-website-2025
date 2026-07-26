@@ -1,9 +1,9 @@
-import { CSS_CAROUSEL } from "../../../lib/state/blog";
+import { FIRST_MONTH_AS_SOLUTION_ARCHITECT } from "../../../lib/state/blog";
 import MdxLayout from "../../../components/mdx-layout";
 
 export const metadata = {
-  title: CSS_CAROUSEL.title,
-  date: CSS_CAROUSEL.date,
+  title: FIRST_MONTH_AS_SOLUTION_ARCHITECT.title,
+  date: FIRST_MONTH_AS_SOLUTION_ARCHITECT.date,
 };
 
 export const dynamic = 'force-static'
@@ -14,7 +14,7 @@ export const dynamic = 'force-static'
 
 export default function Page({ children }) {
   return (
-    <MdxLayout metadata={metadata} slug={CSS_CAROUSEL.slug}>
+    <MdxLayout metadata={metadata} slug={FIRST_MONTH_AS_SOLUTION_ARCHITECT.slug}>
       {children}
     </MdxLayout>
   )

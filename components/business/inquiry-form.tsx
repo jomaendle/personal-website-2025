@@ -19,15 +19,17 @@ import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
 
 type Status = "idle" | "loading" | "success" | "error";
 
+// `text-base` (16px) is deliberate and must not be reduced: iOS Safari zooms
+// the page on focus for any form control under 16px and never zooms back out.
 const fieldBase =
-  "w-full rounded-[0.25rem] border border-border bg-transparent px-3 py-2 text-[0.95rem] text-foreground transition-colors placeholder:text-muted-foreground/70 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-[0.25rem] border border-border bg-transparent px-3 py-2 text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-brand focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50";
 
 const labelBase =
   "mb-2 flex items-baseline gap-2 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground";
 
 function OptionalTag({ children }: { children: string }) {
   return (
-    <span className="text-[0.65rem] normal-case tracking-normal text-muted-foreground/60">
+    <span className="text-[0.7rem] normal-case tracking-normal text-muted-foreground">
       ({children})
     </span>
   );
@@ -189,7 +191,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
               name="timeline"
               value={values.timeline}
               onChange={(e) => set("timeline")(e.target.value)}
-              className={cn(fieldBase, "h-[42px]")}
+              className={cn(fieldBase, "h-[46px]")}
               disabled={isLoading}
             >
               <option value="">—</option>
@@ -212,7 +214,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
             name="engagementType"
             value={values.engagementType}
             onChange={(e) => set("engagementType")(e.target.value)}
-            className={cn(fieldBase, "h-[42px]")}
+            className={cn(fieldBase, "h-[46px]")}
             disabled={isLoading}
           >
             <option value="">—</option>
@@ -248,7 +250,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
           />
           <p
             id="inquiry-message-count"
-            className="mt-1.5 text-right font-mono text-[0.7rem] text-muted-foreground/60"
+            className="mt-1.5 text-right font-mono text-[0.75rem] text-muted-foreground"
           >
             {values.message.length}/2000
           </p>
