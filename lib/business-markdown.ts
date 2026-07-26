@@ -50,6 +50,12 @@ ${t.pitch.paragraphs.join("\n\n")}
 
 ${t.services.items.map((item) => `- **${item.title}** — ${item.desc}`).join("\n")}
 
+## ${t.stack.heading}
+
+${t.stack.groups.map((group) => `- **${group.label}** — ${group.items.join(" · ")}`).join("\n")}
+
+${t.stack.note}
+
 ## ${t.work.heading}
 
 ${projects}

@@ -137,6 +137,39 @@ export function BusinessContent({ lang }: { lang: Lang }) {
           </div>
         </section>
 
+        {/* Stack — breadth lives here so the hero can stay focused on the
+            offer rather than turning into a technology list. */}
+        <section>
+          <H2>{t.stack.heading}</H2>
+          <dl className="-mx-3 flex flex-col">
+            {t.stack.groups.map((group) => (
+              <div
+                key={group.label}
+                className="flex flex-col gap-2 border-b border-border px-3 py-4 sm:flex-row sm:items-baseline sm:gap-6"
+              >
+                <dt className="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-brand sm:w-24 sm:shrink-0">
+                  {group.label}
+                </dt>
+                <dd className="flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[0.8rem] text-muted-foreground">
+                  {group.items.map((item, i) => (
+                    <span key={item} className="contents">
+                      {i > 0 && (
+                        <span aria-hidden="true" className="text-border">
+                          ·
+                        </span>
+                      )}
+                      <span>{item}</span>
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-5 max-w-[52ch] text-sm text-muted-foreground">
+            {t.stack.note}
+          </p>
+        </section>
+
         {/* Selected client work */}
         <section>
           <H2>{t.work.heading}</H2>

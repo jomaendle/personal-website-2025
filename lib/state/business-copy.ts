@@ -47,6 +47,12 @@ interface ProcessStep {
   desc: string;
 }
 
+/** One labelled row of the stack table — label plus its technologies. */
+interface StackGroup {
+  label: string;
+  items: string[];
+}
+
 export interface BusinessCopy {
   /** Label on the language switch (the language it switches *to*). */
   switchTo: string;
@@ -63,6 +69,7 @@ export interface BusinessCopy {
   clients: { heading: string };
   pitch: { heading: string; paragraphs: string[] };
   services: { heading: string; items: ServiceItem[] };
+  stack: { heading: string; note: string; groups: StackGroup[] };
   work: { heading: string };
   process: { heading: string; steps: ProcessStep[] };
   why: { heading: string; items: string[] };
@@ -107,7 +114,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     hero: {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior Frontend-Engineering — und KI, die es in Produktion schafft.",
-      lede: "Ich arbeite mit Produktteams an React/Next.js auf Enterprise-Niveau — und bringe LLMs in Produkte, die Menschen tatsächlich benutzen.",
+      lede: "Ich arbeite mit Produktteams an den schwierigen Teilen des Frontends — unabhängig vom Framework — und bringe LLMs in Produkte, die Menschen tatsächlich benutzen.",
       available: "Verfügbar für neue Projekte",
       ctaPrimary: "Projekt anfragen",
       ctaSecondary: "Gespräch buchen",
@@ -117,7 +124,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "Worum es geht",
       paragraphs: [
         "Die meisten Teams brauchen keine weitere Website — sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features liefert, die im Betrieb halten. Genau da setze ich an.",
-        "Hauptberuflich arbeite ich als Principal Solution Architect daran, wie KI in den Entwicklungszyklus großer Teams einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten. Über sechs Jahre TypeScript, React und Next.js in Produktion.",
+        "Hauptberuflich arbeite ich als Principal Solution Architect daran, wie KI in den Entwicklungszyklus großer Teams einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten. Über sechs Jahre TypeScript in Produktion, mit Angular ebenso wie mit React und Next.js, dazu Node und NestJS im Backend.",
         "Was mich von einem reinen Frontend-Freelancer unterscheidet: Ich baue LLM-Integrationen, die den Weg in die Produktion tatsächlich schaffen — mit Kontextgrenzen, Evaluierung und einem Menschen an der richtigen Stelle im Review. Keine Demo, die im Meeting glänzt und im Alltag scheitert.",
       ],
     },
@@ -133,12 +140,36 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
           desc: "Von der ersten Machbarkeitsfrage bis zum produktiven Feature: Kontextdesign, Evaluierung, Guardrails, Kosten.",
         },
         {
-          title: "Next.js-Architektur & Performance",
+          title: "Frontend-Architektur & Performance",
           desc: "Rendering-Strategie, Caching, Core Web Vitals — Entscheidungen, die auch in zwei Jahren noch tragen.",
         },
         {
-          title: "Frontend-Modernisierung & Migration",
-          desc: "Schrittweise Ablösung gewachsener Frontends, ohne das Produkt anzuhalten.",
+          title: "Modernisierung & Migration",
+          desc: "Schrittweise Ablösung gewachsener Frontends — auch Angular nach React — ohne das Produkt anzuhalten.",
+        },
+      ],
+    },
+    stack: {
+      heading: "Stack",
+      note: "Ich komme nicht mit einer Framework-Präferenz, sondern arbeite mit dem, was Sie bereits betreiben.",
+      groups: [
+        {
+          label: "Frontend",
+          items: ["React", "Next.js", "Angular", "TypeScript", "Vue"],
+        },
+        {
+          label: "Backend",
+          items: ["Node.js", "NestJS", "API-Design"],
+        },
+        {
+          label: "KI",
+          items: [
+            "Claude Code",
+            "OpenAI Codex",
+            "MCP",
+            "LLM-Integration",
+            "AI-native SDLC",
+          ],
         },
       ],
     },
@@ -225,7 +256,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     hero: {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior frontend engineering, with AI that actually ships.",
-      lede: "I work with product teams on React/Next.js at enterprise scale — and bring LLMs into products people actually use.",
+      lede: "I work with product teams on the hard parts of the frontend — whatever the framework — and bring LLMs into products people actually use.",
       available: "Available for new engagements",
       ctaPrimary: "Start an inquiry",
       ctaSecondary: "Book a call",
@@ -235,7 +266,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       heading: "What I do",
       paragraphs: [
         "Most teams don't need another website — they need someone who can get inside a mature codebase, carry architecture decisions with them, and ship features that hold up in production. That's the seat I take.",
-        "In my day job I'm a Principal Solution Architect working on how AI enters the development lifecycle of large teams — from architecture and tooling to the daily habits. Six-plus years of TypeScript, React and Next.js in production.",
+        "In my day job I'm a Principal Solution Architect working on how AI enters the development lifecycle of large teams — from architecture and tooling to the daily habits. Six-plus years of TypeScript in production, in Angular as much as React and Next.js, plus Node and NestJS on the backend.",
         "What separates me from a pure frontend contractor: I build LLM integrations that genuinely reach production — context boundaries, evaluation, guardrails, cost. Not demo magic, but systems that survive contact with real usage.",
       ],
     },
@@ -251,12 +282,36 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
           desc: "From the first feasibility question to a shipped feature: context design, evaluation, guardrails, cost.",
         },
         {
-          title: "Next.js architecture & performance",
+          title: "Frontend architecture & performance",
           desc: "Rendering strategy, caching, Core Web Vitals — decisions that still hold two years out.",
         },
         {
-          title: "Frontend modernization & migration",
-          desc: "Incremental replacement of legacy frontends without pausing the product.",
+          title: "Modernization & migration",
+          desc: "Incremental replacement of legacy frontends — including Angular to React — without pausing the product.",
+        },
+      ],
+    },
+    stack: {
+      heading: "Stack",
+      note: "I don't arrive with a framework preference. I work in whatever you already run.",
+      groups: [
+        {
+          label: "Frontend",
+          items: ["React", "Next.js", "Angular", "TypeScript", "Vue"],
+        },
+        {
+          label: "Backend",
+          items: ["Node.js", "NestJS", "API design"],
+        },
+        {
+          label: "AI",
+          items: [
+            "Claude Code",
+            "OpenAI Codex",
+            "MCP",
+            "LLM integration",
+            "AI-native SDLC",
+          ],
         },
       ],
     },
