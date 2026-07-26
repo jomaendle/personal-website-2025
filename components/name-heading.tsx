@@ -35,10 +35,7 @@ export const NameHeading = ({
         onOpenChange={setMenuOpen}
         className="flex flex-col gap-4"
       >
-        <div className="flex items-center justify-between gap-4">
-          <span className="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.16em] text-brand">
-            {jobTitle}
-          </span>
+        <div className="flex items-center justify-end gap-4">
           <div className="flex items-center gap-5">
             <nav
               aria-label="Primary"
@@ -99,10 +96,16 @@ export const NameHeading = ({
           priority
           className="size-20 rounded-full bg-neutral-100 object-cover dark:bg-neutral-800 md:size-24"
         />
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <H1>{SITE.name}</H1>
+          {/* The role sits under the name in body type. It used to be a mono
+              uppercase brand eyebrow in the top bar, where it competed with the
+              nav and read as a section label rather than as who this is. */}
+          {showJobTitle && (
+            <p className="text-muted-foreground">{jobTitle}</p>
+          )}
           {showJobTitle && SITE.availableForWork && (
-            <span className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground">
+            <span className="mt-0.5 inline-flex w-fit items-center gap-2 text-sm text-muted-foreground">
               <span className="inline-block size-[7px] animate-pulse rounded-full bg-emerald-500" />
               Available for work
             </span>
