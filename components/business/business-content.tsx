@@ -185,7 +185,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 </ul>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  {project.stack.map((tag) => (
+                  {project.stack?.map((tag) => (
                     <span
                       key={tag}
                       className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground transition-colors"

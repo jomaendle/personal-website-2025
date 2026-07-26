@@ -18,7 +18,9 @@ export function renderBusinessMarkdown(lang: Lang): string {
   const projects = CLIENT_PROJECTS.map((project) =>
     [
       `### ${project.title} — ${project.href}`,
-      `**${project.period[lang]} · ${project.role[lang]} · ${project.stack.join(" · ")}**`,
+      `**${[project.period[lang], project.role[lang], project.stack?.join(" · ")]
+        .filter(Boolean)
+        .join(" · ")}**`,
       "",
       project.context[lang],
       "",

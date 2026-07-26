@@ -6,11 +6,16 @@
  * Mirrors the `lib/state/projects.ts` pattern; every human-facing string is
  * bilingual so the DE and EN routes share one dataset.
  *
- * Employers are deliberately absent — E.ON, Memberspot and StudySmarter are
- * jobs, not clients, and listing them here would be contradicted by the CV on
- * /about (`components/job-positions.tsx`), which any prospect can reach in one
- * click. Those credentials live in `BUSINESS_COPY.pitch` instead. Only genuine
- * freelance engagements belong in this file.
+ * Only genuine freelance engagements belong here. Employment is not client
+ * work: E.ON and StudySmarter are jobs and stay out, because listing them would
+ * be contradicted by the CV on /about (`components/job-positions.tsx`) that any
+ * prospect can reach in one click. Those credentials live in
+ * `BUSINESS_COPY.pitch` instead.
+ *
+ * Memberspot appears in both places for a legitimate reason: employed there
+ * Aug 2023 – Jul 2024, then re-engaged as a contractor Aug 2024 – Dec 2025.
+ * The periods are consecutive and do not overlap, so the two entries agree.
+ * If either date changes, change both.
  */
 
 /** A string rendered in both site languages. */
@@ -33,7 +38,8 @@ export interface ClientProject {
   role: Localized;
   context: Localized;
   highlights: LocalizedList;
-  stack: string[];
+  /** Omit rather than guess — the tag row simply does not render without it. */
+  stack?: string[];
 }
 
 export const CLIENT_PROJECTS: ClientProject[] = [
@@ -100,7 +106,31 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     },
     stack: ["Astro", "TypeScript", "Multi-Tenant", "Tailwind"],
   },
+  {
+    id: "memberspot",
+    title: "Memberspot",
+    href: "https://www.memberspot.de",
+    period: { de: "Aug 2024 – Dez 2025", en: "Aug 2024 – Dec 2025" },
+    role: {
+      de: "Freelance Frontend Engineer",
+      en: "Freelance frontend engineer",
+    },
+    context: {
+      de: "Frontend-Entwicklung am Produkt — einer B2B-SaaS-Plattform für Kurs-Hosting und interne Schulungen. Zuständig für die Frontend-Features quer durch das Produkt.",
+      en: "Frontend engineering on the product — a B2B SaaS platform for course hosting and internal training. Responsible for frontend features across the product.",
+    },
+    highlights: {
+      de: [
+        "Frontend-Features quer durch das Produkt, von Kurs-Hosting bis zu internen Schulungen",
+        "Als Freelancer zurückgeholt nach einem Jahr im Inhouse-Team — volle Produktkenntnis ab Tag eins, keine Einarbeitung",
+      ],
+      en: [
+        "Frontend features across the product, from course hosting through to internal training",
+        "Brought back as a contractor after a year on the in-house team — full product context from day one, no ramp-up",
+      ],
+    },
+  },
 ];
 
 /** Trust strip — freelance clients only, matching `CLIENT_PROJECTS` above. */
-export const CLIENTS = ["ImmoKäpsele", "Emerge Tech"];
+export const CLIENTS = ["ImmoKäpsele", "Emerge Tech", "Memberspot"];
