@@ -19,6 +19,10 @@ import { join } from "node:path";
  * `createRequire` seeded with a path (not `import.meta.url`, which is
  * unavailable under CJS) satisfies both: it works under either loader and keeps
  * the plugins on their working CommonJS builds.
+ *
+ * Knip cannot follow a `createRequire` call statically, so it reports both
+ * plugins as unused. They are listed under `ignoreDependencies` in knip.json —
+ * remove them there if this file ever goes back to plain imports.
  */
 const requirePlugin = createRequire(join(process.cwd(), "tailwind.config.ts"));
 
@@ -64,6 +68,10 @@ const config: Config = {
           foreground: "hsl(var(--destructive-foreground))",
         },
         border: "hsl(var(--border))",
+        /* Decorative hairline vs. control boundary — see the comment on the
+           tokens in app/editorial-theme.css. Anything a user operates should
+           use `border-border-strong` to clear WCAG 1.4.11's 3:1. */
+        "border-strong": "hsl(var(--border-strong))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
@@ -83,6 +91,19 @@ const config: Config = {
         },
       },
       fontFamily: {
+        // Without this key `font-sans` falls through to Tailwind's default
+        // stack — Geist only applied because <body> hard-coded it inline.
+        sans: [
+          "var(--font-sans)",
+          "Geist",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
         serif: [
           "var(--font-serif)",
           "Georgia",

@@ -21,23 +21,48 @@
 /* Variable fonts: opsz 6..72, wght 300..600 (roman) / 300..500 (italic).
    Only the `latin` subset is shipped — it covers Latin-1 (incl. ä). */
 @font-face {
-  font-family: 'Newsreader';
-  src: url('/fonts/NewsreaderVF.woff2') format('woff2');
+  font-family: "Newsreader";
+  src: url("/fonts/NewsreaderVF.woff2") format("woff2");
   font-weight: 300 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Newsreader';
-  src: url('/fonts/NewsreaderItalicVF.woff2') format('woff2');
+  font-family: "Newsreader";
+  src: url("/fonts/NewsreaderItalicVF.woff2") format("woff2");
   font-weight: 300 500;
   font-style: italic;
   font-display: swap;
 }
 
+/* Metric-matched Georgia, so the swap from fallback to Newsreader does not
+   reflow. Serif carries every H1/H3/article title here, which is the largest
+   type on the page and therefore the most expensive thing to shift.
+
+   Numbers derived from the two font binaries (fontTools):
+     Newsreader  upem 2000 · typo asc 1470 · desc -530 · gap 0 · avg lc adv 0.4536
+     Georgia     upem 2048 · typo asc 1549 · desc  -444 · gap 198 · avg lc adv 0.4896
+   size-adjust      = 0.4536 / 0.4896            = 92.65%
+   ascent-override  = (1470/2000) / 0.9265       = 79.33%
+   descent-override = (530/2000)  / 0.9265       = 28.60%
+   line-gap-override= 0 (Newsreader ships no line gap)
+   "avg lc adv" is the mean advance of a–z plus space, normalised to the em —
+   the same width proxy next/font uses to fit a fallback to a webfont. */
+@font-face {
+  font-family: "Newsreader Fallback";
+  src: local("Georgia");
+  size-adjust: 92.65%;
+  ascent-override: 79.33%;
+  descent-override: 28.6%;
+  line-gap-override: 0%;
+}
+
 /* ---- Design tokens ------------------------------------------------ */
-/* Unlayered rules intentionally win over globals' @layer base tokens. */
+/* This file is imported after globals.css, so on equal specificity its rules
+   win by source order. Tailwind v3's `@layer base` is not a native CSS cascade
+   layer — it is a directive Tailwind expands in place at `@tailwind base`, so
+   there is no layer precedence at play, only position in the output. */
 
 /* LIGHT — "paper" (recommended default) */
 :root,
@@ -50,7 +75,7 @@
   --popover: 40 33% 96%;
   --popover-foreground: 38 24% 8%;
 
-  --primary: 38 24% 8%;            /* ink — primary buttons */
+  --primary: 38 24% 8%; /* ink — primary buttons */
   --primary-foreground: 40 33% 96%;
   --secondary: 40 20% 88%;
   --secondary-foreground: 38 24% 8%;
@@ -61,18 +86,28 @@
   --destructive: 0 70% 45%;
   --destructive-foreground: 40 33% 96%;
 
+  /* Two border tokens, because one value cannot serve both jobs.
+     `--border` is the decorative hairline: table rules, card edges, the H2
+     underline. It is deliberately faint (1.29:1 on paper) and that is fine —
+     WCAG 1.4.11 exempts purely decorative boundaries.
+     `--border-strong` is for anything a user operates. 1.4.11 requires 3:1 for
+     the visual boundary of a control, which the hairline misses by a mile.
+     Measured against `--background` (inputs are `bg-transparent`, so the page
+     is what they sit on): 3.11:1 light, 3.37:1 dark. */
   --border: 38 16% 84%;
-  --input: 38 16% 84%;
-  --ring: 9 70% 45%;
+  --border-strong: 38 14% 52%;
+  --input: 38 14% 52%;
+  --ring: 6 65% 40%;
   --radius: 0.4rem;
 
-  --link: 9 70% 45%;               /* vermilion */
-  --link-hover: 9 72% 38%;
+  --link: 6 65% 40%; /* brick */
+  --link-hover: 6 68% 32%;
 
   /* New brand accent used by the reskinned primitives */
-  --brand: 9 70% 45%;
-  --brand-soft: 12 62% 56%;
-  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --brand: 6 65% 40%;
+  --brand-soft: 10 58% 52%;
+  --font-serif:
+    "Newsreader", "Newsreader Fallback", Georgia, "Times New Roman", serif;
 }
 
 /* DARK — warm editorial (deep ink + paper text) */
@@ -97,22 +132,119 @@
   --destructive-foreground: 40 30% 94%;
 
   --border: 36 8% 22%;
-  --input: 36 8% 22%;
-  --ring: 12 80% 60%;
+  --border-strong: 36 8% 40%;
+  --input: 36 8% 40%;
+  --ring: 10 78% 62%;
 
-  --link: 12 84% 64%;
-  --link-hover: 12 84% 72%;
+  --link: 10 78% 62%;
+  --link-hover: 10 80% 71%;
 
-  --brand: 12 84% 64%;
-  --brand-soft: 12 70% 58%;
+  --brand: 10 78% 62%;
+  --brand-soft: 10 66% 56%;
 }
 
-/* ---- Surface: flatten the gradient/glass into editorial paper ---- */
+/* ---- Surface: paper field with an ambient warm light ------------- */
 
-/* Remove the blue/purple radial glow; use a single calm paper field. */
+/* The flat paper field stays the base color. The old blue/purple glow is
+   gone for good; it fought the vermilion accent. What sits on top instead
+   are three slow warm lights drawn from the brand hue (see below), which
+   give the page depth without turning it into a gradient poster.
+
+   No `!important` needed: globals' competing gradient rules are gone, and this
+   file is imported after globals, so equal specificity resolves by source. */
 :root body,
 .light body {
-  background: hsl(var(--background)) !important;
+  background: hsl(var(--background));
+}
+
+/* Glow hues and strengths are tokens so each theme tunes intensity without
+   duplicating the gradient stack. Dark mode can carry more light; on paper
+   the same alphas would read as a stain. */
+:root:not(.light) {
+  --glow-1: 10 80% 60%; /* brick — the brand accent, bloomed */
+  --glow-2: 32 92% 55%; /* amber — warms the upper right */
+  --glow-3: 348 62% 42%; /* deep rose — weight along the bottom */
+  --glow-1-alpha: 0.09;
+  --glow-2-alpha: 0.06;
+  --glow-3-alpha: 0.07;
+  --grain-alpha: 0.03;
+}
+
+:root.light,
+.light {
+  --glow-1: 6 68% 45%;
+  --glow-2: 34 86% 52%;
+  --glow-3: 350 55% 50%;
+  --glow-1-alpha: 0.05;
+  --glow-2-alpha: 0.04;
+  --glow-3-alpha: 0.035;
+  --grain-alpha: 0.018;
+}
+
+/* Ambient light field. Fixed, so it behaves like light in the room rather
+   than a pattern that scrolls with the text.
+   `.page-container` is already `relative z-20`, so all content sits above.
+
+   `inset` must stay at 0. The gradient positions below are percentages of
+   this element's own box, so insetting it negatively (an earlier attempt
+   used -25vmax) pushes every light center outside the viewport and leaves
+   nothing but a faint edge tint. Drift is done with `transform` instead,
+   which moves the painted result without moving the reference box. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60vmax 52vmax at 12% 2%,
+      hsl(var(--glow-1) / var(--glow-1-alpha)) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      52vmax 46vmax at 92% 14%,
+      hsl(var(--glow-2) / var(--glow-2-alpha)) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      64vmax 50vmax at 55% 104%,
+      hsl(var(--glow-3) / var(--glow-3-alpha)) 0%,
+      transparent 62%
+    );
+  animation: ambient-drift 48s ease-in-out infinite alternate;
+}
+
+/* A very slow, very small drift. Large enough that the page is never quite
+   static, small enough that you only notice it if you look for it. Scaling
+   up only: every gradient has faded to transparent well before the box
+   edge, so there is no hard boundary for the movement to expose. */
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-2%, 1.5%, 0) scale(1.12);
+  }
+}
+
+/* Film grain over the light field. Without it the wide radial gradients band
+   visibly on the near-flat dark paper. It also keeps the "printed" feel that
+   the rest of the type system is going for. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--grain-alpha);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
 }
 
 /* Turn the glass card into a quiet paper sheet with a hairline edge. */
@@ -126,10 +258,40 @@
 }
 
 @media (min-width: 768px) {
-  .glass-container { padding: 0 !important; }
+  .glass-container {
+    padding: 0 !important;
+  }
 }
 
 /* ---- Typography: serif headings, refined rhythm ------------------ */
+
+/* Body copy is ink, not gray. globals sets `.prose p` to --muted-foreground,
+   which reads as a caption at article length and is the main thing pulling the
+   page away from ink-on-paper. /about and /business already use foreground/90;
+   articles now match. Lists get the same treatment for the same reason. */
+.prose p,
+.prose li,
+.prose ul li,
+.prose ol li {
+  color: hsl(var(--foreground) / 0.9);
+}
+
+/* Measure. The prose column inherits the layout's max-w-3xl and lands around
+   90–95 characters — well past the ~65–75 where the eye still finds the next
+   line reliably. Constraining the flow content rather than `.prose` itself
+   leaves figures, code blocks and embedded demos free to use the full column;
+   only the things you read line by line are narrowed. */
+.prose > p,
+.prose > h1,
+.prose > h2,
+.prose > h3,
+.prose > h4,
+.prose > ul,
+.prose > ol,
+.prose > blockquote,
+.prose > hr {
+  max-width: 68ch;
+}
 
 .prose h1,
 .prose h2,
@@ -150,16 +312,6 @@
   border-bottom-color: hsl(var(--border));
 }
 
-/* First-letter drop cap on the opening paragraph of an article. */
-.prose > p:first-of-type::first-letter {
-  font-family: var(--font-serif);
-  font-size: 3.6em;
-  line-height: 0.72;
-  float: left;
-  padding: 0.06em 0.12em 0 0;
-  color: hsl(var(--brand));
-}
-
 /* Pull-quote treatment for blockquotes. */
 .prose blockquote {
   border-left: 3px solid hsl(var(--brand));
@@ -171,6 +323,11 @@
   line-height: 1.4;
   color: hsl(var(--foreground));
   padding-left: 1.5rem;
+}
+
+/* A pull quote is already set apart by size and rule; it stays at full ink. */
+.prose blockquote p {
+  color: inherit;
 }
 
 /* List markers in brand vermilion. */
@@ -194,13 +351,6 @@
 }
 
 /* ---- Row hover: warmer, tighter, editorial ----------------------- */
-
-.light .hover-accent:hover {
-  background-color: hsl(var(--brand) / 0.06);
-}
-:root .hover-accent:hover {
-  background-color: hsl(var(--brand) / 0.10);
-}
 
 /* Ledger rows (selected work, services, article index).
    Previously these inverted the whole row — background to --foreground, text to
@@ -245,4 +395,14 @@
 ::selection {
   background: hsl(var(--brand));
   color: hsl(var(--background));
+}
+
+/* The skip link targets `<main id="main-content" tabindex="-1">`, and focusing
+   a whole region draws Chrome's default blue outline around the entire page
+   body — the one unstyled UA ring left on the site, and jarring against the
+   paper. The landing itself is the feedback here: the next Tab starts inside
+   main, and a region is not an operable control, so 2.4.7 does not apply.
+   Controls keep their brand rings; this suppresses only the container's. */
+main#main-content:focus {
+  outline: none;
 }

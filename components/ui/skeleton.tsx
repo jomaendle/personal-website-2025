@@ -15,41 +15,6 @@ function Skeleton({
   );
 }
 
-function SkeletonText({
-  lines = 3,
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement> & { lines?: number }) {
-  return (
-    <div className={cn("space-y-2", className)} {...props}>
-      {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={cn(
-            "h-4",
-            i === lines - 1 ? "w-3/4" : "w-full"
-          )}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SkeletonCard({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("space-y-3", className)} {...props}>
-      <Skeleton className="h-[200px] w-full rounded-xl" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-    </div>
-  );
-}
-
 function SandpackSkeleton({ className }: { className?: string }) {
   return (
     <div 
@@ -117,4 +82,6 @@ function BaselineStatusSkeleton({ className }: { className?: string }) {
   );
 }
 
-export { Skeleton, SkeletonText, SkeletonCard, SandpackSkeleton, BaselineStatusSkeleton };
+// `Skeleton` stays module-local: it is the shared shimmer block the two
+// exported skeletons are built from, and has no consumers of its own.
+export { SandpackSkeleton, BaselineStatusSkeleton };
