@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+import "./editorial-theme.css";
 import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -16,7 +17,7 @@ import { Analytics } from "@vercel/analytics/next";
 // In production with network access, restore: import { Inter } from "next/font/google";
 
 const ogImageDescription = encodeURIComponent(
-  "Full-Stack developer sharing his thoughts on the web.",
+  "Full-stack engineer writing about the web platform and building software with AI.",
 );
 
 export const metadata: Metadata = {
@@ -25,7 +26,8 @@ export const metadata: Metadata = {
     default: "Jo Mändle | Building for the Web.",
     template: "%s | Jo Mändle",
   },
-  description: "Full-Stack developer sharing his thoughts on the web.",
+  description:
+    "Full-stack engineer writing about the web platform and building software with AI.",
   keywords: [
     "Jo Mändle",
     "Johannes Mändle",
@@ -34,12 +36,16 @@ export const metadata: Metadata = {
     "Full-Stack Developer",
     "Web Development",
   ],
-  authors: [{ name: "Johannes Mändle", url: "https://jomaendle.com" }],
+  authors: [{ name: "Johannes Mändle", url: "https://www.jomaendle.com" }],
   creator: "Johannes Mändle",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },
-      { url: "/favicon-32x32.png", type: "image/png" },
+      // These two live in `public/`, not `app/`. The App Router only
+      // auto-serves reserved names (favicon.ico, icon.*, apple-icon.*) from
+      // `app/`, so while they sat there both 404'd on every route.
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
     ],
   },
   openGraph: {
@@ -73,12 +79,19 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://giscus.app" />
           <link rel="dns-prefetch" href="https://plausible.io" />
 
-          {/* Preload critical font */}
+          {/* Preload critical fonts */}
           <link
             rel="preload"
             href="/fonts/GeistVF.woff"
             as="font"
             type="font/woff"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="/fonts/NewsreaderVF.woff2"
+            as="font"
+            type="font/woff2"
             crossOrigin="anonymous"
           />
         </head>
@@ -89,6 +102,17 @@ export default function RootLayout({
               "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
           }}
         >
+          {/* Each route owns its own `<main id="main-content">`, and it has to
+              start below the PageTopBar and above the Footer. Wrapping the
+              whole page in it instead makes this link jump to a point above the
+              nav it is meant to skip, and swallows the banner/contentinfo
+              landmarks. */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
+          >
+            Skip to content
+          </a>
           <ReactQueryProvider>
             <JotaiProvider>
               <ThemeProvider

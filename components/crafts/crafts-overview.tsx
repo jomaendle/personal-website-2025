@@ -70,12 +70,20 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
     const video = videoRef.current;
     if (!video) return;
 
+    // These clips loop for well over five seconds with no controls, so under
+    // `prefers-reduced-motion` they stay on their poster frame (WCAG 2.2.2).
+    // `MotionConfig reducedMotion="user"` covers framer-motion, not raw video.
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     // Use Intersection Observer to only load video when visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setShouldLoad(true);
+            if (prefersReducedMotion) return;
             // Play video when visible
             video.play().catch(() => {
               // Autoplay may be blocked, that's okay

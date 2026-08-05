@@ -9,11 +9,9 @@ const nextConfig = {
       "framer-motion",
       "lucide-react",
       "@radix-ui/react-slot",
-      "@radix-ui/react-dialog",
       "@radix-ui/react-collapsible",
       "@radix-ui/react-tabs",
       "@codesandbox/sandpack-react",
-      "@codesandbox/sandpack-themes",
     ],
   },
   images: {
@@ -30,6 +28,36 @@ const nextConfig = {
   generateEtags: true,
   trailingSlash: false,
   async headers() {
+    // Content-Security-Policy. Kept deliberately explicit about the third
+    // parties this site loads:
+    //  - Plausible analytics (script + beacon)
+    //  - Supabase (view counter, connect)
+    //  - Giscus comments (script + iframe embed)
+    //  - Sandpack / CodeSandbox live demos (needs 'unsafe-eval' + blob: workers
+    //    and codesandbox iframes)
+    // 'unsafe-inline'/'unsafe-eval' are required by Next's inline bootstrap and
+    // Sandpack's bundler respectively; tighten with nonces if those are removed.
+    const contentSecurityPolicy = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "manifest-src 'self'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "style-src 'self' 'unsafe-inline' https://giscus.app",
+      // va.vercel-scripts.com serves both @vercel/analytics and
+      // @vercel/speed-insights. Both are mounted in app/layout.tsx but were
+      // absent from this policy, so the browser blocked them in production as
+      // well as dev — the site shipped both libraries and recorded nothing.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io https://giscus.app https://*.codesandbox.io https://va.vercel-scripts.com",
+      "connect-src 'self' https://*.supabase.co https://plausible.io https://giscus.app https://*.codesandbox.io https://api.webstatus.dev https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "frame-src 'self' https://giscus.app https://codesandbox.io https://*.codesandbox.io",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob:",
+    ].join("; ");
+
     return [
       // Immutable Next.js static chunks (hashed JS/CSS)
       {
@@ -137,6 +165,10 @@ const nextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: contentSecurityPolicy,
           },
         ],
       },

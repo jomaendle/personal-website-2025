@@ -56,19 +56,29 @@ export function ContactForm() {
     <div className="my-8 rounded-lg border border-border bg-card px-6 pb-6">
       <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
 
+      {/* Bordered panels rather than coloured text — see newsletter.tsx and
+          business/inquiry-form.tsx: colour carries the border and wash only. */}
       {submitStatus === "success" ? (
-        <div className="rounded-md bg-green-900/20 p-4 text-sm text-green-400">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground"
+        >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
-        <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400">
+        <div
+          role="alert"
+          className="rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground"
+        >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="mb-2 block text-sm text-muted-foreground">
-              Name <span className="text-red-400">*</span>
+              Name <span aria-hidden="true" className="text-brand">*</span>
+              <span className="sr-only">(required)</span>
             </label>
             <Input
               id="name"
@@ -76,8 +86,8 @@ export function ContactForm() {
               value={name}
               placeholder="Your Name"
               onChange={(e) => setName(e.target.value)}
-              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              aria-required="true"
               disabled={isSubmitting}
               minLength={2}
               maxLength={100}
@@ -86,7 +96,8 @@ export function ContactForm() {
 
           <div>
             <label htmlFor="email" className="mb-2 block text-sm text-muted-foreground">
-              Email <span className="text-red-400">*</span>
+              Email <span aria-hidden="true" className="text-brand">*</span>
+              <span className="sr-only">(required)</span>
             </label>
             <Input
               id="email"
@@ -94,8 +105,8 @@ export function ContactForm() {
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
               required
+              aria-required="true"
               disabled={isSubmitting}
               maxLength={254}
             />
@@ -103,7 +114,8 @@ export function ContactForm() {
 
           <div>
             <label htmlFor="topic" className="mb-2 block text-sm text-muted-foreground">
-              Message <span className="text-red-400">*</span>
+              Message <span aria-hidden="true" className="text-brand">*</span>
+              <span className="sr-only">(required)</span>
             </label>
             <Textarea
               id="topic"
@@ -111,8 +123,9 @@ export function ContactForm() {
               onChange={(e) => setTopic(e.target.value)}
               rows={4}
               placeholder="I'm interested in a new software product and would like to know more about your services."
-              className="w-full bg-input transition-colors focus:ring-2 focus:ring-primary/20"
+              className="w-full"
               required
+              aria-required="true"
               disabled={isSubmitting}
               minLength={10}
               maxLength={1000}

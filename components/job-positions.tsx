@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
+import { H3 } from "@/components/ui/heading";
 
 const jobPositions = [
   {
@@ -67,11 +68,13 @@ export const JobPositions = () => {
           className="flex items-center"
         >
           <div className="flex-1">
-            <h3 className="text-foreground">{position.company}</h3>
+            {/* Not a link, so the brand hover is opted out — these sit directly
+                beneath the serif principle cards on /about and must match. */}
+            <H3 interactive={false}>{position.company}</H3>
             <p className="text-muted-foreground">{position.role}</p>
           </div>
           <p className="text-xs text-muted-foreground md:text-sm">
-            {position.startDate} — {position.endDate}
+            {position.startDate} – {position.endDate}
           </p>
         </motion.article>
       ))}

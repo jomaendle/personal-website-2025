@@ -12,7 +12,8 @@
 // - Limits total length to 254 characters (per RFC 5321)
 // - Limits local part to 64 characters (per RFC 5321)
 // - Limits domain part to 255 characters (per RFC 5321)
-const EMAIL_REGEX = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,63}$/;
+const EMAIL_REGEX =
+  /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,63}$/;
 
 /**
  * Validates an email address format.
@@ -27,7 +28,7 @@ const EMAIL_REGEX = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-
  * isValidEmail('no@tld') // false
  */
 export function isValidEmail(email: string): boolean {
-  if (!email || typeof email !== 'string') {
+  if (!email || typeof email !== "string") {
     return false;
   }
 
@@ -50,22 +51,4 @@ export function isValidEmail(email: string): boolean {
  */
 export function sanitizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-/**
- * Validates and sanitizes an email address.
- * Returns the sanitized email if valid, or null if invalid.
- *
- * @param email - The email address to validate and sanitize
- * @returns The sanitized email or null if invalid
- *
- * @example
- * validateAndSanitizeEmail('  User@Example.COM  ') // 'user@example.com'
- * validateAndSanitizeEmail('invalid') // null
- */
-export function validateAndSanitizeEmail(email: string): string | null {
-  if (!isValidEmail(email)) {
-    return null;
-  }
-  return sanitizeEmail(email);
 }

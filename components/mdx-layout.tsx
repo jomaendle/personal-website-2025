@@ -2,6 +2,7 @@ import { ViewCounter } from "@/components/view-counter";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
+import Image from "next/image";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
@@ -10,6 +11,30 @@ import { BackToTop } from "@/components/back-to-top";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import GiscusComments from "@/components/giscus-comments-lazy";
+import { categoryFor } from "@/lib/state/writing-categories";
+import { SITE } from "@/lib/config/site";
+import { BLOG_POSTS } from "@/lib/state/blog";
+import { BlogPostStructuredData } from "@/components/structured-data";
+
+/**
+ * MdxLayout — Editorial design layer.
+ *
+ * Same props (children, slug, metadata) and the same furniture (sidebar,
+ * scroll progress, ToC, comments, read-more). Two things differ from the
+ * plain layout:
+ *
+ *  · An editorial meta header above the article — a brand category eyebrow
+ *    and an author row, replacing the bare date line. Serif title and
+ *    pull-quotes come from `app/editorial-theme.css`.
+ *  · A two-column shell instead of `.page-container`. The sidebar used to be
+ *    `fixed left-12`, which overlapped the centred article between 1280px and
+ *    1344px and painted over it. Sidebar and article now share one centred
+ *    flex row, so they can never collide and the leftover margin is split
+ *    evenly on both sides rather than pooling on the right. The shell inlines
+ *    `.page-container`'s `relative z-20` (the ambient light field in
+ *    `editorial-theme.css` relies on content sitting above it) but sets its
+ *    own widths, since `.page-container`'s `max-w-3xl` would cap the pair.
+ */
 
 export default function MdxLayout({
   children,
@@ -20,82 +45,123 @@ export default function MdxLayout({
   slug: string;
   metadata: { date: string };
 }) {
+  // `BlogPosting` JSON-LD was written but never rendered, so articles shipped
+  // with no Article structured data at all. Title comes from BLOG_POSTS rather
+  // than a prop so it cannot drift from the blog index; drafts absent from that
+  // array simply emit nothing, which is correct for an unpublished post.
+  const post = BLOG_POSTS.find((p) => p.slug === slug);
+
   return (
     <>
       <ScrollProgress />
 
-      <aside
-        className="fixed left-12 top-[100px] z-[51] hidden w-[240px] flex-col gap-6 xl:flex 3xl:w-[300px]"
-        style={{
-          maxHeight: "calc(100svh - 200px)",
-        }}
-      >
-        <div className="mb-12">
-          <BackLink />
-        </div>
+      {post && (
+        <BlogPostStructuredData
+          title={post.title}
+          url={`https://www.jomaendle.com/blog/${slug}`}
+          datePublished={new Date(post.date).toISOString()}
+        />
+      )}
 
-        <SidebarNavigation currentSlug={slug} />
-      </aside>
-
-      <div className="page-container">
-        <div
-          className="glass-container"
-          style={{ viewTransitionName: "main-content" }}
-        >
-          <div className="z-[51] flex h-24 items-center justify-center gap-12">
-            <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
-              <div className="absolute left-0 z-10 xl:hidden">
-                <BackLink />
-              </div>
-              <Link href="/">
-                <p className="relative z-10 text-lg font-medium tracking-tight">
-                  Jo Mändle
-                </p>
-              </Link>
-
-              <div className="absolute right-0 z-10">
-                <ThemeToggle />
-              </div>
+      <div className="relative z-20 mx-auto w-full max-w-3xl px-3 py-16 sm:px-6 xl:max-w-[1072px] 3xl:max-w-[1132px]">
+        <div className="flex justify-center gap-16">
+          <aside
+            className="sticky top-[100px] hidden w-[240px] shrink-0 flex-col gap-6 self-start xl:flex 3xl:w-[300px]"
+            style={{ maxHeight: "calc(100svh - 200px)" }}
+          >
+            <div className="mb-12">
+              <BackLink />
             </div>
-          </div>
+            <SidebarNavigation currentSlug={slug} />
+          </aside>
 
-          <main className="glass-container-spacing overflow-x-clip">
+          <div
+            className="glass-container min-w-0 flex-1 xl:max-w-3xl"
+            style={{ viewTransitionName: "main-content" }}
+          >
+            {/* Landmark contract: <header> and <Footer /> are siblings of
+                <main id="main-content">, all three inside .glass-container.
+                Nesting either one inside <main> costs it its implicit
+                banner/contentinfo role. */}
+            <header className="z-[51] flex h-24 items-center justify-center gap-12">
+              <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
+                <div className="absolute left-0 z-10 xl:hidden">
+                  <BackLink />
+                </div>
+                <Link href="/">
+                  <p className="relative z-10 font-serif text-lg tracking-tight">
+                    {SITE.name}
+                  </p>
+                </Link>
+                <div className="absolute right-0 z-10">
+                  <ThemeToggle />
+                </div>
+              </div>
+            </header>
+
+            <main id="main-content" tabIndex={-1} className="overflow-x-clip">
+              <div className="mx-auto max-w-3xl">
+                <div className="mb-4 h-4"></div>
+
+                {/* Editorial meta header */}
+                <div className="mb-10 flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.05em] text-muted-foreground">
+                      <span className="text-brand">{categoryFor(slug)}</span>
+                      <span aria-hidden="true">·</span>
+                      <time dateTime={metadata.date}>{metadata.date}</time>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={SITE.avatar}
+                        alt={SITE.name}
+                        width={36}
+                        height={36}
+                        className="size-9 rounded-full object-cover"
+                      />
+                      <div className="leading-tight">
+                        <div className="text-sm font-medium text-foreground">
+                          {SITE.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {SITE.shortRole}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <ViewCounter slug={slug} shouldIncrement={true} />
+                </div>
+
+                <div className="relative -mt-2 mb-8 h-10 xl:hidden">
+                  <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      On This Page
+                      <span>↓</span>
+                    </Button>
+                  </div>
+                  <MobileTableOfContents />
+                </div>
+
+                <div className="prose">{children}</div>
+
+                <hr className="my-12" />
+                <GiscusComments slug={slug} />
+                <hr className="my-12" />
+                <ReadMoreArticles currentSlug={slug} />
+                <NewsletterForm />
+              </div>
+            </main>
+
+            {/* Same `mx-auto max-w-3xl` wrapper the article content uses, so
+                moving the footer out of <main> changes the landmark tree
+                without changing where it sits on the page. */}
             <div className="mx-auto max-w-3xl">
-              {/* Add top padding to account for sticky header */}
-              <div className="mb-4 h-4"></div>
-
-              <div className="mb-12 flex items-start justify-between gap-3">
-                <div className="flex flex-col items-start gap-3 text-sm text-muted-foreground">
-                  <time dateTime={metadata.date}>{metadata.date}</time>
-                </div>
-                <ViewCounter slug={slug} shouldIncrement={true} />
-              </div>
-
-              <div className="relative -mt-2 mb-8 h-10 xl:hidden">
-                <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
-                  <Button variant="outline" className="w-full justify-between">
-                    On This Page
-                    <span>↓</span>
-                  </Button>
-                </div>
-                <MobileTableOfContents />
-              </div>
-
-              <div className="prose">{children}</div>
-
-              <hr className="my-12" />
-
-              <GiscusComments slug={slug} />
-
-              <hr className="my-12" />
-
-              <ReadMoreArticles currentSlug={slug} />
-
-              <NewsletterForm />
-
               <Footer />
             </div>
-          </main>
+          </div>
         </div>
         <BackToTop />
       </div>
@@ -106,11 +172,13 @@ export default function MdxLayout({
 function BackLink() {
   return (
     <Link
-      href="/"
-      className="group inline-flex items-center gap-2 text-sm text-foreground transition-all duration-200 hover:text-muted-foreground"
+      href="/blog"
+      className="group inline-flex items-center gap-2 font-mono text-sm text-foreground transition-all duration-200 hover:text-brand"
     >
-      <span className="transition-transform duration-200">←</span>
-      Back
+      <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
+        ←
+      </span>
+      All writing
     </Link>
   );
 }

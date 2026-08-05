@@ -1,5 +1,19 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Heading primitives — Editorial design layer.
+ *
+ * Same exports (BlogH1, H1, H2, H3) and props as the original, so every
+ * consumer keeps working. Only the presentation changes:
+ *   · H1  — large Newsreader serif (name / page titles)
+ *   · H2  — Geist Mono uppercase label in brand vermilion (section eyebrow)
+ *   · H3  — Newsreader serif item title, brand hover opt-out via `interactive`
+ *   · BlogH1 — serif article title
+ *
+ * Typography comes from Tailwind tokens (`font-serif`, `font-mono`, `text-brand`)
+ * which resolve to `--font-serif` / `--brand` defined in `app/editorial-theme.css`.
+ */
+
 const BlogH1 = ({
   children,
   ...props
@@ -7,7 +21,13 @@ const BlogH1 = ({
   children: React.ReactNode;
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
-    <h1 className="text-2xl font-normal tracking-tight mb-8" {...props}>
+    <h1
+      {...props}
+      className={cn(
+        "mb-8 text-balance font-serif text-[clamp(2rem,5vw,3.25rem)] font-normal leading-[1.04] tracking-[-0.015em]",
+        props.className,
+      )}
+    >
       {children}
     </h1>
   );
@@ -20,7 +40,13 @@ const H1 = ({
   children: React.ReactNode;
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
-    <h1 className="text-2xl mb-1" {...props}>
+    <h1
+      {...props}
+      className={cn(
+        "mb-1 font-serif text-[clamp(1.9rem,4vw,2.75rem)] font-normal leading-[1.02] tracking-[-0.015em]",
+        props.className,
+      )}
+    >
       {children}
     </h1>
   );
@@ -36,7 +62,7 @@ const H2 = ({
     <h2
       {...props}
       className={cn(
-        "text-sm uppercase tracking-wider text-muted-foreground mb-6",
+        "mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand",
         props.className,
       )}
     >
@@ -47,17 +73,36 @@ const H2 = ({
 
 const H3 = ({
   children,
+  interactive = true,
+  as: Tag = "h3",
   ...props
 }: {
   children: React.ReactNode;
+  /**
+   * Whether the title picks up the brand colour from an ancestor `.group`
+   * hover. Defaults to `true` because most H3s are the title of a link row.
+   * Pass `interactive={false}` for a standalone heading that nothing wraps.
+   */
+  interactive?: boolean;
+  /**
+   * Heading level, when the type is right but the depth is not. On `/blog` the
+   * post titles sit directly under the page `h1`, so shipping them as `h3`
+   * would skip a level; on the homepage the same rows sit under a section `h2`
+   * and `h3` is correct. Type stays identical either way.
+   */
+  as?: "h2" | "h3";
 } & React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
-    <h3
-      className="text-foreground group-hover:text-underline transition-colors"
+    <Tag
       {...props}
+      className={cn(
+        "font-serif text-[1.35rem] font-normal leading-[1.15] tracking-[-0.01em] text-foreground",
+        interactive && "transition-colors group-hover:text-brand",
+        props.className,
+      )}
     >
       {children}
-    </h3>
+    </Tag>
   );
 };
 

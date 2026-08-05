@@ -13,6 +13,17 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const { resolvedTheme } = useTheme();
 
+  // Reset load/error state when the post changes. Done during render rather
+  // than inside the effect below — React's documented pattern for deriving
+  // state from a changed prop, and it avoids the cascading re-render that
+  // calling setState synchronously in an effect body causes.
+  const [prevSlug, setPrevSlug] = useState(slug);
+  if (prevSlug !== slug) {
+    setPrevSlug(slug);
+    setError(null);
+    setIsLoaded(false);
+  }
+
   // Get the custom theme URL (static, no query params for better caching)
   const getThemeUrl = () => {
     return `${window.location.origin}/api/giscus-theme`;
@@ -25,9 +36,6 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
 
     // Clear any existing Giscus instance
     currentRef.innerHTML = "";
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset state when re-initializing external Giscus script
-    setError(null);
-    setIsLoaded(false);
 
     const script = document.createElement("script");
     script.src = "https://giscus.app/client.js";

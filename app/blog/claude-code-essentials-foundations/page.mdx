@@ -27,7 +27,7 @@ export const dynamic = 'force-static'
   caption="Claude Code Essentials: Foundations for Effective AI-Assisted Development"
 />
 
-After months of daily use with Claude Code work and personal projects, I've learned that effectiveness isn't about maximizing AI usage—it's about building the right foundation.
+After months of daily use with Claude Code work and personal projects, I've learned that effectiveness isn't about maximizing AI usage. It's about building the right foundation.
 
 Here are four practices that made the difference for me: they enable faster iteration while keeping quality, security, and maintainability front and center.
 
@@ -160,14 +160,14 @@ When you start a new Claude Code session, it automatically loads the relevant `C
 
 <BlogImage
   src="/claude-code-essentials-foundations/plan-mode.webp"
-  caption="Plan Mode with extended thinking levels—from basic analysis to ultrathink for architectural decisions."
+  caption="Plan Mode with extended thinking levels, from basic analysis to ultrathink for architectural decisions."
 />
 
 On simple changes like "add a loading spinner while the user data is pending", I'll start straight in `⏵⏵ accept edits on` mode.
 
 But for anything touching multiple files or with potential side effects, I always start with `⏸ plan mode on`
 
-In plan mode, Claude thinks out loud—considers different approaches, flags potential issues, then commits to a strategy before writing a single line.
+In plan mode, Claude thinks out loud. It considers different approaches, flags potential issues, then commits to a strategy before writing a single line.
 
 ### How to enter Plan Mode
 - Press **Shift+Tab twice** (fastest method)
@@ -216,7 +216,7 @@ the plan to /docs/role-based-access-control-plan.md. Include:
 - Testing strategy"
 `} />
 
-This gives you a reviewable artifact before any code gets written—adjust the approach, add constraints, or refine scope without wasting tokens on implementation.
+This gives you a reviewable artifact before any code gets written. You can adjust the approach, add constraints, or refine scope without wasting tokens on implementation.
 
 Once approved, Claude can reference this plan file throughout the session, keeping implementation aligned with the agreed strategy even across multiple `/clear` cycles.
 
@@ -234,13 +234,13 @@ Claude's context window maxes out at [200k tokens](https://support.claude.com/en
 - [Auto-compact](https://code.claude.com/docs/en/costs#reduce-token-usage) consumes significant tokens summarizing your conversation
 - Long conversations accumulate error logs, permission prompts, and redundant information
 - Using [MCP server](https://code.claude.com/docs/en/third-party-integrations#5-leverage-mcp-for-integrations) consumes tens of thousands of tokens per tool use
-- Long conversations drift—Claude starts giving generic answers because it's drowning in your error logs
+- Long conversations drift, and Claude starts giving generic answers because it's drowning in your error logs
 
 ### Best practices for context management
 
 1. **Use [`/clear`](https://code.claude.com/docs/en/slash-commands#built-in-slash-commands) frequently**
 
-  I clear my conversation after every completed subtask. Once Claude has committed the code and tests pass, that context is done—carrying it forward just pollutes future conversations.
+  I clear my conversation after every completed subtask. Once Claude has committed the code and tests pass, that context is done. Carrying it forward just pollutes future conversations.
 
 2. **Break large tasks into phases**
 

@@ -2,8 +2,7 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-export interface LoadingGradientProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+interface LoadingGradientProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
 }
 
@@ -28,7 +27,14 @@ const injectShimmerStyles = () => {
       -webkit-background-clip: text;
       color: transparent;
       -webkit-text-fill-color: transparent;
-      background: linear-gradient(to right, #4a5568, white, #4a5568);
+      /* Palette tokens, not fixed colors: the shimmer travels from muted to
+         full-strength ink and back, so it reads in both light and dark. */
+      background: linear-gradient(
+        to right,
+        hsl(var(--muted-foreground)),
+        hsl(var(--foreground)),
+        hsl(var(--muted-foreground))
+      );
       background-size: 200% 100%;
       background-position: var(--shimmer-position, 0%) 0%;
     }

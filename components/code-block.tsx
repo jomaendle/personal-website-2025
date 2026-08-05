@@ -1,11 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import React, { useEffect, useId, useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+/**
+ * `react-syntax-highlighter`'s Prism build carries every bundled grammar, which
+ * is ~620kB raw. Imported at module scope it landed in the eager chunk and made
+ * the heaviest article route roughly twice the size of every other page. Loading
+ * it through `next/dynamic` moves it into its own chunk fetched when a code
+ * block actually renders. `ssr: false` costs nothing here: the component already
+ * returns a placeholder until the theme resolves client-side.
+ */
+const SyntaxHighlighter = dynamic(
+  () => import("react-syntax-highlighter").then((m) => m.Prism),
+  { ssr: false },
+);
 
 interface CodeBlockProps {
   language: string;
@@ -22,6 +34,7 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const panelId = `code-block-${useId()}`;
   const [syntaxTheme, setSyntaxTheme] = useState<Record<
     string,
     React.CSSProperties
@@ -32,14 +45,12 @@ export function CodeBlock({
   useEffect(() => {
     const loadTheme = async () => {
       if (resolvedTheme === "light") {
-        const { oneLight } = await import(
-          "react-syntax-highlighter/dist/esm/styles/prism"
-        );
+        const { oneLight } =
+          await import("react-syntax-highlighter/dist/esm/styles/prism");
         setSyntaxTheme(oneLight);
       } else {
-        const { oneDark } = await import(
-          "react-syntax-highlighter/dist/esm/styles/prism"
-        );
+        const { oneDark } =
+          await import("react-syntax-highlighter/dist/esm/styles/prism");
         setSyntaxTheme(oneDark);
       }
     };
@@ -147,6 +158,7 @@ export function CodeBlock({
       </Button>
 
       <div
+        id={panelId}
         className={`relative transition-all duration-300 ${
           collapsible && !isOpen ? "max-h-24 overflow-hidden" : ""
         }`}
@@ -158,38 +170,40 @@ export function CodeBlock({
         )}
       </div>
 
+      {/* A plain button rather than a Radix CollapsibleTrigger: the collapse is
+          a max-height transition on the panel above, not a `CollapsibleContent`,
+          so Radix pointed `aria-controls` at an ID nothing ever rendered. */}
       {collapsible && (
-        <CollapsibleTrigger asChild>
-          <button className="flex w-full items-center justify-center gap-2 border-t border-border/50 bg-muted/20 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground">
-            <span>{isOpen ? "Collapse" : "Expand"}</span>
-            <motion.svg
-              animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </motion.svg>
-          </button>
-        </CollapsibleTrigger>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center justify-center gap-2 border-t border-border/50 bg-muted/20 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
+        >
+          <span>{isOpen ? "Collapse" : "Expand"}</span>
+          <motion.svg
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </motion.svg>
+        </button>
       )}
     </div>
   );
 
-  if (collapsible) {
-    return (
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        {content}
-      </Collapsible>
-    );
-  }
-
+  // The Radix wrapper is gone: with the panel and trigger wired by id above,
+  // open state is just `isOpen`, and the collapsed and expanded trees are now
+  // identical apart from that class.
   return content;
 }

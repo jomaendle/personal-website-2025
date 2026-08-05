@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import {
@@ -11,7 +10,6 @@ import {
   tocAutoExpandEnabledAtom,
 } from "@/lib/state/sidebar";
 import { AnimatePresence, motion } from "framer-motion";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { useDomHeadings, useIsMounted } from "@/lib/hooks";
 
@@ -95,21 +93,93 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     >
       {/* On This Page Section */}
       {tocItems.length > 0 && (
-        <Collapsible
-          open={isOnThisPageOpen}
-          onOpenChange={handleTocToggle}
-          className="relative"
-        >
-          <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground">
+        <div className="relative">
+          {/* A plain button, not a Radix CollapsibleTrigger. The body here is a
+              framer `motion.div`, never a `CollapsibleContent`, so Radix emitted
+              an `aria-controls` pointing at an ID that never existed in the
+              document. The panel wrapper below is always mounted and owns the
+              ID, so the reference resolves open or closed. */}
+          <button
+            type="button"
+            aria-expanded={isOnThisPageOpen}
+            aria-controls="sidebar-toc-panel"
+            onClick={() => handleTocToggle(!isOnThisPageOpen)}
+            className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground"
+          >
             On This Page
             <ChevronDown
               className={`h-4 w-4 transition-transform duration-200 ${
                 isOnThisPageOpen ? "rotate-180" : ""
               }`}
             />
-          </CollapsibleTrigger>
+          </button>
+          <div id="sidebar-toc-panel">
+            <AnimatePresence>
+              {isOnThisPageOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-2 pt-2">
+                    <div className="flex flex-col space-y-1">
+                      {tocItems.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{
+                            delay: index * 0.05,
+                            type: "tween",
+                          }}
+                          className="flex w-full items-center"
+                        >
+                          <Link
+                            href={`#${item.id}`}
+                            className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${
+                              item.level === 3
+                                ? "ml-4 text-muted-foreground"
+                                : ""
+                            } ${
+                              activeId === item.id
+                                ? "border-l-2 border-primary bg-accent/50 font-medium text-primary"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {item.title}
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* More Posts Section */}
+      <div>
+        <button
+          type="button"
+          aria-expanded={isMorePostsOpen}
+          aria-controls="sidebar-more-posts-panel"
+          onClick={() => setIsMorePostsOpen(!isMorePostsOpen)}
+          className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground"
+        >
+          More Posts
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${
+              isMorePostsOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div id="sidebar-more-posts-panel">
           <AnimatePresence>
-            {isOnThisPageOpen && (
+            {isMorePostsOpen && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -118,93 +188,44 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                 className="overflow-hidden"
               >
                 <div className="space-y-2 pt-2">
-                  <div className="flex flex-col space-y-1">
-                    {tocItems.map((item, index) => (
-                      <motion.div
-                        key={item.id}
+                  <div className="flex flex-col gap-3">
+                    {currentBlogPosts.map((post, index) => (
+                      <motion.article
+                        key={index}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{
                           delay: index * 0.05,
                           type: "tween",
                         }}
-                        className="flex w-full items-center"
                       >
                         <Link
-                          href={`#${item.id}`}
-                          className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${
-                            item.level === 3 ? "ml-4 text-muted-foreground" : ""
-                          } ${
-                            activeId === item.id
-                              ? "border-l-2 border-primary bg-accent/50 font-medium text-primary"
-                              : "text-muted-foreground"
-                          }`}
+                          href={"/blog/" + post.slug}
+                          className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
+                          prefetch={false}
                         >
-                          {item.title}
+                          {/* Deliberately a span, not a heading. These are nav
+                            links, and the sidebar precedes the article in the
+                            DOM — as headings they put eight h3s ahead of the
+                            article's own h1 in the outline. */}
+                          <span className="line-clamp-2 block whitespace-pre-wrap font-serif text-sm font-medium leading-[1.15] tracking-[-0.01em] text-foreground transition-colors duration-200 group-hover:text-brand">
+                            {post.title}
+                          </span>
+                          <div className="mt-1 flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
+                              {post.date}
+                            </p>
+                          </div>
                         </Link>
-                      </motion.div>
+                      </motion.article>
                     ))}
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </Collapsible>
-      )}
-
-      {/* More Posts Section */}
-      <Collapsible open={isMorePostsOpen} onOpenChange={setIsMorePostsOpen}>
-        <CollapsibleTrigger className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground">
-          More Posts
-          <ChevronDown
-            className={`h-4 w-4 transition-transform duration-200 ${
-              isMorePostsOpen ? "rotate-180" : ""
-            }`}
-          />
-        </CollapsibleTrigger>
-        <AnimatePresence>
-          {isMorePostsOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-2 pt-2">
-                <div className="flex flex-col gap-3">
-                  {currentBlogPosts.map((post, index) => (
-                    <motion.article
-                      key={index}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        delay: index * 0.05,
-                        type: "tween",
-                      }}
-                    >
-                      <Link
-                        href={"/blog/" + post.slug}
-                        className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
-                        prefetch={false}
-                      >
-                        <H3 className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-primary">
-                          {post.title}
-                        </H3>
-                        <div className="mt-1 flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
-                            {post.date}
-                          </p>
-                        </div>
-                      </Link>
-                    </motion.article>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Collapsible>
+        </div>
+      </div>
     </motion.aside>
   );
 }

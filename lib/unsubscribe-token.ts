@@ -5,12 +5,10 @@ const TOKEN_EXPIRY_DAYS = 30; // Tokens expire after 30 days
 function getSecretKey(): string {
   const secret = process.env.UNSUBSCRIBE_TOKEN_SECRET;
   if (!secret) {
-    // Fallback to a derived key from other secrets for backwards compatibility
-    const fallback = process.env.RESEND_API_KEY;
-    if (!fallback) {
-      throw new Error("UNSUBSCRIBE_TOKEN_SECRET is not configured");
-    }
-    return crypto.createHash("sha256").update(fallback).digest("hex");
+    // No fallback: deriving the signing key from another secret (e.g. the
+    // Resend API key) is weak and couples token validity to unrelated secret
+    // rotations. Require a dedicated secret to be configured explicitly.
+    throw new Error("UNSUBSCRIBE_TOKEN_SECRET is not configured");
   }
   return secret;
 }
@@ -22,7 +20,7 @@ function createSignature(payload: string): string {
     .digest("hex");
 }
 
-export interface TokenPayload {
+interface TokenPayload {
   email: string;
   timestamp: number;
 }
@@ -31,7 +29,7 @@ export interface TokenPayload {
  * Creates a signed unsubscribe token for an email address.
  * The token encodes the email and timestamp, signed with HMAC-SHA256.
  */
-export function createUnsubscribeToken(email: string): string {
+function createUnsubscribeToken(email: string): string {
   const payload: TokenPayload = {
     email: email.toLowerCase().trim(),
     timestamp: Date.now(),
@@ -120,7 +118,7 @@ export function verifyUnsubscribeToken(token: string): VerifyResult {
 /**
  * Generates an unsubscribe URL with a signed token.
  */
-export function generateUnsubscribeUrl(email: string, baseUrl: string = "https://jomaendle.com"): string {
+export function generateUnsubscribeUrl(email: string, baseUrl: string = "https://www.jomaendle.com"): string {
   const token = createUnsubscribeToken(email);
   return `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(token)}`;
 }

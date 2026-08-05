@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion, MotionProps, useScroll } from "motion/react";
+import { motion, MotionProps, useScroll } from "framer-motion";
 import React from "react";
 
 type ScrollProgressProps = Omit<
@@ -19,7 +19,7 @@ export const ScrollProgress = React.forwardRef<
     <motion.div
       ref={ref}
       className={cn(
-        "fixed inset-x-0 top-0 z-[101] h-0.5 origin-left bg-primary",
+        "fixed inset-x-0 top-0 z-[101] h-0.5 origin-left bg-brand",
         className,
       )}
       style={{

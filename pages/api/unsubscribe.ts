@@ -44,7 +44,7 @@ function renderHtmlPage(
   <body>
     <h1>${heading}</h1>
     ${content}
-    <p><a href="https://jomaendle.com">Return to homepage</a></p>
+    <p><a href="https://www.jomaendle.com">Return to homepage</a></p>
   </body>
 </html>`;
 }
