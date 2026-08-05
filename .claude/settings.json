@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && [ -n \"$FILE\" ] && npx prettier --write \"$FILE\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && case \"$FILE\" in *.ts|*.tsx) OUT=$(npx tsc --noEmit -p tsconfig.json 2>&1) || { echo \"Type errors (tsc --noEmit):\" >&2; echo \"$OUT\" | head -30 >&2; exit 2; } ;; esac; exit 0"
           }
         ]
       }
@@ -18,6 +22,10 @@
           {
             "type": "command",
             "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && if echo \"$FILE\" | grep -qE '\\.env'; then echo 'Blocked: direct edits to .env files are not allowed — edit them manually' && exit 2; fi"
+          },
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && if echo \"$FILE\" | grep -q 'pnpm-lock.yaml'; then echo 'Blocked: do not hand-edit pnpm-lock.yaml — change package.json and run pnpm install' && exit 2; fi"
           }
         ]
       }

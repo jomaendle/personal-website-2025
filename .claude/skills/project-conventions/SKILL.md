@@ -34,3 +34,7 @@ When working in this codebase, always apply the following conventions without be
 - Use `export const dynamic = "force-static"` on blog post pages
 - Images should use Next.js `<Image>` component for optimization
 - Prefer `tailwindcss-motion` and Framer Motion (`motion` package) for animations — don't add new animation libraries
+
+## Content conventions
+
+- Before writing or editing any user-visible text (page copy, articles, metadata, form labels), load the `writing-voice` skill and follow it. Most copy lives in `lib/state/` and `lib/config/`, not inline in components.
