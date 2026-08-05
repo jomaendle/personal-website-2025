@@ -58,22 +58,31 @@ export const MoreLinks = () => {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
-      className="flex flex-col gap-2"
+      // Rows carry their own padding to reach a 44px target, so the old gap is
+      // gone. `items-start` keeps each hit area to the width of its own label
+      // instead of the full column, and `sm:flex-row sm:flex-wrap` puts these
+      // five short links back on one line at desktop widths — stacked, they
+      // left ~85% of the row empty next to the full-width ledger above.
+      className="flex flex-col items-start sm:flex-row sm:flex-wrap sm:gap-x-8"
     >
       {links.map((link) => (
         <motion.div key={link.href} variants={itemVariants}>
           <MotionLink
             href={link.href}
-            className="group inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-brand"
+            // `py-2.5` takes the 24px text row to a 44px pointer target
+            // (WCAG 2.5.8) without touching the type size.
+            className="group inline-flex items-center gap-1 py-2.5 text-muted-foreground transition-colors hover:text-brand"
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={
-              link.href.startsWith("mailto:") ? undefined : "noopener noreferrer"
+              link.href.startsWith("mailto:")
+                ? undefined
+                : "noopener noreferrer"
             }
             whileHover={{ x: 4 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <span>{link.text}</span>
-            <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" />
+            <ArrowUpRight className="size-3 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
             {!link.href.startsWith("mailto:") && (
               <span className="sr-only"> (opens in new window)</span>
             )}

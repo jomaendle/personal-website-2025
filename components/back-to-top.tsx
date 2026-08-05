@@ -9,17 +9,27 @@ export function BackToTop() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      // Show button when user scrolls past 400px
-      if (window.pageYOffset > 400) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      const scrolledPast = window.scrollY > 400;
+      // Hide again once the footer is reached. The button is fixed at
+      // bottom-right, and at narrow widths that lands it on top of the footer's
+      // legal links — it covered ~a third of "Datenschutz" and, being the
+      // higher layer, swallowed the clicks. Anyone that far down does not need
+      // a scroll-to-top affordance badly enough to lose a link for it.
+      const nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 160;
+
+      setIsVisible(scrolledPast && !nearBottom);
     };
 
-    window.addEventListener("scroll", toggleVisibility);
+    toggleVisibility();
+    window.addEventListener("scroll", toggleVisibility, { passive: true });
+    window.addEventListener("resize", toggleVisibility);
 
-    return () => window.removeEventListener("scroll", toggleVisibility);
+    return () => {
+      window.removeEventListener("scroll", toggleVisibility);
+      window.removeEventListener("resize", toggleVisibility);
+    };
   }, []);
 
   const scrollToTop = () => {
@@ -43,11 +53,11 @@ export function BackToTop() {
             onClick={scrollToTop}
             size="sm"
             variant="outline"
-            className="rounded-full w-12 h-12 p-0 shadow-lg backdrop-blur-sm bg-background/80 border-border hover:bg-accent transition-all duration-200 group"
+            className="group h-12 w-12 rounded-full border-border bg-background/80 p-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:bg-accent"
             aria-label="Back to top"
           >
             <motion.svg
-              className="w-5 h-5 text-muted-foreground group-hover:text-foreground"
+              className="h-5 w-5 text-muted-foreground group-hover:text-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

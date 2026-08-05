@@ -10,8 +10,9 @@ import { PROJECTS } from "@/lib/state/projects";
  * WorkExperience — Editorial design layer.
  *
  * Same export and entrance animation; data now comes from `lib/state/projects.ts`.
- * Presentation is a set of hairline "ledger" rows with an ink fill-on-hover
- * (text inverts to paper). The `!` overrides win over H3's own hover color.
+ * Presentation is a set of hairline "ledger" rows — the `ledger-row` margin
+ * rule in `app/editorial-theme.css` — where the serif title takes the brand
+ * color on hover from `H3` and the arrow nudges up and to the right.
  */
 
 const MotionLink = motion.create(Link);
@@ -42,7 +43,16 @@ export function WorkExperience() {
                 <H3 className="flex flex-wrap items-center">
                   {experience.title}
                   {experience.isExternal && (
-                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  )}
+                  {/* Muted, not brand: the tag is a caveat on the row, so it
+                      must not compete with the title it qualifies. It sits
+                      inside the H3 so the heading text carries the caveat for a
+                      screen reader too, rather than stranding it in a sibling. */}
+                  {experience.status && (
+                    <span className="ml-2 inline-flex shrink-0 items-center rounded-[0.2rem] border border-border-strong px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground">
+                      {experience.status}
+                    </span>
                   )}
                 </H3>
                 <p className="mt-1 text-muted-foreground">
@@ -51,7 +61,7 @@ export function WorkExperience() {
               </div>
               <span
                 aria-hidden="true"
-                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand"
               >
                 ↗
               </span>

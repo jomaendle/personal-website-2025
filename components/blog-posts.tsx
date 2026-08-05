@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
  * BlogPosts — Editorial design layer.
  *
  * All of the show-more / collapse / view-transition logic is preserved
- * verbatim; only the row presentation changes: hairline ledger rows, a mono
- * category eyebrow, serif title, and an ink fill-on-hover (text inverts to
- * paper). Category comes from `lib/state/writing-categories.ts`.
+ * verbatim; only the row presentation changes: hairline ledger rows (the
+ * `ledger-row` margin rule in `app/editorial-theme.css`), a mono category
+ * eyebrow, and a serif title that picks up the brand color on hover from
+ * `H3`. Category comes from `lib/state/writing-categories.ts`.
  */
 
 const MotionLink = motion.create(Link);
@@ -67,7 +68,7 @@ const BlogPostItem = memo(
           </span>
           <div className="flex-1">
             <H3
-              className="blog-title line-clamp-2"
+              className="line-clamp-2"
               style={{ viewTransitionName: `blog-title-${post.slug}` }}
             >
               {post.title}

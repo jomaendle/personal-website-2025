@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Link } from "next-view-transitions";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { H3 } from "@/components/ui/heading";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import {
   WRITING_FILTERS,
@@ -14,9 +15,10 @@ import {
 /**
  * WritingIndex — Editorial design layer.
  *
- * Interactive filterable list of all articles. Hairline ledger rows with an
- * ink fill-on-hover, a mono category eyebrow and serif titles. Reads the
- * canonical BLOG_POSTS and the additive category map — no data duplication.
+ * Interactive filterable list of all articles. Hairline ledger rows that pick
+ * up a brand-tinted wash and a left rule on hover, a mono category eyebrow and
+ * serif titles. Reads the canonical BLOG_POSTS and the additive category map,
+ * so no post data is duplicated here.
  */
 
 const MotionLink = motion.create(Link);
@@ -35,7 +37,9 @@ export function WritingIndex() {
   return (
     <div className="flex flex-col gap-8">
       {/* Filter chips */}
-      <div className="flex flex-wrap gap-2">
+      {/* `gap-3` rather than `gap-2` so the 44px pseudo-element hit areas below
+          (5px taller than the pill on each side) never overlap between rows. */}
+      <div className="flex flex-wrap gap-3">
         {WRITING_FILTERS.map((f) => {
           const active = filter === f;
           return (
@@ -44,7 +48,9 @@ export function WritingIndex() {
               type="button"
               onClick={() => setFilter(f)}
               className={cn(
-                "rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors",
+                // The pill stays 34px tall; `after` pads the pointer target out
+                // to 44px (WCAG 2.5.8) without changing the chip's weight.
+                "relative rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors after:absolute after:-inset-y-[5px] after:inset-x-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 active
                   ? "border-foreground bg-foreground text-background"
                   : "border-border text-muted-foreground hover:border-foreground hover:text-foreground",
@@ -72,14 +78,24 @@ export function WritingIndex() {
             <MotionLink
               href={`/blog/${post.slug}`}
               prefetch={false}
-              className="group flex flex-col gap-1 border-b border-border px-3 py-5 ledger-row sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
+              className="ledger-row group flex flex-col gap-1 border-b border-border px-3 py-5 sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
             >
               <span className="font-mono text-xs uppercase tracking-[0.05em] text-brand">
                 {post.category}
               </span>
-              <span className="font-serif text-[clamp(1.25rem,2.4vw,1.7rem)] leading-[1.2] tracking-[-0.01em] text-foreground transition-colors group-hover:text-brand">
+              {/* A heading, not a span: /blog renders this list rather than
+                  BlogPosts, so without it the whole index is missing from the
+                  screen-reader heading outline. `as="h2"` because these sit
+                  directly under the page h1 — the homepage runs the same rows
+                  under a section h2, where h3 is the correct depth. H3 supplies
+                  the serif, tracking, colour and group-hover; only the fluid
+                  size and leading are overridden. */}
+              <H3
+                as="h2"
+                className="text-[clamp(1.25rem,2.4vw,1.7rem)] leading-[1.2]"
+              >
                 {post.title}
-              </span>
+              </H3>
               <span className="font-mono text-xs text-muted-foreground transition-colors sm:justify-self-end">
                 {post.date}
               </span>

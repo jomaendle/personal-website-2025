@@ -1,6 +1,16 @@
 import { BLOG_POSTS } from "@/lib/state/blog";
-import { H2 } from "@/components/ui/heading";
+import { H2, H3 } from "@/components/ui/heading";
+import { categoryFor } from "@/lib/state/writing-categories";
 import { Link } from "next-view-transitions";
+
+/**
+ * ReadMoreArticles — Editorial design layer.
+ *
+ * The below-article "more articles" list, shown only under `xl` where the
+ * sidebar navigation is hidden. Uses the same hairline ledger row as
+ * `blog-posts.tsx` and `writing-index.tsx`: mono category eyebrow, serif title,
+ * mono date.
+ */
 
 export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
   const filteredArticles = BLOG_POSTS.filter(
@@ -10,20 +20,22 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
   return (
     <div className="flex flex-col xl:hidden">
       <H2>more articles</H2>
-      <ul className="flex flex-col gap-4">
+      <ul className="-mx-3 flex flex-col">
         {filteredArticles.map((article) => (
-          <li
-            key={article.slug}
-            className="mb-2 rounded-md border border-border px-3 py-2 hover:bg-muted"
-          >
+          <li key={article.slug}>
             <Link
               href={`/blog/${article.slug}`}
-              className="flex flex-col text-primary"
+              className="group flex items-center gap-4 border-b border-border px-3 py-4 ledger-row"
             >
-              <span>{article.title}</span>
-              <span className="text-xs text-muted-foreground">
-                {article.date}
+              <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
+                {categoryFor(article.slug)}
               </span>
+              <div className="flex-1">
+                <H3 className="line-clamp-2">{article.title}</H3>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  {article.date}
+                </p>
+              </div>
             </Link>
           </li>
         ))}

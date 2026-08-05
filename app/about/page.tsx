@@ -13,85 +13,102 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Jo Mändle — full-stack engineer and Principal Solution Architect making AI a first-class teammate in how software gets built.",
+    "Jo Mändle. Full-stack engineer and Principal Solution Architect, working on how AI fits into the way software actually gets built.",
 };
 
 export default function AboutPage() {
   return (
-    <main id="main-content" className="page-container">
+    <div className="page-container">
       <div
         className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
+        {/* Landmark contract: PageTopBar's <header> and <Footer /> are siblings
+            of <main id="main-content">, never inside it — a <header> or
+            <footer> nested in sectioning content loses its implicit role. The
+            masthead <header> below stays inside <main> for the same reason,
+            inverted: outside it the page would expose two banners. */}
         <PageTopBar currentPath="/about" />
 
-        {/* Masthead */}
-        <header className="flex flex-col gap-6">
-          <H2>About — {SITE.name}</H2>
-          <H1 className="max-w-[18ch]">
-            Engineer by craft, architect by trade, writer by habit.
-          </H1>
-          <Image
-            src={SITE.avatar}
-            alt={SITE.name}
-            width={96}
-            height={96}
-            className="size-20 rounded-full object-cover md:size-24"
-          />
-        </header>
+        <main id="main-content" tabIndex={-1} className="flex flex-col gap-16">
+          {/* Masthead. The portrait sits beside the title and shares its
+              baseline, rather than hanging under it on its own line. The eyebrow
+              keeps H2's styling but is a <p>: it labels the page rather than
+              opening a section, and as an h2 it put a heading above the h1 in
+              the document outline. */}
+          <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
+            <div className="flex flex-col gap-6">
+              <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+                About
+              </p>
+              <H1 className="max-w-[18ch]">
+                I build for the web, and write about how it keeps changing.
+              </H1>
+            </div>
+            {/* The source image has a white disc baked in, which all but
+                disappears against the cream paper. The hairline ring in the
+                border token gives it an edge again in both themes. */}
+            <Image
+              src={SITE.avatar}
+              alt={SITE.name}
+              width={96}
+              height={96}
+              className="size-20 shrink-0 rounded-full object-cover ring-1 ring-border md:size-24"
+            />
+          </header>
 
-        {/* Bio */}
-        <section className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] leading-relaxed text-foreground/90">
-          <p>
-            I&apos;m a full-stack engineer and Principal Solution Architect at
-            E.ON Digital Technology, where I lead how AI is woven into the
-            software development lifecycle — from architecture and tooling to
-            the day-to-day habits of the teams shipping the work.
-          </p>
-          <p>
-            My background is front-end at its core. I came up sweating the
-            details of the web platform — performance, accessibility, the new
-            CSS and HTML primitives — and that obsession with craft is still the
-            lens I bring to everything, including where AI genuinely helps and
-            where it just adds noise.
-          </p>
-          <p>
-            Outside the day job I build: a photography platform, a links
-            archive, a music player for my band, a freelance-tracking tool. I
-            write about what I learn and keep a public trail of side projects
-            because making things is how I think.
-          </p>
-        </section>
+          {/* Bio */}
+          <section className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] leading-relaxed text-foreground/90">
+            <p>
+              I&apos;m a full-stack engineer and Principal Solution Architect at
+              E.ON Digital Technology. My job is working out how AI fits into
+              the way we build software: the architecture, the tooling, and the
+              daily habits of the teams doing the shipping.
+            </p>
+            <p>
+              I come from the front end. Years of performance work,
+              accessibility, and whatever new CSS and HTML primitive had just
+              landed. I still look at everything that way, including AI. It
+              makes it easier to tell where it genuinely helps from where it
+              only adds noise.
+            </p>
+            <p>
+              Outside work I build things, travel around the world, take
+              pictures, play music, and enjoy life.
+            </p>
+          </section>
 
-        {/* Principles */}
-        <section>
-          <H2>How I work</H2>
-          <div className="grid gap-8 sm:grid-cols-3">
-            {PRINCIPLES.map((p) => (
-              <div key={p.num} className="flex flex-col gap-3">
-                <span className="font-mono text-[0.8rem] text-brand">
-                  {p.num}
-                </span>
-                <H3 className="text-[1.25rem]">{p.title}</H3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {p.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+          {/* Principles */}
+          <section>
+            <H2>How I work</H2>
+            <div className="grid gap-8 sm:grid-cols-3">
+              {PRINCIPLES.map((p) => (
+                <div key={p.num} className="flex flex-col gap-3">
+                  <span className="font-mono text-[0.8rem] text-brand">
+                    {p.num}
+                  </span>
+                  <H3 className="text-[1.25rem]">{p.title}</H3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {p.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        {/* Experience */}
-        <section>
-          <H2>Experience</H2>
-          <div className="space-y-6">
-            <JobPositions />
-          </div>
-        </section>
+          {/* Experience */}
+          <section>
+            <H2>Experience</H2>
+            <div className="space-y-6">
+              <JobPositions />
+            </div>
+          </section>
 
-        <NewsletterForm />
+          <NewsletterForm />
+        </main>
+
         <Footer />
       </div>
-    </main>
+    </div>
   );
 }

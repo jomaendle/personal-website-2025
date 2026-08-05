@@ -56,7 +56,10 @@ export const NameHeading = ({
               <button
                 type="button"
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
-                className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:hidden"
+                // Only nav on mobile, so the pointer target is padded out to
+                // 44px (WCAG 2.5.8) with a pseudo-element — the visible box
+                // stays 36px to keep the masthead balanced against the avatar.
+                className="relative inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors after:absolute after:left-1/2 after:top-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:hidden"
               >
                 {menuOpen ? (
                   <X className="size-5" />

@@ -65,7 +65,7 @@ export default function NewsletterForm() {
       <div className="mb-6 space-y-2">
         <H2 className="">Newsletter</H2>
         <p className="text-sm text-muted-foreground">
-          Subscribe to get notified about new articles and updates.
+          Get an email when I publish something new.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
@@ -77,7 +77,10 @@ export default function NewsletterForm() {
             placeholder="your.email@example.com"
             required
             disabled={isLoading}
-            className="bg-input transition-colors focus:ring-2 focus:ring-primary/20"
+            // Focus styling is left entirely to the base Input's brand
+            // `focus-visible` ring — the old `focus:ring-primary/20` here fired
+            // on mouse clicks and fought that ring for the same box-shadow.
+            className="h-11"
             maxLength={254}
             aria-describedby="email-help"
           />
@@ -90,7 +93,9 @@ export default function NewsletterForm() {
           disabled={isLoading}
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
           initial={false}
-          className="h-10 w-full overflow-hidden whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 md:w-40"
+          // Same CTA language as the /business submit button: ink fill, mono
+          // uppercase label, h-11 — the one height every form CTA now shares.
+          className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
         >
           <AnimatePresence mode="wait">
             <motion.span
@@ -110,24 +115,29 @@ export default function NewsletterForm() {
         </motion.button>
       </form>
 
-      {status === "success" && (
-        <p
-          role="status"
-          aria-live="polite"
-          className="motion-preset-slide-down-md mt-3 text-sm text-green-400 opacity-100 motion-opacity-in-0"
-        >
-          Thanks for subscribing! You will receive an email shortly.
-        </p>
-      )}
+      {/* Bordered panels rather than coloured text: the old mint/salmon ran at
+          1.58:1 and 2.51:1 on paper. Colour now carries only the border and
+          wash, and the text itself stays on `text-foreground`. */}
+      {/* Both regions stay mounted with only their text changing. A region
+          inserted at the moment it gains content is unreliable: screen readers
+          register live regions as the DOM is built, so one that appears late is
+          often never announced. `mt-3` is on the inner panel so an empty region
+          reserves no vertical space. */}
+      <p role="status" aria-live="polite">
+        {status === "success" && (
+          <span className="motion-preset-slide-down-md mt-3 block rounded-[0.25rem] border border-brand bg-brand/5 px-4 py-3 text-sm text-foreground opacity-100 motion-opacity-in-0">
+            Thanks for subscribing. You&apos;ll get an email shortly.
+          </span>
+        )}
+      </p>
 
-      {status === "error" && (
-        <p
-          role="alert"
-          className="motion-preset-slide-down-md mt-3 text-sm text-red-400 opacity-100 motion-opacity-in-0"
-        >
-          {errorMessage || "Failed to subscribe. Please try again."}
-        </p>
-      )}
+      <p role="alert">
+        {status === "error" && (
+          <span className="motion-preset-slide-down-md mt-3 block rounded-[0.25rem] border border-destructive bg-destructive/5 px-4 py-3 text-sm text-foreground opacity-100 motion-opacity-in-0">
+            {errorMessage || "Failed to subscribe. Please try again."}
+          </span>
+        )}
+      </p>
     </div>
   );
 }

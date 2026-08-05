@@ -6,10 +6,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: ({ children, ...props }) => {
       return (
-        <h1
-          className="blog-title mb-8 text-2xl font-normal tracking-tight"
-          {...props}
-        >
+        <h1 className="mb-8 font-normal tracking-tight" {...props}>
           {children}
         </h1>
       );
@@ -25,6 +22,24 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </HeadingWithAnchor>
     ),
     del: ({ children }) => <del className="line-through">{children}</del>,
+    /**
+     * Wide tables scroll instead of clipping. `pre` already gets this from
+     * `.prose pre`; tables had no equivalent, so a four-column table lost its
+     * right-hand columns below ~400px. `tabIndex` is what makes the scroll
+     * container reachable by keyboard — without it a keyboard-only reader can
+     * see the overflow but never scroll it — and `role="region"` gives that
+     * tab stop a name in the accessibility tree.
+     */
+    table: ({ children, ...props }) => (
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Table"
+        className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <table {...props}>{children}</table>
+      </div>
+    ),
     a: ({ href, children }) => {
       if (typeof href !== "string") {
         return null;

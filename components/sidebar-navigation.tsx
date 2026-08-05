@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { H3 } from "@/components/ui/heading";
 import { Link } from "next-view-transitions";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import {
@@ -188,9 +187,13 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                         className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
                         prefetch={false}
                       >
-                        <H3 className="blog-title line-clamp-2 whitespace-pre-wrap text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-brand">
+                        {/* Deliberately a span, not a heading. These are nav
+                            links, and the sidebar precedes the article in the
+                            DOM — as headings they put eight h3s ahead of the
+                            article's own h1 in the outline. */}
+                        <span className="line-clamp-2 block whitespace-pre-wrap font-serif text-sm font-medium leading-[1.15] tracking-[-0.01em] text-foreground transition-colors duration-200 group-hover:text-brand">
                           {post.title}
-                        </H3>
+                        </span>
                         <div className="mt-1 flex items-center justify-between">
                           <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
                             {post.date}

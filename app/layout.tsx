@@ -17,7 +17,7 @@ import { Analytics } from "@vercel/analytics/next";
 // In production with network access, restore: import { Inter } from "next/font/google";
 
 const ogImageDescription = encodeURIComponent(
-  "Full-Stack developer sharing his thoughts on the web.",
+  "Full-stack engineer writing about the web platform and building software with AI.",
 );
 
 export const metadata: Metadata = {
@@ -26,7 +26,8 @@ export const metadata: Metadata = {
     default: "Jo Mändle | Building for the Web.",
     template: "%s | Jo Mändle",
   },
-  description: "Full-Stack developer sharing his thoughts on the web.",
+  description:
+    "Full-stack engineer writing about the web platform and building software with AI.",
   keywords: [
     "Jo Mändle",
     "Johannes Mändle",
@@ -97,6 +98,11 @@ export default function RootLayout({
               "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
           }}
         >
+          {/* Each route owns its own `<main id="main-content">`, and it has to
+              start below the PageTopBar and above the Footer. Wrapping the
+              whole page in it instead makes this link jump to a point above the
+              nav it is meant to skip, and swallows the banner/contentinfo
+              landmarks. */}
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
