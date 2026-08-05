@@ -19,7 +19,7 @@ interface BlogPostStructuredData {
   "@context": "https://schema.org";
   "@type": "BlogPosting";
   headline: string;
-  description: string;
+  description?: string | undefined;
   author: {
     "@type": "Person";
     name: string;
@@ -29,7 +29,7 @@ interface BlogPostStructuredData {
   dateModified?: string;
   url: string;
   image?: string | undefined;
-  articleBody: string;
+  articleBody?: string | undefined;
   wordCount?: number | undefined;
   timeRequired?: string | undefined;
   publisher: {
@@ -78,7 +78,8 @@ export function PersonStructuredData() {
       "https://www.linkedin.com/in/johannes-maendle/",
       "https://github.com/jomaendle",
     ],
-    description: "Full-Stack developer sharing his thoughts on the web.",
+    description:
+      "Full-stack engineer writing about the web platform and building software with AI.",
   };
 
   return (
@@ -92,6 +93,15 @@ export function PersonStructuredData() {
   );
 }
 
+/**
+ * `BlogPosting` JSON-LD for a single article.
+ *
+ * `description` and `content` are optional because the article layout only has
+ * the title, slug and date to hand — the MDX body never reaches it as a string.
+ * Omitting `articleBody` is deliberate rather than a gap: duplicating a whole
+ * post into the head would add kilobytes to every article for a property search
+ * engines already read from the rendered page.
+ */
 export function BlogPostStructuredData({
   title,
   description,
@@ -103,13 +113,13 @@ export function BlogPostStructuredData({
   content,
 }: {
   title: string;
-  description: string;
+  description?: string;
   url: string;
   datePublished: string;
   dateModified?: string;
   image?: string;
   readTime?: string;
-  content: string;
+  content?: string;
 }) {
   const structuredData: BlogPostStructuredData = {
     "@context": "https://schema.org",
@@ -126,7 +136,7 @@ export function BlogPostStructuredData({
     url,
     image,
     articleBody: content,
-    wordCount: content.split(/\s+/).length,
+    wordCount: content ? content.split(/\s+/).length : undefined,
     timeRequired: readTime ? `PT${readTime}` : undefined,
     publisher: {
       "@type": "Person",
@@ -157,15 +167,20 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     "@type": "ProfessionalService",
     "@id": `${url}#service`,
     name: isDe
-      ? "Freelance Frontend- & AI-Engineering — Jo Mändle"
-      : "Freelance Frontend & AI Engineering — Jo Mändle",
+      ? "Freelance Frontend- & AI-Engineering · Jo Mändle"
+      : "Freelance Frontend & AI Engineering · Jo Mändle",
+    // The enterprise track record is Vue/NestJS at E.ON and Micro Focus; the
+    // React and Next.js work is client-side (ImmoKäpsele, Memberspot). So the
+    // claim is frontend engineering at enterprise scale, not React and Next.js
+    // *as* the enterprise stack. The page body says the same thing.
     description: isDe
-      ? "Senior Contract Engineering für Produktteams: React und Next.js auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen."
-      : "Senior contract engineering for product teams: React and Next.js at enterprise scale, plus LLM integrations that actually reach production.",
+      ? "Senior Contract Engineering für Produktteams: Frontend-Engineering auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen."
+      : "Senior contract engineering for product teams: frontend engineering at enterprise scale, plus LLM integrations that reach production.",
     url,
     inLanguage: isDe ? "de-DE" : "en-US",
     image: "https://jomaendle.com/avatar.jpeg",
-    priceRange: "€€",
+    // No `priceRange`: the site publishes no rate, and the "€€" convention is a
+    // restaurant-tier signal that would say something untrue about the seat.
     areaServed: [
       { "@type": "Country", name: "Germany" },
       { "@type": "Country", name: "Austria" },
@@ -181,7 +196,7 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
         ? "Freelance Frontend- & AI-Engineer"
         : "Freelance Frontend & AI Engineer",
       url: "https://jomaendle.com",
-      email: "mailto:me@jomaendle.com",
+      email: "mailto:business@jomaendle.com",
       address: {
         "@type": "PostalAddress",
         streetAddress: "Im Hirschmorgen 12",
@@ -193,15 +208,26 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
         "https://www.linkedin.com/in/johannes-maendle/",
         "https://github.com/jomaendle",
       ],
+      // Kept in step with the stack table in `lib/state/business-copy.ts`: if a
+      // technology is claimed there, it belongs here too.
       knowsAbout: [
         "Next.js",
         "React",
+        "Angular",
+        "Vue.js",
+        "Astro",
         "TypeScript",
+        "Node.js",
+        "NestJS",
         "Frontend Architecture",
         "Large Language Models",
         "LLM Integration",
         "Model Context Protocol",
+        "AI-native Software Development",
         "Web Performance",
+        "Web Accessibility",
+        "WCAG",
+        "Automated Testing",
         "Legacy Frontend Migration",
         "GDPR",
         "DSGVO",
@@ -211,22 +237,24 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     serviceType: isDe
       ? [
           "Embedded Contract Engineering",
-          "Frontend-Entwicklung (React, Next.js)",
+          "Frontend-Entwicklung (React, Next.js, Angular, Vue, Astro)",
+          "KI-native Entwicklung und Team-Enablement",
           "KI- und LLM-Produktintegration",
-          "Next.js-Architektur und Performance",
+          "Frontend-Architektur, Performance und Barrierefreiheit",
           "Frontend-Modernisierung und Migration",
         ]
       : [
           "Embedded contract engineering",
-          "Frontend engineering (React, Next.js)",
+          "Frontend engineering (React, Next.js, Angular, Vue, Astro)",
+          "AI-native development and team enablement",
           "AI and LLM product integration",
-          "Next.js architecture and performance",
+          "Frontend architecture, performance and accessibility",
           "Frontend modernization and migration",
         ],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: isDe ? "Projektanfrage" : "Business inquiries",
-      email: "me@jomaendle.com",
+      email: "business@jomaendle.com",
       url: `${url}#engage`,
       availableLanguage: ["de", "en"],
     },
@@ -246,7 +274,8 @@ export function WebsiteStructuredData() {
     "@type": "WebSite",
     name: "Jo Mändle | Building for the Web",
     url: "https://jomaendle.com",
-    description: "Full-Stack developer sharing his thoughts on the web.",
+    description:
+      "Full-stack engineer writing about the web platform and building software with AI.",
     author: {
       "@type": "Person",
       name: "Johannes Mändle",

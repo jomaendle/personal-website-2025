@@ -17,7 +17,7 @@ export function renderBusinessMarkdown(lang: Lang): string {
 
   const projects = CLIENT_PROJECTS.map((project) =>
     [
-      `### ${project.title} — ${project.href}`,
+      `### ${project.title} · ${project.href}`,
       `**${[project.period[lang], project.role[lang], project.stack?.join(" · ")]
         .filter(Boolean)
         .join(" · ")}**`,
@@ -50,11 +50,11 @@ ${t.pitch.paragraphs.join("\n\n")}
 
 ## ${t.services.heading}
 
-${t.services.items.map((item) => `- **${item.title}** — ${item.desc}`).join("\n")}
+${t.services.items.map((item) => `- **${item.title}**: ${item.desc}`).join("\n")}
 
 ## ${t.stack.heading}
 
-${t.stack.groups.map((group) => `- **${group.label}** — ${group.items.join(" · ")}`).join("\n")}
+${t.stack.groups.map((group) => `- **${group.label}**: ${group.items.join(" · ")}`).join("\n")}
 
 ${t.stack.note}
 
@@ -64,7 +64,7 @@ ${projects}
 
 ## ${t.process.heading}
 
-${t.process.steps.map((step, i) => `${i + 1}. **${step.title}** — ${step.desc}`).join("\n")}
+${t.process.steps.map((step, i) => `${i + 1}. **${step.title}**: ${step.desc}`).join("\n")}
 
 ## ${t.why.heading}
 

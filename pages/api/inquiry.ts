@@ -4,10 +4,7 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
-import {
-  sanitizeInput,
-  sanitizeSubjectInput,
-} from "@/lib/input-sanitization";
+import { sanitizeInput, sanitizeSubjectInput } from "@/lib/input-sanitization";
 import {
   BUSINESS_COPY,
   ENGAGEMENT_TYPES,
@@ -24,7 +21,7 @@ import {
  * routes stay independent while sharing the same middleware and validators.
  */
 
-const RECIPIENT = "me@jomaendle.com";
+const RECIPIENT = "business@jomaendle.com";
 
 /**
  * Resolves an optional select value to a human label.

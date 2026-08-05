@@ -19,13 +19,13 @@
  */
 
 /** A string rendered in both site languages. */
-export interface Localized {
+interface Localized {
   de: string;
   en: string;
 }
 
 /** A list rendered in both site languages. */
-export interface LocalizedList {
+interface LocalizedList {
   de: string[];
   en: string[];
 }
@@ -60,13 +60,13 @@ export const CLIENT_PROJECTS: ClientProject[] = [
     },
     highlights: {
       de: [
-        "Blog-Automatisierung via Claude Code + eigenem MCP-Server — vom Briefing bis zum veröffentlichten Artikel, mit Mensch im Review",
+        "Blog-Automatisierung via Claude Code und eigenem MCP-Server, vom Briefing bis zum veröffentlichten Artikel, mit Mensch im Review",
         "Statisch generierte Objektseiten mit täglicher CRM-Synchronisation über GitHub Actions",
         "Wertermittlungsrechner mit Server-Validierung und automatischer Zusammenfassung an Inhaber:in und Interessent:in",
         "Lighthouse 95+ über alle Seiten, DSGVO-konform ohne unnötiges Tracking",
       ],
       en: [
-        "Blog automation via Claude Code and a custom MCP server — briefing to published article, with a human in the review loop",
+        "Blog automation via Claude Code and a custom MCP server, from briefing to published article, with a human in the review loop",
         "Statically generated property pages with daily CRM sync via GitHub Actions",
         "Valuation calculator with server-side validation and an automatic summary to both owner and prospect",
         "Lighthouse 95+ across every page, GDPR-compliant with no unnecessary tracking",
@@ -83,7 +83,7 @@ export const CLIENT_PROJECTS: ClientProject[] = [
   },
   {
     id: "emerge-tech",
-    title: "Emerge Tech — EasyEngage",
+    title: "Emerge Tech · EasyEngage",
     shortName: "Emerge Tech",
     href: "https://emerge-tech.io/",
     period: { de: "2024 – heute", en: "2024 – present" },
@@ -119,17 +119,17 @@ export const CLIENT_PROJECTS: ClientProject[] = [
       en: "Freelance frontend engineer",
     },
     context: {
-      de: "Frontend-Entwicklung am Produkt — einer B2B-SaaS-Plattform für Kurs-Hosting und interne Schulungen. Zuständig für die Frontend-Features quer durch das Produkt.",
-      en: "Frontend engineering on the product — a B2B SaaS platform for course hosting and internal training. Responsible for frontend features across the product.",
+      de: "Frontend-Entwicklung an einer B2B-SaaS-Plattform für Kurs-Hosting und interne Schulungen.",
+      en: "Frontend engineering on a B2B SaaS platform for course hosting and internal training.",
     },
     highlights: {
       de: [
-        "Frontend-Features quer durch das Produkt, von Kurs-Hosting bis zu internen Schulungen",
-        "Als Freelancer zurückgeholt nach einem Jahr im Inhouse-Team — volle Produktkenntnis ab Tag eins, keine Einarbeitung",
+        "Coding-Standards im Frontend eingeführt und bestehende Bereiche des Produkts refactored",
+        "Nach einem Jahr im Inhouse-Team als Freelancer zurückgeholt, volle Produktkenntnis ab Tag eins, keine Einarbeitung",
       ],
       en: [
-        "Frontend features across the product, from course hosting through to internal training",
-        "Brought back as a contractor after a year on the in-house team — full product context from day one, no ramp-up",
+        "Introduced coding standards in the frontend and refactored existing areas of the product",
+        "Brought back as a contractor after a year on the in-house team, with full product context from day one and no ramp-up",
       ],
     },
   },

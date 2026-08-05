@@ -5,31 +5,41 @@
  * as a server component and the `/business.md` mirrors generate from the same
  * source instead of drifting as hand-maintained template literals.
  *
- * Positioning: senior contract engineering for CTOs and engineering leads —
- * React/Next.js at enterprise scale plus LLM work that actually reaches
- * production. Not fixed-price website builds.
+ * Positioning: senior contract engineering for CTOs and engineering leads.
+ * Frontend at enterprise scale, AI-native delivery, and LLM work that actually
+ * reaches production. Not fixed-price website builds.
  */
 
 export type Lang = "de" | "en";
+
+/**
+ * Earliest quarter a new engagement can start.
+ *
+ * Interpolated into the hero availability line and process step 02 in both
+ * languages, because four hardcoded copies drifted apart the first time the
+ * date moved. Change it here and every surface follows, including the
+ * `/business.md` mirrors and `/llms.txt`.
+ */
+export const AVAILABLE_FROM = "Q1 2027";
 
 /**
  * Option values accepted by `/api/inquiry` for the two optional select fields.
  *
  * The API validates against these arrays and silently drops anything it does
  * not recognize, so the form and the endpoint can never disagree about what a
- * valid value is.
+ * valid value is. That also means a value added here needs a label in *both*
+ * language blocks below, or the option renders blank and never reaches the
+ * email.
  */
 export const ENGAGEMENT_TYPES = [
   "contract-engineering",
+  "ai-native-delivery",
   "ai-integration",
   "architecture-review",
   "other",
 ] as const;
 
 export const TIMELINES = ["now", "next-quarter", "later", "unsure"] as const;
-
-export type EngagementType = (typeof ENGAGEMENT_TYPES)[number];
-export type Timeline = (typeof TIMELINES)[number];
 
 interface SelectOption {
   value: string;
@@ -63,9 +73,10 @@ export interface BusinessCopy {
     heading: string;
     lede: string;
     /**
-     * Earliest start for new engagements. Stated up front so nobody reads the
-     * whole page before learning the timeline, and repeated in process step 02
-     * where scope and capacity are settled. Deliberately says *when work
+     * Earliest start for new engagements, interpolated from `AVAILABLE_FROM`.
+     * Stated up front so nobody reads the whole page before learning the
+     * timeline, and repeated in process step 02 where scope and capacity are
+     * settled. Deliberately says *when work
      * starts* and nothing about capacity or employment status — neither is
      * decided, and the page must stay true either way.
      */
@@ -105,11 +116,19 @@ export interface BusinessCopy {
     timelineOptions: SelectOption[];
     optional: string;
     required: string;
+    /** Placeholder for the two optional selects, shown while nothing is picked. */
+    selectPlaceholder: string;
     /** Art. 13 DSGVO notice shown at the point of collection, above submit. */
     privacyNote: string;
     privacyLinkLabel: string;
     submit: string;
     submitting: string;
+    /**
+     * Inline validation messages for the three required fields. Rendered under
+     * the field that failed and referenced from its `aria-describedby`, so the
+     * reason is available to a screen reader and not only to the eye.
+     */
+    errors: { name: string; email: string; message: string };
     success: string;
     genericError: string;
     networkError: string;
@@ -123,9 +142,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     switchLabel: "Switch to English",
     hero: {
       eyebrow: "Freelance · Frontend & AI Engineering",
-      heading: "Senior Frontend-Engineering — und KI, die es in Produktion schafft.",
-      lede: "Ich arbeite mit Produktteams an den schwierigen Teilen des Frontends — unabhängig vom Framework — und bringe LLMs in Produkte, die Menschen tatsächlich benutzen.",
-      availability: "Verfügbar ab Q1 2027",
+      heading: "Senior Frontend-Engineering. Und KI, die in Produktion geht.",
+      lede: "Ich arbeite mit Produktteams an den schwierigen Teilen des Frontends, unabhängig vom Framework, und bringe LLM-Features über den Demo-Status hinaus.",
+      availability: `Verfügbar ab ${AVAILABLE_FROM}`,
       ctaPrimary: "Projekt anfragen",
       ctaSecondary: "Gespräch buchen",
     },
@@ -133,9 +152,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     pitch: {
       heading: "Worum es geht",
       paragraphs: [
-        "Die meisten Teams brauchen keine weitere Website — sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features liefert, die im Betrieb halten. Genau da setze ich an.",
-        "Hauptberuflich arbeite ich als Principal Solution Architect daran, wie KI in den Entwicklungszyklus großer Teams einzieht — von Architektur und Tooling bis zu den täglichen Gewohnheiten. Über sechs Jahre TypeScript in Produktion, mit Angular ebenso wie mit React und Next.js, dazu Node und NestJS im Backend.",
-        "Was mich von einem reinen Frontend-Freelancer unterscheidet: Ich baue LLM-Integrationen, die den Weg in die Produktion tatsächlich schaffen — mit Kontextgrenzen, Evaluierung und einem Menschen an der richtigen Stelle im Review. Keine Demo, die im Meeting glänzt und im Alltag scheitert.",
+        "Die meisten Teams brauchen keine weitere Website. Sie brauchen jemanden, der sich in eine gewachsene Codebase einarbeitet, Architekturentscheidungen mitträgt und Features liefert, die im Betrieb halten.",
+        "Hauptberuflich bin ich Principal Solution Architect und arbeite daran, wie KI in den Entwicklungszyklus großer Teams einzieht: von Architektur und Tooling bis zu den täglichen Gewohnheiten. Über sechs Jahre TypeScript in Produktion, mit Angular ebenso wie mit React und Next.js, dazu Node und NestJS im Backend.",
+        "Was in den meisten Frontend-Projekten fehlt, ist alles nach der Demo. Ich baue LLM-Integrationen mit den unspektakulären Teilen: Kontextgrenzen, Evaluierung, ein Mensch an der richtigen Stelle im Review, und ein Kostenbudget.",
       ],
     },
     services: {
@@ -143,7 +162,11 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       items: [
         {
           title: "Embedded Contract Engineering",
-          desc: "Ich arbeite als Teil Ihres Teams — Sprints, Reviews, gemeinsame Verantwortung. Kein isolierter Zulieferer.",
+          desc: "Ich arbeite in Ihrem Team mit. Sprints, Reviews, gemeinsame Verantwortung, wie alle anderen auch.",
+        },
+        {
+          title: "KI-native Entwicklung im Team",
+          desc: "Spec zuerst, Agenten schreiben den Code, geprüft im PR gegen Tests, Typen und Lint. Ich richte das in Ihrer Codebase ein, mit Projektregeln und Leitplanken, und zeige Ihrem Team, wo KI trägt und wo sie bremst.",
         },
         {
           title: "KI- & LLM-Produktintegration",
@@ -151,21 +174,21 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         },
         {
           title: "Frontend-Architektur & Performance",
-          desc: "Rendering-Strategie, Caching, Core Web Vitals — Entscheidungen, die auch in zwei Jahren noch tragen.",
+          desc: "Rendering-Strategie, Caching, Core Web Vitals, Barrierefreiheit nach WCAG. Entscheidungen, die auch in zwei Jahren noch tragen.",
         },
         {
           title: "Modernisierung & Migration",
-          desc: "Schrittweise Ablösung gewachsener Frontends — auch Angular nach React — ohne das Produkt anzuhalten.",
+          desc: "Gewachsene Frontends Stück für Stück ablösen, auch Angular nach React, ohne das Produkt anzuhalten. Abgesichert mit Tests in Jest, Vitest, Playwright und Cypress.",
         },
       ],
     },
     stack: {
       heading: "Stack",
-      note: "Ich komme nicht mit einer Framework-Präferenz, sondern arbeite mit dem, was Sie bereits betreiben.",
+      note: "Ich komme nicht mit einer Framework-Präferenz. Ich arbeite mit dem, was Sie bereits betreiben.",
       groups: [
         {
           label: "Frontend",
-          items: ["React", "Next.js", "Angular", "TypeScript", "Vue"],
+          items: ["React", "Next.js", "Angular", "Vue", "Astro", "TypeScript"],
         },
         {
           label: "Backend",
@@ -190,12 +213,12 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "01",
           title: "Gespräch",
-          desc: "15 Minuten, unverbindlich. Was steht an, was ist der Engpass, passt das fachlich überhaupt?",
+          desc: "15 Minuten, unverbindlich. Was ansteht, wo der Engpass ist, ob ich fachlich überhaupt passe.",
         },
         {
           num: "02",
           title: "Zuschnitt",
-          desc: "Wir klären Umfang, Auslastung und Rahmen — schriftlich, bevor jemand Zeit investiert. Projektstart ab Q1 2027.",
+          desc: `Wir klären Umfang, Auslastung und Rahmen schriftlich, bevor jemand Zeit investiert. Projektstart ab ${AVAILABLE_FROM}.`,
         },
         {
           num: "03",
@@ -207,15 +230,17 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     why: {
       heading: "Warum ich",
       items: [
-        "Senior In-House-Erfahrung — ich kenne die Zwänge, unter denen Ihr Team arbeitet, weil ich unter denselben arbeite",
+        "Senior In-House-Erfahrung: Ich kenne die Zwänge, unter denen Ihr Team arbeitet, weil ich unter denselben arbeite",
         "KI-Integration aus der Praxis, nicht aus dem Blogpost",
-        "Architekturentscheidungen, die ich auch begründen kann — schriftlich, nachvollziehbar",
-        "Verhandlungssicher in Deutsch und Englisch, Zusammenarbeit über Zeitzonen hinweg gewohnt",
+        "Architekturentscheidungen, die ich begründen kann, schriftlich und nachvollziehbar",
+        "Qualität ist Teil der Lieferung: Coding-Standards und Refactorings bei Memberspot eingeführt, bei Micro Focus ein Framework für Unit-Tests aufgebaut",
+        "Remote-first, mit Terminen vor Ort im Umkreis von rund 50 km um Leimen",
+        "Verhandlungssicher in Deutsch und Englisch, Zusammenarbeit über Zeitzonen gewohnt",
       ],
     },
     engage: {
       heading: "Zusammenarbeit anfragen",
-      lede: "Beschreiben Sie kurz, worum es geht — ich melde mich innerhalb von 24 Stunden. Lieber direkt sprechen? Buchen Sie ein Gespräch.",
+      lede: "Beschreiben Sie kurz, worum es geht. Ich melde mich innerhalb von 24 Stunden.",
       bookingTitle: "Lieber direkt sprechen?",
       bookingDesc: "15 Minuten, unverbindlich, in Ihrem Kalender.",
       bookingCta: "Gespräch buchen",
@@ -236,6 +261,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       engagementType: "Art der Zusammenarbeit",
       engagementTypeOptions: [
         { value: "contract-engineering", label: "Contract Engineering" },
+        { value: "ai-native-delivery", label: "KI-native Entwicklung im Team" },
         { value: "ai-integration", label: "KI-/LLM-Integration" },
         { value: "architecture-review", label: "Architektur-Review" },
         { value: "other", label: "Etwas anderes" },
@@ -249,13 +275,20 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       ],
       optional: "optional",
       required: "Pflichtfeld",
+      selectPlaceholder: "Bitte wählen",
       privacyNote:
         "Ihre Angaben verwende ich ausschließlich zur Bearbeitung dieser Anfrage. Details in der",
       privacyLinkLabel: "Datenschutzerklärung",
       submit: "Anfrage senden",
       submitting: "Wird gesendet …",
+      errors: {
+        name: "Bitte geben Sie Ihren Namen an, mindestens zwei Zeichen.",
+        email: "Bitte geben Sie eine gültige E-Mail-Adresse an.",
+        message:
+          "Bitte beschreiben Sie kurz Ihr Vorhaben, mindestens zehn Zeichen.",
+      },
       success:
-        "Danke — Ihre Anfrage ist angekommen. Ich melde mich innerhalb von 24 Stunden.",
+        "Danke, Ihre Anfrage ist angekommen. Ich melde mich innerhalb von 24 Stunden.",
       genericError:
         "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
       networkError:
@@ -268,9 +301,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     switchLabel: "Zu Deutsch wechseln",
     hero: {
       eyebrow: "Freelance · Frontend & AI Engineering",
-      heading: "Senior frontend engineering, with AI that actually ships.",
-      lede: "I work with product teams on the hard parts of the frontend — whatever the framework — and bring LLMs into products people actually use.",
-      availability: "Available from Q1 2027",
+      heading: "Senior frontend engineering. And AI that reaches production.",
+      lede: "I join product teams for the hard parts of the frontend, whatever the framework, and I build LLM features that make it past the demo.",
+      availability: `Available from ${AVAILABLE_FROM}`,
       ctaPrimary: "Start an inquiry",
       ctaSecondary: "Book a call",
     },
@@ -278,9 +311,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     pitch: {
       heading: "What I do",
       paragraphs: [
-        "Most teams don't need another website — they need someone who can get inside a mature codebase, carry architecture decisions with them, and ship features that hold up in production. That's the seat I take.",
-        "In my day job I'm a Principal Solution Architect working on how AI enters the development lifecycle of large teams — from architecture and tooling to the daily habits. Six-plus years of TypeScript in production, in Angular as much as React and Next.js, plus Node and NestJS on the backend.",
-        "What separates me from a pure frontend contractor: I build LLM integrations that genuinely reach production — context boundaries, evaluation, guardrails, cost. Not demo magic, but systems that survive contact with real usage.",
+        "Most teams don't need another website. They need someone who can get inside a mature codebase, take on architecture decisions, and ship features that hold up in production.",
+        "In my day job I'm a Principal Solution Architect, working on how AI enters the development lifecycle of large teams: architecture, tooling, and the daily habits. Six-plus years of TypeScript in production, in Angular as much as React and Next.js, with Node and NestJS on the backend.",
+        "The part most frontend projects skip is everything after the demo. I build LLM integrations with the unglamorous pieces in place: context boundaries, evaluation, a human at the right point in review, and a cost budget.",
       ],
     },
     services: {
@@ -288,7 +321,11 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       items: [
         {
           title: "Embedded contract engineering",
-          desc: "I work as part of your team — sprints, reviews, on-call awareness. Not an isolated vendor.",
+          desc: "I work inside your team. Sprints, reviews, shared ownership, same as anyone else on it.",
+        },
+        {
+          title: "AI-native development in your team",
+          desc: "Spec first, agents write the code, checked in the PR against tests, types and lint. I set that up inside your codebase, with project rules and guardrails, and show your team where AI carries the work and where it slows it down.",
         },
         {
           title: "AI & LLM product integration",
@@ -296,11 +333,11 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         },
         {
           title: "Frontend architecture & performance",
-          desc: "Rendering strategy, caching, Core Web Vitals — decisions that still hold two years out.",
+          desc: "Rendering strategy, caching, Core Web Vitals, WCAG accessibility. Decisions that still hold up two years out.",
         },
         {
           title: "Modernization & migration",
-          desc: "Incremental replacement of legacy frontends — including Angular to React — without pausing the product.",
+          desc: "Replacing a legacy frontend piece by piece, Angular to React included, without pausing the product. Covered by tests in Jest, Vitest, Playwright and Cypress.",
         },
       ],
     },
@@ -310,7 +347,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       groups: [
         {
           label: "Frontend",
-          items: ["React", "Next.js", "Angular", "TypeScript", "Vue"],
+          items: ["React", "Next.js", "Angular", "Vue", "Astro", "TypeScript"],
         },
         {
           label: "Backend",
@@ -335,12 +372,12 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "01",
           title: "Conversation",
-          desc: "15 minutes, no strings. What's on the table, where's the bottleneck, is this even the right fit?",
+          desc: "15 minutes, no strings. What's on the table, where the bottleneck is, whether I'm the right fit.",
         },
         {
           num: "02",
           title: "Shape",
-          desc: "We settle scope, capacity and terms — in writing, before anyone invests time. Engagements start from Q1 2027.",
+          desc: `We settle scope, capacity and terms in writing, before anyone invests time. Engagements start from ${AVAILABLE_FROM}.`,
         },
         {
           num: "03",
@@ -352,15 +389,17 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     why: {
       heading: "Why work with me",
       items: [
-        "Senior in-house experience — I know the constraints your team works under because I work under the same ones",
+        "Senior in-house experience, so I know the constraints your team works under. I work under the same ones",
         "AI integration from practice, not from a blog post",
-        "Architecture decisions I can defend — written down, reviewable",
-        "Fluent in English and German, used to collaborating across time zones",
+        "Architecture decisions I can defend, written down and reviewable",
+        "Quality ships with the work: I introduced coding standards and refactorings at Memberspot, and built a unit-testing framework at Micro Focus",
+        "Remote-first, with on-site days within roughly 50 km of Leimen",
+        "Fluent in English and German, used to working across time zones",
       ],
     },
     engage: {
       heading: "Start a conversation",
-      lede: "Tell me briefly what you're working on — I'll get back to you within 24 hours. Prefer to talk it through? Book a call.",
+      lede: "Tell me what you're working on. I'll get back to you within 24 hours.",
       bookingTitle: "Rather talk it through?",
       bookingDesc: "15 minutes, no strings, straight into your calendar.",
       bookingCta: "Book a call",
@@ -381,6 +420,10 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       engagementType: "Type of engagement",
       engagementTypeOptions: [
         { value: "contract-engineering", label: "Contract engineering" },
+        {
+          value: "ai-native-delivery",
+          label: "AI-native development in your team",
+        },
         { value: "ai-integration", label: "AI / LLM integration" },
         { value: "architecture-review", label: "Architecture review" },
         { value: "other", label: "Something else" },
@@ -394,13 +437,19 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       ],
       optional: "optional",
       required: "required",
+      selectPlaceholder: "Select one",
       privacyNote:
         "I use your details solely to respond to this inquiry. Details in the",
       privacyLinkLabel: "privacy policy",
       submit: "Send inquiry",
       submitting: "Sending …",
+      errors: {
+        name: "Please enter your name, at least two characters.",
+        email: "Please enter a valid email address.",
+        message: "Please describe the work in at least ten characters.",
+      },
       success:
-        "Thanks — your inquiry came through. I'll get back to you within 24 hours.",
+        "Thanks, that came through. I'll get back to you within 24 hours.",
       genericError: "Couldn't send your inquiry. Please try again.",
       networkError:
         "Network error. Please check your connection and try again.",

@@ -5,11 +5,11 @@
  * components never hardcode personal data. Mirrors the `lib/state` data pattern.
  */
 
-export interface SocialLinks {
+interface SocialLinks {
   linkedin: string;
 }
 
-export interface ContactChannels {
+interface ContactChannels {
   /** Business inbox — where inquiry-form leads and direct mail land. */
   email: string;
   /** Public Google Calendar booking page for intro calls. */
@@ -38,7 +38,7 @@ export const SITE: SiteConfig = {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
   },
   contact: {
-    email: "me@jomaendle.com",
+    email: "business@jomaendle.com",
     booking: "https://calendar.app.google/jpSRhy2ekZWZEv3W7",
   },
 };

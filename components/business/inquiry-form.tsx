@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
+import { H3 } from "@/components/ui/heading";
 import { cn } from "@/lib/utils";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
 
@@ -14,15 +15,33 @@ import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
  *
  * Unlike `components/contact-form.tsx`, the `<form>` is never unmounted: status
  * is rendered as a sibling live region, so a failed submission keeps every value
- * the visitor typed and can simply be retried.
+ * the visitor typed and can simply be retried. Both live regions are mounted
+ * from the first render and only their text changes, because a region that
+ * appears at the same moment as its message is frequently not announced.
  */
 
 type Status = "idle" | "loading" | "success" | "error";
 
+/** The three required fields, and the only ones that can fail validation. */
+type FieldName = "name" | "email" | "message";
+type FieldErrors = Partial<Record<FieldName, string>>;
+
 // `text-base` (16px) is deliberate and must not be reduced: iOS Safari zooms
 // the page on focus for any form control under 16px and never zooms back out.
+// `border-border-strong` rather than `border-border`: an operable control needs
+// 3:1 against its background under WCAG 1.4.11.
+// `min-h-[44px]` so inputs and selects land on the same pointer target size.
+// A bare `py-2` left selects at 38px, since a select's intrinsic height comes
+// from the UA stylesheet rather than from the line-height inputs honour.
 const fieldBase =
-  "w-full rounded-[0.25rem] border border-border bg-transparent px-3 py-2 text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-brand focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full min-h-[44px] rounded-[0.25rem] border border-border-strong bg-transparent px-3 py-2 text-base leading-6 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
+
+// Invalid keeps the destructive border but NOT a destructive ring. Tinting both
+// made a focused invalid field read as a 2px destructive border and nothing
+// else — the same hue as the unfocused one, which is precisely the state a
+// keyboard user is dropped into after a failed submit. Holding the ring at
+// brand keeps "where I am" and "what is wrong" as two separate signals.
+const fieldInvalid = "border-destructive focus-visible:border-destructive";
 
 const labelBase =
   "mb-2 flex items-baseline gap-2 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground";
@@ -35,11 +54,22 @@ function OptionalTag({ children }: { children: string }) {
   );
 }
 
+/** Inline reason a field was rejected, referenced from its `aria-describedby`. */
+function FieldError({ id, children }: { id: string; children?: string }) {
+  if (!children) return null;
+  return (
+    <p id={id} className="mt-1.5 text-sm text-destructive">
+      {children}
+    </p>
+  );
+}
+
 export function InquiryForm({ lang }: { lang: Lang }) {
   const t = BUSINESS_COPY[lang].form;
 
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [values, setValues] = useState({
     name: "",
     email: "",
@@ -51,11 +81,45 @@ export function InquiryForm({ lang }: { lang: Lang }) {
 
   const isLoading = status === "loading";
 
-  const set = (key: keyof typeof values) => (value: string) =>
+  const set = (key: keyof typeof values) => (value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
+    // Clear a field's error as soon as it is edited, rather than making the
+    // visitor submit again to find out whether the fix was accepted.
+    if (key in fieldErrors) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key as FieldName];
+        return next;
+      });
+    }
+  };
+
+  /**
+   * Mirrors the constraints the inputs carry and `/api/inquiry` enforces. The
+   * form is `noValidate` so these messages replace the browser's own bubbles,
+   * which are unstyled and disappear on the next keystroke.
+   */
+  const validate = (): FieldErrors => {
+    const errors: FieldErrors = {};
+    if (values.name.trim().length < 2) errors.name = t.errors.name;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()))
+      errors.email = t.errors.email;
+    if (values.message.trim().length < 10) errors.message = t.errors.message;
+    return errors;
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setStatus("idle");
+      setErrorMessage("");
+      document.getElementById(`inquiry-${Object.keys(errors)[0]}`)?.focus();
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage("");
 
@@ -89,31 +153,36 @@ export function InquiryForm({ lang }: { lang: Lang }) {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <h3 className="font-serif text-[1.35rem] font-normal leading-[1.15] text-foreground">
+    // No `gap` on this column: the two live regions are always in the DOM and
+    // collapse to nothing when empty, and a gap would reserve space for them.
+    // Spacing is carried by the elements themselves.
+    <div className="flex flex-col">
+      <H3 interactive={false} className="mb-5">
         {t.heading}
-      </h3>
+      </H3>
 
-      {status === "success" && (
-        <p
-          role="status"
-          aria-live="polite"
-          className="rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground"
-        >
-          {t.success}
-        </p>
-      )}
+      <p
+        role="status"
+        aria-live="polite"
+        className={cn(
+          status === "success" &&
+            "mb-5 rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground",
+        )}
+      >
+        {status === "success" ? t.success : ""}
+      </p>
 
-      {status === "error" && (
-        <p
-          role="alert"
-          className="rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground"
-        >
-          {errorMessage || t.genericError}
-        </p>
-      )}
+      <p
+        role="alert"
+        className={cn(
+          status === "error" &&
+            "mb-5 rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground",
+        )}
+      >
+        {status === "error" ? errorMessage || t.genericError : ""}
+      </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="inquiry-name" className={labelBase}>
@@ -130,13 +199,18 @@ export function InquiryForm({ lang }: { lang: Lang }) {
               value={values.name}
               onChange={(e) => set("name")(e.target.value)}
               placeholder={t.namePlaceholder}
-              className={fieldBase}
+              className={cn(fieldBase, fieldErrors.name && fieldInvalid)}
               required
               minLength={2}
               maxLength={100}
               autoComplete="name"
               disabled={isLoading}
+              aria-invalid={fieldErrors.name ? true : undefined}
+              aria-describedby={
+                fieldErrors.name ? "inquiry-name-error" : undefined
+              }
             />
+            <FieldError id="inquiry-name-error">{fieldErrors.name}</FieldError>
           </div>
 
           <div>
@@ -154,12 +228,19 @@ export function InquiryForm({ lang }: { lang: Lang }) {
               value={values.email}
               onChange={(e) => set("email")(e.target.value)}
               placeholder={t.emailPlaceholder}
-              className={fieldBase}
+              className={cn(fieldBase, fieldErrors.email && fieldInvalid)}
               required
               maxLength={254}
               autoComplete="email"
               disabled={isLoading}
+              aria-invalid={fieldErrors.email ? true : undefined}
+              aria-describedby={
+                fieldErrors.email ? "inquiry-email-error" : undefined
+              }
             />
+            <FieldError id="inquiry-email-error">
+              {fieldErrors.email}
+            </FieldError>
           </div>
 
           <div>
@@ -191,10 +272,10 @@ export function InquiryForm({ lang }: { lang: Lang }) {
               name="timeline"
               value={values.timeline}
               onChange={(e) => set("timeline")(e.target.value)}
-              className={cn(fieldBase, "h-[46px]")}
+              className={fieldBase}
               disabled={isLoading}
             >
-              <option value="">—</option>
+              <option value="">{t.selectPlaceholder}</option>
               {t.timelineOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -214,10 +295,10 @@ export function InquiryForm({ lang }: { lang: Lang }) {
             name="engagementType"
             value={values.engagementType}
             onChange={(e) => set("engagementType")(e.target.value)}
-            className={cn(fieldBase, "h-[46px]")}
+            className={fieldBase}
             disabled={isLoading}
           >
-            <option value="">—</option>
+            <option value="">{t.selectPlaceholder}</option>
             {t.engagementTypeOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -241,13 +322,25 @@ export function InquiryForm({ lang }: { lang: Lang }) {
             onChange={(e) => set("message")(e.target.value)}
             placeholder={t.messagePlaceholder}
             rows={6}
-            className={cn(fieldBase, "resize-y leading-relaxed")}
+            className={cn(
+              fieldBase,
+              "resize-y leading-relaxed",
+              fieldErrors.message && fieldInvalid,
+            )}
             required
             minLength={10}
             maxLength={2000}
-            aria-describedby="inquiry-message-count"
             disabled={isLoading}
+            aria-invalid={fieldErrors.message ? true : undefined}
+            aria-describedby={
+              fieldErrors.message
+                ? "inquiry-message-count inquiry-message-error"
+                : "inquiry-message-count"
+            }
           />
+          <FieldError id="inquiry-message-error">
+            {fieldErrors.message}
+          </FieldError>
           <p
             id="inquiry-message-count"
             className="mt-1.5 text-right font-mono text-[0.75rem] text-muted-foreground"

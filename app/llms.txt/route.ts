@@ -27,7 +27,7 @@ export const dynamic = "force-static";
 const t = BUSINESS_COPY.en;
 
 const services = t.services.items
-  .map((item) => `- **${item.title}** — ${item.desc}`)
+  .map((item) => `- **${item.title}**: ${item.desc}`)
   .join("\n");
 
 const stack = t.stack.groups
@@ -36,7 +36,7 @@ const stack = t.stack.groups
 
 const clientWork = CLIENT_PROJECTS.map(
   (project) =>
-    `- [${project.title}](${project.href}) — ${project.period.en} · ${project.role.en}. ${project.context.en}`,
+    `- [${project.title}](${project.href}): ${project.period.en} · ${project.role.en}. ${project.context.en}`,
 ).join("\n");
 
 const content = `# ${SITE.name}
