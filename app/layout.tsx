@@ -36,12 +36,16 @@ export const metadata: Metadata = {
     "Full-Stack Developer",
     "Web Development",
   ],
-  authors: [{ name: "Johannes Mändle", url: "https://jomaendle.com" }],
+  authors: [{ name: "Johannes Mändle", url: "https://www.jomaendle.com" }],
   creator: "Johannes Mändle",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },
-      { url: "/favicon-32x32.png", type: "image/png" },
+      // These two live in `public/`, not `app/`. The App Router only
+      // auto-serves reserved names (favicon.ico, icon.*, apple-icon.*) from
+      // `app/`, so while they sat there both 404'd on every route.
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
     ],
   },
   openGraph: {

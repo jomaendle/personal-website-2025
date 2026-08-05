@@ -58,7 +58,7 @@ export default function MdxLayout({
       {post && (
         <BlogPostStructuredData
           title={post.title}
-          url={`https://jomaendle.com/blog/${slug}`}
+          url={`https://www.jomaendle.com/blog/${slug}`}
           datePublished={new Date(post.date).toISOString()}
         />
       )}

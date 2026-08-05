@@ -73,7 +73,7 @@ export function PersonStructuredData() {
       "Johannes Maendle",
     ],
     jobTitle: "Principal Solution Architect",
-    url: "https://jomaendle.com",
+    url: "https://www.jomaendle.com",
     sameAs: [
       "https://www.linkedin.com/in/johannes-maendle/",
       "https://github.com/jomaendle",
@@ -129,7 +129,7 @@ export function BlogPostStructuredData({
     author: {
       "@type": "Person",
       name: "Johannes Mändle",
-      url: "https://jomaendle.com",
+      url: "https://www.jomaendle.com",
     },
     datePublished,
     dateModified: dateModified || datePublished,
@@ -141,7 +141,7 @@ export function BlogPostStructuredData({
     publisher: {
       "@type": "Person",
       name: "Johannes Mändle",
-      url: "https://jomaendle.com",
+      url: "https://www.jomaendle.com",
     },
   };
 
@@ -159,8 +159,8 @@ export function BlogPostStructuredData({
 export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
   const isDe = lang === "de";
   const url = isDe
-    ? "https://jomaendle.com/business"
-    : "https://jomaendle.com/business/en";
+    ? "https://www.jomaendle.com/business"
+    : "https://www.jomaendle.com/business/en";
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -178,7 +178,7 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
       : "Senior contract engineering for product teams: frontend engineering at enterprise scale, plus LLM integrations that reach production.",
     url,
     inLanguage: isDe ? "de-DE" : "en-US",
-    image: "https://jomaendle.com/avatar.jpeg",
+    image: "https://www.jomaendle.com/avatar.jpeg",
     // No `priceRange`: the site publishes no rate, and the "€€" convention is a
     // restaurant-tier signal that would say something untrue about the seat.
     areaServed: [
@@ -189,13 +189,13 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     ],
     provider: {
       "@type": "Person",
-      "@id": "https://jomaendle.com#person",
+      "@id": "https://www.jomaendle.com#person",
       name: "Johannes Mändle",
       alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
       jobTitle: isDe
         ? "Freelance Frontend- & AI-Engineer"
         : "Freelance Frontend & AI Engineer",
-      url: "https://jomaendle.com",
+      url: "https://www.jomaendle.com",
       email: "mailto:business@jomaendle.com",
       address: {
         "@type": "PostalAddress",
@@ -273,19 +273,19 @@ export function WebsiteStructuredData() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Jo Mändle | Building for the Web",
-    url: "https://jomaendle.com",
+    url: "https://www.jomaendle.com",
     description:
       "Full-stack engineer writing about the web platform and building software with AI.",
     author: {
       "@type": "Person",
       name: "Johannes Mändle",
-      url: "https://jomaendle.com",
+      url: "https://www.jomaendle.com",
     },
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://jomaendle.com/blog?search={search_term_string}",
+        urlTemplate: "https://www.jomaendle.com/blog?search={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },

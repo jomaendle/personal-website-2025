@@ -74,11 +74,11 @@ ${t.why.items.map((item) => `- ${item}`).join("\n")}
 
 ${t.engage.lede}
 
-- ${isDe ? "Anfrageformular" : "Inquiry form"}: https://jomaendle.com${isDe ? "/business" : "/business/en"}#engage
+- ${isDe ? "Anfrageformular" : "Inquiry form"}: https://www.jomaendle.com${isDe ? "/business" : "/business/en"}#engage
 - ${isDe ? "E-Mail" : "Email"}: ${SITE.contact.email}
 - ${t.engage.bookingCta}: ${SITE.contact.booking}
 - LinkedIn: ${SITE.social.linkedin}
-- HTML version: https://jomaendle.com${isDe ? "/business" : "/business/en"}
-- ${isDe ? "English version" : "German version"}: https://jomaendle.com${isDe ? "/business/en" : "/business"}
+- HTML version: https://www.jomaendle.com${isDe ? "/business" : "/business/en"}
+- ${isDe ? "English version" : "German version"}: https://www.jomaendle.com${isDe ? "/business/en" : "/business"}
 `;
 }

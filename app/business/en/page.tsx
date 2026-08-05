@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${title} | Jo Mändle`,
     description,
-    url: "https://jomaendle.com/business/en",
+    url: "https://www.jomaendle.com/business/en",
     locale: "en_US",
     type: "website",
     images: [{ url: ogImage }],

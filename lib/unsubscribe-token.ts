@@ -118,7 +118,7 @@ export function verifyUnsubscribeToken(token: string): VerifyResult {
 /**
  * Generates an unsubscribe URL with a signed token.
  */
-export function generateUnsubscribeUrl(email: string, baseUrl: string = "https://jomaendle.com"): string {
+export function generateUnsubscribeUrl(email: string, baseUrl: string = "https://www.jomaendle.com"): string {
   const token = createUnsubscribeToken(email);
   return `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(token)}`;
 }

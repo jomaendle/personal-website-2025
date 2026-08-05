@@ -3,7 +3,7 @@ import { readdirSync, statSync } from "fs";
 import { join } from "path";
 import { BLOG_POSTS } from "@/lib/state/blog";
 
-const baseUrl = "https://jomaendle.com";
+const baseUrl = "https://www.jomaendle.com";
 
 /**
  * Slugs that are actually published.

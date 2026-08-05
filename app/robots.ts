@@ -33,7 +33,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       })),
     ],
-    sitemap: "https://jomaendle.com/sitemap.xml",
-    host: "https://jomaendle.com",
+    sitemap: "https://www.jomaendle.com/sitemap.xml",
+    host: "https://www.jomaendle.com",
   };
 }

@@ -20,7 +20,7 @@ export type Lang = "de" | "en";
  * date moved. Change it here and every surface follows, including the
  * `/business.md` mirrors and `/llms.txt`.
  */
-export const AVAILABLE_FROM = "Q1 2027";
+const AVAILABLE_FROM = "Q1 2027";
 
 /**
  * Option values accepted by `/api/inquiry` for the two optional select fields.

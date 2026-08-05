@@ -53,9 +53,9 @@ Contact:
 
 ## For businesses (hire me)
 
-- [Freelance Frontend & AI Engineering (DE)](https://jomaendle.com/business): German page describing services, stack, selected client work and how an engagement starts.
-- [Freelance Frontend & AI Engineering (EN)](https://jomaendle.com/business/en): English version of the same page.
-- [Markdown version (EN)](https://jomaendle.com/business/en.md): the full page as plain markdown.
+- [Freelance Frontend & AI Engineering (DE)](https://www.jomaendle.com/business): German page describing services, stack, selected client work and how an engagement starts.
+- [Freelance Frontend & AI Engineering (EN)](https://www.jomaendle.com/business/en): English version of the same page.
+- [Markdown version (EN)](https://www.jomaendle.com/business/en.md): the full page as plain markdown.
 
 ## Core services
 
@@ -80,14 +80,14 @@ ${clientWork}
 
 ## Personal site
 
-- [Homepage](https://jomaendle.com): Personal portfolio, articles, and crafts.
-- [About](https://jomaendle.com/about): Background, principles, and work history.
-- [Blog](https://jomaendle.com/blog): Articles on web development, AI tooling, and the software development lifecycle.
+- [Homepage](https://www.jomaendle.com): Personal portfolio, articles, and crafts.
+- [About](https://www.jomaendle.com/about): Background, principles, and work history.
+- [Blog](https://www.jomaendle.com/blog): Articles on web development, AI tooling, and the software development lifecycle.
 
 ## Legal
 
-- [Impressum](https://jomaendle.com/impressum)
-- [Datenschutzerklärung](https://jomaendle.com/datenschutz)
+- [Impressum](https://www.jomaendle.com/impressum)
+- [Datenschutzerklärung](https://www.jomaendle.com/datenschutz)
 `;
 
 export function GET() {
