@@ -1,2 +1,2 @@
-export { useDomHeadings, type TocItem } from "./use-dom-headings";
+export { useDomHeadings } from "./use-dom-headings";
 export { useIsMounted } from "./use-is-mounted";

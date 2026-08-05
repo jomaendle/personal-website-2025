@@ -4,6 +4,10 @@ import MdxLayout from "../../../components/mdx-layout";
 export const metadata = {
   title: FIRST_MONTH_AS_SOLUTION_ARCHITECT.title,
   date: FIRST_MONTH_AS_SOLUTION_ARCHITECT.date,
+  // The post is still a draft but prerenders at a public URL. Keeping the rule
+  // on the route rather than in `app/robots.ts` means it travels with the post
+  // and is deleted in the same commit that publishes it.
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-static'
@@ -17,7 +21,9 @@ export const dynamic = 'force-static'
 
   Deliberately kept out of `BLOG_POSTS` (lib/state/blog.ts) so the post stays
   off /blog, and `app/sitemap.ts` now filters against that list so this route
-  cannot reach sitemap.xml while it is unfinished.
+  cannot reach sitemap.xml while it is unfinished. The `robots` entry in the
+  metadata export above keeps crawlers off the URL itself; drop it when the
+  post ships.
 
   ── SPINE ─────────────────────────────────────────────────────────────────
   One spine beats five good observations. Which is the honest arc here?

@@ -10,11 +10,18 @@ export interface NavLink {
   href: string;
 }
 
-/** Primary navigation surfaced in the masthead. */
+/**
+ * Primary navigation surfaced in the masthead.
+ *
+ * `/business` is deliberately absent. It is an unlisted page: reachable by its
+ * URL, from a CV or a message, but never by browsing the site. Adding it back
+ * here would resurface it in the masthead, the page top bar and the footer at
+ * once, since all three read this array. The page still carries its own
+ * metadata, JSON-LD and sitemap entry, so search and AI crawlers can find it.
+ */
 export const PRIMARY_NAV: NavLink[] = [
   { label: "Writing", href: "/blog" },
   { label: "About", href: "/about" },
-  { label: "Work with me", href: "/business" },
 ];
 
 /** Legal links surfaced in the footer (German imprint + privacy). */

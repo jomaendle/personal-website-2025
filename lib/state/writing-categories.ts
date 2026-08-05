@@ -14,7 +14,7 @@ export type WritingCategory =
   | "Platform"
   | "Notes";
 
-export const WRITING_CATEGORY: Record<string, WritingCategory> = {
+const WRITING_CATEGORY: Record<string, WritingCategory> = {
   "claude-code-essentials-foundations": "AI · SDLC",
   "css-carousel": "CSS",
   "freelance-tool": "Build",

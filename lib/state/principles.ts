@@ -14,17 +14,17 @@ export interface Principle {
 export const PRINCIPLES: Principle[] = [
   {
     num: "01",
-    title: "Craft is the signal",
-    body: "How a thing is built is visible in how it feels to use. The details are not decoration — they are the argument.",
+    title: "Details are the work",
+    body: "How something is built shows up in how it feels to use. That is most of the job.",
   },
   {
     num: "02",
     title: "AI as a teammate",
-    body: "The leverage is not in the model, it is in the system around it: context, boundaries, and fast feedback.",
+    body: "The model is the easy part. What makes it useful is the setup around it: good context, clear boundaries, fast feedback.",
   },
   {
     num: "03",
     title: "Build in the open",
-    body: "Side projects, writing, and talks keep the thinking honest. Shipping is how I learn what is actually true.",
+    body: "Side projects and writing are how I find out what I actually understand. So I publish them.",
   },
 ];
