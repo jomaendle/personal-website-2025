@@ -1,13 +1,13 @@
 import { ViewCounter } from "@/components/view-counter";
-import { SidebarNavigation } from "@/components/sidebar-navigation";
+import SidebarNavigation from "@/components/sidebar-navigation-lazy";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 import Image from "next/image";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { MobileTableOfContents } from "@/components/table-of-contents";
-import { BackToTop } from "@/components/back-to-top";
+import MobileTableOfContents from "@/components/table-of-contents-lazy";
+import BackToTop from "@/components/back-to-top-lazy";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import GiscusComments from "@/components/giscus-comments-lazy";

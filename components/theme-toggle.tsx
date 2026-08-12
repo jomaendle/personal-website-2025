@@ -2,7 +2,6 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useIsMounted } from "@/lib/hooks";
 
@@ -54,35 +53,25 @@ export function ThemeToggle() {
       className="relative h-9 w-9 rounded-md transition-colors after:absolute after:left-1/2 after:top-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {isDark ? (
-          <motion.div
-            key="moon"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 180 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
-            }}
-          >
-            <Moon className="h-5 w-5" />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="sun"
-            initial={{ scale: 0, rotate: 180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: -180 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
-            }}
-          >
-            <Sun className="h-5 w-5" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Both icons stay mounted, stacked in one grid cell; the active one
+          scales and rotates in via a plain CSS transition. This replaced a
+          framer-motion AnimatePresence pair, which was the only thing keeping
+          framer in the critical bundle of every page. Same 300ms spin, minus
+          the exit choreography nobody could see at this size. */}
+      <span className="grid size-5 place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
+        <Moon
+          aria-hidden="true"
+          className={`ease-[cubic-bezier(0.4,0,0.2,1)] h-5 w-5 transition-transform duration-300 motion-reduce:transition-none ${
+            isDark ? "rotate-0 scale-100" : "-rotate-180 scale-0"
+          }`}
+        />
+        <Sun
+          aria-hidden="true"
+          className={`ease-[cubic-bezier(0.4,0,0.2,1)] h-5 w-5 transition-transform duration-300 motion-reduce:transition-none ${
+            isDark ? "rotate-180 scale-0" : "rotate-0 scale-100"
+          }`}
+        />
+      </span>
     </Button>
   );
 }
