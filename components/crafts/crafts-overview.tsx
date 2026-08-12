@@ -2,7 +2,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CounterCraft } from "@/components/crafts/counter";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
-import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { LoadingGradient } from "@/components/ui/loading-gradient";
 
@@ -20,12 +19,6 @@ const posterImg1 = {
   height: 600,
 };
 
-const posterImg2 = {
-  src: "/crafts/preview/mspot-subscribe-btn.webp",
-  width: 800,
-  height: 600,
-};
-
 const crafts: {
   src: string;
   link?: string;
@@ -38,12 +31,6 @@ const crafts: {
     posterImg: posterImg1,
     title: "Animating the HTML Details Element",
     bgColor: "#16181d",
-  },
-  {
-    src: "/crafts/animated-button-demo.mp4",
-    posterImg: posterImg2,
-    title: "Subscribe Animation for Memberspot",
-    bgColor: "#00010f",
   },
 ];
 
@@ -116,7 +103,7 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
       height={craft.posterImg.height}
       width={craft.posterImg.width}
       poster={craft.posterImg.src}
-      className="h-full w-full max-w-[400px] md:max-w-none"
+      className="mx-auto h-full w-full max-w-[400px] md:max-w-[640px]"
       aria-label={craft.title}
       preload="metadata" // Only load metadata initially
     >
@@ -126,11 +113,8 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
 }
 
 export function CraftsOverview() {
-  const [showAll, setShowAll] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const displayedCrafts = showAll ? crafts : crafts.slice(0, 2);
 
   // Intersection Observer for lazy loading entire crafts section
   useEffect(() => {
@@ -251,10 +235,10 @@ export function CraftsOverview() {
         {/* Videos - lazy loaded with Intersection Observer */}
         <AnimatePresence>
           {isVisible &&
-            displayedCrafts.map((craft, index) => (
+            crafts.map((craft, index) => (
               <motion.div
                 key={craft.src}
-                className="w-full"
+                className="w-full md:col-span-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -274,24 +258,6 @@ export function CraftsOverview() {
             ))}
         </AnimatePresence>
       </div>
-
-      {/* Show More/Less button */}
-      {crafts.length > 2 && isVisible && (
-        <motion.div
-          className="flex justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => setShowAll(!showAll)}
-          >
-            {showAll ? "Show Less" : "Show More"}
-          </Button>
-        </motion.div>
-      )}
     </div>
   );
 }
