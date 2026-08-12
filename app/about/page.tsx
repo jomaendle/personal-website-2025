@@ -69,12 +69,12 @@ export default function AboutPage() {
               I come from the front end. Years of performance work,
               accessibility, and whatever new CSS and HTML primitive had just
               landed. I still look at everything that way, including AI. It
-              makes it easier to tell where it genuinely helps from where it
-              only adds noise.
+              makes it easier to see where it helps and where it only adds
+              noise.
             </p>
             <p>
-              Outside work I build things, travel around the world, take
-              pictures, play music, and enjoy life.
+              Outside work I build things: a photography site, a links archive,
+              a music player for my band. I also travel and take pictures.
             </p>
           </section>
 
@@ -87,7 +87,9 @@ export default function AboutPage() {
                   <span className="font-mono text-[0.8rem] text-brand">
                     {p.num}
                   </span>
-                  <H3 className="text-[1.25rem]">{p.title}</H3>
+                  <H3 interactive={false} className="text-[1.25rem]">
+                    {p.title}
+                  </H3>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {p.body}
                   </p>
