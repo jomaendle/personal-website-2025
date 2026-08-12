@@ -61,13 +61,13 @@ export function ThemeToggle() {
       <span className="grid size-5 place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
         <Moon
           aria-hidden="true"
-          className={`ease-[cubic-bezier(0.4,0,0.2,1)] h-5 w-5 transition-transform duration-300 motion-reduce:transition-none ${
+          className={`h-5 w-5 transition-transform duration-300 ease-in-out motion-reduce:transition-none ${
             isDark ? "rotate-0 scale-100" : "-rotate-180 scale-0"
           }`}
         />
         <Sun
           aria-hidden="true"
-          className={`ease-[cubic-bezier(0.4,0,0.2,1)] h-5 w-5 transition-transform duration-300 motion-reduce:transition-none ${
+          className={`h-5 w-5 transition-transform duration-300 ease-in-out motion-reduce:transition-none ${
             isDark ? "rotate-180 scale-0" : "rotate-0 scale-100"
           }`}
         />

@@ -38,10 +38,16 @@ export type Lang = "de" | "en";
  * engagement to 50 to 800 developers and four weeks, so the price can be a
  * commitment rather than an opening position. The figure follows the concept
  * document behind the page.
+ *
+ * `PRICE_EUR` is the number; the display strings are derived from it, and the
+ * JSON-LD `offers` node in `components/structured-data.tsx` reads it directly.
+ * That keeps the price a single value even though it renders in three shapes.
  */
+export const PRICE_EUR = 18000;
+
 const PRICE = {
-  de: "18.000 € Festpreis",
-  en: "€18,000 fixed price",
+  de: `${PRICE_EUR.toLocaleString("de-DE")} € Festpreis`,
+  en: `€${PRICE_EUR.toLocaleString("en-US")} fixed price`,
 };
 const NEXT_SLOT = { de: "September 2026", en: "September 2026" };
 
