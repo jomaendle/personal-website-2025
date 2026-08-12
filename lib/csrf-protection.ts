@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-type ApiHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void;
+type ApiHandler = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => Promise<void> | void;
 
-const ALLOWED_ORIGINS = [
-  "https://jomaendle.com",
-  "https://www.jomaendle.com",
-];
+const ALLOWED_ORIGINS = ["https://jomaendle.com", "https://www.jomaendle.com"];
 
 // Add localhost for development
 if (process.env.NODE_ENV === "development") {
@@ -74,7 +74,7 @@ export interface CsrfOptions {
  */
 export function withCsrfProtection(
   handler: ApiHandler,
-  options: CsrfOptions = {}
+  options: CsrfOptions = {},
 ): ApiHandler {
   const {
     message = "CSRF validation failed",
@@ -106,6 +106,9 @@ export function composeMiddleware(
   ...middlewares: ((handler: ApiHandler) => ApiHandler)[]
 ): (handler: ApiHandler) => ApiHandler {
   return (handler: ApiHandler) => {
-    return middlewares.reduceRight((acc, middleware) => middleware(acc), handler);
+    return middlewares.reduceRight(
+      (acc, middleware) => middleware(acc),
+      handler,
+    );
   };
 }

@@ -105,8 +105,7 @@ export function Minimap() {
 
       const maxDistance = 100;
       let nearestMarker:
-        | (MarkerPosition & { centerX: number; centerY: number })
-        | null = null;
+        (MarkerPosition & { centerX: number; centerY: number }) | null = null;
       let minDistanceSquared = Infinity; // Use squared distance to avoid sqrt
 
       // Re-calculate positions on each interaction (handles scroll/resize)

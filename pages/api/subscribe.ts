@@ -107,13 +107,12 @@ Jo Mändle
   }
 }
 
-const middleware = composeMiddleware(
-  withCsrfProtection,
-  (h) => withRateLimit(h, {
+const middleware = composeMiddleware(withCsrfProtection, (h) =>
+  withRateLimit(h, {
     maxRequests: 3,
     windowMs: 10 * 60 * 1000, // 10 minutes
     message: "Too many subscription attempts, please try again later",
-  })
+  }),
 );
 
 export default middleware(handler);

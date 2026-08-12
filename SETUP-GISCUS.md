@@ -15,6 +15,7 @@ This guide covers the setup for GitHub Discussions-powered comments on your blog
 ## 📋 What is Giscus?
 
 Giscus is a comments system powered by GitHub Discussions:
+
 - **Free & open source**
 - **Zero tracking or analytics**
 - **Built-in reactions** (👍 ❤️ 🎉 😕 🚀 👀)
@@ -43,11 +44,13 @@ data-theme: "dark"
 ### Change Theme
 
 In `components/giscus-comments.tsx:30`, you can modify:
+
 ```javascript
 script.setAttribute("data-theme", "dark");
 ```
 
 **Available themes:**
+
 - `dark` - Dark theme (current)
 - `light` - Light theme
 - `preferred_color_scheme` - Auto-detect user preference
@@ -56,6 +59,7 @@ script.setAttribute("data-theme", "dark");
 ### Change Comment Position
 
 In `components/giscus-comments.tsx:29`:
+
 ```javascript
 script.setAttribute("data-input-position", "top");
 ```
@@ -65,6 +69,7 @@ Options: `top` or `bottom`
 ### Disable Reactions
 
 In `components/giscus-comments.tsx:27`:
+
 ```javascript
 script.setAttribute("data-reactions-enabled", "1");
 ```
@@ -109,6 +114,7 @@ Each blog post has its own unique discussion thread based on the post's slug.
 If comments are appearing in the wrong category, verify the `data-category-id` in `components/giscus-comments.tsx:23` matches your "Blog Comments" category.
 
 To get the correct ID:
+
 1. Visit https://giscus.app
 2. Enter your repo: `jomaendle/personal-website-2025`
 3. Select category: "Blog Comments"
@@ -132,6 +138,7 @@ Giscus uses an iframe with dark theme. If you need custom styling, see the [Gisc
 ## 🎉 You're All Set!
 
 Your blog now has a fully functional, privacy-first commenting system. Readers can:
+
 - Leave comments and replies
 - React with emojis (👍 ❤️ 🎉 😕 🚀 👀)
 - Use markdown formatting

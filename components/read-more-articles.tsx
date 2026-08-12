@@ -25,7 +25,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
           <li key={article.slug}>
             <Link
               href={`/blog/${article.slug}`}
-              className="group flex items-center gap-4 border-b border-border px-3 py-4 ledger-row"
+              className="ledger-row group flex items-center gap-4 border-b border-border px-3 py-4"
             >
               <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
                 {categoryFor(article.slug)}

@@ -41,7 +41,7 @@ function getClientIp(req: NextApiRequest): string {
 
   if (forwarded) {
     // Handle both array and string formats
-    const ips = Array.isArray(forwarded) ? forwarded[0] ?? "" : forwarded;
+    const ips = Array.isArray(forwarded) ? (forwarded[0] ?? "") : forwarded;
     if (ips) {
       // Split by comma and get the rightmost (most trusted) IP
       const ipList = ips.split(",").map((ip) => ip.trim());
@@ -61,29 +61,29 @@ function getClientIp(req: NextApiRequest): string {
 function rateLimit(options: RateLimitOptions) {
   return (req: NextApiRequest, res: NextApiResponse, next: () => void) => {
     const ip = getClientIp(req);
-    
+
     const key = `${ip}:${req.url}`;
     const now = Date.now();
-    
+
     const entry = rateLimitStore.get(key);
-    
+
     if (!entry || now > entry.resetTime) {
       // Reset window
       rateLimitStore.set(key, {
         count: 1,
-        resetTime: now + options.windowMs
+        resetTime: now + options.windowMs,
       });
       return next();
     }
-    
+
     if (entry.count >= options.maxRequests) {
       res.status(429).json({
         error: options.message || "Too many requests",
-        retryAfter: Math.ceil((entry.resetTime - now) / 1000)
+        retryAfter: Math.ceil((entry.resetTime - now) / 1000),
       });
       return;
     }
-    
+
     entry.count++;
     rateLimitStore.set(key, entry);
     next();
@@ -92,7 +92,7 @@ function rateLimit(options: RateLimitOptions) {
 
 export function withRateLimit(
   handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void,
-  options: RateLimitOptions
+  options: RateLimitOptions,
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     return new Promise<void>((resolve, reject) => {

@@ -54,7 +54,9 @@ export function ContactForm() {
 
   return (
     <div className="my-8 rounded-lg border border-border bg-card px-6 pb-6">
-      <h2 className="my-4 text-xl font-semibold text-foreground">Get in touch</h2>
+      <h2 className="my-4 text-xl font-semibold text-foreground">
+        Get in touch
+      </h2>
 
       {/* Bordered panels rather than coloured text — see newsletter.tsx and
           business/inquiry-form.tsx: colour carries the border and wash only. */}
@@ -76,8 +78,14 @@ export function ContactForm() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="mb-2 block text-sm text-muted-foreground">
-              Name <span aria-hidden="true" className="text-brand">*</span>
+            <label
+              htmlFor="name"
+              className="mb-2 block text-sm text-muted-foreground"
+            >
+              Name{" "}
+              <span aria-hidden="true" className="text-brand">
+                *
+              </span>
               <span className="sr-only">(required)</span>
             </label>
             <Input
@@ -95,8 +103,14 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm text-muted-foreground">
-              Email <span aria-hidden="true" className="text-brand">*</span>
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm text-muted-foreground"
+            >
+              Email{" "}
+              <span aria-hidden="true" className="text-brand">
+                *
+              </span>
               <span className="sr-only">(required)</span>
             </label>
             <Input
@@ -113,8 +127,14 @@ export function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="topic" className="mb-2 block text-sm text-muted-foreground">
-              Message <span aria-hidden="true" className="text-brand">*</span>
+            <label
+              htmlFor="topic"
+              className="mb-2 block text-sm text-muted-foreground"
+            >
+              Message{" "}
+              <span aria-hidden="true" className="text-brand">
+                *
+              </span>
               <span className="sr-only">(required)</span>
             </label>
             <Textarea

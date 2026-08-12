@@ -13,7 +13,7 @@ function renderHtmlPage(
   title: string,
   headingColor: string,
   heading: string,
-  content: string
+  content: string,
 ): string {
   return `<!DOCTYPE html>
 <html>
@@ -68,8 +68,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ERROR_COLOR,
             "Invalid or Expired Link",
             `<p>${escapeHtml(result.error || "This unsubscribe link is invalid or has expired.")}</p>
-             <p>Please use a recent unsubscribe link from your email, or contact support.</p>`
-          )
+             <p>Please use a recent unsubscribe link from your email, or contact support.</p>`,
+          ),
         );
       }
       sanitizedEmail = result.email;
@@ -77,40 +77,46 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Fallback to email parameter for backwards compatibility with older links
     else if (email && typeof email === "string") {
       if (!isValidEmail(email)) {
-        return res.status(400).send(
-          renderHtmlPage(
-            "Invalid Email",
-            ERROR_COLOR,
-            "Invalid Email Address",
-            "<p>The email address provided is not valid.</p>"
-          )
-        );
+        return res
+          .status(400)
+          .send(
+            renderHtmlPage(
+              "Invalid Email",
+              ERROR_COLOR,
+              "Invalid Email Address",
+              "<p>The email address provided is not valid.</p>",
+            ),
+          );
       }
       sanitizedEmail = sanitizeEmail(email);
     }
     // No valid parameter provided
     else {
-      return res.status(400).send(
-        renderHtmlPage(
-          "Invalid Request",
-          ERROR_COLOR,
-          "Invalid Request",
-          "<p>No valid unsubscribe link was provided. Please use the unsubscribe link from your email.</p>"
-        )
-      );
+      return res
+        .status(400)
+        .send(
+          renderHtmlPage(
+            "Invalid Request",
+            ERROR_COLOR,
+            "Invalid Request",
+            "<p>No valid unsubscribe link was provided. Please use the unsubscribe link from your email.</p>",
+          ),
+        );
     }
 
     try {
       const audienceId = process.env.RESEND_AUDIENCE_ID;
       if (!audienceId) {
-        return res.status(500).send(
-          renderHtmlPage(
-            "Configuration Error",
-            ERROR_COLOR,
-            "Configuration Error",
-            "<p>Newsletter system is not properly configured. Please contact support.</p>"
-          )
-        );
+        return res
+          .status(500)
+          .send(
+            renderHtmlPage(
+              "Configuration Error",
+              ERROR_COLOR,
+              "Configuration Error",
+              "<p>Newsletter system is not properly configured. Please contact support.</p>",
+            ),
+          );
       }
 
       // Update contact to mark as unsubscribed
@@ -136,19 +142,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           "Successfully Unsubscribed",
           `<p>You have been unsubscribed from Jo's newsletter.</p>
            <p class="email">${escapeHtml(sanitizedEmail)}</p>
-           <p>You will no longer receive email updates. We're sorry to see you go!</p>`
-        )
+           <p>You will no longer receive email updates. We're sorry to see you go!</p>`,
+        ),
       );
     } catch (error) {
       console.error("Unsubscribe error:", error);
-      return res.status(500).send(
-        renderHtmlPage(
-          "Unsubscribe Failed",
-          ERROR_COLOR,
-          "Unsubscribe Failed",
-          "<p>An error occurred while processing your request. Please try again later or contact support.</p>"
-        )
-      );
+      return res
+        .status(500)
+        .send(
+          renderHtmlPage(
+            "Unsubscribe Failed",
+            ERROR_COLOR,
+            "Unsubscribe Failed",
+            "<p>An error occurred while processing your request. Please try again later or contact support.</p>",
+          ),
+        );
     }
   } else {
     res.setHeader("Allow", ["GET"]);

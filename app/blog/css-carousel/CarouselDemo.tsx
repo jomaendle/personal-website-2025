@@ -13,13 +13,13 @@ export const CarouselDemo = () => {
     const images = [img1, img2, img3, img4, img5, img6];
     const imageAlts = [
       "Scenic landscape with mountains",
-      "Forest pathway with autumn colors", 
+      "Forest pathway with autumn colors",
       "Ocean waves on a sandy beach",
       "Urban architecture with modern buildings",
       "Desert landscape with rock formations",
-      "Snowy mountain peaks at sunset"
+      "Snowy mountain peaks at sunset",
     ];
-    
+
     return images.map((image, index) => (
       <li key={index}>
         <Image

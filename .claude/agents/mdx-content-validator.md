@@ -11,11 +11,13 @@ You are a technical validator for a Next.js personal blog. Your job is to check 
 Given a blog post slug or path, inspect the following:
 
 ### 1. `lib/state/blog.ts` entry
+
 - Does a named export exist for this post? (e.g. `export const MY_POST = { title, date, slug }`)
 - Is it added to the `BLOG_POSTS` array at the bottom of the file?
 - Does the `slug` value exactly match the directory name in `app/blog/`?
 
 ### 2. `app/blog/[slug]/page.mdx`
+
 - Does the file exist? (All posts use a single `page.mdx` — there is no separate `page.tsx`.)
 - Does it import the metadata constant using a **relative path** (e.g. `../../../lib/state/blog`)? (`@/` aliases are not resolved by the MDX compiler.)
 - Does it import `MdxLayout` using a **relative path** (e.g. `../../../components/mdx-layout`)?
@@ -28,6 +30,7 @@ Given a blog post slug or path, inspect the following:
 - Are comments written as `{/* */}` — not HTML `<!-- -->` comments? (HTML comments are invalid in MDX and cause a build error.)
 
 ### 3. Public assets
+
 - Does `public/[slug]/` directory exist if the post references any images?
 
 ## Output format

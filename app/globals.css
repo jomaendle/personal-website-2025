@@ -4,442 +4,449 @@
 
 /* Self-hosted Geist fonts for optimal performance */
 @font-face {
-  font-family: 'Geist';
-  src: url('/fonts/GeistVF.woff') format('woff');
+  font-family: "Geist";
+  src: url("/fonts/GeistVF.woff") format("woff");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('/fonts/GeistMonoVF.woff') format('woff');
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMonoVF.woff") format("woff");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @layer base {
-    :root {
-        --background: 0 0% 6%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 9.8%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 7%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 7%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 40%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --radius: 0.5rem;
-        --link: 206 100% 62%;
-        --link-hover: 214 100% 49%;
+  :root {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 9.8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 40%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --radius: 0.5rem;
+    --link: 206 100% 62%;
+    --link-hover: 214 100% 49%;
 
-        /* Body stack, mirroring --font-serif in editorial-theme.css. Tailwind's
+    /* Body stack, mirroring --font-serif in editorial-theme.css. Tailwind's
            `sans` key points here, so `font-sans` resolves to Geist instead of
            falling through to Tailwind's default stack. */
-        --font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto,
-            'Helvetica Neue', Arial, sans-serif;
-    }
+    --font-sans:
+      "Geist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
+  }
 
-    .light {
-        --background: 0 0% 98%;
-        --foreground: 0 0% 10%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 10%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 10%;
-        --primary: 0 0% 10%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96%;
-        --secondary-foreground: 0 0% 10%;
-        --muted: 0 0% 96%;
-        --muted-foreground: 0 0% 45%;
-        --accent: 0 0% 96%;
-        --accent-foreground: 0 0% 10%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 88%;
-        --input: 0 0% 88%;
-        --ring: 0 0% 63.9%;
-        --link: 214 100% 45%;
-        --link-hover: 214 100% 35%;
-    }
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 0% 63.9%;
+    --link: 214 100% 45%;
+    --link-hover: 214 100% 35%;
+  }
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
+  * {
+    @apply border-border;
+  }
 
-    html {
-        scroll-behavior: smooth;
-    }
+  html {
+    scroll-behavior: smooth;
+  }
 
-    body {
-        @apply bg-background text-foreground;
-    }
+  body {
+    @apply bg-background text-foreground;
+  }
 
-    /* The page field — the warm paper base plus its ambient lights — is owned
+  /* The page field — the warm paper base plus its ambient lights — is owned
        by app/editorial-theme.css. */
 
-    .prose {
-        @apply text-foreground max-w-full text-base;
-        line-height: 1.7;
-        overflow-wrap: break-word;
-        word-wrap: break-word;
-    }
+  .prose {
+    @apply max-w-full text-base text-foreground;
+    line-height: 1.7;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
 
-    .prose h1 {
-        @apply font-semibold tracking-tight text-foreground text-3xl md:text-4xl;
-        line-height: 1.2;
-        margin-top: 0;
-        margin-bottom: 2rem;
-    }
+  .prose h1 {
+    @apply text-3xl font-semibold tracking-tight text-foreground md:text-4xl;
+    line-height: 1.2;
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
 
-    .prose h2 > code {
-        @apply relative -top-[3px];
-    }
+  .prose h2 > code {
+    @apply relative -top-[3px];
+  }
 
-    .prose h2 {
-        @apply mt-16 mb-2 font-semibold text-xl md:text-2xl text-foreground;
-        line-height: 1.1;
-        border-bottom: 1px solid hsl(var(--border));
-        padding-bottom: 0.5rem;
-        scroll-margin-top: 120px; /* Account for sticky header */
-        letter-spacing: 0.01em;
-    }
+  .prose h2 {
+    @apply mb-2 mt-16 text-xl font-semibold text-foreground md:text-2xl;
+    line-height: 1.1;
+    border-bottom: 1px solid hsl(var(--border));
+    padding-bottom: 0.5rem;
+    scroll-margin-top: 120px; /* Account for sticky header */
+    letter-spacing: 0.01em;
+  }
 
-    .prose h3 {
-        @apply mt-12 mb-2 font-medium text-lg md:text-xl text-foreground;
-        line-height: 1.1;
-        scroll-margin-top: 120px; /* Account for sticky header */
-    }
+  .prose h3 {
+    @apply mb-2 mt-12 text-lg font-medium text-foreground md:text-xl;
+    line-height: 1.1;
+    scroll-margin-top: 120px; /* Account for sticky header */
+  }
 
-    .prose h4 {
-        @apply mt-8 mb-4 font-medium text-base md:text-lg text-foreground;
-        line-height: 1.4;
-    }
+  .prose h4 {
+    @apply mb-4 mt-8 text-base font-medium text-foreground md:text-lg;
+    line-height: 1.4;
+  }
 
-    .prose p {
-        @apply text-muted-foreground my-6 leading-relaxed;
-    }
+  .prose p {
+    @apply my-6 leading-relaxed text-muted-foreground;
+  }
 
-    .prose strong {
-        @apply text-foreground font-semibold;
-    }
+  .prose strong {
+    @apply font-semibold text-foreground;
+  }
 
-    .prose em {
-        @apply text-foreground;
-    }
+  .prose em {
+    @apply text-foreground;
+  }
 
-    .prose figure {
-        @apply mx-auto my-4;
-    }
+  .prose figure {
+    @apply mx-auto my-4;
+  }
 
-    .prose figure figcaption {
-        @apply text-xs text-muted-foreground text-center block mt-3;
-    }
+  .prose figure figcaption {
+    @apply mt-3 block text-center text-xs text-muted-foreground;
+  }
 
-    .prose figure img {
-        @apply rounded-[0.2rem];
-    }
+  .prose figure img {
+    @apply rounded-[0.2rem];
+  }
 
-    .prose pre {
-        @apply bg-secondary text-foreground rounded-lg border border-border overflow-x-auto my-8 relative;
-        padding: 1.5rem 1rem;
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
+  .prose pre {
+    @apply relative my-8 overflow-x-auto rounded-lg border border-border bg-secondary text-foreground;
+    padding: 1.5rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
 
-    .prose code {
-        @apply px-2 py-1 whitespace-nowrap rounded-md text-sm border;
-        font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
-    }
+  .prose code {
+    @apply whitespace-nowrap rounded-md border px-2 py-1 text-sm;
+    font-family:
+      "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+      "Liberation Mono", Menlo, monospace;
+  }
 
-    /* Dark mode inline code */
-    :root .prose code {
-        @apply bg-secondary text-foreground border-border;
-    }
+  /* Dark mode inline code */
+  :root .prose code {
+    @apply border-border bg-secondary text-foreground;
+  }
 
-    /* Light mode inline code - better contrast */
-    .light .prose code {
-        @apply bg-secondary text-secondary-foreground border-border;
-    }
+  /* Light mode inline code - better contrast */
+  .light .prose code {
+    @apply border-border bg-secondary text-secondary-foreground;
+  }
 
-    .prose pre code {
-        @apply bg-transparent p-0 border-none text-foreground;
-        font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
-    }
+  .prose pre code {
+    @apply border-none bg-transparent p-0 text-foreground;
+    font-family:
+      "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+      "Liberation Mono", Menlo, monospace;
+  }
 
-    .prose .code-block code {
-        @apply bg-transparent;
-    }
+  .prose .code-block code {
+    @apply bg-transparent;
+  }
 
-    .prose kbd {
-        @apply border border-border text-foreground rounded-sm text-sm px-1 py-0.5;
-    }
+  .prose kbd {
+    @apply rounded-sm border border-border px-1 py-0.5 text-sm text-foreground;
+  }
 
-    .prose li {
-        @apply text-muted-foreground my-2;
-    }
+  .prose li {
+    @apply my-2 text-muted-foreground;
+  }
 
-    .prose ul,
-    .prose ol {
-        @apply my-6 pl-6 space-y-2;
-    }
+  .prose ul,
+  .prose ol {
+    @apply my-6 space-y-2 pl-6;
+  }
 
-    .prose ul {
-        @apply list-disc;
-    }
+  .prose ul {
+    @apply list-disc;
+  }
 
-    .prose ol {
-        @apply list-decimal;
-    }
+  .prose ol {
+    @apply list-decimal;
+  }
 
-    .prose ul li,
-    .prose ol li {
-        @apply text-muted-foreground leading-relaxed;
-    }
+  .prose ul li,
+  .prose ol li {
+    @apply leading-relaxed text-muted-foreground;
+  }
 
-    .prose ul li::marker,
-    .prose ol li::marker {
-        @apply text-primary;
-    }
+  .prose ul li::marker,
+  .prose ol li::marker {
+    @apply text-primary;
+  }
 
-    /* Tables */
-    .prose table {
-        /* No `overflow-hidden` here: it clips a table wider than the column
+  /* Tables */
+  .prose table {
+    /* No `overflow-hidden` here: it clips a table wider than the column
            instead of letting it scroll. The scroll container is the wrapper
            mdx-components.tsx puts around the table. */
-        @apply w-full my-8 border-collapse border border-border rounded-lg;
-    }
+    @apply my-8 w-full border-collapse rounded-lg border border-border;
+  }
 
-    .prose table th {
-        @apply bg-muted/50 text-foreground font-semibold text-left px-4 py-3 border-b border-border;
-    }
+  .prose table th {
+    @apply border-b border-border bg-muted/50 px-4 py-3 text-left font-semibold text-foreground;
+  }
 
-    .prose table td {
-        @apply text-muted-foreground px-4 py-3 border-b border-border/50;
-    }
+  .prose table td {
+    @apply border-b border-border/50 px-4 py-3 text-muted-foreground;
+  }
 
-    .prose table tr:last-child td {
-        @apply border-b-0;
-    }
+  .prose table tr:last-child td {
+    @apply border-b-0;
+  }
 
-    .prose table tr:hover {
-        @apply bg-muted/30;
-    }
+  .prose table tr:hover {
+    @apply bg-muted/30;
+  }
 
-    /* Blockquotes */
-    .prose blockquote {
-        @apply border-l-4 border-primary/30 pl-6 py-2 my-8 italic text-muted-foreground bg-muted/20 rounded-r-lg;
-    }
+  /* Blockquotes */
+  .prose blockquote {
+    @apply my-8 rounded-r-lg border-l-4 border-primary/30 bg-muted/20 py-2 pl-6 italic text-muted-foreground;
+  }
 
-    .prose blockquote p {
-        @apply my-2;
-    }
+  .prose blockquote p {
+    @apply my-2;
+  }
 
-    /* Links */
-    .prose a {
-        @apply text-primary hover:text-primary/80 transition-colors duration-200 underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60;
-    }
+  /* Links */
+  .prose a {
+    @apply text-primary underline decoration-primary/30 underline-offset-4 transition-colors duration-200 hover:text-primary/80 hover:decoration-primary/60;
+  }
 
-    /* Horizontal rules */
-    .prose hr {
-        @apply border-t border-border my-12;
-    }
+  /* Horizontal rules */
+  .prose hr {
+    @apply my-12 border-t border-border;
+  }
 
-    /* Smooth transitions for interactive elements */
-    .prose a,
-    .prose button,
-    .prose [role="button"] {
-        transition: all 0.2s ease;
-    }
+  /* Smooth transitions for interactive elements */
+  .prose a,
+  .prose button,
+  .prose [role="button"] {
+    transition: all 0.2s ease;
+  }
 
-    /* Focus states for accessibility */
-    .prose a:focus,
-    .prose button:focus {
-        @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
-    }
+  /* Focus states for accessibility */
+  .prose a:focus,
+  .prose button:focus {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
 
-    :root {
-        scrollbar-width: thin;
-        /* Derived from the theme rather than a fixed gray, which read cool
+  :root {
+    scrollbar-width: thin;
+    /* Derived from the theme rather than a fixed gray, which read cool
            against the warm paper. Resolves per theme because the token does. */
-        scrollbar-color: hsl(var(--muted-foreground) / 0.55) transparent;
-        scrollbar-gutter: stable both-edges;
-    }
+    scrollbar-color: hsl(var(--muted-foreground) / 0.55) transparent;
+    scrollbar-gutter: stable both-edges;
+  }
 
-    /* Anchor link styling */
-    .anchor-link {
-        @apply text-muted-foreground/50 hover:text-muted-foreground;
-        transition: opacity 0.2s ease, color 0.2s ease;
-    }
+  /* Anchor link styling */
+  .anchor-link {
+    @apply text-muted-foreground/50 hover:text-muted-foreground;
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease;
+  }
 
-    /* Focus states for accessibility */
-    .anchor-link:focus {
-        @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
-    }
+  /* Focus states for accessibility */
+  .anchor-link:focus {
+    @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
+  }
 
-    /* Glass container for content */
-    .glass-container {
-        @apply overflow-hidden rounded-3xl border px-4 py-6 shadow-xl md:p-12;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-    }
+  /* Glass container for content */
+  .glass-container {
+    @apply overflow-hidden rounded-3xl border px-4 py-6 shadow-xl md:p-12;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 
-    /* Dark mode glass container */
-    :root .glass-container {
-        @apply border-white/10 bg-black/40;
-        box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
+  /* Dark mode glass container */
+  :root .glass-container {
+    @apply border-white/10 bg-black/40;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
 
-    /* Light mode glass container */
-    .light .glass-container {
-        @apply border-black/10 bg-white/60;
-        box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    }
+  /* Light mode glass container */
+  .light .glass-container {
+    @apply border-black/10 bg-white/60;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
 
-    /* The vertical padding is responsive because 64px of it sits on top of the
+  /* The vertical padding is responsive because 64px of it sits on top of the
        glass container's own 24px inset. On a 390px phone that pushed the first
        real content 149px down the page, roughly a fifth of the viewport, and on
        the homepage the only thing inside that band is a row holding the theme
        toggle and the menu button. 24px on small screens, which is twice the 12px
        horizontal inset and so keeps the card's proportions, and the original
        64px from `sm` up where the width can carry it. */
-    .page-container {
-        @apply relative z-20 mx-auto max-w-3xl 2xl:max-w-4xl px-3 sm:px-6 py-6 sm:py-16;
-    }
+  .page-container {
+    @apply relative z-20 mx-auto max-w-3xl px-3 py-6 sm:px-6 sm:py-16 2xl:max-w-4xl;
+  }
 
-    /* View Transitions - Theme Toggle Animation */
-    ::view-transition-old(root),
+  /* View Transitions - Theme Toggle Animation */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  /* Horizontal line reveal animation for theme switching - top to bottom */
+  ::view-transition-new(root) {
+    clip-path: inset(0 0 100% 0);
+    animation: theme-reveal 0.7s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  @keyframes theme-reveal {
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
     ::view-transition-new(root) {
-        animation: none;
-        mix-blend-mode: normal;
+      animation: none;
+      clip-path: none;
     }
+  }
 
-    /* Horizontal line reveal animation for theme switching - top to bottom */
-    ::view-transition-new(root) {
-        clip-path: inset(0 0 100% 0);
-        animation: theme-reveal .7s cubic-bezier(.77, 0, .175, 1) forwards;
+  /* Performance optimizations for view transitions */
+  [style*="viewTransitionName"] {
+    contain: layout style paint;
+  }
+
+  /* Optimize main content transition */
+  ::view-transition-old(main-content),
+  ::view-transition-new(main-content) {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Subtle fade and scale for blog card elements */
+  ::view-transition-old(blog-card-*) {
+    animation: fade-scale-out 0.25s ease-out;
+  }
+
+  ::view-transition-new(blog-card-*) {
+    animation: fade-scale-in 0.25s ease-in;
+  }
+
+  /* Fade animations for blog post elements */
+  ::view-transition-old(blog-title-*),
+  ::view-transition-old(blog-date-*) {
+    animation: fade-out 0.2s ease-out;
+  }
+
+  ::view-transition-new(blog-title-*),
+  ::view-transition-new(blog-date-*) {
+    animation: fade-in 0.2s ease-in 0.1s;
+  }
+
+  @keyframes fade-scale-out {
+    to {
+      opacity: 0;
+      transform: scale(0.95);
     }
+  }
 
-    @keyframes theme-reveal {
-        to {
-            clip-path: inset(0 0 0 0);
-        }
+  @keyframes fade-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
     }
+  }
 
-    @media (prefers-reduced-motion: reduce) {
-        ::view-transition-new(root) {
-            animation: none;
-            clip-path: none;
-        }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
     }
+  }
 
-    /* Performance optimizations for view transitions */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
     [style*="viewTransitionName"] {
-        contain: layout style paint;
+      contain: none;
     }
 
-    /* Optimize main content transition */
-    ::view-transition-old(main-content),
-    ::view-transition-new(main-content) {
-        animation-duration: 0.3s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Subtle fade and scale for blog card elements */
-    ::view-transition-old(blog-card-*) {
-        animation: fade-scale-out 0.25s ease-out;
-    }
-
-    ::view-transition-new(blog-card-*) {
-        animation: fade-scale-in 0.25s ease-in;
-    }
-
-    /* Fade animations for blog post elements */
+    ::view-transition-old(blog-card-*),
+    ::view-transition-new(blog-card-*),
     ::view-transition-old(blog-title-*),
-    ::view-transition-old(blog-date-*) {
-        animation: fade-out 0.2s ease-out;
-    }
-
     ::view-transition-new(blog-title-*),
+    ::view-transition-old(blog-date-*),
     ::view-transition-new(blog-date-*) {
-        animation: fade-in 0.2s ease-in 0.1s;
+      animation: none;
     }
-
-    @keyframes fade-scale-out {
-        to {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-    }
-
-    @keyframes fade-scale-in {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-    }
-
-    @keyframes fade-out {
-        to {
-            opacity: 0;
-        }
-    }
-
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-        }
-    }
-
-    /* Respect reduced motion preferences */
-    @media (prefers-reduced-motion: reduce) {
-        [style*="viewTransitionName"] {
-            contain: none;
-        }
-
-        ::view-transition-old(blog-card-*),
-        ::view-transition-new(blog-card-*),
-        ::view-transition-old(blog-title-*),
-        ::view-transition-new(blog-title-*),
-        ::view-transition-old(blog-date-*),
-        ::view-transition-new(blog-date-*) {
-            animation: none;
-        }
-    }
+  }
 }
 
 /* Global reduced-motion fallback for CSS-driven animation (animate-pulse,
    tailwindcss-motion presets, spinners, transitions). Framer Motion is handled
    separately via <MotionConfig reducedMotion="user"> in app/providers.tsx. */
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 
-    .animate-pulse {
-        animation: none !important;
-    }
+  .animate-pulse {
+    animation: none !important;
+  }
 }

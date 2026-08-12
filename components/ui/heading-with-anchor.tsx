@@ -14,8 +14,7 @@ function generateSlug(text: string): string {
     .trim();
 }
 
-interface HeadingWithAnchorProps
-  extends React.HTMLAttributes<HTMLHeadingElement> {
+interface HeadingWithAnchorProps extends React.HTMLAttributes<HTMLHeadingElement> {
   level: 2 | 3;
   children: React.ReactNode;
 }

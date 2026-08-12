@@ -20,7 +20,7 @@ export async function GET() {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Vary": "Origin",
+        Vary: "Origin",
         "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
       },
     });

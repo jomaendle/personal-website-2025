@@ -34,7 +34,7 @@ const SandpackWithObserver = (props: SandpackProps) => {
       {
         rootMargin: "200px 0px", // Load 200px before coming into view
         threshold: 0.1,
-      }
+      },
     );
 
     if (ref.current) {

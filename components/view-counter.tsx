@@ -14,8 +14,8 @@ interface ViewsResponse {
 }
 
 const listAllViewsRequest = async () => {
-  return fetch("/api/list-view-count").then(
-    (res): Promise<ViewsResponse[]> => res.json(),
+  return fetch("/api/list-view-count").then((res): Promise<ViewsResponse[]> =>
+    res.json(),
   );
 };
 

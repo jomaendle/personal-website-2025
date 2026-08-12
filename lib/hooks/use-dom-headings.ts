@@ -113,6 +113,6 @@ export function useDomHeadings(): TocItem[] {
   return useSyncExternalStore(
     subscribeToHeadings,
     getHeadingsSnapshot,
-    getServerSnapshot
+    getServerSnapshot,
   );
 }
