@@ -72,10 +72,6 @@ export default function AboutPage() {
               makes it easier to see where it helps and where it only adds
               noise.
             </p>
-            <p>
-              Outside work I build things: a photography site, a links archive,
-              a music player for my band. I also travel and take pictures.
-            </p>
           </section>
 
           {/* Principles */}

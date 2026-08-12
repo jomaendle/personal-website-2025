@@ -40,7 +40,7 @@ export default function WritingPage() {
             </H1>
             <p className="max-w-[52ch] text-muted-foreground">
               What I&apos;m figuring out about using AI on real projects, and
-              the front-end details worth sweating.
+              what I run into on the front end.
             </p>
           </header>
 

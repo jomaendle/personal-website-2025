@@ -8,6 +8,12 @@
 export interface NavLink {
   label: string;
   href: string;
+  /**
+   * Language of the target page, when it differs from the page linking to it.
+   * Set on the legal links: the site is `<html lang="en">` but those two routes
+   * are German, so the anchor has to say so.
+   */
+  hrefLang?: string;
 }
 
 /**
@@ -24,8 +30,20 @@ export const PRIMARY_NAV: NavLink[] = [
   { label: "About", href: "/about" },
 ];
 
-/** Legal links surfaced in the footer (German imprint + privacy). */
+/**
+ * Legal links surfaced in the footer.
+ *
+ * Labelled in English, because the footer they sit in is English and two German
+ * words in it read as an oversight. The pages themselves stay German: they are
+ * a § 5 DDG imprint and a GDPR privacy notice for a German sole trader, and the
+ * German wording is the one that governs. `hrefLang` carries that switch to
+ * browsers and screen readers.
+ *
+ * "Legal Notice" rather than "Imprint": German law wants the page to be plainly
+ * recognisable, and "Imprint" is a literal rendering of Impressum that means
+ * something else in English.
+ */
 export const LEGAL_LINKS: NavLink[] = [
-  { label: "Impressum", href: "/impressum" },
-  { label: "Datenschutz", href: "/datenschutz" },
+  { label: "Legal Notice", href: "/impressum", hrefLang: "de" },
+  { label: "Privacy", href: "/datenschutz", hrefLang: "de" },
 ];
