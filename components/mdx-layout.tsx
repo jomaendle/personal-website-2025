@@ -133,9 +133,20 @@ export default function MdxLayout({
                 </div>
 
                 <div className="relative -mt-2 mb-8 h-10 xl:hidden">
-                  <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
+                  {/* Visual placeholder only: the real, working button renders
+                      inside MobileTableOfContents on top of this one once the
+                      headings are read from the DOM. Without aria-hidden and
+                      tabIndex={-1} this was a second focusable button in the
+                      tab order that could never be activated, sitting covered
+                      beneath the live one. pointer-events-none keeps it out of
+                      hit testing entirely. */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in"
+                  >
                     <Button
                       variant="outline"
+                      tabIndex={-1}
                       className="w-full justify-between"
                     >
                       On This Page

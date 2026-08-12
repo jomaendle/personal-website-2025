@@ -48,6 +48,11 @@ export function BlogVideo({
       <video
         controls
         loop={true}
+        // Explicit rather than the browser default: only the metadata loads up
+        // front, so a megabyte of mp4 never competes with the poster and the
+        // page's own assets for bandwidth before anyone presses play.
+        preload="metadata"
+        playsInline
         className="h-full max-h-[400px] w-full object-contain"
         poster={posterSrc}
         aria-label={caption || "Video content"}

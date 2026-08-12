@@ -121,6 +121,60 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
+            <H2>Eingebettete Inhalte in Artikeln</H2>
+            <div className="space-y-4 text-muted-foreground">
+              <p>
+                Einzelne Blog-Artikel enthalten interaktive Code-Beispiele, die
+                über CodeSandbox (Sandpack) bereitgestellt werden. Beim Aufruf
+                eines solchen Artikels stellt Ihr Browser eine Verbindung zu
+                Servern von CodeSandbox her; dabei wird Ihre IP-Adresse
+                übermittelt. Es gelten die Datenschutzbestimmungen von
+                CodeSandbox. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO
+                (Interesse an der Darstellung lauffähiger Code-Beispiele).
+              </p>
+              <p>
+                Einige Artikel zeigen den Browser-Support einer Webtechnologie
+                über das Baseline-Status-Widget an. Dafür ruft Ihr Browser Daten
+                von api.webstatus.dev ab, einem Dienst von Google; dabei wird
+                Ihre IP-Adresse übermittelt. Es gelten die
+                Datenschutzbestimmungen von Google. Rechtsgrundlage ist Art. 6
+                Abs. 1 lit. f DSGVO.
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <H2>Newsletter</H2>
+            <div className="space-y-4 text-muted-foreground">
+              <p>
+                Wenn Sie sich für den Newsletter anmelden, verarbeite ich Ihre
+                E-Mail-Adresse, um Sie über neue Artikel zu informieren.
+                Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a
+                DSGVO). Sie können sie jederzeit widerrufen, über den
+                Abmeldelink in jeder E-Mail oder formlos per E-Mail an mich.
+                Nach der Abmeldung wird Ihre Adresse aus dem Verteiler gelöscht.
+              </p>
+              <p>
+                Der Verteiler wird bei Resend geführt (Anbieterangaben und
+                Übermittlungsgrundlage wie im Abschnitt zu den Formularen
+                beschrieben).
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <H2>Aufrufzähler</H2>
+            <p className="text-muted-foreground">
+              Blog-Artikel zeigen einen Aufrufzähler. Gezählt wird je Artikel
+              eine Gesamtzahl ohne Personenbezug; es werden weder IP-Adressen
+              noch Profile gespeichert. Die Zählerstände liegen in einer
+              Datenbank bei Supabase Inc. (USA), die Übertragung läuft über
+              diese Website, nicht direkt von Ihrem Browser zu Supabase.
+              Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO.
+            </p>
+          </section>
+
+          <section>
             <H2>Kontakt per E-Mail</H2>
             <p className="text-muted-foreground">
               Wenn Sie mich per E-Mail kontaktieren, werden Ihre Angaben zur
@@ -162,17 +216,17 @@ export default function DatenschutzPage() {
                 >
                   Auftragsverarbeitungsvertrag von Resend
                 </a>
-                , der die EU-Standardvertragsklauseln (Modul 2) einbezieht. Die
-                von Resend eingesetzten Unterauftragsverarbeiter sind{" "}
+                , der die EU-Standardvertragsklauseln (Modul 2) einbezieht.
+                Resend veröffentlicht eine{" "}
                 <a
                   href="https://resend.com/legal/subprocessors"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline transition-colors hover:text-brand"
                 >
-                  hier
-                </a>{" "}
-                einsehbar.
+                  Liste der eingesetzten Unterauftragsverarbeiter
+                </a>
+                .
               </p>
               <p>
                 Ihre Angaben werden gelöscht, sobald die Anfrage abschließend

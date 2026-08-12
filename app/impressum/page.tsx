@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Impressum",
-  description: "Impressum gemäß § 5 TMG.",
+  description: "Impressum gemäß § 5 DDG.",
   alternates: { canonical: "/impressum" },
 };
 
@@ -36,7 +36,7 @@ export default function ImpressumPage() {
             </p>
             <BlogH1>Impressum</BlogH1>
             <p className="text-xs text-muted-foreground">
-              Angaben gemäß § 5 TMG
+              Angaben gemäß § 5 DDG
             </p>
           </section>
 

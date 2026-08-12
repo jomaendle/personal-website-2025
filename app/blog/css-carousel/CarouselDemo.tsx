@@ -43,7 +43,9 @@ export const CarouselDemo = () => {
       </section>
 
       <section className={style.container}>
-        <h4 className="my-0 px-4 font-medium">With Default Buttons</h4>
+        {/* A <p>, not a heading: the article's outline goes h1 → h2, and an h4
+            inside the demo skipped a level. It is a caption on the demo box. */}
+        <p className="my-0 px-4 font-medium">With Default Buttons</p>
         <p className="px-4 text-sm leading-5">
           This demo uses Anchor positioning to layout the scroll buttons.
         </p>
