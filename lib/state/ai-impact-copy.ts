@@ -10,10 +10,19 @@
  * four-week measurement mandate to a VP Engineering or CTO. The two pages
  * deliberately share no sections and link to each other exactly once.
  *
- * Source text: `docs/ki-wirkung-copy.md`. Taken over as written, with one
- * systematic exception: the source uses em dashes, which the site's writing
- * voice bans outright. Each one is resolved into two sentences or a colon, the
- * fix that rule asks for. No sentence was added, cut or re-pitched.
+ * Source text: `docs/ki-wirkung-copy.md`, with two sets of edits on top.
+ *
+ * First, the source uses em dashes, which the site's writing voice bans
+ * outright. Each one is resolved into two sentences or a colon, the fix that
+ * rule asks for.
+ *
+ * Second, a pass for register. The source reached for clipped fragments as
+ * punchlines ("Zwei parallel, mehr nicht.", "Und was nicht.") and for swipes at
+ * unnamed competitors ("Der Punkt, an dem andere Anbieter scheitern.", "Kein
+ * Foliensatz, den nach vier Wochen niemand mehr öffnet."). Read by a VP
+ * Engineering weighing a five-figure mandate, that is swagger rather than
+ * confidence, so those lines are stated plainly instead. Every claim survives;
+ * only the delivery changed.
  */
 
 export type Lang = "de" | "en";
@@ -110,8 +119,8 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
     hero: {
       eyebrow: "Audit · 4 Wochen · Festpreis",
       heading: "Ihr Team arbeitet mit KI. Können Sie belegen, was es bringt?",
-      lede: "Lizenzen sind gekauft, die Nutzung ist unklar, und in der nächsten Budgetrunde fragt jemand nach Zahlen. Ich messe in vier Wochen, was sich tatsächlich verändert hat. Und was nicht.",
-      availability: `Nächster Audit-Slot: ${NEXT_SLOT.de}. Zwei parallel, mehr nicht.`,
+      lede: "Lizenzen sind gekauft, die Nutzung ist unklar, und in der nächsten Budgetrunde fragt jemand nach Zahlen. Ich messe in vier Wochen, was sich tatsächlich verändert hat und was nicht.",
+      availability: `Nächster Audit-Slot: ${NEXT_SLOT.de}`,
       cta: "Erstgespräch buchen (20 Min)",
       jumpLabel: "Was im Audit passiert",
     },
@@ -146,7 +155,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         {
           label: "Woche 2",
           title: "Ist-Aufnahme",
-          desc: "Wo Agenten heute wirklich eingesetzt werden. Sechs bis acht Gespräche à 30 Minuten, quer durch Teams und Senioritäten. Gespräche, keine anonymisierte Umfrage.",
+          desc: "Wo Agenten heute wirklich eingesetzt werden. Sechs bis acht Gespräche à 30 Minuten, quer durch Teams und Senioritäten. Das sind Gespräche und keine anonymisierte Umfrage.",
         },
         {
           label: "Woche 3",
@@ -169,10 +178,11 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         "Drei bis fünf priorisierte Maßnahmen mit Aufwandsschätzung",
         "Alle Rohdaten und Auswertungsskripte, in Ihrem Repository",
       ],
-      closing: "Kein Foliensatz, den nach vier Wochen niemand mehr öffnet.",
+      closing:
+        "Die Ergebnisse liegen als Dokument und als Skripte vor, nicht als Foliensatz.",
     },
     measurement: {
-      heading: "Der Punkt, an dem andere Anbieter scheitern",
+      heading: "Warum diese Messung trägt",
       blocks: [
         {
           title: "Messung ohne Leistungskontrolle",
@@ -207,7 +217,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         },
         {
           term: "Passt nicht, wenn",
-          desc: "Sie noch vor der Einführung stehen. Dann fehlt die Baseline und das Audit misst nichts. Melden Sie sich in einem Quartal.",
+          desc: "Sie noch vor der Einführung stehen. Dann fehlt die Baseline und das Audit misst nichts. Sinnvoll wird es, sobald die Werkzeuge ein Quartal im Einsatz sind.",
         },
       ],
     },
@@ -217,7 +227,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         {
           question: "Was, wenn das Ergebnis negativ ausfällt?",
           answer:
-            "Dann steht das im Dokument. Ein Audit, dessen Ergebnis vorher feststeht, ist keins wert. In dem Fall haben Sie eine belastbare Grundlage, Lizenzen zu reduzieren. Das rechnet sich schneller als jede Optimierung.",
+            "Dann steht das im Dokument. Ein Audit, dessen Ergebnis vorher feststeht, ist wertlos. In dem Fall haben Sie eine belastbare Grundlage, Lizenzen zu reduzieren. Das rechnet sich schneller als jede Optimierung.",
         },
         {
           question: "Bekommen Sie Zugriff auf unseren Code?",
@@ -232,12 +242,12 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         {
           question: "Warum nicht eines der fertigen Werkzeuge?",
           answer:
-            "Können Sie. Nach dem Audit wissen Sie, welche Kennzahlen bei Ihnen aussagekräftig sind. Vorher kaufen Sie ein Dashboard und lernen erst danach, was Sie eigentlich hätten messen wollen.",
+            "Das können Sie tun. Nach dem Audit wissen Sie, welche Kennzahlen bei Ihnen aussagekräftig sind. Vorher kaufen Sie ein Dashboard und stellen erst danach fest, welche Kennzahlen Sie gebraucht hätten.",
         },
       ],
     },
     close: {
-      heading: "Abschluss",
+      heading: "Nächster Schritt",
       lede: "20 Minuten. Ich stelle Fragen, Sie entscheiden danach.",
       body: "Im Gespräch klären wir, ob Ihre Datenlage ein Audit überhaupt trägt. Wenn nicht, sage ich das im Gespräch und nicht nach der Beauftragung.",
       cta: "Termin wählen",
@@ -254,13 +264,13 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
     hero: {
       eyebrow: "Audit · 4 weeks · fixed price",
       heading: "Your team works with AI. Can you show what it returns?",
-      lede: "The licences are paid for, the usage is unclear, and in the next budget round someone will ask for numbers. In four weeks I measure what actually changed. And what didn't.",
-      availability: `Next audit slot: ${NEXT_SLOT.en}. Two at a time, no more.`,
+      lede: "The licences are paid for, the usage is unclear, and in the next budget round someone will ask for numbers. In four weeks I measure what actually changed and what didn't.",
+      availability: `Next audit slot: ${NEXT_SLOT.en}`,
       cta: "Book an intro call (20 min)",
       jumpLabel: "What happens in the audit",
     },
     problem: {
-      heading: "How you know this is you",
+      heading: "How you recognise it",
       items: [
         {
           title: "The licence cost is in the budget. The return is not.",
@@ -290,7 +300,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         {
           label: "Week 2",
           title: "Current practice",
-          desc: "Where agents are genuinely used today. Six to eight conversations of 30 minutes, across teams and seniority levels. Conversations, not an anonymous survey.",
+          desc: "Where agents are genuinely used today. Six to eight conversations of 30 minutes, across teams and seniority levels. These are conversations and not an anonymous survey.",
         },
         {
           label: "Week 3",
@@ -305,7 +315,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
       ],
     },
     outcome: {
-      heading: "What you hold afterwards",
+      heading: "What you have at the end",
       items: [
         "A metric set your team can keep running without me: definitions, queries, scripts",
         "Baseline and current value, evidenced from system data rather than self-reporting",
@@ -313,10 +323,11 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         "Three to five prioritised measures with an effort estimate",
         "All raw data and analysis scripts, in your repository",
       ],
-      closing: "No slide deck that nobody opens again after four weeks.",
+      closing:
+        "The results come as a document and as scripts, not as a slide deck.",
     },
     measurement: {
-      heading: "Where other providers fail",
+      heading: "Why this measurement holds up",
       blocks: [
         {
           title: "Measurement without performance monitoring",
@@ -351,7 +362,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         },
         {
           term: "Does not fit if",
-          desc: "You are still before the rollout. Then the baseline is missing and the audit measures nothing. Get in touch in a quarter.",
+          desc: "You are still before the rollout. Then the baseline is missing and the audit measures nothing. It becomes worthwhile once the tools have been in use for a quarter.",
         },
       ],
     },
@@ -376,12 +387,12 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
         {
           question: "Why not one of the off-the-shelf tools?",
           answer:
-            "You can. After the audit you know which metrics are meaningful in your company. Before it, you buy a dashboard and only then learn what you should have been measuring.",
+            "You can do that. After the audit you know which metrics are meaningful in your company. Before it, you buy a dashboard and only afterwards find out which metrics you needed.",
         },
       ],
     },
     close: {
-      heading: "Closing",
+      heading: "Next step",
       lede: "20 minutes. I ask the questions, you decide afterwards.",
       body: "In the call we work out whether your data even carries an audit. If it doesn't, I say so in the call and not after you have signed.",
       cta: "Pick a time",

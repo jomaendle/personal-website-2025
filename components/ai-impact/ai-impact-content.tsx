@@ -87,9 +87,9 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               {t.hero.lede}
             </p>
 
-            {/* Capacity before the CTA rather than after it: two slots is the
-                first thing that disqualifies a reader, so it should not sit
-                below the fold. */}
+            {/* The next free slot sits before the CTA rather than after it: a
+                date that does not work is the first thing that disqualifies a
+                reader, so it should not sit below the fold. */}
             <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand">
               {t.hero.availability}
             </p>
