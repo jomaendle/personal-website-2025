@@ -19,12 +19,14 @@
  */
 
 import { SITE } from "@/lib/config/site";
+import { AI_IMPACT_COPY } from "@/lib/state/ai-impact-copy";
 import { BUSINESS_COPY } from "@/lib/state/business-copy";
 import { CLIENT_PROJECTS } from "@/lib/state/business-projects";
 
 export const dynamic = "force-static";
 
 const t = BUSINESS_COPY.en;
+const aiImpact = AI_IMPACT_COPY.en;
 
 const services = t.services.items
   .map((item) => `- **${item.title}**: ${item.desc}`)
@@ -43,7 +45,7 @@ const content = `# ${SITE.name}
 
 > ${t.hero.lede} Freelance contract engineering with product teams and engineering leads.
 
-**${t.hero.availability}.** New engagements are not taken on before that date.
+**${t.hero.availability}.** Short, time-boxed mandates such as an audit or an architecture review can start at short notice. Ongoing work inside a team does not start before that quarter.
 
 Contact:
 - Email: ${SITE.contact.email}
@@ -56,6 +58,14 @@ Contact:
 - [Freelance Frontend & AI Engineering (DE)](https://www.jomaendle.com/business): German page describing services, stack, selected client work and how an engagement starts.
 - [Freelance Frontend & AI Engineering (EN)](https://www.jomaendle.com/business/en): English version of the same page.
 - [Markdown version (EN)](https://www.jomaendle.com/business/en.md): the full page as plain markdown.
+
+## Separate offer: AI impact audit
+
+A self-contained four-week mandate, priced and scoped on its own page. ${aiImpact.hero.lede} Measured at team and repository level, with no per-developer analysis.
+
+- [Measuring AI in engineering (EN)](https://www.jomaendle.com/ai-impact): scope, the four weeks, deliverables, price and FAQ.
+- [KI im Engineering messen (DE)](https://www.jomaendle.com/ki-wirkung): German version of the same page.
+- [Markdown version (EN)](https://www.jomaendle.com/ai-impact.md): the full page as plain markdown.
 
 ## Core services
 
