@@ -149,6 +149,18 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 </div>
               ))}
             </div>
+            {/* One quiet pointer to the audit page, in the same muted style as
+                `stack.note` below. The two pages have different buyers, so this
+                stays a sentence rather than becoming a promoted block. */}
+            <p className="mt-5 max-w-[60ch] text-sm text-muted-foreground">
+              {t.services.note}{" "}
+              <Link
+                href={t.services.noteHref}
+                className="text-foreground underline decoration-border decoration-from-font underline-offset-[5px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {t.services.noteLinkLabel}
+              </Link>
+            </p>
           </section>
 
           {/* Stack — breadth lives here so the hero can stay focused on the
