@@ -29,7 +29,11 @@ export const NameHeading = ({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-6">
+    // gap-5 below `sm`: above that breakpoint the controls row carries the nav
+    // links and reads as a bar, so it earns the full gap. On mobile the links
+    // collapse into the menu button and the row is two icons pushed right, so
+    // the same gap left a visible empty band above the name.
+    <div className="flex flex-col gap-5 sm:gap-6">
       <Collapsible.Root
         open={menuOpen}
         onOpenChange={setMenuOpen}

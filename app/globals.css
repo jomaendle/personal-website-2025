@@ -314,8 +314,15 @@
             inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
+    /* The vertical padding is responsive because 64px of it sits on top of the
+       glass container's own 24px inset. On a 390px phone that pushed the first
+       real content 149px down the page, roughly a fifth of the viewport, and on
+       the homepage the only thing inside that band is a row holding the theme
+       toggle and the menu button. 24px on small screens, which is twice the 12px
+       horizontal inset and so keeps the card's proportions, and the original
+       64px from `sm` up where the width can carry it. */
     .page-container {
-        @apply relative z-20 mx-auto max-w-3xl 2xl:max-w-4xl px-3 sm:px-6 py-16;
+        @apply relative z-20 mx-auto max-w-3xl 2xl:max-w-4xl px-3 sm:px-6 py-6 sm:py-16;
     }
 
     /* View Transitions - Theme Toggle Animation */
