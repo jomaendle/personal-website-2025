@@ -157,9 +157,12 @@ export default function MdxLayout({
 
             {/* Same `mx-auto max-w-3xl` wrapper the article content uses, so
                 moving the footer out of <main> changes the landmark tree
-                without changing where it sits on the page. */}
+                without changing where it sits on the page. This is also the
+                only Footer that carries its own top margin: unlike every other
+                route, this container is not a flex column, so there is no
+                parent gap for the footer to sit in. */}
             <div className="mx-auto max-w-3xl">
-              <Footer />
+              <Footer className="mt-16" />
             </div>
           </div>
         </div>

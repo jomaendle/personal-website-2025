@@ -17,7 +17,7 @@ export default function WritingPage() {
   return (
     <div className="page-container">
       <div
-        className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
+        className="glass-container mx-auto flex max-w-3xl flex-col gap-10 sm:gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
         {/* Landmark contract: PageTopBar's <header> and <Footer /> are siblings

@@ -16,13 +16,19 @@ import { LEGAL_LINKS } from "@/lib/config/navigation";
  *
  * Render it as a sibling of the route's `<main>`, not inside it: `<footer>`
  * only carries the implicit `contentinfo` role outside sectioning content.
+ *
+ * No top margin of its own. Every route but one places this as a flex child of
+ * the `.glass-container`, which already spaces its children; the `mt-16` this
+ * used to carry stacked on top of that gap and produced 128px above the rule
+ * instead of the 64px the layout intends. `mdx-layout` is the exception, since
+ * its container is not a flex column, so it passes the margin in itself.
  */
 
 export const Footer = ({ className }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <footer
       className={cn(
-        "mt-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border pt-8 text-xs text-muted-foreground",
+        "flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border pt-8 text-xs text-muted-foreground",
         className,
       )}
     >
