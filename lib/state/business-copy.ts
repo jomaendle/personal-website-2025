@@ -13,12 +13,18 @@
 export type Lang = "de" | "en";
 
 /**
- * Earliest quarter a new engagement can start.
+ * Earliest quarter *ongoing* work in a team can start.
  *
  * Interpolated into the hero availability line and process step 02 in both
  * languages, because four hardcoded copies drifted apart the first time the
  * date moved. Change it here and every surface follows, including the
  * `/business.md` mirrors and `/llms.txt`.
+ *
+ * It no longer gates everything on the page. Short, time-boxed mandates such
+ * as an audit or an architecture review fit alongside the day job and can
+ * start at short notice; only continuous work inside a team has to wait for
+ * this quarter. The two availabilities are stated separately because a single
+ * date turned away buyers of the short mandates, /ki-wirkung among them.
  */
 const AVAILABLE_FROM = "Q1 2027";
 
@@ -86,7 +92,20 @@ export interface BusinessCopy {
   };
   clients: { heading: string };
   pitch: { heading: string; paragraphs: string[] };
-  services: { heading: string; items: ServiceItem[] };
+  /**
+   * `note` is the one pointer from here to /ki-wirkung, rendered as a muted
+   * line under the list in the same style as `stack.note`. Deliberately not a
+   * banner or a panel: that page sells a fixed four-week mandate to whoever
+   * owns the budget, this one sells engineering capacity to the people running
+   * the teams. Giving it more weight would blur both.
+   */
+  services: {
+    heading: string;
+    items: ServiceItem[];
+    note: string;
+    noteLinkLabel: string;
+    noteHref: string;
+  };
   stack: { heading: string; note: string; groups: StackGroup[] };
   work: { heading: string };
   process: { heading: string; steps: ProcessStep[] };
@@ -144,7 +163,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior Frontend-Engineering. Und KI, die in Produktion geht.",
       lede: "Ich arbeite mit Produktteams an den schwierigen Teilen des Frontends, unabhängig vom Framework, und bringe LLM-Features über den Demo-Status hinaus.",
-      availability: `Verfügbar ab ${AVAILABLE_FROM}`,
+      availability: `Kurze Mandate sofort · Laufende Mitarbeit ab ${AVAILABLE_FROM}`,
       ctaPrimary: "Projekt anfragen",
       ctaSecondary: "Gespräch buchen",
     },
@@ -181,6 +200,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
           desc: "Gewachsene Frontends Stück für Stück ablösen, auch Angular nach React, ohne das Produkt anzuhalten. Abgesichert mit Tests in Jest, Vitest, Playwright und Cypress.",
         },
       ],
+      note: "Wenn die Frage lautet, was der KI-Einsatz im Team messbar gebracht hat, gibt es dafür ein eigenes vierwöchiges Audit:",
+      noteLinkLabel: "KI im Engineering messen",
+      noteHref: "/ki-wirkung",
     },
     stack: {
       heading: "Stack",
@@ -218,7 +240,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "02",
           title: "Zuschnitt",
-          desc: `Wir klären Umfang, Auslastung und Rahmen schriftlich, bevor jemand Zeit investiert. Projektstart ab ${AVAILABLE_FROM}.`,
+          desc: `Wir klären Umfang, Auslastung und Rahmen schriftlich, bevor jemand Zeit investiert. Ein Audit oder ein Architektur-Review lässt sich kurzfristig einschieben. Für laufende Mitarbeit im Team ist ${AVAILABLE_FROM} der früheste Start.`,
         },
         {
           num: "03",
@@ -303,7 +325,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       eyebrow: "Freelance · Frontend & AI Engineering",
       heading: "Senior frontend engineering. And AI that reaches production.",
       lede: "I join product teams for the hard parts of the frontend, whatever the framework, and I build LLM features that make it past the demo.",
-      availability: `Available from ${AVAILABLE_FROM}`,
+      availability: `Short mandates now · Ongoing work from ${AVAILABLE_FROM}`,
       ctaPrimary: "Start an inquiry",
       ctaSecondary: "Book a call",
     },
@@ -340,6 +362,9 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
           desc: "Replacing a legacy frontend piece by piece, Angular to React included, without pausing the product. Covered by tests in Jest, Vitest, Playwright and Cypress.",
         },
       ],
+      note: "If the question is what AI has measurably returned in your team, there is a separate four-week audit for that:",
+      noteLinkLabel: "Measuring AI in engineering",
+      noteHref: "/ai-impact",
     },
     stack: {
       heading: "Stack",
@@ -377,7 +402,7 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
         {
           num: "02",
           title: "Shape",
-          desc: `We settle scope, capacity and terms in writing, before anyone invests time. Engagements start from ${AVAILABLE_FROM}.`,
+          desc: `We settle scope, capacity and terms in writing, before anyone invests time. An audit or an architecture review can be slotted in at short notice. For ongoing work in your team, ${AVAILABLE_FROM} is the earliest start.`,
         },
         {
           num: "03",

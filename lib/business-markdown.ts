@@ -18,7 +18,11 @@ export function renderBusinessMarkdown(lang: Lang): string {
   const projects = CLIENT_PROJECTS.map((project) =>
     [
       `### ${project.title} · ${project.href}`,
-      `**${[project.period[lang], project.role[lang], project.stack?.join(" · ")]
+      `**${[
+        project.period[lang],
+        project.role[lang],
+        project.stack?.join(" · "),
+      ]
         .filter(Boolean)
         .join(" · ")}**`,
       "",
@@ -51,6 +55,8 @@ ${t.pitch.paragraphs.join("\n\n")}
 ## ${t.services.heading}
 
 ${t.services.items.map((item) => `- **${item.title}**: ${item.desc}`).join("\n")}
+
+${t.services.note} [${t.services.noteLinkLabel}](https://www.jomaendle.com${t.services.noteHref})
 
 ## ${t.stack.heading}
 
