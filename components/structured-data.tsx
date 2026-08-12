@@ -1,4 +1,6 @@
 import Script from "next/script";
+import { SITE } from "@/lib/config/site";
+import { AI_IMPACT_COPY, type Lang } from "@/lib/state/ai-impact-copy";
 
 interface PersonStructuredData {
   "@context": "https://schema.org";
@@ -268,6 +270,107 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
   return <Script {...scriptProps} />;
 }
 
+/**
+ * `Service` + `FAQPage` JSON-LD for the AI impact audit route.
+ *
+ * Two graph nodes in one script. The `Service` describes the mandate and its
+ * provider; the `FAQPage` is generated from the same `AI_IMPACT_COPY.faq` the
+ * page renders, so the markup can never answer a question the page does not
+ * ask. Google retired FAQ rich results in 2026, but the type is still valid
+ * and is read by the AI crawlers `app/robots.ts` admits by name, which is the
+ * audience this page is written for.
+ *
+ * No `offers`: the published price is an entry point ("ab 10.000 €"), and a
+ * `PriceSpecification` would state it as the price of every engagement.
+ */
+export function AiImpactStructuredData({ lang }: { lang: Lang }) {
+  const isDe = lang === "de";
+  const t = AI_IMPACT_COPY[lang];
+  const url = `https://www.jomaendle.com${t.path}`;
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Service",
+        "@id": `${url}#service`,
+        name: isDe
+          ? "KI-Wirkung im Engineering messen · 4-Wochen-Audit"
+          : "Measuring AI impact in engineering · 4-week audit",
+        description: t.hero.lede,
+        url,
+        inLanguage: isDe ? "de-DE" : "en-US",
+        serviceType: isDe
+          ? "Audit der KI-Wirkung in der Softwareentwicklung"
+          : "Audit of AI impact on software delivery",
+        // Team- and repository-level only. Stating the category this way keeps
+        // the markup in step with the page's central claim: no per-developer
+        // analysis, which is what makes it survivable under § 87 BetrVG.
+        category: isDe
+          ? [
+              "Engineering-Kennzahlen",
+              "DORA-Metriken",
+              "KI-Einsatz in der Softwareentwicklung",
+              "Messung ohne personenbezogene Auswertung",
+            ]
+          : [
+              "Engineering metrics",
+              "DORA metrics",
+              "AI adoption in software delivery",
+              "Measurement without per-developer analysis",
+            ],
+        areaServed: [
+          { "@type": "Country", name: "Germany" },
+          { "@type": "Country", name: "Austria" },
+          { "@type": "Country", name: "Switzerland" },
+          { "@type": "Place", name: "Remote / EU" },
+        ],
+        audience: {
+          "@type": "BusinessAudience",
+          audienceType: isDe
+            ? "VP Engineering, CTO, Budgetverantwortliche"
+            : "VP Engineering, CTO, budget owners",
+        },
+        provider: {
+          "@type": "Person",
+          "@id": "https://www.jomaendle.com#person",
+          name: "Johannes Mändle",
+          alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
+          jobTitle: "Principal Solution Architect",
+          url: "https://www.jomaendle.com",
+          email: `mailto:${SITE.contact.email}`,
+          sameAs: [
+            "https://www.linkedin.com/in/johannes-maendle/",
+            "https://github.com/jomaendle",
+          ],
+        },
+        potentialAction: {
+          "@type": "ReserveAction",
+          name: t.hero.cta,
+          target: SITE.contact.booking,
+        },
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${url}#faq`,
+        inLanguage: isDe ? "de-DE" : "en-US",
+        mainEntity: t.faq.items.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: { "@type": "Answer", text: item.answer },
+        })),
+      },
+    ],
+  };
+
+  const scriptProps = {
+    id: `ai-impact-structured-data-${lang}`,
+    type: "application/ld+json",
+    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
+  };
+  return <Script {...scriptProps} />;
+}
+
 export function WebsiteStructuredData() {
   const structuredData: WebsiteStructuredData = {
     "@context": "https://schema.org",
@@ -285,7 +388,8 @@ export function WebsiteStructuredData() {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://www.jomaendle.com/blog?search={search_term_string}",
+        urlTemplate:
+          "https://www.jomaendle.com/blog?search={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
