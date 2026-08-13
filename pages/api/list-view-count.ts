@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "@/lib/supabaseClient";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { withRateLimit } from "@/lib/rate-limit";
+import { supabase } from "@/lib/supabaseClient";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader(

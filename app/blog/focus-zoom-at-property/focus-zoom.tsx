@@ -1,22 +1,22 @@
 "use client";
-import { ComponentPreview } from "@/components/component-preview";
 import { useEffect, useRef } from "react";
+import { ComponentPreview } from "@/components/component-preview";
 import styles from "./Styles.module.css";
 
 export const FocusZoomAtProperty = () => {
   const spotlightRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const toggleSpotlight = (toggle: boolean) => {
-    requestAnimationFrame(() => {
-      spotlightRef.current?.style.setProperty(
-        "--focal-size",
-        toggle ? "7vmax" : "100%",
-      );
-    });
-  };
-
   useEffect(() => {
+    const toggleSpotlight = (toggle: boolean) => {
+      requestAnimationFrame(() => {
+        spotlightRef.current?.style.setProperty(
+          "--focal-size",
+          toggle ? "7vmax" : "100%",
+        );
+      });
+    };
+
     const preview = previewRef.current;
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
@@ -41,8 +41,8 @@ export const FocusZoomAtProperty = () => {
         // calculate the mouse position relative to the preview
         const newX = e.clientX - x;
         const newY = e.clientY - y;
-        spotlightRef.current?.style.setProperty("--mouse-x", newX + "px");
-        spotlightRef.current?.style.setProperty("--mouse-y", newY + "px");
+        spotlightRef.current?.style.setProperty("--mouse-x", `${newX}px`);
+        spotlightRef.current?.style.setProperty("--mouse-y", `${newY}px`);
       });
     });
 
@@ -50,7 +50,7 @@ export const FocusZoomAtProperty = () => {
     window.addEventListener("keyup", (e) => toggleSpotlight(e.altKey));
     window.addEventListener("touchstart", () => toggleSpotlight(true));
     window.addEventListener("touchend", () => toggleSpotlight(false));
-  }, [previewRef]);
+  }, []);
 
   return (
     <ComponentPreview ref={previewRef} className={styles.gradient}>

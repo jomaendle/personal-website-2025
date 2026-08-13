@@ -24,7 +24,6 @@ export function useLocalStorageState<T>(
       if (stored !== null) {
         // Hydration-safety requires deferring the stored value to an effect,
         // same pattern as useIsMounted.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setValue(JSON.parse(stored) as T);
       }
     } catch {

@@ -1,8 +1,8 @@
 "use client";
 
-import { Link } from "next-view-transitions";
 import { m, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "next-view-transitions";
 
 const links = [
   {

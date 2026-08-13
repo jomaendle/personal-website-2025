@@ -1,7 +1,7 @@
-import React, { useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
+import { Button } from "@/components/ui/button";
 
 // The container variants for the whole number
 const containerVariants = {
@@ -62,6 +62,7 @@ export const CounterCraft = () => {
         >
           {digits.map((digit, i) => (
             <m.span
+              // biome-ignore lint/suspicious/noArrayIndexKey: the key is counter value + digit position on purpose — each position must remount to run its roll animation
               key={`${counter}-${i}`}
               custom={direction}
               variants={digitVariants}

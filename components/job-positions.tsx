@@ -61,9 +61,9 @@ export const JobPositions = () => {
       viewport={{ once: true, margin: "-50px" }}
       className="flex flex-col gap-6"
     >
-      {jobPositions.map((position, index) => (
+      {jobPositions.map((position) => (
         <m.article
-          key={index}
+          key={`${position.company}-${position.role}`}
           variants={itemVariants}
           className="flex items-center"
         >
@@ -73,7 +73,7 @@ export const JobPositions = () => {
             <H3 interactive={false}>{position.company}</H3>
             <p className="text-muted-foreground">{position.role}</p>
           </div>
-          <p className="text-xs text-muted-foreground md:text-sm">
+          <p className="text-muted-foreground text-xs md:text-sm">
             {position.startDate} – {position.endDate}
           </p>
         </m.article>

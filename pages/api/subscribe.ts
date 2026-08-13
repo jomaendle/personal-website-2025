@@ -1,10 +1,10 @@
-import resend from "@/lib/resend";
-import { NextApiRequest, NextApiResponse } from "next";
-import { withRateLimit } from "@/lib/rate-limit";
-import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
-import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { composeMiddleware, withCsrfProtection } from "@/lib/csrf-protection";
 import { isValidEmail, sanitizeEmail } from "@/lib/email-validation";
 import { escapeHtml, escapeHtmlAttribute } from "@/lib/html-utils";
+import { withRateLimit } from "@/lib/rate-limit";
+import resend from "@/lib/resend";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -75,7 +75,7 @@ Jo Mändle
       // notify owner
       const notificationEmail = process.env.NOTIFICATION_EMAIL;
       if (notificationEmail) {
-        void resend.emails
+        resend.emails
           .send({
             from: "Jo <jo@contact.jomaendle.com>",
             to: notificationEmail,

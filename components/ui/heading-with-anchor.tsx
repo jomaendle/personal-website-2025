@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Link2 } from "lucide-react";
 import { useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 // Generate slug from text (similar to GitHub's approach)
 function generateSlug(text: string): string {
@@ -14,7 +14,8 @@ function generateSlug(text: string): string {
     .trim();
 }
 
-interface HeadingWithAnchorProps extends React.HTMLAttributes<HTMLHeadingElement> {
+interface HeadingWithAnchorProps
+  extends React.HTMLAttributes<HTMLHeadingElement> {
   level: 2 | 3;
   children: React.ReactNode;
 }
@@ -64,6 +65,7 @@ export function HeadingWithAnchor({
     <h2 {...headingProps}>
       {children}
       <button
+        type="button"
         onClick={copyToClipboard}
         className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
@@ -75,6 +77,7 @@ export function HeadingWithAnchor({
     <h3 {...headingProps}>
       {children}
       <button
+        type="button"
         onClick={copyToClipboard}
         className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}

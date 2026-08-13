@@ -1,12 +1,10 @@
-import { H2 } from "@/components/ui/heading";
-import { JobPositions } from "@/components/job-positions";
 import { BlogPosts } from "@/components/blog-posts";
-import { WorkExperience } from "@/components/work-experience";
+import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { JobPositions } from "@/components/job-positions";
 import { MoreLinks } from "@/components/more-links";
-import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
-import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { Footer } from "@/components/ui/footer";
 import {
   AngularIcon,
   AstroIcon,
@@ -14,6 +12,8 @@ import {
   JavaScriptIcon,
   ReactIcon,
 } from "@/components/ui/framework-icons";
+import { H2 } from "@/components/ui/heading";
+import { WorkExperience } from "@/components/work-experience";
 
 // Static generation
 export const dynamic = "force-static";

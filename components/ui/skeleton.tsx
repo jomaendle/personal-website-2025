@@ -22,7 +22,7 @@ function SandpackSkeleton({ className }: { className?: string }) {
         {/* Editor Side */}
         <div className="flex w-1/2 flex-col">
           {/* Tab Bar */}
-          <div className="flex h-10 items-center border-b border-border bg-muted/30 px-3">
+          <div className="flex h-10 items-center border-border border-b bg-muted/30 px-3">
             <Skeleton className="h-4 w-16" />
           </div>
           {/* Editor Content */}
@@ -39,9 +39,9 @@ function SandpackSkeleton({ className }: { className?: string }) {
         </div>
 
         {/* Preview Side */}
-        <div className="flex w-1/2 flex-col border-l border-border">
+        <div className="flex w-1/2 flex-col border-border border-l">
           {/* Preview Header */}
-          <div className="flex h-10 items-center border-b border-border bg-muted/30 px-3">
+          <div className="flex h-10 items-center border-border border-b bg-muted/30 px-3">
             <Skeleton className="h-4 w-12" />
           </div>
           {/* Preview Content */}
@@ -81,4 +81,4 @@ function BaselineStatusSkeleton({ className }: { className?: string }) {
 
 // `Skeleton` stays module-local: it is the shared shimmer block the two
 // exported skeletons are built from, and has no consumers of its own.
-export { SandpackSkeleton, BaselineStatusSkeleton };
+export { BaselineStatusSkeleton, SandpackSkeleton };

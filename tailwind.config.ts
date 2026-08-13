@@ -1,6 +1,7 @@
-import type { Config } from "tailwindcss";
 import { createRequire } from "node:module";
 import { join } from "node:path";
+import process from "node:process";
+import type { Config } from "tailwindcss";
 
 /**
  * Tailwind plugins must be resolved through CommonJS.

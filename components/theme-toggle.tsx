@@ -50,7 +50,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       // The visual box stays 36px so the masthead keeps its weight; the
       // `after` pseudo-element extends the pointer target to 44px (WCAG 2.5.8).
-      className="relative h-9 w-9 rounded-md transition-colors after:absolute after:left-1/2 after:top-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent"
+      className="relative h-9 w-9 rounded-md transition-colors after:absolute after:top-1/2 after:left-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {/* Both icons stay mounted, stacked in one grid cell; the active one

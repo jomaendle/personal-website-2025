@@ -1,6 +1,6 @@
 import { Link } from "next-view-transitions";
-import { H1, H2, H3 } from "@/components/ui/heading";
 import { Footer } from "@/components/ui/footer";
+import { H1, H2, H3 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
 import { SITE } from "@/lib/config/site";
 import { AI_IMPACT_COPY, type Lang } from "@/lib/state/ai-impact-copy";
@@ -58,7 +58,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               aria-label={t.switchLabel}
               // -mx-2 keeps the optical position while the padding lifts the
               // tap target to 44px tall, matching /business.
-              className="-mx-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 font-mono text-sm tracking-[0.04em] text-muted-foreground transition-colors hover:text-brand"
+              className="-mx-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 font-mono text-muted-foreground text-sm tracking-[0.04em] transition-colors hover:text-brand"
             >
               {t.switchTo}
             </Link>
@@ -74,14 +74,14 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
           {/* Masthead. A `<header>` nested in `<main>` is not a banner
               landmark, so this does not compete with the top bar. */}
           <header className="flex flex-col gap-6">
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+            <p className="mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]">
               {t.hero.eyebrow}
             </p>
             <H1 className="max-w-[20ch]" itemProp="name">
               {t.hero.heading}
             </H1>
             <p
-              className="max-w-[52ch] text-[1.05rem] leading-relaxed text-foreground/90"
+              className="max-w-[52ch] text-[1.05rem] text-foreground/90 leading-relaxed"
               itemProp="description"
             >
               {t.hero.lede}
@@ -90,7 +90,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
             {/* The next free slot sits before the CTA rather than after it: a
                 date that does not work is the first thing that disqualifies a
                 reader, so it should not sit below the fold. */}
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand">
+            <p className="font-mono text-[0.75rem] text-brand uppercase tracking-[0.14em]">
               {t.hero.availability}
             </p>
 
@@ -101,7 +101,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                   cannot read as a competing button. */}
               <a
                 href="#audit"
-                className="inline-flex min-h-[44px] items-center rounded-[0.15rem] font-mono text-[0.75rem] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex min-h-[44px] items-center rounded-[0.15rem] font-mono text-[0.75rem] text-muted-foreground uppercase tracking-[0.14em] transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.jumpLabel}{" "}
                 <span aria-hidden="true" className="ml-1.5">
@@ -118,7 +118,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
             <H2>{t.problem.heading}</H2>
             <div className="flex flex-col">
               {t.problem.items.map((item) => (
-                <div key={item.title} className="border-b border-border py-4">
+                <div key={item.title} className="border-border border-b py-4">
                   <H3 interactive={false}>{item.title}</H3>
                   <p className="mt-1 max-w-[62ch] text-muted-foreground">
                     {item.desc}
@@ -126,7 +126,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                 </div>
               ))}
             </div>
-            <p className="mt-6 max-w-[60ch] text-[1.05rem] leading-relaxed text-foreground/90">
+            <p className="mt-6 max-w-[60ch] text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.problem.closing}
             </p>
           </section>
@@ -135,16 +135,16 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               park the heading under the top edge of the viewport. */}
           <section id="audit" className="scroll-mt-8">
             <H2>{t.audit.heading}</H2>
-            <p className="mb-8 max-w-[60ch] text-[1.05rem] leading-relaxed text-foreground/90">
+            <p className="mb-8 max-w-[60ch] text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.audit.lede}
             </p>
             <dl className="flex flex-col">
               {t.audit.weeks.map((week) => (
                 <div
                   key={week.label}
-                  className="flex flex-col gap-2 border-b border-border py-5 sm:flex-row sm:gap-6"
+                  className="flex flex-col gap-2 border-border border-b py-5 sm:flex-row sm:gap-6"
                 >
-                  <dt className="pt-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-brand sm:w-24 sm:shrink-0">
+                  <dt className="pt-1 font-mono text-[0.7rem] text-brand uppercase tracking-[0.14em] sm:w-24 sm:shrink-0">
                     {week.label}
                   </dt>
                   <dd className="flex flex-col gap-1">
@@ -171,7 +171,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 max-w-[60ch] text-[1.05rem] leading-relaxed text-foreground/90">
+            <p className="mt-6 max-w-[60ch] text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.outcome.closing}
             </p>
           </section>
@@ -189,7 +189,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                   {block.paragraphs.map((paragraph) => (
                     <p
                       key={paragraph}
-                      className="max-w-[60ch] leading-relaxed text-foreground/90"
+                      className="max-w-[60ch] text-foreground/90 leading-relaxed"
                     >
                       {paragraph}
                     </p>
@@ -203,19 +203,19 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               the number is at the point of deciding. */}
           <section>
             <H2>{t.scope.heading}</H2>
-            <p className="mb-8 font-mono text-[0.8rem] uppercase tracking-[0.12em] text-foreground">
+            <p className="mb-8 font-mono text-[0.8rem] text-foreground uppercase tracking-[0.12em]">
               {t.scope.priceLine}
             </p>
             <dl className="flex flex-col">
               {t.scope.rows.map((row) => (
                 <div
                   key={row.term}
-                  className="flex flex-col gap-2 border-b border-border py-4 sm:flex-row sm:gap-6"
+                  className="flex flex-col gap-2 border-border border-b py-4 sm:flex-row sm:gap-6"
                 >
                   {/* w-40, not w-32: "Passt nicht, wenn" wrapped onto two
                       lines at the narrower width and left the term column
                       taller than the definition beside it. */}
-                  <dt className="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-brand sm:w-40 sm:shrink-0">
+                  <dt className="font-mono text-[0.7rem] text-brand uppercase tracking-[0.14em] sm:w-40 sm:shrink-0">
                     {row.term}
                   </dt>
                   <dd className="max-w-[58ch] text-muted-foreground">
@@ -239,13 +239,13 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               {t.faq.items.map((item) => (
                 <details
                   key={item.question}
-                  className="group border-b border-border"
+                  className="group border-border border-b"
                 >
-                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 py-4 font-serif text-[1.2rem] leading-snug text-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 py-4 font-serif text-[1.2rem] text-foreground leading-snug transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
                     {item.question}
                     <span
                       aria-hidden="true"
-                      className="shrink-0 font-mono text-sm text-brand transition-transform group-open:rotate-45"
+                      className="shrink-0 font-mono text-brand text-sm transition-transform group-open:rotate-45"
                     >
                       +
                     </span>
@@ -261,10 +261,10 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
           {/* Close. Third and last CTA. */}
           <section>
             <H2>{t.close.heading}</H2>
-            <p className="max-w-[52ch] font-serif text-[1.5rem] leading-snug text-foreground">
+            <p className="max-w-[52ch] font-serif text-[1.5rem] text-foreground leading-snug">
               {t.close.lede}
             </p>
-            <p className="mt-5 max-w-[60ch] text-[1.05rem] leading-relaxed text-foreground/90">
+            <p className="mt-5 max-w-[60ch] text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.close.body}
             </p>
 
@@ -272,7 +272,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               <BookingCta label={t.close.cta} />
             </div>
 
-            <address className="mt-8 flex flex-col gap-2 text-sm not-italic text-muted-foreground">
+            <address className="mt-8 flex flex-col gap-2 text-muted-foreground text-sm not-italic">
               <span>
                 {t.close.emailLabel}:{" "}
                 <a
@@ -285,7 +285,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               </span>
               <a
                 href={t.markdownHref}
-                className="w-fit text-xs text-muted-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="w-fit text-muted-foreground text-xs transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.markdownLabel}
               </a>

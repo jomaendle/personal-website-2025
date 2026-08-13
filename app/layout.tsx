@@ -1,16 +1,16 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import "./editorial-theme.css";
-import { ViewTransitions } from "next-view-transitions";
-import PlausibleProvider from "next-plausible";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import PlausibleProvider from "next-plausible";
+import { ViewTransitions } from "next-view-transitions";
 import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
 import { MotionProvider } from "./providers";
-import { Analytics } from "@vercel/analytics/next";
 
 // Note: Using system fonts for build compatibility
 // In production with network access, restore: import { Inter } from "next/font/google";
@@ -108,7 +108,7 @@ export default function RootLayout({
               landmarks. */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
           >
             Skip to content
           </a>

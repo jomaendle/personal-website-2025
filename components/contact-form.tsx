@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 
 export function ContactForm() {
   const [name, setName] = useState("");
@@ -54,7 +54,7 @@ export function ContactForm() {
 
   return (
     <div className="my-8 rounded-lg border border-border bg-card px-6 pb-6">
-      <h2 className="my-4 text-xl font-semibold text-foreground">
+      <h2 className="my-4 font-semibold text-foreground text-xl">
         Get in touch
       </h2>
 
@@ -64,14 +64,14 @@ export function ContactForm() {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground"
+          className="rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-foreground text-sm"
         >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
         <div
           role="alert"
-          className="rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground"
+          className="rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-foreground text-sm"
         >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>
@@ -80,7 +80,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="name"
-              className="mb-2 block text-sm text-muted-foreground"
+              className="mb-2 block text-muted-foreground text-sm"
             >
               Name{" "}
               <span aria-hidden="true" className="text-brand">
@@ -105,7 +105,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="email"
-              className="mb-2 block text-sm text-muted-foreground"
+              className="mb-2 block text-muted-foreground text-sm"
             >
               Email{" "}
               <span aria-hidden="true" className="text-brand">
@@ -129,7 +129,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="topic"
-              className="mb-2 block text-sm text-muted-foreground"
+              className="mb-2 block text-muted-foreground text-sm"
             >
               Message{" "}
               <span aria-hidden="true" className="text-brand">
@@ -150,7 +150,7 @@ export function ContactForm() {
               minLength={10}
               maxLength={1000}
             />
-            <div className="mt-1 text-xs text-muted-foreground">
+            <div className="mt-1 text-muted-foreground text-xs">
               {topic.length}/1000 characters
             </div>
           </div>

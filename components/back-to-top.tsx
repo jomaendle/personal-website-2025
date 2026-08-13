@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AnimatePresence, m } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function BackToTop() {
@@ -41,13 +41,13 @@ export function BackToTop() {
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible ? (
         <m.div
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-8 right-8 z-50"
+          className="fixed right-8 bottom-8 z-50"
         >
           <Button
             onClick={scrollToTop}
@@ -73,7 +73,7 @@ export function BackToTop() {
             </m.svg>
           </Button>
         </m.div>
-      )}
+      ) : null}
     </AnimatePresence>
   );
 }

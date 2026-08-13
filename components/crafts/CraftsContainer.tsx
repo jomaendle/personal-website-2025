@@ -1,4 +1,5 @@
-import React, { HTMLAttributes } from "react";
+import type React from "react";
+import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 interface CraftsContainerProps extends HTMLAttributes<HTMLDivElement> {

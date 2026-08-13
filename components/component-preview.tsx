@@ -1,10 +1,15 @@
-import { forwardRef } from "react";
+import type { RefObject } from "react";
 import { cn } from "@/lib/utils";
 
-export const ComponentPreview = forwardRef<
-  HTMLDivElement,
-  { children: React.ReactNode; className?: string }
->(({ children, className }, ref) => {
+export const ComponentPreview = ({
+  children,
+  className,
+  ref,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  ref?: RefObject<HTMLDivElement | null>;
+}) => {
   return (
     <div
       ref={ref}
@@ -16,6 +21,6 @@ export const ComponentPreview = forwardRef<
       {children}
     </div>
   );
-});
+};
 
 ComponentPreview.displayName = "ComponentPreview";

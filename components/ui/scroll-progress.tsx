@@ -1,7 +1,8 @@
 "use client";
 
+import type React from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef } from "react";
 
 /**
  * Reading-progress hairline along the top of an article.
@@ -12,10 +13,14 @@ import React, { useEffect, useRef } from "react";
  * layout. This and the theme toggle were the two components keeping framer
  * in the critical bundle of routes that animate nothing else.
  */
-export const ScrollProgress = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, style, ...props }, ref) => {
+export const ScrollProgress = ({
+  className,
+  style,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.Ref<HTMLDivElement>;
+}) => {
   const innerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -61,6 +66,6 @@ export const ScrollProgress = React.forwardRef<
       {...props}
     />
   );
-});
+};
 
 ScrollProgress.displayName = "ScrollProgress";

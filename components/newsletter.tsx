@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { H2 } from "@/components/ui/heading";
 import { Loader2 } from "lucide-react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { H2 } from "@/components/ui/heading";
+import { Input } from "@/components/ui/input";
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState("");
@@ -50,11 +50,12 @@ export default function NewsletterForm() {
     if (status === "success") {
       const timeoutId = setTimeout(() => setStatus("finished"), 3000);
       return () => clearTimeout(timeoutId);
-    } else if (status === "error") {
+    }
+    if (status === "error") {
       const timeoutId = setTimeout(() => setStatus("idle"), 5000);
       return () => clearTimeout(timeoutId);
     }
-    return undefined;
+    return;
   }, [status]);
 
   const isLoading = useMemo(() => status === "loading", [status]);
@@ -63,7 +64,7 @@ export default function NewsletterForm() {
     <div className="w-full py-8">
       <div className="mb-6 space-y-2">
         <H2 className="">Newsletter</H2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Get an email when I publish something new.
         </p>
       </div>
@@ -96,7 +97,7 @@ export default function NewsletterForm() {
           disabled={isLoading}
           // Same CTA language as the /business submit button: ink fill, mono
           // uppercase label, h-11 — the one height every form CTA now shares.
-          className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
         >
           <span className="inline-flex items-center gap-1">
             {isLoading ? (
@@ -121,7 +122,7 @@ export default function NewsletterForm() {
           reserves no vertical space. */}
       <p role="status" aria-live="polite">
         {status === "success" && (
-          <span className="motion-preset-slide-down-md mt-3 block rounded-[0.25rem] border border-brand bg-brand/5 px-4 py-3 text-sm text-foreground opacity-100 motion-opacity-in-0">
+          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-[0.25rem] border border-brand bg-brand/5 px-4 py-3 text-foreground text-sm opacity-100">
             Thanks for subscribing. You&apos;ll get an email shortly.
           </span>
         )}
@@ -129,7 +130,7 @@ export default function NewsletterForm() {
 
       <p role="alert">
         {status === "error" && (
-          <span className="motion-preset-slide-down-md mt-3 block rounded-[0.25rem] border border-destructive bg-destructive/5 px-4 py-3 text-sm text-foreground opacity-100 motion-opacity-in-0">
+          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-[0.25rem] border border-destructive bg-destructive/5 px-4 py-3 text-foreground text-sm opacity-100">
             {errorMessage || "Failed to subscribe. Please try again."}
           </span>
         )}

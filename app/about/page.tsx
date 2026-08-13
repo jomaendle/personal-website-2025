@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { H1, H2, H3 } from "@/components/ui/heading";
-import { PageTopBar } from "@/components/ui/page-top-bar";
 import { JobPositions } from "@/components/job-positions";
 import NewsletterForm from "@/components/newsletter";
 import { Footer } from "@/components/ui/footer";
+import { H1, H2, H3 } from "@/components/ui/heading";
+import { PageTopBar } from "@/components/ui/page-top-bar";
 import { SITE } from "@/lib/config/site";
 import { PRINCIPLES } from "@/lib/state/principles";
 
@@ -38,7 +38,7 @@ export default function AboutPage() {
               the document outline. */}
           <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
             <div className="flex flex-col gap-6">
-              <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+              <p className="mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]">
                 About
               </p>
               <H1 className="max-w-[18ch]">
@@ -58,7 +58,7 @@ export default function AboutPage() {
           </header>
 
           {/* Bio */}
-          <section className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] leading-relaxed text-foreground/90">
+          <section className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
             <p>
               I&apos;m a full-stack engineer and Principal Solution Architect at
               E.ON Digital Technology. My job is working out how AI fits into
@@ -86,7 +86,7 @@ export default function AboutPage() {
                   <H3 interactive={false} className="text-[1.25rem]">
                     {p.title}
                   </H3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {p.body}
                   </p>
                 </div>

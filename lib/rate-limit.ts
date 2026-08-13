@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 interface RateLimitEntry {
   count: number;
@@ -45,7 +45,7 @@ function getClientIp(req: NextApiRequest): string {
     if (ips) {
       // Split by comma and get the rightmost (most trusted) IP
       const ipList = ips.split(",").map((ip) => ip.trim());
-      return ipList[ipList.length - 1] || "unknown";
+      return ipList.at(-1) || "unknown";
     }
   }
 

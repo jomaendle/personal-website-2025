@@ -1,6 +1,6 @@
 import type { MDXComponents } from "mdx/types";
-import { HeadingWithAnchor } from "@/components/ui/heading-with-anchor";
 import { Link } from "next-view-transitions";
+import { HeadingWithAnchor } from "@/components/ui/heading-with-anchor";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -31,14 +31,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
      * tab stop a name in the accessibility tree.
      */
     table: ({ children, ...props }) => (
-      <div
+      <section
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: the tab stop is the point — a keyboard-only reader can't scroll the overflow container without it, and the aria-label names it (WAI scrollable-region pattern)
         tabIndex={0}
-        role="region"
         aria-label="Table"
         className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <table {...props}>{children}</table>
-      </div>
+      </section>
     ),
     a: ({ href, children }) => {
       if (typeof href !== "string") {

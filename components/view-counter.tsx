@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import NumberFlow from "@number-flow/react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -88,7 +88,7 @@ export function ViewCounter({
   }, [shouldIncrement, slug]);
 
   if (hasError) {
-    return <p className="text-sm text-muted-foreground">- views</p>;
+    return <p className="text-muted-foreground text-sm">- views</p>;
   }
 
   if (views === null) {
@@ -96,7 +96,7 @@ export function ViewCounter({
   }
 
   return (
-    <p className="motion-preset-fade-md flex items-center gap-1 text-sm text-muted-foreground">
+    <p className="motion-preset-fade-md flex items-center gap-1 text-muted-foreground text-sm">
       <NumberFlow value={views} /> views
     </p>
   );

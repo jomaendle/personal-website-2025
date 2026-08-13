@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import NewsletterForm from "@/components/newsletter";
+import { Footer } from "@/components/ui/footer";
 import { H1 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
 import { WritingIndex } from "@/components/writing-index";
-import NewsletterForm from "@/components/newsletter";
-import { Footer } from "@/components/ui/footer";
 
 export const dynamic = "force-static";
 
@@ -32,7 +32,7 @@ export default function WritingPage() {
               the page rather than opening a section, and as an h2 it put a
               heading above the h1 in the document outline. */}
           <header className="flex flex-col gap-5">
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+            <p className="mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]">
               Writing
             </p>
             <H1 className="max-w-[16ch]">

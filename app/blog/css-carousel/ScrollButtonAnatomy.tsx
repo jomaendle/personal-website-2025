@@ -1,7 +1,7 @@
 "use client";
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { m } from "framer-motion";
+import type React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ScrollButton = ({
   position,
@@ -17,7 +17,8 @@ const ScrollButton = ({
   style?: React.CSSProperties;
 }) => (
   <button
-    className={`absolute flex h-10 w-10 items-center justify-center rounded-full bg-neutral-700 text-xl text-white shadow ${position} ${className}`}
+    type="button"
+    className={`absolute flex h-10 w-10 items-center justify-center rounded-full bg-neutral-700 text-white text-xl shadow ${position} ${className}`}
     aria-label={ariaLabel}
     style={{ zIndex: 1, ...style }}
     tabIndex={0}
@@ -107,7 +108,8 @@ const HorizontalView = () => (
       <div className="flex items-center justify-center gap-2 overflow-x-auto px-8 py-2 sm:gap-4 sm:px-16 sm:py-4">
         {["bg-neutral-700", "bg-neutral-500", "bg-neutral-700"].map((bg, i) => (
           <div
-            key={i}
+            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative mock boxes; the list never reorders and colors repeat
+            key={`${bg}-${i}`}
             className={`h-10 w-12 flex-shrink-0 rounded-lg sm:w-16 ${bg}`}
           />
         ))}
@@ -139,7 +141,8 @@ const HorizontalView = () => (
           "bg-neutral-800",
         ].map((bg, i) => (
           <div
-            key={i}
+            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative mock boxes; the list never reorders and colors repeat
+            key={`${bg}-${i}`}
             className={`h-10 w-12 flex-shrink-0 rounded-lg sm:w-16 ${bg}`}
           />
         ))}
@@ -161,13 +164,13 @@ const HorizontalView = () => (
     </div>
 
     {/* Labels */}
-    <span className="absolute left-2 top-2 text-xs text-white/80 md:left-6 md:top-4">
+    <span className="absolute top-2 left-2 text-white/80 text-xs md:top-4 md:left-6">
       ::scroll-button(inline-start)
     </span>
-    <span className="absolute right-2 top-2 text-xs text-white/80 md:right-6 md:top-4">
+    <span className="absolute top-2 right-2 text-white/80 text-xs md:top-4 md:right-6">
       ::scroll-button(inline-end)
     </span>
-    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-1 text-xs text-white/80">
+    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-1 text-white/80 text-xs">
       ::scroll-marker-group
     </span>
   </m.div>
@@ -186,7 +189,7 @@ const VerticalView = () => (
       icon="↑"
       ariaLabel="Scroll Up"
     />
-    <span className="absolute left-1/2 top-14 -translate-x-1/2 text-xs text-white/80">
+    <span className="absolute top-14 left-1/2 -translate-x-1/2 text-white/80 text-xs">
       ::scroll-button(block-start)
     </span>
     {/* Scrollable Area */}
@@ -198,7 +201,11 @@ const VerticalView = () => (
         "bg-neutral-700",
         "bg-neutral-800",
       ].map((bg, i) => (
-        <div key={i} className={`h-10 w-24 rounded-lg sm:w-32 ${bg}`} />
+        <div
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative mock boxes; the list never reorders and colors repeat
+          key={`${bg}-${i}`}
+          className={`h-10 w-24 rounded-lg sm:w-32 ${bg}`}
+        />
       ))}
     </div>
     {/* Scroll Markers (vertical) */}
@@ -218,7 +225,7 @@ const VerticalView = () => (
       icon="↓"
       ariaLabel="Scroll Down"
     />
-    <span className="absolute bottom-14 left-1/2 -translate-x-1/2 text-xs text-white/80">
+    <span className="absolute bottom-14 left-1/2 -translate-x-1/2 text-white/80 text-xs">
       ::scroll-button(block-end)
     </span>
   </m.div>

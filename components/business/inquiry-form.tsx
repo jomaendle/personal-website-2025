@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 import { Loader2 } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { H3 } from "@/components/ui/heading";
-import { cn } from "@/lib/utils";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
+import { cn } from "@/lib/utils";
 
 /**
  * InquiryForm — Editorial design layer.
@@ -48,7 +50,7 @@ const labelBase =
 
 function OptionalTag({ children }: { children: string }) {
   return (
-    <span className="text-[0.7rem] normal-case tracking-normal text-muted-foreground">
+    <span className="text-[0.7rem] text-muted-foreground normal-case tracking-normal">
       ({children})
     </span>
   );
@@ -58,7 +60,7 @@ function OptionalTag({ children }: { children: string }) {
 function FieldError({ id, children }: { id: string; children?: string }) {
   if (!children) return null;
   return (
-    <p id={id} className="mt-1.5 text-sm text-destructive">
+    <p id={id} className="mt-1.5 text-destructive text-sm">
       {children}
     </p>
   );
@@ -102,8 +104,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
   const validate = (): FieldErrors => {
     const errors: FieldErrors = {};
     if (values.name.trim().length < 2) errors.name = t.errors.name;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()))
-      errors.email = t.errors.email;
+    if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = t.errors.email;
     if (values.message.trim().length < 10) errors.message = t.errors.message;
     return errors;
   };
@@ -166,7 +167,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         aria-live="polite"
         className={cn(
           status === "success" &&
-            "mb-5 rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground",
+            "mb-5 rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-foreground text-sm",
         )}
       >
         {status === "success" ? t.success : ""}
@@ -176,7 +177,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         role="alert"
         className={cn(
           status === "error" &&
-            "mb-5 rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground",
+            "mb-5 rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-foreground text-sm",
         )}
       >
         {status === "error" ? errorMessage || t.genericError : ""}
@@ -351,7 +352,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
 
         {/* Art. 13 DSGVO notice at the point of collection — the form takes
             personal data before the visitor has any reason to visit the footer. */}
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-muted-foreground text-xs leading-relaxed">
           {t.privacyNote}{" "}
           <a
             href="/datenschutz"
@@ -369,7 +370,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
           // its content. `sm:self-start` is the part that does the work — this
           // is a `flex flex-col`, whose default `align-items: stretch` would
           // otherwise override `sm:w-auto` on the cross axis.
-          className="inline-flex h-11 w-full items-center justify-center gap-2 self-stretch rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:self-start"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 self-stretch rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:self-start"
         >
           {isLoading && <Loader2 className="size-4 animate-spin" />}
           {isLoading ? t.submitting : t.submit}

@@ -1,8 +1,8 @@
 "use client";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { CounterCraft } from "@/components/crafts/counter";
-import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 import { AnimatePresence, m } from "framer-motion";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { CraftsContainer } from "@/components/crafts/CraftsContainer";
+import { CounterCraft } from "@/components/crafts/counter";
 import { LoadingGradient } from "@/components/ui/loading-gradient";
 
 // Lazy load heavy components
@@ -67,10 +67,10 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
     // Use Intersection Observer to only load video when visible
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setShouldLoad(true);
-            if (prefersReducedMotion) return;
+            if (prefersReducedMotion) continue;
             // Play video when visible
             video.play().catch(() => {
               // Autoplay may be blocked, that's okay
@@ -79,7 +79,7 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
             // Pause video when not visible to save resources
             video.pause();
           }
-        });
+        }
       },
       {
         rootMargin: "50px", // Start loading slightly before visible
@@ -107,7 +107,7 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
       aria-label={craft.title}
       preload="metadata" // Only load metadata initially
     >
-      {shouldLoad && <source src={craft.src} type="video/mp4" />}
+      {shouldLoad ? <source src={craft.src} type="video/mp4" /> : null}
     </video>
   );
 }
@@ -125,13 +125,13 @@ export function CraftsOverview() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setIsVisible(true);
             // Once visible, we can disconnect as we don't need to re-render
             observer.disconnect();
           }
-        });
+        }
       },
       {
         rootMargin: "100px", // Start loading before visible
@@ -234,28 +234,29 @@ export function CraftsOverview() {
 
         {/* Videos - lazy loaded with Intersection Observer */}
         <AnimatePresence>
-          {isVisible &&
-            crafts.map((craft, index) => (
-              <m.div
-                key={craft.src}
-                className="w-full md:col-span-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  duration: 0.4,
-                  ease: "easeOut",
-                  delay: index * 0.1,
-                }}
-              >
-                <CraftsContainer
-                  style={{ backgroundColor: craft.bgColor }}
-                  className="overflow-hidden"
+          {isVisible
+            ? crafts.map((craft, index) => (
+                <m.div
+                  key={craft.src}
+                  className="w-full md:col-span-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeOut",
+                    delay: index * 0.1,
+                  }}
                 >
-                  <LazyVideo craft={craft} />
-                </CraftsContainer>
-              </m.div>
-            ))}
+                  <CraftsContainer
+                    style={{ backgroundColor: craft.bgColor }}
+                    className="overflow-hidden"
+                  >
+                    <LazyVideo craft={craft} />
+                  </CraftsContainer>
+                </m.div>
+              ))
+            : null}
         </AnimatePresence>
       </div>
     </div>

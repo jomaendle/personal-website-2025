@@ -8,7 +8,11 @@
  */
 
 export type WritingCategory =
-  "AI · SDLC" | "CSS" | "Build" | "Platform" | "Notes";
+  | "AI · SDLC"
+  | "CSS"
+  | "Build"
+  | "Platform"
+  | "Notes";
 
 const WRITING_CATEGORY: Record<string, WritingCategory> = {
   "claude-code-essentials-foundations": "AI · SDLC",

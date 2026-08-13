@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { BlogH1, H2 } from "@/components/ui/heading";
 import { Footer } from "@/components/ui/footer";
+import { BlogH1, H2 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
 
 export const dynamic = "force-static";
@@ -31,11 +31,11 @@ export default function ImpressumPage() {
           className="flex flex-col gap-10"
         >
           <section>
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+            <p className="mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]">
               Rechtliches
             </p>
             <BlogH1>Impressum</BlogH1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Angaben gemäß § 5 DDG
             </p>
           </section>

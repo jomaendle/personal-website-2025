@@ -1,7 +1,7 @@
-import { BLOG_POSTS } from "@/lib/state/blog";
-import { H2, H3 } from "@/components/ui/heading";
-import { categoryFor } from "@/lib/state/writing-categories";
 import { Link } from "next-view-transitions";
+import { H2, H3 } from "@/components/ui/heading";
+import { BLOG_POSTS } from "@/lib/state/blog";
+import { categoryFor } from "@/lib/state/writing-categories";
 
 /**
  * ReadMoreArticles — Editorial design layer.
@@ -25,14 +25,14 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
           <li key={article.slug}>
             <Link
               href={`/blog/${article.slug}`}
-              className="ledger-row group flex items-center gap-4 border-b border-border px-3 py-4"
+              className="ledger-row group flex items-center gap-4 border-border border-b px-3 py-4"
             >
-              <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
+              <span className="hidden w-[96px] shrink-0 font-mono text-brand text-xs uppercase tracking-[0.05em] sm:block">
                 {categoryFor(article.slug)}
               </span>
               <div className="flex-1">
                 <H3 className="line-clamp-2">{article.title}</H3>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                <p className="mt-1 font-mono text-muted-foreground text-xs">
                   {article.date}
                 </p>
               </div>

@@ -1,7 +1,7 @@
 import { Link } from "next-view-transitions";
-import { cn } from "@/lib/utils";
-import { SITE } from "@/lib/config/site";
 import { LEGAL_LINKS } from "@/lib/config/navigation";
+import { SITE } from "@/lib/config/site";
+import { cn } from "@/lib/utils";
 
 /**
  * Footer — Editorial design layer.
@@ -39,11 +39,11 @@ export const Footer = ({ className }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <footer
       className={cn(
-        "flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border pt-8 text-xs text-muted-foreground",
+        "flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-border border-t pt-8 text-muted-foreground text-xs",
         className,
       )}
     >
-      <span className="font-serif text-lg text-foreground">{SITE.name}</span>
+      <span className="font-serif text-foreground text-lg">{SITE.name}</span>
       <div className="-my-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono uppercase tracking-[0.06em]">
         <span>© {YEAR}</span>
         {LEGAL_LINKS.map((link) => (

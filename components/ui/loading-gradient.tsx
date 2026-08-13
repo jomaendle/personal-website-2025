@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -73,29 +73,34 @@ const registerCSSProperty = () => {
   }
 };
 
-const LoadingGradient = React.forwardRef<HTMLSpanElement, LoadingGradientProps>(
-  ({ className, children, ...props }, ref) => {
-    const initRef = useRef(false);
+const LoadingGradient = ({
+  className,
+  children,
+  ref,
+  ...props
+}: LoadingGradientProps & {
+  ref?: React.RefObject<HTMLSpanElement | null>;
+}) => {
+  const initRef = useRef(false);
 
-    useEffect(() => {
-      if (!initRef.current) {
-        injectShimmerStyles();
-        registerCSSProperty();
-        initRef.current = true;
-      }
-    }, []);
+  useEffect(() => {
+    if (!initRef.current) {
+      injectShimmerStyles();
+      registerCSSProperty();
+      initRef.current = true;
+    }
+  }, []);
 
-    return (
-      <span
-        ref={ref}
-        className={cn("shimmer-text inline-block", className)}
-        {...props}
-      >
-        {children}
-      </span>
-    );
-  },
-);
+  return (
+    <span
+      ref={ref}
+      className={cn("shimmer-text inline-block", className)}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+};
 LoadingGradient.displayName = "LoadingGradient";
 
 export { LoadingGradient };

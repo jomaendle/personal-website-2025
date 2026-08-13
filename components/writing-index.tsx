@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Link } from "next-view-transitions";
 import { m } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Link } from "next-view-transitions";
+import { useMemo, useState } from "react";
 import { H3 } from "@/components/ui/heading";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import {
-  WRITING_FILTERS,
   categoryFor,
+  WRITING_FILTERS,
   type WritingCategory,
 } from "@/lib/state/writing-categories";
+import { cn } from "@/lib/utils";
 
 /**
  * WritingIndex — Editorial design layer.
@@ -50,7 +50,7 @@ export function WritingIndex() {
               className={cn(
                 // The pill stays 34px tall; `after` pads the pointer target out
                 // to 44px (WCAG 2.5.8) without changing the chip's weight.
-                "relative rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors after:absolute after:-inset-y-[5px] after:inset-x-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "relative rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors after:absolute after:inset-x-0 after:-inset-y-[5px] after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 active
                   ? "border-foreground bg-foreground text-background"
                   : "border-border text-muted-foreground hover:border-foreground hover:text-foreground",
@@ -78,9 +78,9 @@ export function WritingIndex() {
             <MotionLink
               href={`/blog/${post.slug}`}
               prefetch={false}
-              className="ledger-row group flex flex-col gap-1 border-b border-border px-3 py-5 sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
+              className="ledger-row group flex flex-col gap-1 border-border border-b px-3 py-5 sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
             >
-              <span className="font-mono text-xs uppercase tracking-[0.05em] text-brand">
+              <span className="font-mono text-brand text-xs uppercase tracking-[0.05em]">
                 {post.category}
               </span>
               {/* A heading, not a span: /blog renders this list rather than
@@ -96,7 +96,7 @@ export function WritingIndex() {
               >
                 {post.title}
               </H3>
-              <span className="font-mono text-xs text-muted-foreground transition-colors sm:justify-self-end">
+              <span className="font-mono text-muted-foreground text-xs transition-colors sm:justify-self-end">
                 {post.date}
               </span>
             </MotionLink>

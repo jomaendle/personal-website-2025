@@ -24,7 +24,7 @@ const BlogH1 = ({
     <h1
       {...props}
       className={cn(
-        "mb-8 text-balance font-serif text-[clamp(2rem,5vw,3.25rem)] font-normal leading-[1.04] tracking-[-0.015em]",
+        "mb-8 text-balance font-normal font-serif text-[clamp(2rem,5vw,3.25rem)] leading-[1.04] tracking-[-0.015em]",
         props.className,
       )}
     >
@@ -43,7 +43,7 @@ const H1 = ({
     <h1
       {...props}
       className={cn(
-        "mb-1 font-serif text-[clamp(1.9rem,4vw,2.75rem)] font-normal leading-[1.02] tracking-[-0.015em]",
+        "mb-1 font-normal font-serif text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] tracking-[-0.015em]",
         props.className,
       )}
     >
@@ -62,7 +62,7 @@ const H2 = ({
     <h2
       {...props}
       className={cn(
-        "mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand",
+        "mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]",
         props.className,
       )}
     >
@@ -96,7 +96,7 @@ const H3 = ({
     <Tag
       {...props}
       className={cn(
-        "font-serif text-[1.35rem] font-normal leading-[1.15] tracking-[-0.01em] text-foreground",
+        "font-normal font-serif text-[1.35rem] text-foreground leading-[1.15] tracking-[-0.01em]",
         interactive && "transition-colors group-hover:text-brand",
         props.className,
       )}
@@ -106,4 +106,4 @@ const H3 = ({
   );
 };
 
-export { H1, H2, H3, BlogH1 };
+export { BlogH1, H1, H2, H3 };

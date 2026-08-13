@@ -1,9 +1,9 @@
 "use client";
 
+import { m } from "framer-motion";
+import { ExternalLinkIcon } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
-import { ExternalLinkIcon } from "lucide-react";
-import { m } from "framer-motion";
 import { PROJECTS } from "@/lib/state/projects";
 
 /**
@@ -34,7 +34,7 @@ export function WorkExperience() {
         >
           <MotionLink
             href={experience.link}
-            className="ledger-row group block border-b border-border px-3 py-4"
+            className="ledger-row group block border-border border-b px-3 py-4"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -42,18 +42,18 @@ export function WorkExperience() {
               <div className="min-w-0 flex-1">
                 <H3 className="flex flex-wrap items-center">
                   {experience.title}
-                  {experience.isExternal && (
-                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  )}
+                  {experience.isExternal ? (
+                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  ) : null}
                   {/* Muted, not brand: the tag is a caveat on the row, so it
                       must not compete with the title it qualifies. It sits
                       inside the H3 so the heading text carries the caveat for a
                       screen reader too, rather than stranding it in a sibling. */}
-                  {experience.status && (
-                    <span className="ml-2 inline-flex shrink-0 items-center rounded-[0.2rem] border border-border-strong px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground">
+                  {experience.status ? (
+                    <span className="ml-2 inline-flex shrink-0 items-center rounded-[0.2rem] border border-border-strong px-1.5 py-0.5 font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[0.12em]">
                       {experience.status}
                     </span>
-                  )}
+                  ) : null}
                 </H3>
                 <p className="mt-1 text-muted-foreground">
                   {experience.description}
@@ -61,7 +61,7 @@ export function WorkExperience() {
               </div>
               <span
                 aria-hidden="true"
-                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand"
+                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
               >
                 ↗
               </span>

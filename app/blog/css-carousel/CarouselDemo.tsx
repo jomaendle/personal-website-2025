@@ -1,12 +1,12 @@
-import style from "./Styles.module.css";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 import img1 from "../../../public/css-carousel/1.webp";
 import img2 from "../../../public/css-carousel/2.webp";
 import img3 from "../../../public/css-carousel/3.webp";
 import img4 from "../../../public/css-carousel/4.webp";
 import img5 from "../../../public/css-carousel/5.webp";
 import img6 from "../../../public/css-carousel/6.webp";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import style from "./Styles.module.css";
 
 export const CarouselDemo = () => {
   const renderImages = () => {
@@ -21,7 +21,7 @@ export const CarouselDemo = () => {
     ];
 
     return images.map((image, index) => (
-      <li key={index}>
+      <li key={image.src}>
         <Image
           src={image.src}
           alt={imageAlts[index] || `Carousel image ${index + 1}`}

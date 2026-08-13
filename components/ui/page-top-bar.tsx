@@ -1,7 +1,7 @@
 import { Link } from "next-view-transitions";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SITE } from "@/lib/config/site";
 import { PRIMARY_NAV } from "@/lib/config/navigation";
+import { SITE } from "@/lib/config/site";
 
 /**
  * PageTopBar — Editorial design layer.
@@ -47,7 +47,7 @@ export function PageTopBar({
         // -mx-2/-my-2 keep the optical position while the padding lifts the tap
         // target to 44px, matching the nav links and the /business language
         // switch in the same row.
-        className="-mx-2 -my-2 mr-auto inline-flex min-h-[44px] min-w-[44px] items-center px-2 py-2 font-mono text-sm tracking-[0.04em] text-muted-foreground transition-colors hover:text-brand"
+        className="-mx-2 -my-2 mr-auto inline-flex min-h-[44px] min-w-[44px] items-center px-2 py-2 font-mono text-muted-foreground text-sm tracking-[0.04em] transition-colors hover:text-brand"
       >
         <span aria-hidden="true" className="sm:mr-2">
           ←
@@ -62,7 +62,7 @@ export function PageTopBar({
           to itself. */}
       <nav
         aria-label="Primary"
-        className="flex items-center gap-5 text-sm text-muted-foreground"
+        className="flex items-center gap-5 text-muted-foreground text-sm"
       >
         {PRIMARY_NAV.filter((item) => item.href !== currentPath).map((item) => (
           <Link
