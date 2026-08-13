@@ -83,13 +83,9 @@ export default function RootLayout({
             type="font/woff2"
             crossOrigin="anonymous"
           />
-          <link
-            rel="preload"
-            href="/fonts/NewsreaderVF.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
+          {/* Newsreader is deliberately NOT preloaded: at 132KB it starved the
+              (much smaller, LCP-critical) Geist fetch on slow connections, and
+              its metric-matched Georgia fallback makes the late swap shift-free. */}
         </head>
         {/* `font-sans` resolves to the Geist stack via --font-sans (globals.css
             @theme). The inline fontFamily this class used to need — from when
