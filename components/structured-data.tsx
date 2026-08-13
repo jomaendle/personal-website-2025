@@ -2,9 +2,11 @@ import Script from "next/script";
 import { SITE } from "@/lib/config/site";
 import {
   AI_IMPACT_COPY,
-  PRICE_EUR,
   type Lang,
+  PRICE_EUR,
 } from "@/lib/state/ai-impact-copy";
+
+const WHITESPACE = /\s+/;
 
 interface PersonStructuredData {
   "@context": "https://schema.org";
@@ -92,6 +94,7 @@ export function PersonStructuredData() {
     <Script
       id="person-structured-data"
       type="application/ld+json"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(structuredData),
       }}
@@ -142,7 +145,7 @@ export function BlogPostStructuredData({
     url,
     image,
     articleBody: content,
-    wordCount: content ? content.split(/\s+/).length : undefined,
+    wordCount: content ? content.split(WHITESPACE).length : undefined,
     timeRequired: readTime ? `PT${readTime}` : undefined,
     publisher: {
       "@type": "Person",
@@ -155,6 +158,7 @@ export function BlogPostStructuredData({
     <Script
       id="blog-post-structured-data"
       type="application/ld+json"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(structuredData),
       }}
@@ -412,6 +416,7 @@ export function WebsiteStructuredData() {
     <Script
       id="website-structured-data"
       type="application/ld+json"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(structuredData),
       }}

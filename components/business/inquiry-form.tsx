@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { H3 } from "@/components/ui/heading";
-import { cn } from "@/lib/utils";
+import { isValidEmail } from "@/lib/email-validation";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
+import { cn } from "@/lib/utils";
 
 /**
  * InquiryForm — Editorial design layer.
@@ -34,7 +35,7 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 // A bare `py-2` left selects at 38px, since a select's intrinsic height comes
 // from the UA stylesheet rather than from the line-height inputs honour.
 const fieldBase =
-  "w-full min-h-[44px] rounded-[0.25rem] border border-border-strong bg-transparent px-3 py-2 text-base leading-6 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full min-h-[44px] rounded-lg border border-border-strong bg-transparent px-3 py-2 text-base leading-6 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
 
 // Invalid keeps the destructive border but NOT a destructive ring. Tinting both
 // made a focused invalid field read as a 2px destructive border and nothing
@@ -48,7 +49,7 @@ const labelBase =
 
 function OptionalTag({ children }: { children: string }) {
   return (
-    <span className="text-[0.7rem] normal-case tracking-normal text-muted-foreground">
+    <span className="text-[0.7rem] text-muted-foreground normal-case tracking-normal">
       ({children})
     </span>
   );
@@ -58,7 +59,7 @@ function OptionalTag({ children }: { children: string }) {
 function FieldError({ id, children }: { id: string; children?: string }) {
   if (!children) return null;
   return (
-    <p id={id} className="mt-1.5 text-sm text-destructive">
+    <p id={id} className="mt-1.5 text-destructive text-sm">
       {children}
     </p>
   );
@@ -102,8 +103,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
   const validate = (): FieldErrors => {
     const errors: FieldErrors = {};
     if (values.name.trim().length < 2) errors.name = t.errors.name;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()))
-      errors.email = t.errors.email;
+    if (!isValidEmail(values.email.trim())) errors.email = t.errors.email;
     if (values.message.trim().length < 10) errors.message = t.errors.message;
     return errors;
   };
@@ -166,7 +166,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         aria-live="polite"
         className={cn(
           status === "success" &&
-            "mb-5 rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-sm text-foreground",
+            "mb-5 rounded-lg border border-brand/40 bg-brand/5 px-4 py-3 text-foreground text-sm",
         )}
       >
         {status === "success" ? t.success : ""}
@@ -176,7 +176,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         role="alert"
         className={cn(
           status === "error" &&
-            "mb-5 rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-foreground",
+            "mb-5 rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-foreground text-sm",
         )}
       >
         {status === "error" ? errorMessage || t.genericError : ""}
@@ -351,7 +351,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
 
         {/* Art. 13 DSGVO notice at the point of collection — the form takes
             personal data before the visitor has any reason to visit the footer. */}
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-muted-foreground text-xs leading-relaxed">
           {t.privacyNote}{" "}
           <a
             href="/datenschutz"
@@ -369,7 +369,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
           // its content. `sm:self-start` is the part that does the work — this
           // is a `flex flex-col`, whose default `align-items: stretch` would
           // otherwise override `sm:w-auto` on the cross axis.
-          className="inline-flex h-11 w-full items-center justify-center gap-2 self-stretch rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:self-start"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 self-stretch rounded-lg bg-foreground px-8 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:self-start"
         >
           {isLoading && <Loader2 className="size-4 animate-spin" />}
           {isLoading ? t.submitting : t.submit}

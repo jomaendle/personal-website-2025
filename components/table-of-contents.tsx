@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, m } from "framer-motion";
 import { Link } from "next-view-transitions";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useDomHeadings } from "@/lib/hooks";
 
 export function MobileTableOfContents() {
@@ -15,7 +15,7 @@ export function MobileTableOfContents() {
   };
 
   return (
-    <div className="relative z-10 mb-6 motion-opacity-in xl:hidden">
+    <div className="motion-opacity-in relative z-10 mb-6 xl:hidden">
       {tocItems.length > 0 && (
         <>
           <Button
@@ -24,17 +24,17 @@ export function MobileTableOfContents() {
             className="w-full justify-between"
           >
             On This Page
-            <motion.span
+            <m.span
               animate={{ rotate: isOpen ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
               ↓
-            </motion.span>
+            </m.span>
           </Button>
 
           <AnimatePresence>
-            {isOpen && (
-              <motion.div
+            {isOpen ? (
+              <m.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -56,8 +56,8 @@ export function MobileTableOfContents() {
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            )}
+              </m.div>
+            ) : null}
           </AnimatePresence>
         </>
       )}

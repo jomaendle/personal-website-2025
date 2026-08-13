@@ -32,7 +32,7 @@ function extractHeadingsFromDOM(): TocItem[] {
   headings.forEach((heading, index) => {
     const title = heading.textContent || "";
     const id = heading.id || generateSlug(title) || `heading-${index}`;
-    const level = parseInt(heading.tagName.charAt(1));
+    const level = parseInt(heading.tagName.charAt(1), 10);
 
     // Ensure heading has the ID
     if (!heading.id) {
@@ -51,7 +51,7 @@ function headingsEqual(a: TocItem[], b: TocItem[]): boolean {
   for (let i = 0; i < a.length; i++) {
     const itemA = a[i];
     const itemB = b[i];
-    if (!itemA || !itemB) return false;
+    if (!(itemA && itemB)) return false;
     if (
       itemA.id !== itemB.id ||
       itemA.title !== itemB.title ||

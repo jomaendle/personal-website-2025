@@ -1,20 +1,20 @@
-import { ViewCounter } from "@/components/view-counter";
-import SidebarNavigation from "@/components/sidebar-navigation-lazy";
-import { Footer } from "@/components/ui/footer";
-import { Link } from "next-view-transitions";
 import Image from "next/image";
+import { Link } from "next-view-transitions";
+import BackToTop from "@/components/back-to-top-lazy";
+import GiscusComments from "@/components/giscus-comments-lazy";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
+import SidebarNavigation from "@/components/sidebar-navigation-lazy";
+import { BlogPostStructuredData } from "@/components/structured-data";
 import MobileTableOfContents from "@/components/table-of-contents-lazy";
-import BackToTop from "@/components/back-to-top-lazy";
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import GiscusComments from "@/components/giscus-comments-lazy";
-import { categoryFor } from "@/lib/state/writing-categories";
+import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/ui/footer";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { ViewCounter } from "@/components/view-counter";
 import { SITE } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/state/blog";
-import { BlogPostStructuredData } from "@/components/structured-data";
+import { categoryFor } from "@/lib/state/writing-categories";
 
 /**
  * MdxLayout — Editorial design layer.
@@ -63,10 +63,10 @@ export default function MdxLayout({
         />
       )}
 
-      <div className="relative z-20 mx-auto w-full max-w-3xl px-3 py-16 sm:px-6 xl:max-w-[1072px] 3xl:max-w-[1132px]">
+      <div className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 pt-6 pb-16 sm:px-6 sm:pt-16 xl:max-w-[1072px]">
         <div className="flex justify-center gap-16">
           <aside
-            className="sticky top-[100px] hidden w-[240px] shrink-0 flex-col gap-6 self-start xl:flex 3xl:w-[300px]"
+            className="sticky top-[100px] hidden 3xl:w-[300px] w-[240px] shrink-0 flex-col gap-6 self-start xl:flex"
             style={{ maxHeight: "calc(100svh - 200px)" }}
           >
             <div className="mb-12">
@@ -83,8 +83,13 @@ export default function MdxLayout({
                 <main id="main-content">, all three inside .glass-container.
                 Nesting either one inside <main> costs it its implicit
                 banner/contentinfo role. */}
-            <header className="z-[51] flex h-24 items-center justify-center gap-12">
-              <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
+            {/* Exactly 44px tall with no vertical padding: every page's top bar
+                (home masthead nav, /blog, /about) is a 44px row at the same
+                container offset, and the toggle must sit on the same line
+                site-wide. A taller centered box here pushed the article bar
+                10-26px below the shared baseline. */}
+            <header className="z-51 flex h-11 items-center justify-center gap-12">
+              <div className="relative flex w-full max-w-3xl items-center justify-center px-6 md:px-11 lg:px-24">
                 <div className="absolute left-0 z-10 xl:hidden">
                   <BackLink />
                 </div>
@@ -106,7 +111,7 @@ export default function MdxLayout({
                 {/* Editorial meta header */}
                 <div className="mb-10 flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.05em] text-muted-foreground">
+                    <div className="flex items-center gap-3 font-mono text-muted-foreground text-xs uppercase tracking-wider">
                       <span className="text-brand">{categoryFor(slug)}</span>
                       <span aria-hidden="true">·</span>
                       <time dateTime={metadata.date}>{metadata.date}</time>
@@ -120,10 +125,10 @@ export default function MdxLayout({
                         className="size-9 rounded-full object-cover"
                       />
                       <div className="leading-tight">
-                        <div className="text-sm font-medium text-foreground">
+                        <div className="font-medium text-foreground text-sm">
                           {SITE.name}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-muted-foreground text-xs">
                           {SITE.shortRole}
                         </div>
                       </div>
@@ -142,7 +147,7 @@ export default function MdxLayout({
                       hit testing entirely. */}
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in"
+                    className="motion-opacity-in pointer-events-none absolute inset-0 z-0 h-9 rounded-md border"
                   >
                     <Button
                       variant="outline"
@@ -187,7 +192,7 @@ function BackLink() {
   return (
     <Link
       href="/blog"
-      className="group inline-flex items-center gap-2 font-mono text-sm text-foreground transition-all duration-200 hover:text-brand"
+      className="group inline-flex items-center gap-2 font-mono text-foreground text-sm transition-all duration-200 hover:text-brand"
     >
       <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
         ←

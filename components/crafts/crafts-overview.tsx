@@ -1,8 +1,8 @@
 "use client";
+import { AnimatePresence, m } from "framer-motion";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { CounterCraft } from "@/components/crafts/counter";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
-import { AnimatePresence, motion } from "framer-motion";
+import { CounterCraft } from "@/components/crafts/counter";
 import { LoadingGradient } from "@/components/ui/loading-gradient";
 
 // Lazy load heavy components
@@ -37,14 +37,14 @@ const crafts: {
 // Lightweight loading placeholder for Minimap
 function MinimapSkeleton() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       className="flex size-full flex-col items-center justify-center"
     >
       <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-white/10"></div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -67,10 +67,10 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
     // Use Intersection Observer to only load video when visible
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setShouldLoad(true);
-            if (prefersReducedMotion) return;
+            if (prefersReducedMotion) continue;
             // Play video when visible
             video.play().catch(() => {
               // Autoplay may be blocked, that's okay
@@ -79,7 +79,7 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
             // Pause video when not visible to save resources
             video.pause();
           }
-        });
+        }
       },
       {
         rootMargin: "50px", // Start loading slightly before visible
@@ -107,7 +107,7 @@ function LazyVideo({ craft }: { craft: (typeof crafts)[0] }) {
       aria-label={craft.title}
       preload="metadata" // Only load metadata initially
     >
-      {shouldLoad && <source src={craft.src} type="video/mp4" />}
+      {shouldLoad ? <source src={craft.src} type="video/mp4" /> : null}
     </video>
   );
 }
@@ -125,13 +125,13 @@ export function CraftsOverview() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setIsVisible(true);
             // Once visible, we can disconnect as we don't need to re-render
             observer.disconnect();
           }
-        });
+        }
       },
       {
         rootMargin: "100px", // Start loading before visible
@@ -163,7 +163,7 @@ export function CraftsOverview() {
           <AnimatePresence mode="wait">
             {isVisible ? (
               <Suspense fallback={<MinimapSkeleton />}>
-                <motion.div
+                <m.div
                   key="minimap-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -171,7 +171,7 @@ export function CraftsOverview() {
                   className="size-full"
                 >
                   <Minimap />
-                </motion.div>
+                </m.div>
               </Suspense>
             ) : (
               <MinimapSkeleton key="minimap-skeleton" />
@@ -184,7 +184,7 @@ export function CraftsOverview() {
           <CraftsContainer>
             <AnimatePresence mode="wait">
               {isVisible ? (
-                <motion.div
+                <m.div
                   key="loading-gradient-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -192,9 +192,9 @@ export function CraftsOverview() {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   <LoadingGradient className="text-xl">Loading</LoadingGradient>
-                </motion.div>
+                </m.div>
               ) : (
-                <motion.div
+                <m.div
                   key="loading-gradient-skeleton"
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -210,7 +210,7 @@ export function CraftsOverview() {
         <div className="w-full">
           <AnimatePresence mode="wait">
             {isVisible ? (
-              <motion.div
+              <m.div
                 key="counter-content"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -218,10 +218,10 @@ export function CraftsOverview() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <CounterCraft />
-              </motion.div>
+              </m.div>
             ) : (
               <CraftsContainer key="counter-skeleton">
-                <motion.div
+                <m.div
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
@@ -234,28 +234,29 @@ export function CraftsOverview() {
 
         {/* Videos - lazy loaded with Intersection Observer */}
         <AnimatePresence>
-          {isVisible &&
-            crafts.map((craft, index) => (
-              <motion.div
-                key={craft.src}
-                className="w-full md:col-span-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  duration: 0.4,
-                  ease: "easeOut",
-                  delay: index * 0.1,
-                }}
-              >
-                <CraftsContainer
-                  style={{ backgroundColor: craft.bgColor }}
-                  className="overflow-hidden"
+          {isVisible
+            ? crafts.map((craft, index) => (
+                <m.div
+                  key={craft.src}
+                  className="w-full md:col-span-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeOut",
+                    delay: index * 0.1,
+                  }}
                 >
-                  <LazyVideo craft={craft} />
-                </CraftsContainer>
-              </motion.div>
-            ))}
+                  <CraftsContainer
+                    style={{ backgroundColor: craft.bgColor }}
+                    className="overflow-hidden"
+                  >
+                    <LazyVideo craft={craft} />
+                  </CraftsContainer>
+                </m.div>
+              ))
+            : null}
         </AnimatePresence>
       </div>
     </div>

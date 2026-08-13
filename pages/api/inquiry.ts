@@ -1,10 +1,10 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import resend from "@/lib/resend";
-import { withRateLimit } from "@/lib/rate-limit";
-import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { composeMiddleware, withCsrfProtection } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
 import { sanitizeInput, sanitizeSubjectInput } from "@/lib/input-sanitization";
+import { withRateLimit } from "@/lib/rate-limit";
+import resend from "@/lib/resend";
 import {
   BUSINESS_COPY,
   ENGAGEMENT_TYPES,
@@ -61,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { name, email, message, company, engagementType, timeline, lang } =
     req.body ?? {};
 
-  if (!name || !email || !message) {
+  if (!(name && email && message)) {
     return res.status(400).json({
       error: "Missing required fields",
       details: "Please fill in your name, email, and message",

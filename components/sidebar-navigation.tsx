@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useAtom } from "jotai";
-import { Link } from "next-view-transitions";
-import { BLOG_POSTS } from "@/lib/state/blog";
-import {
-  sidebarMorePostsOpenAtom,
-  sidebarOnThisPageOpenAtom,
-  tocAutoExpandEnabledAtom,
-} from "@/lib/state/sidebar";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useDomHeadings, useIsMounted } from "@/lib/hooks";
+import { Link } from "next-view-transitions";
+import { useEffect, useMemo, useState } from "react";
+import {
+  useDomHeadings,
+  useIsMounted,
+  useLocalStorageState,
+} from "@/lib/hooks";
+import { BLOG_POSTS } from "@/lib/state/blog";
 
 interface SidebarNavigationProps {
   currentSlug: string;
@@ -21,14 +19,17 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const tocItems = useDomHeadings();
   const isMounted = useIsMounted();
   const [activeId, setActiveId] = useState<string>("");
-  const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(
-    sidebarMorePostsOpenAtom,
+  const [isMorePostsOpen, setIsMorePostsOpen] = useLocalStorageState(
+    "sidebar-more-posts-open",
+    true, // Default: More Posts section is open
   );
-  const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(
-    sidebarOnThisPageOpenAtom,
+  const [isOnThisPageOpen, setIsOnThisPageOpen] = useLocalStorageState(
+    "sidebar-on-this-page-open",
+    false, // Default: On This Page section is closed
   );
-  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(
-    tocAutoExpandEnabledAtom,
+  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useLocalStorageState(
+    "sidebar-toc-auto-expand",
+    true, // Default: allow auto-expansion for new visitors
   );
 
   const currentBlogPosts = useMemo(() => {
@@ -49,9 +50,11 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     setTocAutoExpandEnabled,
   ]);
 
-  // Intersection Observer for active heading tracking
+  // Intersection Observer for active heading tracking. Re-runs when the
+  // scanned headings change — they appear async, after the article hydrates —
+  // so the guard on tocItems is also what makes the dependency real.
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || tocItems.length === 0) return;
 
     const headings = document.querySelectorAll(".prose h2, .prose h3");
     const observerOptions = {
@@ -60,14 +63,16 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
           setActiveId(entry.target.id);
         }
-      });
+      }
     }, observerOptions);
 
-    headings.forEach((heading) => observer.observe(heading));
+    for (const heading of headings) {
+      observer.observe(heading);
+    }
 
     return () => observer.disconnect();
   }, [isMounted, tocItems]);
@@ -85,7 +90,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   }
 
   return (
-    <motion.aside
+    <m.aside
       className="glass-container motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-y-auto px-2 py-4 text-sm"
       style={{
         scrollbarGutter: "stable",
@@ -104,7 +109,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
             aria-expanded={isOnThisPageOpen}
             aria-controls="sidebar-toc-panel"
             onClick={() => handleTocToggle(!isOnThisPageOpen)}
-            className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground"
+            className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 font-medium text-foreground text-sm transition-colors hover:bg-white/10 hover:text-accent-foreground"
           >
             On This Page
             <ChevronDown
@@ -115,8 +120,8 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
           </button>
           <div id="sidebar-toc-panel">
             <AnimatePresence>
-              {isOnThisPageOpen && (
-                <motion.div
+              {isOnThisPageOpen ? (
+                <m.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -126,7 +131,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                   <div className="space-y-2 pt-2">
                     <div className="flex flex-col space-y-1">
                       {tocItems.map((item, index) => (
-                        <motion.div
+                        <m.div
                           key={item.id}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -144,18 +149,18 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                                 : ""
                             } ${
                               activeId === item.id
-                                ? "border-l-2 border-primary bg-accent/50 font-medium text-primary"
+                                ? "border-primary border-l-2 bg-accent/50 font-medium text-primary"
                                 : "text-muted-foreground"
                             }`}
                           >
                             {item.title}
                           </Link>
-                        </motion.div>
+                        </m.div>
                       ))}
                     </div>
                   </div>
-                </motion.div>
-              )}
+                </m.div>
+              ) : null}
             </AnimatePresence>
           </div>
         </div>
@@ -168,7 +173,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
           aria-expanded={isMorePostsOpen}
           aria-controls="sidebar-more-posts-panel"
           onClick={() => setIsMorePostsOpen(!isMorePostsOpen)}
-          className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/10 hover:text-accent-foreground"
+          className="sticky -top-4 flex w-full items-center justify-between rounded-md px-2 py-3 font-medium text-foreground text-sm transition-colors hover:bg-white/10 hover:text-accent-foreground"
         >
           More Posts
           <ChevronDown
@@ -179,8 +184,8 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
         </button>
         <div id="sidebar-more-posts-panel">
           <AnimatePresence>
-            {isMorePostsOpen && (
-              <motion.div
+            {isMorePostsOpen ? (
+              <m.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -190,8 +195,8 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                 <div className="space-y-2 pt-2">
                   <div className="flex flex-col gap-3">
                     {currentBlogPosts.map((post, index) => (
-                      <motion.article
-                        key={index}
+                      <m.article
+                        key={post.slug}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{
@@ -200,7 +205,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                         }}
                       >
                         <Link
-                          href={"/blog/" + post.slug}
+                          href={`/blog/${post.slug}`}
                           className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
                           prefetch={false}
                         >
@@ -208,24 +213,24 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                             links, and the sidebar precedes the article in the
                             DOM — as headings they put eight h3s ahead of the
                             article's own h1 in the outline. */}
-                          <span className="line-clamp-2 block whitespace-pre-wrap font-serif text-sm font-medium leading-[1.15] tracking-[-0.01em] text-foreground transition-colors duration-200 group-hover:text-brand">
+                          <span className="line-clamp-2 block whitespace-pre-wrap font-medium font-serif text-foreground text-sm leading-[1.15] tracking-[-0.01em] transition-colors duration-200 group-hover:text-brand">
                             {post.title}
                           </span>
                           <div className="mt-1 flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
+                            <p className="text-muted-foreground text-xs transition-colors duration-200 group-hover:text-muted-foreground/80">
                               {post.date}
                             </p>
                           </div>
                         </Link>
-                      </motion.article>
+                      </m.article>
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            )}
+              </m.div>
+            ) : null}
           </AnimatePresence>
         </div>
       </div>
-    </motion.aside>
+    </m.aside>
   );
 }

@@ -15,10 +15,11 @@ export default function UltrathinkTerminal() {
   ];
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-1 py-0.5 font-mono text-sm shadow-sm">
+    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-1 py-0.5 font-mono text-sm shadow-xs">
       <span className="flex items-center tracking-wide">
         {characters.map((item, index) => (
-          <span key={index} className={item.className}>
+          // biome-ignore lint/suspicious/noArrayIndexKey: static wordmark; letters repeat and never reorder
+          <span key={`${item.char}-${index}`} className={item.className}>
             {item.char}
           </span>
         ))}

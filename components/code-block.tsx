@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useEffect, useId, useState } from "react";
+import { AnimatePresence, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import type React from "react";
+import { useEffect, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 /**
- * `react-syntax-highlighter`'s Prism build carries every bundled grammar, which
- * is ~620kB raw. Imported at module scope it landed in the eager chunk and made
- * the heaviest article route roughly twice the size of every other page. Loading
- * it through `next/dynamic` moves it into its own chunk fetched when a code
- * block actually renders. `ssr: false` costs nothing here: the component already
- * returns a placeholder until the theme resolves client-side.
+ * PrismLight with hand-registered grammars (see syntax-highlighter.tsx) instead
+ * of the full Prism build, which carries every bundled grammar (~1.5MB raw) and
+ * used to be fetched in full on any article with a code block. `next/dynamic`
+ * keeps it in its own chunk fetched when a code block actually renders.
+ * `ssr: false` costs nothing here: the component already returns a placeholder
+ * until the theme resolves client-side.
  */
 const SyntaxHighlighter = dynamic(
-  () => import("react-syntax-highlighter").then((m) => m.Prism),
+  () => import("@/components/syntax-highlighter"),
   { ssr: false },
 );
 
@@ -41,16 +42,19 @@ export function CodeBlock({
   > | null>(null);
   const { resolvedTheme } = useTheme();
 
-  // Lazy load syntax highlighter themes based on current theme
+  // Lazy load syntax highlighter themes based on current theme. Import the
+  // concrete theme modules — the styles/prism barrel bundles all ~50 themes.
   useEffect(() => {
     const loadTheme = async () => {
       if (resolvedTheme === "light") {
-        const { oneLight } =
-          await import("react-syntax-highlighter/dist/esm/styles/prism");
+        const { default: oneLight } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism/one-light"
+        );
         setSyntaxTheme(oneLight);
       } else {
-        const { oneDark } =
-          await import("react-syntax-highlighter/dist/esm/styles/prism");
+        const { default: oneDark } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism/one-dark"
+        );
         setSyntaxTheme(oneDark);
       }
     };
@@ -104,8 +108,8 @@ export function CodeBlock({
   );
 
   const content = (
-    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-muted/30 shadow-sm dark:bg-muted/20">
-      <div className="absolute right-12 top-3 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm transition-opacity hover:opacity-0">
+    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-muted/30 shadow-xs dark:bg-muted/20">
+      <div className="absolute top-3 right-12 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-muted-foreground text-xs backdrop-blur-xs transition-opacity hover:opacity-0">
         {language}
       </div>
 
@@ -113,12 +117,12 @@ export function CodeBlock({
         variant="ghost"
         size="sm"
         onClick={copyToClipboard}
-        className="absolute right-2 top-2 z-20 h-8 w-8 p-0 opacity-100 transition-opacity duration-200 hover:bg-accent md:opacity-0 md:group-hover:opacity-100"
+        className="absolute top-2 right-2 z-20 h-8 w-8 p-0 opacity-100 transition-opacity duration-200 hover:bg-accent md:opacity-0 md:group-hover:opacity-100"
         aria-label="Copy code"
       >
         <AnimatePresence mode="wait">
           {copied ? (
-            <motion.svg
+            <m.svg
               key="check"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -134,9 +138,9 @@ export function CodeBlock({
                 strokeWidth={2}
                 d="M5 13l4 4L19 7"
               />
-            </motion.svg>
+            </m.svg>
           ) : (
-            <motion.svg
+            <m.svg
               key="copy"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -152,7 +156,7 @@ export function CodeBlock({
                 strokeWidth={2}
                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
               />
-            </motion.svg>
+            </m.svg>
           )}
         </AnimatePresence>
       </Button>
@@ -166,23 +170,23 @@ export function CodeBlock({
         {codeContent}
 
         {collapsible && !isOpen && (
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-muted/30 to-transparent dark:from-muted/20" />
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-16 bg-linear-to-t from-muted/30 to-transparent dark:from-muted/20" />
         )}
       </div>
 
       {/* A plain button rather than a Radix CollapsibleTrigger: the collapse is
           a max-height transition on the panel above, not a `CollapsibleContent`,
           so Radix pointed `aria-controls` at an ID nothing ever rendered. */}
-      {collapsible && (
+      {collapsible ? (
         <button
           type="button"
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={() => setIsOpen(!isOpen)}
-          className="flex w-full items-center justify-center gap-2 border-t border-border/50 bg-muted/20 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
+          className="flex w-full items-center justify-center gap-2 border-border/50 border-t bg-muted/20 py-2 text-muted-foreground text-sm transition-colors hover:bg-muted/30 hover:text-foreground"
         >
           <span>{isOpen ? "Collapse" : "Expand"}</span>
-          <motion.svg
+          <m.svg
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
             className="h-4 w-4"
@@ -196,9 +200,9 @@ export function CodeBlock({
               strokeWidth={2}
               d="M19 9l-7 7-7-7"
             />
-          </motion.svg>
+          </m.svg>
         </button>
-      )}
+      ) : null}
     </div>
   );
 

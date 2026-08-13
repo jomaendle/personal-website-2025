@@ -1,9 +1,9 @@
-import resend from "@/lib/resend";
-import { NextApiRequest, NextApiResponse } from "next";
-import { withRateLimit } from "@/lib/rate-limit";
-import { verifyUnsubscribeToken } from "@/lib/unsubscribe-token";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { isValidEmail, sanitizeEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
+import { withRateLimit } from "@/lib/rate-limit";
+import resend from "@/lib/resend";
+import { verifyUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 /**
  * Renders a styled HTML page for unsubscribe responses.
@@ -61,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Prefer token-based authentication (more secure)
     if (token && typeof token === "string") {
       const result = verifyUnsubscribeToken(token);
-      if (!result.valid || !result.email) {
+      if (!(result.valid && result.email)) {
         return res.status(400).send(
           renderHtmlPage(
             "Invalid or Expired Link",

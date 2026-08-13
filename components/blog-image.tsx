@@ -45,6 +45,7 @@ export function BlogVideo({
 }) {
   return (
     <figure className={cn("flex flex-col", className)}>
+      {/* biome-ignore lint/a11y/useMediaCaption: these are silent screen recordings — there is no audio to caption, and the figcaption + aria-label describe the content */}
       <video
         controls
         loop={true}

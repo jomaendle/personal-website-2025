@@ -1,11 +1,10 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
-import { JSX, useState } from "react";
+import { AnimatePresence, m } from "framer-motion";
 import { Loader2 } from "lucide-react";
-
-import styles from "./Styles.module.css";
-import { Slider } from "@/components/ui/slider";
+import { type JSX, useState } from "react";
 import { ComponentPreview } from "@/components/component-preview";
+import { Slider } from "@/components/ui/slider";
+import styles from "./Styles.module.css";
 
 type ButtonState = "idle" | "loading" | "success";
 
@@ -46,9 +45,13 @@ export function AnimatedSignUpButton() {
     <div className={styles.animatedSignUpButton}>
       <ComponentPreview>
         <div className="animated-sign-up-button">
-          <button className={styles.button} onClick={handleSubmit}>
+          <button
+            type="button"
+            className={styles.button}
+            onClick={handleSubmit}
+          >
             <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span
+              <m.span
                 className={styles.span}
                 key={buttonState}
                 transition={{
@@ -70,17 +73,18 @@ export function AnimatedSignUpButton() {
                 }}
               >
                 {buttonStates[buttonState]}
-              </motion.span>
+              </m.span>
             </AnimatePresence>
           </button>
         </div>
       </ComponentPreview>
 
       <div className="flex flex-col gap-8 md:flex-row">
-        <label className="min-w-[200px]">
+        <div className="min-w-[200px]">
           Duration
           <div className="flex items-center gap-2">
             <Slider
+              aria-label="Duration"
               min={0.1}
               max={2}
               step={0.1}
@@ -90,11 +94,12 @@ export function AnimatedSignUpButton() {
             />
             {duration}s
           </div>
-        </label>
-        <label className="min-w-[200px]">
+        </div>
+        <div className="min-w-[200px]">
           Bounce
           <div className="flex items-center gap-2">
             <Slider
+              aria-label="Bounce"
               min={0}
               max={1}
               step={0.1}
@@ -104,7 +109,7 @@ export function AnimatedSignUpButton() {
             />
             {bounce}
           </div>
-        </label>
+        </div>
       </div>
     </div>
   );

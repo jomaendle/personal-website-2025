@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 const TOKEN_EXPIRY_DAYS = 30; // Tokens expire after 30 days
 
@@ -67,7 +67,7 @@ export function verifyUnsubscribeToken(token: string): VerifyResult {
   const payloadBase64 = parts[0];
   const providedSignature = parts[1];
 
-  if (!payloadBase64 || !providedSignature) {
+  if (!(payloadBase64 && providedSignature)) {
     return { valid: false, error: "Invalid token format" };
   }
 

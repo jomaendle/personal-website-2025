@@ -1,0 +1,16 @@
+# Config for the secondary Netlify deploy (jomae25). The production site runs
+# on Vercel; this file exists to keep the Netlify deploy-preview checks from
+# failing on stale site settings. It pins a Node version new enough for
+# Next.js 16 (requires >= 20.9) and forces the current Next.js runtime plugin,
+# overriding whatever the Netlify UI has pinned — the deploys were already
+# failing before this branch, which points at exactly that kind of stale
+# dashboard setting.
+[build]
+  command = "pnpm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

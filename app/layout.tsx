@@ -1,20 +1,16 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import "./editorial-theme.css";
-import { ViewTransitions } from "next-view-transitions";
-import PlausibleProvider from "next-plausible";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Metadata } from "next";
-import { Provider as JotaiProvider } from "jotai";
+import type { Metadata } from "next";
+import PlausibleProvider from "next-plausible";
+import { ViewTransitions } from "next-view-transitions";
 import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
-import { ReactQueryProvider } from "./providers";
-import { Analytics } from "@vercel/analytics/next";
-
-// Note: Using system fonts for build compatibility
-// In production with network access, restore: import { Inter } from "next/font/google";
+import { MotionProvider } from "./providers";
 
 const ogImageDescription = encodeURIComponent(
   "Full-stack engineer writing about the web platform and building software with AI.",
@@ -82,26 +78,19 @@ export default function RootLayout({
           {/* Preload critical fonts */}
           <link
             rel="preload"
-            href="/fonts/GeistVF.woff"
-            as="font"
-            type="font/woff"
-            crossOrigin="anonymous"
-          />
-          <link
-            rel="preload"
-            href="/fonts/NewsreaderVF.woff2"
+            href="/fonts/GeistVF.woff2"
             as="font"
             type="font/woff2"
             crossOrigin="anonymous"
           />
+          {/* Newsreader is deliberately NOT preloaded: at 132KB it starved the
+              (much smaller, LCP-critical) Geist fetch on slow connections, and
+              its metric-matched Georgia fallback makes the late swap shift-free. */}
         </head>
-        <body
-          className="min-h-[100dvh] font-sans text-foreground antialiased"
-          style={{
-            fontFamily:
-              "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-          }}
-        >
+        {/* `font-sans` resolves to the Geist stack via --font-sans (globals.css
+            @theme). The inline fontFamily this class used to need — from when
+            the token wasn't wired up — is gone. */}
+        <body className="min-h-dvh font-sans text-foreground antialiased">
           {/* Each route owns its own `<main id="main-content">`, and it has to
               start below the PageTopBar and above the Footer. Wrapping the
               whole page in it instead makes this link jump to a point above the
@@ -109,28 +98,26 @@ export default function RootLayout({
               landmarks. */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-200 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-hidden focus:ring-2 focus:ring-brand"
           >
             Skip to content
           </a>
-          <ReactQueryProvider>
-            <JotaiProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem={true}
-                enableColorScheme={true}
-                storageKey="theme"
-              >
-                <PlausibleProvider domain="jomaendle.com">
-                  {children}
-                </PlausibleProvider>
-                <SpeedInsights />
-                <PersonStructuredData />
-                <WebsiteStructuredData />
-              </ThemeProvider>
-            </JotaiProvider>
-          </ReactQueryProvider>
+          <MotionProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem={true}
+              enableColorScheme={true}
+              storageKey="theme"
+            >
+              <PlausibleProvider domain="jomaendle.com">
+                {children}
+              </PlausibleProvider>
+              <SpeedInsights />
+              <PersonStructuredData />
+              <WebsiteStructuredData />
+            </ThemeProvider>
+          </MotionProvider>
           <Analytics />
         </body>
       </html>

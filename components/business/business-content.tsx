@@ -1,8 +1,8 @@
 import { Link } from "next-view-transitions";
-import { H1, H2, H3 } from "@/components/ui/heading";
-import { Footer } from "@/components/ui/footer";
-import { PageTopBar } from "@/components/ui/page-top-bar";
 import { InquiryForm } from "@/components/business/inquiry-form";
+import { Footer } from "@/components/ui/footer";
+import { H1, H2, H3 } from "@/components/ui/heading";
+import { PageTopBar } from "@/components/ui/page-top-bar";
 import { SITE } from "@/lib/config/site";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
 import { CLIENT_PROJECTS, CLIENTS } from "@/lib/state/business-projects";
@@ -39,7 +39,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               aria-label={t.switchLabel}
               // -mx-2 keeps the optical position while the padding lifts the
               // tap target to 44px tall (WCAG 2.5.8 needs 24x24; 18x20 failed).
-              className="-mx-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 font-mono text-sm tracking-[0.04em] text-muted-foreground transition-colors hover:text-brand"
+              className="-mx-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 font-mono text-muted-foreground text-sm tracking-[0.04em] transition-colors hover:text-brand"
             >
               {t.switchTo}
             </Link>
@@ -59,14 +59,14 @@ export function BusinessContent({ lang }: { lang: Lang }) {
           {/* Masthead. A `<header>` nested in `<main>` is not a banner
               landmark, so this does not compete with the top bar. */}
           <header className="flex flex-col gap-6">
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.16em] text-brand">
+            <p className="mb-6 font-mono text-brand text-xs uppercase tracking-[0.16em]">
               {t.hero.eyebrow}
             </p>
             <H1 className="max-w-[20ch]" itemProp="name">
               {t.hero.heading}
             </H1>
             <p
-              className="max-w-[52ch] text-[1.05rem] leading-relaxed text-foreground/90"
+              className="max-w-[52ch] text-[1.05rem] text-foreground/90 leading-relaxed"
               itemProp="description"
             >
               {t.hero.lede}
@@ -75,14 +75,14 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {/* Earliest start, stated before the CTAs rather than buried in the
               process section — someone who can't wait that long should
               learn that before writing a message, not after. */}
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand">
+            <p className="font-mono text-[0.75rem] text-brand uppercase tracking-[0.14em]">
               {t.hero.availability}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <a
                 href="#engage"
-                className="inline-flex h-11 items-center justify-center rounded-[0.25rem] bg-foreground px-6 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-6 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.ctaPrimary}
               </a>
@@ -90,7 +90,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 href={SITE.contact.booking}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center justify-center rounded-[0.25rem] border border-border px-6 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-foreground transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-6 font-mono text-[0.75rem] text-foreground uppercase tracking-[0.14em] transition-colors hover:border-brand hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.ctaSecondary}
                 <span className="sr-only"> (opens in new window)</span>
@@ -103,12 +103,12 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             <H2>{t.clients.heading}</H2>
             {/* Each client jumps to its own case study below, so the strip is a
               way in rather than a dead list of names. */}
-            <div className="flex flex-wrap items-center gap-x-3 font-mono text-[0.8rem] uppercase tracking-[0.1em] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 font-mono text-[0.8rem] text-muted-foreground uppercase tracking-widest">
               {CLIENTS.map((client, i) => (
                 <span key={client.id} className="whitespace-nowrap">
                   <a
                     href={client.anchor}
-                    className="inline-flex min-h-[36px] items-center underline decoration-border decoration-from-font underline-offset-[6px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="inline-flex min-h-[36px] items-center underline decoration-border decoration-from-font underline-offset-[6px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     {client.name}
                   </a>
@@ -127,9 +127,9 @@ export function BusinessContent({ lang }: { lang: Lang }) {
           {/* Pitch */}
           <section>
             <H2>{t.pitch.heading}</H2>
-            <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] leading-relaxed text-foreground/90">
-              {t.pitch.paragraphs.map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
+            <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
+              {t.pitch.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
           </section>
@@ -143,7 +143,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             <H2>{t.services.heading}</H2>
             <div className="flex flex-col">
               {t.services.items.map((item) => (
-                <div key={item.title} className="border-b border-border py-4">
+                <div key={item.title} className="border-border border-b py-4">
                   <H3 interactive={false}>{item.title}</H3>
                   <p className="mt-1 text-muted-foreground">{item.desc}</p>
                 </div>
@@ -152,11 +152,11 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             {/* One quiet pointer to the audit page, in the same muted style as
                 `stack.note` below. The two pages have different buyers, so this
                 stays a sentence rather than becoming a promoted block. */}
-            <p className="mt-5 max-w-[60ch] text-sm text-muted-foreground">
+            <p className="mt-5 max-w-[60ch] text-muted-foreground text-sm">
               {t.services.note}{" "}
               <Link
                 href={t.services.noteHref}
-                className="text-foreground underline decoration-border decoration-from-font underline-offset-[5px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="text-foreground underline decoration-border decoration-from-font underline-offset-[5px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.services.noteLinkLabel}
               </Link>
@@ -174,9 +174,9 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               {t.stack.groups.map((group) => (
                 <div
                   key={group.label}
-                  className="flex flex-col gap-2 border-b border-border py-4 sm:flex-row sm:items-baseline sm:gap-6"
+                  className="flex flex-col gap-2 border-border border-b py-4 sm:flex-row sm:items-baseline sm:gap-6"
                 >
-                  <dt className="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-brand sm:w-24 sm:shrink-0">
+                  <dt className="font-mono text-[0.7rem] text-brand uppercase tracking-[0.14em] sm:w-24 sm:shrink-0">
                     {group.label}
                   </dt>
                   <dd className="flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[0.8rem] text-muted-foreground">
@@ -197,7 +197,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 </div>
               ))}
             </dl>
-            <p className="mt-5 max-w-[52ch] text-sm text-muted-foreground">
+            <p className="mt-5 max-w-[52ch] text-muted-foreground text-sm">
               {t.stack.note}
             </p>
           </section>
@@ -214,7 +214,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                   // study is mostly reading matter, so turning the whole card
                   // into a click target would cost text selection. The `group`
                   // sits on the link instead, where the click actually is.
-                  className="scroll-mt-16 border-b border-border py-6"
+                  className="scroll-mt-16 border-border border-b py-6"
                   itemScope
                   itemType="https://schema.org/CreativeWork"
                 >
@@ -223,19 +223,19 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                       href={project.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group inline-flex items-baseline gap-1.5 rounded-[0.15rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="group inline-flex items-baseline gap-1.5 rounded-[0.15rem] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       itemProp="url"
                     >
                       <H3 itemProp="name">{project.title}</H3>
                       <span
                         aria-hidden="true"
-                        className="font-mono text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand"
+                        className="font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
                       >
                         ↗
                       </span>
                       <span className="sr-only"> (opens in new window)</span>
                     </a>
-                    <p className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground">
+                    <p className="font-mono text-[0.7rem] text-muted-foreground uppercase tracking-[0.12em]">
                       {project.period[lang]} · {project.role[lang]}
                     </p>
                   </header>
@@ -247,7 +247,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                     {project.context[lang]}
                   </p>
 
-                  <ul className="mt-4 flex flex-col gap-1.5 text-sm text-muted-foreground">
+                  <ul className="mt-4 flex flex-col gap-1.5 text-muted-foreground text-sm">
                     {project.highlights[lang].map((highlight) => (
                       <li key={highlight} className="flex gap-2">
                         <span
@@ -265,7 +265,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                     {project.stack?.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground"
+                        className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground uppercase tracking-widest"
                       >
                         {tag}
                       </span>
@@ -288,7 +288,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                   <H3 interactive={false} className="text-[1.25rem]">
                     {step.title}
                   </H3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {step.desc}
                   </p>
                 </div>
@@ -314,7 +314,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
           {/* Engage */}
           <section id="engage" className="scroll-mt-8">
             <H2>{t.engage.heading}</H2>
-            <p className="mb-8 max-w-[60ch] text-[1.05rem] leading-relaxed text-foreground/90">
+            <p className="mb-8 max-w-[60ch] text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.engage.lede}
             </p>
 
@@ -324,7 +324,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               panel so the lower-commitment path is visible to someone who
               won't fill in a form — but kept as an outlined button so it does
               not compete with the form's solid ink submit directly above. */}
-            <div className="mt-10 flex flex-col gap-5 rounded-[0.35rem] border border-brand/25 bg-brand/[0.05] p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
+            <div className="mt-10 flex flex-col gap-5 rounded-[0.35rem] border border-brand/25 bg-brand/5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
               <div>
                 <H3 interactive={false}>{t.engage.bookingTitle}</H3>
                 <p className="mt-1.5 text-[0.95rem] text-muted-foreground">
@@ -335,14 +335,14 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 href={SITE.contact.booking}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 shrink-0 items-center justify-center rounded-[0.25rem] border border-brand/50 px-7 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-brand transition-colors hover:bg-brand hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-lg border border-brand/50 px-7 font-mono text-[0.75rem] text-brand uppercase tracking-[0.14em] transition-colors hover:bg-brand hover:text-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.engage.bookingCta}
                 <span className="sr-only"> (opens in new window)</span>
               </a>
             </div>
 
-            <address className="mt-8 flex flex-col gap-2 text-sm not-italic text-muted-foreground">
+            <address className="mt-8 flex flex-col gap-2 text-muted-foreground text-sm not-italic">
               <span>
                 {t.engage.emailLabel}:{" "}
                 <a
@@ -355,7 +355,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               </span>
               <a
                 href={markdownHref}
-                className="w-fit text-xs text-muted-foreground transition-colors hover:text-brand"
+                className="w-fit text-muted-foreground text-xs transition-colors hover:text-brand"
               >
                 {t.engage.markdownLabel}
               </a>

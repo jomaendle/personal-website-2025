@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { Link } from "next-view-transitions";
-import { H1 } from "@/components/ui/heading";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SITE } from "@/lib/config/site";
+import { H1 } from "@/components/ui/heading";
 import { PRIMARY_NAV } from "@/lib/config/navigation";
+import { SITE } from "@/lib/config/site";
 
 /**
  * NameHeading — the homepage masthead.
@@ -33,11 +33,11 @@ export const NameHeading = ({
   jobTitle?: string;
 }) => {
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="flex flex-col gap-8 sm:gap-10">
       <div className="flex items-center justify-end gap-5">
         <nav
           aria-label="Primary"
-          className="flex items-center gap-5 text-sm text-muted-foreground"
+          className="flex items-center gap-5 text-muted-foreground text-sm"
         >
           {PRIMARY_NAV.map((item) => (
             <Link
@@ -45,7 +45,7 @@ export const NameHeading = ({
               href={item.href}
               // min-h-[44px] for the WCAG 2.5.8 tap target, the same way
               // PageTopBar sizes these links.
-              className="inline-flex min-h-[44px] items-center transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex min-h-[44px] items-center transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {item.label}
             </Link>
@@ -61,14 +61,16 @@ export const NameHeading = ({
           width={96}
           height={96}
           priority
-          className="size-20 rounded-full bg-neutral-100 object-cover dark:bg-neutral-800 md:size-24"
+          className="size-20 rounded-full bg-neutral-100 object-cover md:size-24 dark:bg-neutral-800"
         />
         <div className="flex flex-col gap-1.5">
           <H1>{SITE.name}</H1>
           {/* The role sits under the name in body type. It used to be a mono
               uppercase brand eyebrow in the top bar, where it competed with the
               nav and read as a section label rather than as who this is. */}
-          {showJobTitle && <p className="text-muted-foreground">{jobTitle}</p>}
+          {showJobTitle ? (
+            <p className="text-muted-foreground">{jobTitle}</p>
+          ) : null}
         </div>
       </div>
     </div>

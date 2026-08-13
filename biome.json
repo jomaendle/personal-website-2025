@@ -1,0 +1,137 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!.next",
+      "!.netlify",
+      "!out",
+      "!node_modules",
+      "!public",
+      "!pnpm-lock.yaml",
+      "!**/*.css",
+      "!**/*.svg"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "domains": {
+      "react": "all",
+      "next": "all"
+    },
+    "rules": {
+      "preset": "recommended",
+      "a11y": "on",
+      "complexity": "on",
+      "correctness": {
+        "useExhaustiveDependencies": "error",
+        "useHookAtTopLevel": "error",
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
+        "noProcessGlobal": "off",
+        "noNodejsModules": "off",
+        "useUniqueElementIds": "off",
+        "noUnknownPseudoElement": "off",
+        "noUnknownPseudoClass": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "error",
+        "noDelete": "error",
+        "useTopLevelRegex": "warn",
+        "noJsxPropsBind": "off",
+        "noNamespaceImport": "off",
+        "noBarrelFile": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error",
+        "noSecrets": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "error",
+        "noLeakedRender": "error",
+        "noReactForwardRef": "error",
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "warn", "info"]
+          }
+        },
+        "noUnknownAtRules": "off"
+      },
+      "style": {
+        "noNegationElse": "on",
+        "noParameterAssign": "on",
+        "noShoutyConstants": "on",
+        "noUselessElse": "on",
+        "useAtIndex": "on",
+        "useCollapsedElseIf": "on",
+        "useConst": "on",
+        "useDefaultSwitchClause": "on",
+        "useForOf": "on",
+        "useFragmentSyntax": "on",
+        "useShorthandAssign": "on",
+        "useTemplate": "on",
+        "useComponentExportOnlyModules": "off"
+      },
+      "nursery": {
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "functions": ["cn", "clsx", "cva"]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noUselessUndefined": "off",
+            "noUselessReturn": "off"
+          }
+        }
+      }
+    }
+  ]
+}

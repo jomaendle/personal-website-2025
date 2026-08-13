@@ -1,8 +1,8 @@
 "use client";
 
-import { Link } from "next-view-transitions";
-import { motion, type Variants } from "framer-motion";
+import { m, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "next-view-transitions";
 
 const links = [
   {
@@ -27,7 +27,7 @@ const links = [
   },
 ];
 
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 const containerVariants: Variants = {
   hidden: { opacity: 1 },
@@ -53,7 +53,7 @@ const itemVariants: Variants = {
 
 export const MoreLinks = () => {
   return (
-    <motion.div
+    <m.div
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -66,7 +66,7 @@ export const MoreLinks = () => {
       className="flex flex-col items-start sm:flex-row sm:flex-wrap sm:gap-x-8"
     >
       {links.map((link) => (
-        <motion.div key={link.href} variants={itemVariants}>
+        <m.div key={link.href} variants={itemVariants}>
           <MotionLink
             href={link.href}
             // `py-2.5` takes the 24px text row to a 44px pointer target
@@ -87,8 +87,8 @@ export const MoreLinks = () => {
               <span className="sr-only"> (opens in new window)</span>
             )}
           </MotionLink>
-        </motion.div>
+        </m.div>
       ))}
-    </motion.div>
+    </m.div>
   );
 };

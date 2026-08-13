@@ -40,13 +40,11 @@ export function Minimap() {
   const isInteractingRef = useRef(false);
 
   // Marker components with optimized rendering
-  const marker = <div className="marker h-6 w-[1px] bg-foreground/50"></div>;
+  const marker = <div className="marker h-6 w-px bg-foreground/50"></div>;
   const largerMarker = (
-    <div className="marker h-10 w-[1px] bg-foreground/80"></div>
+    <div className="marker h-10 w-px bg-foreground/80"></div>
   );
-  const largestMarker = (
-    <div className="marker h-20 w-[1px] bg-foreground"></div>
-  );
+  const largestMarker = <div className="marker h-20 w-px bg-foreground"></div>;
 
   // Cache marker positions - called on mount and resize
   const cacheMarkerPositions = useCallback(() => {
@@ -86,7 +84,7 @@ export function Minimap() {
 
     // Schedule update in next animation frame
     rafIdRef.current = requestAnimationFrame(() => {
-      if (!markerWrapperRef.current || !currentMarkerRef.current) {
+      if (!(markerWrapperRef.current && currentMarkerRef.current)) {
         return;
       }
 
@@ -105,13 +103,14 @@ export function Minimap() {
 
       const maxDistance = 100;
       let nearestMarker:
-        (MarkerPosition & { centerX: number; centerY: number }) | null = null;
+        | (MarkerPosition & { centerX: number; centerY: number })
+        | null = null;
       let minDistanceSquared = Infinity; // Use squared distance to avoid sqrt
 
       // Re-calculate positions on each interaction (handles scroll/resize)
       const markers = markerPositionsRef.current;
 
-      markers.forEach((markerPos) => {
+      for (const markerPos of markers) {
         const rect = markerPos.element.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -136,7 +135,7 @@ export function Minimap() {
         } else {
           markerPos.element.style.transform = "scaleY(1)";
         }
-      });
+      }
 
       // Update pointer position
       if (nearestMarker !== null && currentMarkerRef.current) {
@@ -149,7 +148,7 @@ export function Minimap() {
         // Constrain to first and last marker
         if (markers.length > 0) {
           const firstMarker = markers[0];
-          const lastMarker = markers[markers.length - 1];
+          const lastMarker = markers.at(-1);
           if (firstMarker && lastMarker) {
             const firstRect = firstMarker.element.getBoundingClientRect();
             const lastRect = lastMarker.element.getBoundingClientRect();
@@ -197,9 +196,9 @@ export function Minimap() {
     isInteractingRef.current = false;
 
     // Reset marker scales
-    markerPositionsRef.current.forEach((markerPos) => {
+    for (const markerPos of markerPositionsRef.current) {
       markerPos.element.style.transform = "scaleY(1)";
-    });
+    }
 
     // Cancel any pending RAF
     if (rafIdRef.current !== null) {
@@ -281,6 +280,7 @@ export function Minimap() {
       <div className="relative flex w-full items-center justify-center">
         <svg
           ref={currentMarkerRef}
+          aria-hidden="true"
           width="18"
           height="18"
           viewBox="0 0 100 100"
@@ -302,7 +302,7 @@ export function Minimap() {
         </svg>
         <div
           ref={currentMarkerLineRef}
-          className="absolute z-0 w-[1px]"
+          className="absolute z-0 w-px"
           style={{
             top: "-12px",
             bottom: "-50vh",
@@ -326,6 +326,7 @@ export function Minimap() {
       >
         {Array.from({ length: markerCount }).map((_, index) => (
           <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: markers are a fixed-length positional scale with no identity beyond their index
             key={index}
             className={`z-0 ${isTouchDevice() ? "px-2" : "px-1.5"}`} // Larger spacing on mobile
             style={{

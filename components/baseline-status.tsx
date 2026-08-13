@@ -26,7 +26,7 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
       <div className="motion-translate-y-in-25 motion-opacity-in-50">
         <baseline-status
           featureid={featureId}
-          className="bg-inherit pb-2"
+          className="bg-inherit px-6 pt-4 pb-2"
         ></baseline-status>
       </div>
     </div>

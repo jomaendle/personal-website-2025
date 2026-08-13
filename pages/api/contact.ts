@@ -1,17 +1,17 @@
-import resend from "@/lib/resend";
-import { NextApiRequest, NextApiResponse } from "next";
-import { withRateLimit } from "@/lib/rate-limit";
-import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { composeMiddleware, withCsrfProtection } from "@/lib/csrf-protection";
 import { isValidEmail } from "@/lib/email-validation";
 import { escapeHtml } from "@/lib/html-utils";
 import { sanitizeInput, sanitizeSubjectInput } from "@/lib/input-sanitization";
+import { withRateLimit } from "@/lib/rate-limit";
+import resend from "@/lib/resend";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { name, email, topic } = req.body;
 
     // Enhanced validation
-    if (!name || !email || !topic) {
+    if (!(name && email && topic)) {
       return res.status(400).json({
         error: "All fields are required",
         details: "Please fill in your name, email, and message",

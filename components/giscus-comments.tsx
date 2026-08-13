@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 
 interface GiscusCommentsProps {
   slug: string;
@@ -24,15 +24,13 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
     setIsLoaded(false);
   }
 
-  // Get the custom theme URL (static, no query params for better caching)
-  const getThemeUrl = () => {
-    return `${window.location.origin}/api/giscus-theme`;
-  };
-
   // Initialize Giscus (only once per slug)
   useEffect(() => {
     const currentRef = commentsRef.current;
     if (!currentRef) return;
+
+    // Custom theme URL (static, no query params for better caching)
+    const getThemeUrl = () => `${window.location.origin}/api/giscus-theme`;
 
     // Clear any existing Giscus instance
     currentRef.innerHTML = "";
@@ -106,7 +104,7 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
 
   return (
     <div className="mt-16">
-      <h2 className="mb-6 text-2xl font-bold">Comments</h2>
+      <h2 className="mb-6 font-bold text-2xl">Comments</h2>
       {/* red-700 on the tinted panel, not red-500: over the light theme's
           cream the 500 measured 3.01:1 against the panel tint, short of the
           4.5:1 WCAG AA wants for body text. Dark mode keeps a lighter red. */}

@@ -1,12 +1,10 @@
-import { H2 } from "@/components/ui/heading";
-import { JobPositions } from "@/components/job-positions";
 import { BlogPosts } from "@/components/blog-posts";
-import { WorkExperience } from "@/components/work-experience";
+import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { JobPositions } from "@/components/job-positions";
 import { MoreLinks } from "@/components/more-links";
-import { Footer } from "@/components/ui/footer";
 import { NameHeading } from "@/components/name-heading";
 import NewsletterForm from "@/components/newsletter";
-import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { Footer } from "@/components/ui/footer";
 import {
   AngularIcon,
   AstroIcon,
@@ -14,6 +12,8 @@ import {
   JavaScriptIcon,
   ReactIcon,
 } from "@/components/ui/framework-icons";
+import { H2 } from "@/components/ui/heading";
+import { WorkExperience } from "@/components/work-experience";
 
 // Static generation
 export const dynamic = "force-static";
@@ -65,7 +65,7 @@ export default function Home() {
                   href="https://www.linkedin.com/in/johannes-maendle/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="-m-2 -ml-[10px] inline-flex items-center p-2 pr-0 underline transition-colors hover:text-link"
+                  className="-m-2 ml-[-10px] inline-flex items-center p-2 pr-0 underline transition-colors hover:text-link"
                 >
                   LinkedIn
                 </a>

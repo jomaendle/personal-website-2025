@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Link2 } from "lucide-react";
 import { useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 // Generate slug from text (similar to GitHub's approach)
 function generateSlug(text: string): string {
@@ -14,7 +14,8 @@ function generateSlug(text: string): string {
     .trim();
 }
 
-interface HeadingWithAnchorProps extends React.HTMLAttributes<HTMLHeadingElement> {
+interface HeadingWithAnchorProps
+  extends React.HTMLAttributes<HTMLHeadingElement> {
   level: 2 | 3;
   children: React.ReactNode;
 }
@@ -43,13 +44,16 @@ export function HeadingWithAnchor({
     }
   }, [headingId]);
 
-  // Base styles for different heading levels (matching existing H2/H3 components)
+  // Typography for these headings is owned by `.prose h2/h3` in globals.css
+  // plus editorial-theme.css. Under Tailwind 3 this helper also carried
+  // utility classes (text-sm, font-extrabold, …) that silently LOST to
+  // `.prose h2` on specificity — dead code. Tailwind 4 puts utilities in a
+  // native cascade layer that beats base styles regardless of specificity,
+  // so those same classes suddenly applied and shrank every article heading.
+  // Only the classes that were actually in effect remain.
   const getHeadingStyles = () => {
-    if (level === 2) {
-      return "text-sm tracking-wider text-muted-foreground mb-4";
-    }
     if (level === 3) {
-      return "text-foreground font-extrabold group-hover:text-underline transition-colors";
+      return "transition-colors";
     }
     return "";
   };
@@ -64,6 +68,7 @@ export function HeadingWithAnchor({
     <h2 {...headingProps}>
       {children}
       <button
+        type="button"
         onClick={copyToClipboard}
         className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}
@@ -75,6 +80,7 @@ export function HeadingWithAnchor({
     <h3 {...headingProps}>
       {children}
       <button
+        type="button"
         onClick={copyToClipboard}
         className="anchor-link ml-2 hidden items-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-60 sm:inline-flex"
         aria-label={`Copy link to ${textContent}`}

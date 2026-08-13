@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Link } from "next-view-transitions";
-import { H1 } from "@/components/ui/heading";
 import { Footer } from "@/components/ui/footer";
+import { H1 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function NotFound() {
         <PageTopBar />
 
         <main id="main-content" tabIndex={-1} className="flex flex-col gap-6">
-          <span className="font-mono text-[0.72rem] uppercase tracking-[0.16em] text-brand">
+          <span className="font-mono text-[0.72rem] text-brand uppercase tracking-[0.16em]">
             404
           </span>
           <H1 className="max-w-[16ch]">This page wandered off.</H1>
@@ -25,7 +25,7 @@ export default function NotFound() {
           </p>
           <Link
             href="/"
-            className="font-mono text-sm text-brand underline-offset-4 transition-colors hover:underline"
+            className="font-mono text-brand text-sm underline-offset-4 transition-colors hover:underline"
           >
             ← Back to homepage
           </Link>

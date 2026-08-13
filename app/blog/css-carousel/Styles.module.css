@@ -1,9 +1,15 @@
+@reference "../../globals.css";
+
 .container {
   @apply relative block w-full rounded-lg border bg-background py-4;
 }
 
 .scroller {
   @apply flex h-full w-full list-none gap-6 overflow-x-auto p-5;
+  /* Production geometry: under Tailwind 3, `.prose ul { pl-6 }` outranked
+     this module's p-5 on padding-left (24px, not 20px). v4's layer order
+     flips that fight, so the production value is stated explicitly. */
+  padding-left: 1.5rem;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-marker-group: after;
@@ -45,6 +51,8 @@
 
 .verticalScroller {
   @apply flex h-full w-full list-none flex-col gap-6 overflow-y-auto p-5;
+  /* Same padding-left story as .scroller above. */
+  padding-left: 1.5rem;
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
   scroll-marker-group: before;

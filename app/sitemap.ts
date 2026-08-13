@@ -1,6 +1,6 @@
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import type { MetadataRoute } from "next";
-import { readdirSync, statSync } from "fs";
-import { join } from "path";
 import { BLOG_POSTS } from "@/lib/state/blog";
 
 const baseUrl = "https://www.jomaendle.com";

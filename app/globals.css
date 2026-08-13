@@ -1,22 +1,147 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-/* Self-hosted Geist fonts for optimal performance */
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/GeistVF.woff") format("woff");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+@plugin "tailwindcss-motion";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-border-strong: hsl(var(--border-strong));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-link: hsl(var(--link));
+  --color-link-hover: hsl(var(--link-hover));
+
+  --color-brand: hsl(var(--brand));
+  --color-brand-soft: hsl(var(--brand-soft));
+
+  --font-sans:
+    var(--font-sans), Geist, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica Neue, Arial, sans-serif;
+  --font-serif: var(--font-serif), Georgia, Cambria, Times New Roman, serif;
+  --font-mono:
+    Geist Mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+    Liberation Mono, monospace;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-shimmer: shimmer 2s ease-in-out infinite;
+
+  --breakpoint-2xl: 1440px;
+  --breakpoint-3xl: 1600px;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
 }
 
-@font-face {
-  font-family: "Geist Mono";
-  src: url("/fonts/GeistMonoVF.woff") format("woff");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* Tailwind 4's preflight resets every element's margin, which silently
+     wipes the UA default `[popover] { margin: auto }` — the rule that centers
+     popovers in the viewport. The popover article demo relies on it. */
+  [popover] {
+    margin: auto;
+  }
+}
+
+@layer utilities {
+  /* Self-hosted Geist fonts for optimal performance */
+  @font-face {
+    font-family: 'Geist';
+    src: url('/fonts/GeistVF.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    /* `optional` + the metric-matched fallback below: if the font isn't in
+       cache within ~100ms, this pageview keeps the adjusted Arial and the
+       font installs for the next one. Body text is the homepage's LCP
+       element, and with `swap` the late webfont repaint IS the LCP — this
+       trades an invisible first-paint difference for the best LCP/CLS. */
+    font-display: optional;
+  }
+
+  /* Metric-matched Arial, mirroring the Newsreader Fallback in
+     editorial-theme.css. Geist carries all body copy — including the
+     homepage's LCP paragraph — so an unadjusted swap both shifts layout and
+     re-registers LCP when the webfont lands late on a slow connection.
+
+     Numbers derived from the font binaries (fontTools), same method as the
+     Newsreader Fallback (mean advance of a-z plus space, normalised to em):
+       Geist  upem 1000 · typo asc 920 · desc -220 · gap 100 · avg lc adv 0.5270
+       Arial  upem 2048 · typo asc 1491 · desc -431 · gap 307 · avg lc adv 0.4817
+     size-adjust      = 0.5270 / 0.4817        = 109.41%
+     ascent-override  = (920/1000) / 1.0941    = 84.09%
+     descent-override = (220/1000) / 1.0941    = 20.11%
+     line-gap-override= (100/1000) / 1.0941    = 9.14% */
+  @font-face {
+    font-family: 'Geist Fallback';
+    src: local('Arial');
+    size-adjust: 109.41%;
+    ascent-override: 84.09%;
+    descent-override: 20.11%;
+    line-gap-override: 9.14%;
+  }
+
+  @font-face {
+    font-family: 'Geist Mono';
+    src: url('/fonts/GeistMonoVF.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
 }
 
 @layer base {
@@ -48,8 +173,8 @@
            `sans` key points here, so `font-sans` resolves to Geist instead of
            falling through to Tailwind's default stack. */
     --font-sans:
-      "Geist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-      Arial, sans-serif;
+      "Geist", "Geist Fallback", system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
   }
 
   .light {
@@ -108,7 +233,7 @@
   }
 
   .prose h2 > code {
-    @apply relative -top-[3px];
+    @apply relative top-[-3px];
   }
 
   .prose h2 {
@@ -274,7 +399,7 @@
   /* Focus states for accessibility */
   .prose a:focus,
   .prose button:focus {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+    @apply outline-hidden ring-2 ring-primary ring-offset-2 ring-offset-background;
   }
 
   :root {
@@ -295,7 +420,7 @@
 
   /* Focus states for accessibility */
   .anchor-link:focus {
-    @apply opacity-100 outline-none ring-2 ring-primary ring-offset-2;
+    @apply opacity-100 outline-hidden ring-2 ring-primary ring-offset-2;
   }
 
   /* Glass container for content */
