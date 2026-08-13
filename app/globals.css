@@ -98,7 +98,34 @@
     src: url('/fonts/GeistVF.woff2') format('woff2');
     font-weight: 100 900;
     font-style: normal;
-    font-display: swap;
+    /* `optional` + the metric-matched fallback below: if the font isn't in
+       cache within ~100ms, this pageview keeps the adjusted Arial and the
+       font installs for the next one. Body text is the homepage's LCP
+       element, and with `swap` the late webfont repaint IS the LCP — this
+       trades an invisible first-paint difference for the best LCP/CLS. */
+    font-display: optional;
+  }
+
+  /* Metric-matched Arial, mirroring the Newsreader Fallback in
+     editorial-theme.css. Geist carries all body copy — including the
+     homepage's LCP paragraph — so an unadjusted swap both shifts layout and
+     re-registers LCP when the webfont lands late on a slow connection.
+
+     Numbers derived from the font binaries (fontTools), same method as the
+     Newsreader Fallback (mean advance of a-z plus space, normalised to em):
+       Geist  upem 1000 · typo asc 920 · desc -220 · gap 100 · avg lc adv 0.5270
+       Arial  upem 2048 · typo asc 1491 · desc -431 · gap 307 · avg lc adv 0.4817
+     size-adjust      = 0.5270 / 0.4817        = 109.41%
+     ascent-override  = (920/1000) / 1.0941    = 84.09%
+     descent-override = (220/1000) / 1.0941    = 20.11%
+     line-gap-override= (100/1000) / 1.0941    = 9.14% */
+  @font-face {
+    font-family: 'Geist Fallback';
+    src: local('Arial');
+    size-adjust: 109.41%;
+    ascent-override: 84.09%;
+    descent-override: 20.11%;
+    line-gap-override: 9.14%;
   }
 
   @font-face {
@@ -139,8 +166,8 @@
            `sans` key points here, so `font-sans` resolves to Geist instead of
            falling through to Tailwind's default stack. */
     --font-sans:
-      "Geist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-      Arial, sans-serif;
+      "Geist", "Geist Fallback", system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
   }
 
   .light {
