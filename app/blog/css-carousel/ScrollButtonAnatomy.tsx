@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 const ScrollButton = ({
   position,
@@ -84,7 +84,7 @@ export const ScrollButtonAnatomy = () => {
 };
 
 const HorizontalView = () => (
-  <motion.div
+  <m.div
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, type: "spring" }}
@@ -170,11 +170,11 @@ const HorizontalView = () => (
     <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-1 text-xs text-white/80">
       ::scroll-marker-group
     </span>
-  </motion.div>
+  </m.div>
 );
 
 const VerticalView = () => (
-  <motion.div
+  <m.div
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, type: "spring" }}
@@ -221,5 +221,5 @@ const VerticalView = () => (
     <span className="absolute bottom-14 left-1/2 -translate-x-1/2 text-xs text-white/80">
       ::scroll-button(block-end)
     </span>
-  </motion.div>
+  </m.div>
 );

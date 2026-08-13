@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "next-view-transitions";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { H3 } from "@/components/ui/heading";
 import { BLOG_POSTS } from "@/lib/state/blog";
@@ -21,7 +21,7 @@ import {
  * so no post data is duplicated here.
  */
 
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 export function WritingIndex() {
   const [filter, setFilter] = useState<"All" | WritingCategory>("All");
@@ -65,7 +65,7 @@ export function WritingIndex() {
       {/* Rows */}
       <div className="flex flex-col">
         {posts.map((post, index) => (
-          <motion.div
+          <m.div
             key={post.slug}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -100,7 +100,7 @@ export function WritingIndex() {
                 {post.date}
               </span>
             </MotionLink>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>

@@ -1,5 +1,5 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { JSX, useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -48,7 +48,7 @@ export function AnimatedSignUpButton() {
         <div className="animated-sign-up-button">
           <button className={styles.button} onClick={handleSubmit}>
             <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span
+              <m.span
                 className={styles.span}
                 key={buttonState}
                 transition={{
@@ -70,7 +70,7 @@ export function AnimatedSignUpButton() {
                 }}
               >
                 {buttonStates[buttonState]}
-              </motion.span>
+              </m.span>
             </AnimatePresence>
           </button>
         </div>

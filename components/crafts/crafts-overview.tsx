@@ -2,7 +2,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CounterCraft } from "@/components/crafts/counter";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { LoadingGradient } from "@/components/ui/loading-gradient";
 
 // Lazy load heavy components
@@ -37,14 +37,14 @@ const crafts: {
 // Lightweight loading placeholder for Minimap
 function MinimapSkeleton() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       className="flex size-full flex-col items-center justify-center"
     >
       <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-white/10"></div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -163,7 +163,7 @@ export function CraftsOverview() {
           <AnimatePresence mode="wait">
             {isVisible ? (
               <Suspense fallback={<MinimapSkeleton />}>
-                <motion.div
+                <m.div
                   key="minimap-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -171,7 +171,7 @@ export function CraftsOverview() {
                   className="size-full"
                 >
                   <Minimap />
-                </motion.div>
+                </m.div>
               </Suspense>
             ) : (
               <MinimapSkeleton key="minimap-skeleton" />
@@ -184,7 +184,7 @@ export function CraftsOverview() {
           <CraftsContainer>
             <AnimatePresence mode="wait">
               {isVisible ? (
-                <motion.div
+                <m.div
                   key="loading-gradient-content"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -192,9 +192,9 @@ export function CraftsOverview() {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   <LoadingGradient className="text-xl">Loading</LoadingGradient>
-                </motion.div>
+                </m.div>
               ) : (
-                <motion.div
+                <m.div
                   key="loading-gradient-skeleton"
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -210,7 +210,7 @@ export function CraftsOverview() {
         <div className="w-full">
           <AnimatePresence mode="wait">
             {isVisible ? (
-              <motion.div
+              <m.div
                 key="counter-content"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -218,10 +218,10 @@ export function CraftsOverview() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <CounterCraft />
-              </motion.div>
+              </m.div>
             ) : (
               <CraftsContainer key="counter-skeleton">
-                <motion.div
+                <m.div
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
@@ -236,7 +236,7 @@ export function CraftsOverview() {
         <AnimatePresence>
           {isVisible &&
             crafts.map((craft, index) => (
-              <motion.div
+              <m.div
                 key={craft.src}
                 className="w-full md:col-span-2"
                 initial={{ opacity: 0 }}
@@ -254,7 +254,7 @@ export function CraftsOverview() {
                 >
                   <LazyVideo craft={craft} />
                 </CraftsContainer>
-              </motion.div>
+              </m.div>
             ))}
         </AnimatePresence>
       </div>

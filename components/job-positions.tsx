@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { m, type Variants } from "framer-motion";
 import { H3 } from "@/components/ui/heading";
 
 const jobPositions = [
@@ -54,7 +54,7 @@ const itemVariants: Variants = {
 
 export const JobPositions = () => {
   return (
-    <motion.div
+    <m.div
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -62,7 +62,7 @@ export const JobPositions = () => {
       className="flex flex-col gap-6"
     >
       {jobPositions.map((position, index) => (
-        <motion.article
+        <m.article
           key={index}
           variants={itemVariants}
           className="flex items-center"
@@ -76,8 +76,8 @@ export const JobPositions = () => {
           <p className="text-xs text-muted-foreground md:text-sm">
             {position.startDate} – {position.endDate}
           </p>
-        </motion.article>
+        </m.article>
       ))}
-    </motion.div>
+    </m.div>
   );
 };

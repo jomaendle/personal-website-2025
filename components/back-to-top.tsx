@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 export function BackToTop() {
@@ -42,7 +42,7 @@ export function BackToTop() {
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -56,7 +56,7 @@ export function BackToTop() {
             className="group h-12 w-12 rounded-full border-border bg-background/80 p-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:bg-accent"
             aria-label="Back to top"
           >
-            <motion.svg
+            <m.svg
               className="h-5 w-5 text-muted-foreground group-hover:text-foreground"
               fill="none"
               stroke="currentColor"
@@ -70,9 +70,9 @@ export function BackToTop() {
                 strokeWidth={2}
                 d="M5 10l7-7m0 0l7 7m-7-7v18"
               />
-            </motion.svg>
+            </m.svg>
           </Button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

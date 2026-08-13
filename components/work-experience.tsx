@@ -3,7 +3,7 @@
 import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
 import { ExternalLinkIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { PROJECTS } from "@/lib/state/projects";
 
 /**
@@ -15,13 +15,13 @@ import { PROJECTS } from "@/lib/state/projects";
  * color on hover from `H3` and the arrow nudges up and to the right.
  */
 
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 export function WorkExperience() {
   return (
     <div className="-mx-3 flex flex-col">
       {PROJECTS.map((experience, index) => (
-        <motion.article
+        <m.article
           key={experience.id}
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ export function WorkExperience() {
             </div>
             <span className="sr-only"> (opens in new window)</span>
           </MotionLink>
-        </motion.article>
+        </m.article>
       ))}
     </div>
   );

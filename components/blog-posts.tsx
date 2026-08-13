@@ -5,7 +5,7 @@ import { Link } from "next-view-transitions";
 import { ViewCounter } from "@/components/view-counter";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import { categoryFor } from "@/lib/state/writing-categories";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
  * `H3`. Category comes from `lib/state/writing-categories.ts`.
  */
 
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 const BlogPostItem = memo(
   ({
@@ -45,7 +45,7 @@ const BlogPostItem = memo(
     };
 
     return (
-      <motion.article
+      <m.article
         key={post.slug}
         layout
         variants={itemVariants}
@@ -84,7 +84,7 @@ const BlogPostItem = memo(
             <ViewCounter slug={post.slug} shouldIncrement={false} />
           </span>
         </MotionLink>
-      </motion.article>
+      </m.article>
     );
   },
 );
@@ -139,7 +139,7 @@ export function BlogPosts() {
   };
 
   return (
-    <motion.div layout className="-mx-3 flex flex-col">
+    <m.div layout className="-mx-3 flex flex-col">
       <AnimatePresence initial={false}>
         {displayedPosts.map((post, index) => {
           const shouldShow =
@@ -167,7 +167,7 @@ export function BlogPosts() {
       </AnimatePresence>
 
       {BLOG_POSTS.length > 4 && (
-        <motion.div
+        <m.div
           layout
           className="mt-6 flex justify-center"
           transition={{
@@ -181,8 +181,8 @@ export function BlogPosts() {
           >
             {showAll ? "Show Less" : "Show More"}
           </Button>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 }

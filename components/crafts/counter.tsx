@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 
@@ -52,7 +52,7 @@ export const CounterCraft = () => {
         -
       </Button>
       <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-        <motion.div
+        <m.div
           key={counter}
           variants={containerVariants}
           initial="initial"
@@ -61,7 +61,7 @@ export const CounterCraft = () => {
           className="flex w-10 justify-center"
         >
           {digits.map((digit, i) => (
-            <motion.span
+            <m.span
               key={`${counter}-${i}`}
               custom={direction}
               variants={digitVariants}
@@ -72,12 +72,12 @@ export const CounterCraft = () => {
               className="relative inline-flex h-12 w-5 items-center justify-center overflow-hidden"
               style={{ textAlign: "center" }}
             >
-              <motion.span className="absolute inset-0 flex h-full w-full items-center text-4xl">
+              <m.span className="absolute inset-0 flex h-full w-full items-center text-4xl">
                 {digit}
-              </motion.span>
-            </motion.span>
+              </m.span>
+            </m.span>
           ))}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
       <Button onClick={increment} disabled={counter >= 10} className="h-8 w-8">
         +
