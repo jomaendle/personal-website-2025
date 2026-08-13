@@ -50,7 +50,7 @@ export function WritingIndex() {
               className={cn(
                 // The pill stays 34px tall; `after` pads the pointer target out
                 // to 44px (WCAG 2.5.8) without changing the chip's weight.
-                "relative rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors after:absolute after:inset-x-0 after:-inset-y-[5px] after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "relative rounded-full border px-4 py-2 font-mono text-xs tracking-[0.04em] transition-colors after:absolute after:inset-x-0 after:inset-y-[-5px] after:content-[''] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 active
                   ? "border-foreground bg-foreground text-background"
                   : "border-border text-muted-foreground hover:border-foreground hover:text-foreground",
@@ -80,7 +80,7 @@ export function WritingIndex() {
               prefetch={false}
               className="ledger-row group flex flex-col gap-1 border-border border-b px-3 py-5 sm:grid sm:grid-cols-[120px_1fr_120px] sm:items-baseline sm:gap-6"
             >
-              <span className="font-mono text-brand text-xs uppercase tracking-[0.05em]">
+              <span className="font-mono text-brand text-xs uppercase tracking-wider">
                 {post.category}
               </span>
               {/* A heading, not a span: /blog renders this list rather than

@@ -64,14 +64,14 @@ export function ContactForm() {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-[0.25rem] border border-brand/40 bg-brand/5 px-4 py-3 text-foreground text-sm"
+          className="rounded-lg border border-brand/40 bg-brand/5 px-4 py-3 text-foreground text-sm"
         >
           Thank you! Your message has been sent.
         </div>
       ) : submitStatus === "error" ? (
         <div
           role="alert"
-          className="rounded-[0.25rem] border border-destructive/50 bg-destructive/5 px-4 py-3 text-foreground text-sm"
+          className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-foreground text-sm"
         >
           {errorMessage || "Something went wrong. Please try again later."}
         </div>

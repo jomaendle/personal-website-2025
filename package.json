@@ -39,19 +39,19 @@
     "react-dom": "^19.2.8",
     "react-syntax-highlighter": "^16.1.1",
     "resend": "^6.19.0",
-    "tailwind-merge": "^3.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "postcss": "^8.5.26",
     "postcss-load-config": "^6.0.1",
-    "tailwindcss": "^3.4.1",
-    "tailwindcss-motion": "^1.0.1",
+    "tailwindcss": "^4.3.3",
+    "tailwindcss-motion": "^1.1.1",
     "typescript": "^7.0.2"
   },
   "overrides": {

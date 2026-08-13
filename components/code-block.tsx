@@ -108,8 +108,8 @@ export function CodeBlock({
   );
 
   const content = (
-    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-muted/30 shadow-sm dark:bg-muted/20">
-      <div className="absolute top-3 right-12 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-muted-foreground text-xs backdrop-blur-sm transition-opacity hover:opacity-0">
+    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-muted/30 shadow-xs dark:bg-muted/20">
+      <div className="absolute top-3 right-12 z-10 rounded-md border border-border/30 bg-background/90 px-2 py-1 font-mono text-muted-foreground text-xs backdrop-blur-xs transition-opacity hover:opacity-0">
         {language}
       </div>
 
@@ -170,7 +170,7 @@ export function CodeBlock({
         {codeContent}
 
         {collapsible && !isOpen && (
-          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-16 bg-gradient-to-t from-muted/30 to-transparent dark:from-muted/20" />
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-16 bg-linear-to-t from-muted/30 to-transparent dark:from-muted/20" />
         )}
       </div>
 

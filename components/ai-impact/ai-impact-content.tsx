@@ -22,7 +22,7 @@ import { AI_IMPACT_COPY, type Lang } from "@/lib/state/ai-impact-copy";
 
 /** Shared link classes, so the three CTAs cannot drift apart. */
 const CTA_CLASS =
-  "inline-flex h-11 items-center justify-center rounded-[0.25rem] bg-foreground px-6 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-6 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 function BookingCta({ label }: { label: string }) {
   return (
@@ -101,7 +101,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                   cannot read as a competing button. */}
               <a
                 href="#audit"
-                className="inline-flex min-h-[44px] items-center rounded-[0.15rem] font-mono text-[0.75rem] text-muted-foreground uppercase tracking-[0.14em] transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex min-h-[44px] items-center rounded-[0.15rem] font-mono text-[0.75rem] text-muted-foreground uppercase tracking-[0.14em] transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.jumpLabel}{" "}
                 <span aria-hidden="true" className="ml-1.5">
@@ -180,7 +180,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               so it is the only one with a filled surface: the same tinted panel
               /business uses for its booking block, at a larger inset and with
               the section heading pulled inside it. No new token, no new size. */}
-          <section className="rounded-[0.35rem] border border-brand/25 bg-brand/[0.05] p-6 sm:p-8">
+          <section className="rounded-[0.35rem] border border-brand/25 bg-brand/5 p-6 sm:p-8">
             <H2>{t.measurement.heading}</H2>
             <div className="flex flex-col gap-8">
               {t.measurement.blocks.map((block) => (
@@ -241,7 +241,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                   key={item.question}
                   className="group border-border border-b"
                 >
-                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 py-4 font-serif text-[1.2rem] text-foreground leading-snug transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 py-4 font-serif text-[1.2rem] text-foreground leading-snug transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background [&::-webkit-details-marker]:hidden">
                     {item.question}
                     <span
                       aria-hidden="true"
@@ -277,7 +277,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
                 {t.close.emailLabel}:{" "}
                 <a
                   href={`mailto:${SITE.contact.email}`}
-                  className="text-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="text-foreground transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   itemProp="email"
                 >
                   {SITE.contact.email}
@@ -285,7 +285,7 @@ export function AiImpactContent({ lang }: { lang: Lang }) {
               </span>
               <a
                 href={t.markdownHref}
-                className="w-fit text-muted-foreground text-xs transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="w-fit text-muted-foreground text-xs transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.markdownLabel}
               </a>

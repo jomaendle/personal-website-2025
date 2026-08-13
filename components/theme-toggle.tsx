@@ -58,7 +58,7 @@ export function ThemeToggle() {
           framer-motion AnimatePresence pair, which was the only thing keeping
           framer in the critical bundle of every page. Same 300ms spin, minus
           the exit choreography nobody could see at this size. */}
-      <span className="grid size-5 place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
+      <span className="grid size-5 place-items-center *:col-start-1 *:row-start-1">
         <Moon
           aria-hidden="true"
           className={`h-5 w-5 transition-transform duration-300 ease-in-out motion-reduce:transition-none ${

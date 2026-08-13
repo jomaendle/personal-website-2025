@@ -45,7 +45,7 @@ export const NameHeading = ({
               href={item.href}
               // min-h-[44px] for the WCAG 2.5.8 tap target, the same way
               // PageTopBar sizes these links.
-              className="inline-flex min-h-[44px] items-center transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex min-h-[44px] items-center transition-colors hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {item.label}
             </Link>

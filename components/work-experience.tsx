@@ -43,7 +43,7 @@ export function WorkExperience() {
                 <H3 className="flex flex-wrap items-center">
                   {experience.title}
                   {experience.isExternal ? (
-                    <ExternalLinkIcon className="ml-2 inline-block size-3 flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <ExternalLinkIcon className="ml-2 inline-block size-3 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   ) : null}
                   {/* Muted, not brand: the tag is a caveat on the row, so it
                       must not compete with the title it qualifies. It sits

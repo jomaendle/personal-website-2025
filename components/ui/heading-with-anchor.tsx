@@ -44,13 +44,16 @@ export function HeadingWithAnchor({
     }
   }, [headingId]);
 
-  // Base styles for different heading levels (matching existing H2/H3 components)
+  // Typography for these headings is owned by `.prose h2/h3` in globals.css
+  // plus editorial-theme.css. Under Tailwind 3 this helper also carried
+  // utility classes (text-sm, font-extrabold, …) that silently LOST to
+  // `.prose h2` on specificity — dead code. Tailwind 4 puts utilities in a
+  // native cascade layer that beats base styles regardless of specificity,
+  // so those same classes suddenly applied and shrank every article heading.
+  // Only the classes that were actually in effect remain.
   const getHeadingStyles = () => {
-    if (level === 2) {
-      return "text-sm tracking-wider text-muted-foreground mb-4";
-    }
     if (level === 3) {
-      return "text-foreground font-extrabold group-hover:text-underline transition-colors";
+      return "transition-colors";
     }
     return "";
   };

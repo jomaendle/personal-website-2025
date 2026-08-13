@@ -1,3 +1,5 @@
+@reference "../../globals.css";
+
 @property --focal-size {
   syntax: "<length-percentage>";
   initial-value: 100%;

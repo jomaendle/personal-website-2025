@@ -27,7 +27,7 @@ export const ReadMoreArticles = ({ currentSlug }: { currentSlug: string }) => {
               href={`/blog/${article.slug}`}
               className="ledger-row group flex items-center gap-4 border-border border-b px-3 py-4"
             >
-              <span className="hidden w-[96px] shrink-0 font-mono text-brand text-xs uppercase tracking-[0.05em] sm:block">
+              <span className="hidden w-[96px] shrink-0 font-mono text-brand text-xs uppercase tracking-wider sm:block">
                 {categoryFor(article.slug)}
               </span>
               <div className="flex-1">

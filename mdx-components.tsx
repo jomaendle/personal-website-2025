@@ -35,7 +35,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         // biome-ignore lint/a11y/noNoninteractiveTabindex: the tab stop is the point — a keyboard-only reader can't scroll the overflow container without it, and the aria-label names it (WAI scrollable-region pattern)
         tabIndex={0}
         aria-label="Table"
-        className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="overflow-x-auto focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <table {...props}>{children}</table>
       </section>

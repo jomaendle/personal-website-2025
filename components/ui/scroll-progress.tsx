@@ -57,7 +57,7 @@ export const ScrollProgress = ({
         else if (ref) ref.current = node;
       }}
       className={cn(
-        "fixed inset-x-0 top-0 z-[101] h-0.5 origin-left bg-brand",
+        "fixed inset-x-0 top-0 z-101 h-0.5 origin-left bg-brand",
         className,
       )}
       // scaleX(0) before the first measurement, so the bar can never flash

@@ -55,7 +55,8 @@ export default function NewsletterForm() {
       const timeoutId = setTimeout(() => setStatus("idle"), 5000);
       return () => clearTimeout(timeoutId);
     }
-    return;
+    // noImplicitReturns wants every path explicit about its (missing) cleanup
+    return undefined;
   }, [status]);
 
   const isLoading = useMemo(() => status === "loading", [status]);
@@ -97,7 +98,7 @@ export default function NewsletterForm() {
           disabled={isLoading}
           // Same CTA language as the /business submit button: ink fill, mono
           // uppercase label, h-11 — the one height every form CTA now shares.
-          className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-lg bg-foreground px-8 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
         >
           <span className="inline-flex items-center gap-1">
             {isLoading ? (
@@ -122,7 +123,7 @@ export default function NewsletterForm() {
           reserves no vertical space. */}
       <p role="status" aria-live="polite">
         {status === "success" && (
-          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-[0.25rem] border border-brand bg-brand/5 px-4 py-3 text-foreground text-sm opacity-100">
+          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-lg border border-brand bg-brand/5 px-4 py-3 text-foreground text-sm opacity-100">
             Thanks for subscribing. You&apos;ll get an email shortly.
           </span>
         )}
@@ -130,7 +131,7 @@ export default function NewsletterForm() {
 
       <p role="alert">
         {status === "error" && (
-          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-[0.25rem] border border-destructive bg-destructive/5 px-4 py-3 text-foreground text-sm opacity-100">
+          <span className="motion-preset-slide-down-md motion-opacity-in-0 mt-3 block rounded-lg border border-destructive bg-destructive/5 px-4 py-3 text-foreground text-sm opacity-100">
             {errorMessage || "Failed to subscribe. Please try again."}
           </span>
         )}

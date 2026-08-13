@@ -53,7 +53,7 @@ export function BackToTop() {
             onClick={scrollToTop}
             size="sm"
             variant="outline"
-            className="group h-12 w-12 rounded-full border-border bg-background/80 p-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:bg-accent"
+            className="group h-12 w-12 rounded-full border-border bg-background/80 p-0 shadow-lg backdrop-blur-xs transition-all duration-200 hover:bg-accent"
             aria-label="Back to top"
           >
             <m.svg

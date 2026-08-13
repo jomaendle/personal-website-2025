@@ -82,7 +82,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <a
                 href="#engage"
-                className="inline-flex h-11 items-center justify-center rounded-[0.25rem] bg-foreground px-6 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-6 font-mono text-[0.75rem] text-background uppercase tracking-[0.14em] transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.ctaPrimary}
               </a>
@@ -90,7 +90,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 href={SITE.contact.booking}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center justify-center rounded-[0.25rem] border border-border px-6 font-mono text-[0.75rem] text-foreground uppercase tracking-[0.14em] transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-6 font-mono text-[0.75rem] text-foreground uppercase tracking-[0.14em] transition-colors hover:border-brand hover:text-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.hero.ctaSecondary}
                 <span className="sr-only"> (opens in new window)</span>
@@ -103,12 +103,12 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             <H2>{t.clients.heading}</H2>
             {/* Each client jumps to its own case study below, so the strip is a
               way in rather than a dead list of names. */}
-            <div className="flex flex-wrap items-center gap-x-3 font-mono text-[0.8rem] text-muted-foreground uppercase tracking-[0.1em]">
+            <div className="flex flex-wrap items-center gap-x-3 font-mono text-[0.8rem] text-muted-foreground uppercase tracking-widest">
               {CLIENTS.map((client, i) => (
                 <span key={client.id} className="whitespace-nowrap">
                   <a
                     href={client.anchor}
-                    className="inline-flex min-h-[36px] items-center underline decoration-border decoration-from-font underline-offset-[6px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="inline-flex min-h-[36px] items-center underline decoration-border decoration-from-font underline-offset-[6px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     {client.name}
                   </a>
@@ -156,7 +156,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               {t.services.note}{" "}
               <Link
                 href={t.services.noteHref}
-                className="text-foreground underline decoration-border decoration-from-font underline-offset-[5px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="text-foreground underline decoration-border decoration-from-font underline-offset-[5px] transition-colors hover:text-brand hover:decoration-brand focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.services.noteLinkLabel}
               </Link>
@@ -223,7 +223,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                       href={project.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group inline-flex items-baseline gap-1.5 rounded-[0.15rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="group inline-flex items-baseline gap-1.5 rounded-[0.15rem] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       itemProp="url"
                     >
                       <H3 itemProp="name">{project.title}</H3>
@@ -265,7 +265,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                     {project.stack?.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground uppercase tracking-[0.1em]"
+                        className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground uppercase tracking-widest"
                       >
                         {tag}
                       </span>
@@ -324,7 +324,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
               panel so the lower-commitment path is visible to someone who
               won't fill in a form — but kept as an outlined button so it does
               not compete with the form's solid ink submit directly above. */}
-            <div className="mt-10 flex flex-col gap-5 rounded-[0.35rem] border border-brand/25 bg-brand/[0.05] p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
+            <div className="mt-10 flex flex-col gap-5 rounded-[0.35rem] border border-brand/25 bg-brand/5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
               <div>
                 <H3 interactive={false}>{t.engage.bookingTitle}</H3>
                 <p className="mt-1.5 text-[0.95rem] text-muted-foreground">
@@ -335,7 +335,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                 href={SITE.contact.booking}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 shrink-0 items-center justify-center rounded-[0.25rem] border border-brand/50 px-7 font-mono text-[0.75rem] text-brand uppercase tracking-[0.14em] transition-colors hover:bg-brand hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-lg border border-brand/50 px-7 font-mono text-[0.75rem] text-brand uppercase tracking-[0.14em] transition-colors hover:bg-brand hover:text-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {t.engage.bookingCta}
                 <span className="sr-only"> (opens in new window)</span>

@@ -18,7 +18,7 @@ const ScrollButton = ({
 }) => (
   <button
     type="button"
-    className={`absolute flex h-10 w-10 items-center justify-center rounded-full bg-neutral-700 text-white text-xl shadow ${position} ${className}`}
+    className={`absolute flex h-10 w-10 items-center justify-center rounded-full bg-neutral-700 text-white text-xl shadow-sm ${position} ${className}`}
     aria-label={ariaLabel}
     style={{ zIndex: 1, ...style }}
     tabIndex={0}
@@ -110,7 +110,7 @@ const HorizontalView = () => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: static decorative mock boxes; the list never reorders and colors repeat
             key={`${bg}-${i}`}
-            className={`h-10 w-12 flex-shrink-0 rounded-lg sm:w-16 ${bg}`}
+            className={`h-10 w-12 shrink-0 rounded-lg sm:w-16 ${bg}`}
           />
         ))}
       </div>
@@ -143,7 +143,7 @@ const HorizontalView = () => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: static decorative mock boxes; the list never reorders and colors repeat
             key={`${bg}-${i}`}
-            className={`h-10 w-12 flex-shrink-0 rounded-lg sm:w-16 ${bg}`}
+            className={`h-10 w-12 shrink-0 rounded-lg sm:w-16 ${bg}`}
           />
         ))}
       </div>

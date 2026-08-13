@@ -83,7 +83,7 @@ export default function MdxLayout({
                 <main id="main-content">, all three inside .glass-container.
                 Nesting either one inside <main> costs it its implicit
                 banner/contentinfo role. */}
-            <header className="z-[51] flex h-24 items-center justify-center gap-12">
+            <header className="z-51 flex h-24 items-center justify-center gap-12">
               <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
                 <div className="absolute left-0 z-10 xl:hidden">
                   <BackLink />
@@ -106,7 +106,7 @@ export default function MdxLayout({
                 {/* Editorial meta header */}
                 <div className="mb-10 flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 font-mono text-muted-foreground text-xs uppercase tracking-[0.05em]">
+                    <div className="flex items-center gap-3 font-mono text-muted-foreground text-xs uppercase tracking-wider">
                       <span className="text-brand">{categoryFor(slug)}</span>
                       <span aria-hidden="true">·</span>
                       <time dateTime={metadata.date}>{metadata.date}</time>

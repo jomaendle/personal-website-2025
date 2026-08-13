@@ -121,6 +121,17 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noUselessUndefined": "off",
+            "noUselessReturn": "off"
+          }
+        }
+      }
     }
   ]
 }

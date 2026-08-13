@@ -95,7 +95,7 @@ export default function RootLayout({
           />
         </head>
         <body
-          className="min-h-[100dvh] font-sans text-foreground antialiased"
+          className="min-h-dvh font-sans text-foreground antialiased"
           style={{
             fontFamily:
               "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
@@ -108,7 +108,7 @@ export default function RootLayout({
               landmarks. */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-200 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-hidden focus:ring-2 focus:ring-brand"
           >
             Skip to content
           </a>

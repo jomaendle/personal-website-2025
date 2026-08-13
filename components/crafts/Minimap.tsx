@@ -40,13 +40,11 @@ export function Minimap() {
   const isInteractingRef = useRef(false);
 
   // Marker components with optimized rendering
-  const marker = <div className="marker h-6 w-[1px] bg-foreground/50"></div>;
+  const marker = <div className="marker h-6 w-px bg-foreground/50"></div>;
   const largerMarker = (
-    <div className="marker h-10 w-[1px] bg-foreground/80"></div>
+    <div className="marker h-10 w-px bg-foreground/80"></div>
   );
-  const largestMarker = (
-    <div className="marker h-20 w-[1px] bg-foreground"></div>
-  );
+  const largestMarker = <div className="marker h-20 w-px bg-foreground"></div>;
 
   // Cache marker positions - called on mount and resize
   const cacheMarkerPositions = useCallback(() => {
@@ -304,7 +302,7 @@ export function Minimap() {
         </svg>
         <div
           ref={currentMarkerLineRef}
-          className="absolute z-0 w-[1px]"
+          className="absolute z-0 w-px"
           style={{
             top: "-12px",
             bottom: "-50vh",
