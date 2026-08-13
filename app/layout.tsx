@@ -12,9 +12,6 @@ import {
 } from "@/components/structured-data";
 import { MotionProvider } from "./providers";
 
-// Note: Using system fonts for build compatibility
-// In production with network access, restore: import { Inter } from "next/font/google";
-
 const ogImageDescription = encodeURIComponent(
   "Full-stack engineer writing about the web platform and building software with AI.",
 );
@@ -94,13 +91,10 @@ export default function RootLayout({
             crossOrigin="anonymous"
           />
         </head>
-        <body
-          className="min-h-dvh font-sans text-foreground antialiased"
-          style={{
-            fontFamily:
-              "'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-          }}
-        >
+        {/* `font-sans` resolves to the Geist stack via --font-sans (globals.css
+            @theme). The inline fontFamily this class used to need — from when
+            the token wasn't wired up — is gone. */}
+        <body className="min-h-dvh font-sans text-foreground antialiased">
           {/* Each route owns its own `<main id="main-content">`, and it has to
               start below the PageTopBar and above the Footer. Wrapping the
               whole page in it instead makes this link jump to a point above the
