@@ -54,9 +54,11 @@ export function ContactForm() {
 
   return (
     <div className="my-8 rounded-lg border border-border bg-card px-6 pb-6">
-      <h2 className="my-4 font-semibold text-foreground text-xl">
-        Get in touch
-      </h2>
+      {/* Styled entirely by .prose h2 + the editorial theme. The utilities
+          that used to sit here (my-4, text-xl, font-semibold) were dead code
+          under Tailwind 3 — .prose h2 beat them on specificity — and v4's
+          utility layer suddenly made them win, shrinking the heading. */}
+      <h2>Get in touch</h2>
 
       {/* Bordered panels rather than coloured text — see newsletter.tsx and
           business/inquiry-form.tsx: colour carries the border and wash only. */}
