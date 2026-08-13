@@ -5,12 +5,11 @@ import { ViewTransitions } from "next-view-transitions";
 import PlausibleProvider from "next-plausible";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
-import { Provider as JotaiProvider } from "jotai";
 import {
   PersonStructuredData,
   WebsiteStructuredData,
 } from "@/components/structured-data";
-import { ReactQueryProvider } from "./providers";
+import { MotionProvider } from "./providers";
 import { Analytics } from "@vercel/analytics/next";
 
 // Note: Using system fonts for build compatibility
@@ -82,9 +81,9 @@ export default function RootLayout({
           {/* Preload critical fonts */}
           <link
             rel="preload"
-            href="/fonts/GeistVF.woff"
+            href="/fonts/GeistVF.woff2"
             as="font"
-            type="font/woff"
+            type="font/woff2"
             crossOrigin="anonymous"
           />
           <link
@@ -113,24 +112,22 @@ export default function RootLayout({
           >
             Skip to content
           </a>
-          <ReactQueryProvider>
-            <JotaiProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem={true}
-                enableColorScheme={true}
-                storageKey="theme"
-              >
-                <PlausibleProvider domain="jomaendle.com">
-                  {children}
-                </PlausibleProvider>
-                <SpeedInsights />
-                <PersonStructuredData />
-                <WebsiteStructuredData />
-              </ThemeProvider>
-            </JotaiProvider>
-          </ReactQueryProvider>
+          <MotionProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem={true}
+              enableColorScheme={true}
+              storageKey="theme"
+            >
+              <PlausibleProvider domain="jomaendle.com">
+                {children}
+              </PlausibleProvider>
+              <SpeedInsights />
+              <PersonStructuredData />
+              <WebsiteStructuredData />
+            </ThemeProvider>
+          </MotionProvider>
           <Analytics />
         </body>
       </html>

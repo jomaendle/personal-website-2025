@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAtom } from "jotai";
 import { Link } from "next-view-transitions";
 import { BLOG_POSTS } from "@/lib/state/blog";
-import {
-  sidebarMorePostsOpenAtom,
-  sidebarOnThisPageOpenAtom,
-  tocAutoExpandEnabledAtom,
-} from "@/lib/state/sidebar";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useDomHeadings, useIsMounted } from "@/lib/hooks";
+import {
+  useDomHeadings,
+  useIsMounted,
+  useLocalStorageState,
+} from "@/lib/hooks";
 
 interface SidebarNavigationProps {
   currentSlug: string;
@@ -21,14 +19,17 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   const tocItems = useDomHeadings();
   const isMounted = useIsMounted();
   const [activeId, setActiveId] = useState<string>("");
-  const [isMorePostsOpen, setIsMorePostsOpen] = useAtom(
-    sidebarMorePostsOpenAtom,
+  const [isMorePostsOpen, setIsMorePostsOpen] = useLocalStorageState(
+    "sidebar-more-posts-open",
+    true, // Default: More Posts section is open
   );
-  const [isOnThisPageOpen, setIsOnThisPageOpen] = useAtom(
-    sidebarOnThisPageOpenAtom,
+  const [isOnThisPageOpen, setIsOnThisPageOpen] = useLocalStorageState(
+    "sidebar-on-this-page-open",
+    false, // Default: On This Page section is closed
   );
-  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useAtom(
-    tocAutoExpandEnabledAtom,
+  const [tocAutoExpandEnabled, setTocAutoExpandEnabled] = useLocalStorageState(
+    "sidebar-toc-auto-expand",
+    true, // Default: allow auto-expansion for new visitors
   );
 
   const currentBlogPosts = useMemo(() => {
@@ -85,7 +86,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
   }
 
   return (
-    <motion.aside
+    <m.aside
       className="glass-container motion-preset-slide-up-sm flex h-full flex-col gap-4 overflow-y-auto px-2 py-4 text-sm"
       style={{
         scrollbarGutter: "stable",
@@ -116,7 +117,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
           <div id="sidebar-toc-panel">
             <AnimatePresence>
               {isOnThisPageOpen && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -126,7 +127,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                   <div className="space-y-2 pt-2">
                     <div className="flex flex-col space-y-1">
                       {tocItems.map((item, index) => (
-                        <motion.div
+                        <m.div
                           key={item.id}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -150,11 +151,11 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                           >
                             {item.title}
                           </Link>
-                        </motion.div>
+                        </m.div>
                       ))}
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -180,7 +181,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
         <div id="sidebar-more-posts-panel">
           <AnimatePresence>
             {isMorePostsOpen && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -190,7 +191,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                 <div className="space-y-2 pt-2">
                   <div className="flex flex-col gap-3">
                     {currentBlogPosts.map((post, index) => (
-                      <motion.article
+                      <m.article
                         key={index}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -217,15 +218,15 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                             </p>
                           </div>
                         </Link>
-                      </motion.article>
+                      </m.article>
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </motion.aside>
+    </m.aside>
   );
 }
