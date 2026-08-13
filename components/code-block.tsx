@@ -3,19 +3,19 @@
 import React, { useEffect, useId, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useTheme } from "next-themes";
 
 /**
- * `react-syntax-highlighter`'s Prism build carries every bundled grammar, which
- * is ~620kB raw. Imported at module scope it landed in the eager chunk and made
- * the heaviest article route roughly twice the size of every other page. Loading
- * it through `next/dynamic` moves it into its own chunk fetched when a code
- * block actually renders. `ssr: false` costs nothing here: the component already
- * returns a placeholder until the theme resolves client-side.
+ * PrismLight with hand-registered grammars (see syntax-highlighter.tsx) instead
+ * of the full Prism build, which carries every bundled grammar (~1.5MB raw) and
+ * used to be fetched in full on any article with a code block. `next/dynamic`
+ * keeps it in its own chunk fetched when a code block actually renders.
+ * `ssr: false` costs nothing here: the component already returns a placeholder
+ * until the theme resolves client-side.
  */
 const SyntaxHighlighter = dynamic(
-  () => import("react-syntax-highlighter").then((m) => m.Prism),
+  () => import("@/components/syntax-highlighter"),
   { ssr: false },
 );
 
@@ -41,16 +41,19 @@ export function CodeBlock({
   > | null>(null);
   const { resolvedTheme } = useTheme();
 
-  // Lazy load syntax highlighter themes based on current theme
+  // Lazy load syntax highlighter themes based on current theme. Import the
+  // concrete theme modules — the styles/prism barrel bundles all ~50 themes.
   useEffect(() => {
     const loadTheme = async () => {
       if (resolvedTheme === "light") {
-        const { oneLight } =
-          await import("react-syntax-highlighter/dist/esm/styles/prism");
+        const { default: oneLight } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism/one-light"
+        );
         setSyntaxTheme(oneLight);
       } else {
-        const { oneDark } =
-          await import("react-syntax-highlighter/dist/esm/styles/prism");
+        const { default: oneDark } = await import(
+          "react-syntax-highlighter/dist/esm/styles/prism/one-dark"
+        );
         setSyntaxTheme(oneDark);
       }
     };
@@ -118,7 +121,7 @@ export function CodeBlock({
       >
         <AnimatePresence mode="wait">
           {copied ? (
-            <motion.svg
+            <m.svg
               key="check"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -134,9 +137,9 @@ export function CodeBlock({
                 strokeWidth={2}
                 d="M5 13l4 4L19 7"
               />
-            </motion.svg>
+            </m.svg>
           ) : (
-            <motion.svg
+            <m.svg
               key="copy"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -152,7 +155,7 @@ export function CodeBlock({
                 strokeWidth={2}
                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
               />
-            </motion.svg>
+            </m.svg>
           )}
         </AnimatePresence>
       </Button>
@@ -182,7 +185,7 @@ export function CodeBlock({
           className="flex w-full items-center justify-center gap-2 border-t border-border/50 bg-muted/20 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
         >
           <span>{isOpen ? "Collapse" : "Expand"}</span>
-          <motion.svg
+          <m.svg
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
             className="h-4 w-4"
@@ -196,7 +199,7 @@ export function CodeBlock({
               strokeWidth={2}
               d="M19 9l-7 7-7-7"
             />
-          </motion.svg>
+          </m.svg>
         </button>
       )}
     </div>
