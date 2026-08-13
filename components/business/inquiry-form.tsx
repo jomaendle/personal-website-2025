@@ -3,11 +3,9 @@
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { H3 } from "@/components/ui/heading";
+import { isValidEmail } from "@/lib/email-validation";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
-
 import { cn } from "@/lib/utils";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * InquiryForm — Editorial design layer.
@@ -105,7 +103,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
   const validate = (): FieldErrors => {
     const errors: FieldErrors = {};
     if (values.name.trim().length < 2) errors.name = t.errors.name;
-    if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = t.errors.email;
+    if (!isValidEmail(values.email.trim())) errors.email = t.errors.email;
     if (values.message.trim().length < 10) errors.message = t.errors.message;
     return errors;
   };

@@ -2,7 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -18,13 +18,20 @@ interface ViewsResponse {
 let allViewsPromise: Promise<ViewsResponse[]> | null = null;
 
 function fetchAllViews(): Promise<ViewsResponse[]> {
-  allViewsPromise ??= fetch("/api/list-view-count").then((res) => {
-    if (!res.ok) {
-      allViewsPromise = null; // allow a retry on the next mount
-      throw new Error(`Failed to load view counts: ${res.statusText}`);
-    }
-    return res.json() as Promise<ViewsResponse[]>;
-  });
+  allViewsPromise ??= fetch("/api/list-view-count")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Failed to load view counts: ${res.statusText}`);
+      }
+      return res.json() as Promise<ViewsResponse[]>;
+    })
+    .catch((err) => {
+      // Drop the cached promise on ANY failure — HTTP error or network-level
+      // rejection — so the next mount retries instead of replaying the same
+      // rejection for the rest of the session.
+      allViewsPromise = null;
+      throw err;
+    });
   return allViewsPromise;
 }
 
@@ -41,13 +48,17 @@ export function ViewCounter({
 }) {
   const [views, setViews] = useState<number | null>(null);
   const [hasError, setHasError] = useState(false);
+  // Once the increment response lands, the (possibly cached, pre-increment)
+  // list response must not overwrite it — the old react-query code had the
+  // same precedence via `incrementedData?.views ?? allViews`.
+  const hasIncrementedValue = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
 
     fetchAllViews()
       .then((all) => {
-        if (!cancelled) {
+        if (!(cancelled || hasIncrementedValue.current)) {
           setViews(all.find((item) => item.slug === slug)?.views ?? 0);
         }
       })
@@ -79,6 +90,7 @@ export function ViewCounter({
       .then((res) => (res.ok ? res.json() : null))
       .then((data: ViewsResponse | null) => {
         if (data?.views) {
+          hasIncrementedValue.current = true;
           setViews(data.views);
         }
       })

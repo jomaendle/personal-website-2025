@@ -129,7 +129,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
             <H2>{t.pitch.heading}</H2>
             <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               {t.pitch.paragraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+                <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
           </section>

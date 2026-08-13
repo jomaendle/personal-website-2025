@@ -26,7 +26,7 @@ export const FocusZoomAtProperty = () => {
 
     const { x, y } = preview.getBoundingClientRect();
 
-    window.addEventListener("pointermove", (e) => {
+    const onPointerMove = (e: PointerEvent) => {
       if (
         (e.clientX < x ||
           e.clientX > x + preview.clientWidth ||
@@ -44,12 +44,26 @@ export const FocusZoomAtProperty = () => {
         spotlightRef.current?.style.setProperty("--mouse-x", `${newX}px`);
         spotlightRef.current?.style.setProperty("--mouse-y", `${newY}px`);
       });
-    });
+    };
+    const onKey = (e: KeyboardEvent) => toggleSpotlight(e.altKey);
+    const onTouchStart = () => toggleSpotlight(true);
+    const onTouchEnd = () => toggleSpotlight(false);
 
-    window.addEventListener("keydown", (e) => toggleSpotlight(e.altKey));
-    window.addEventListener("keyup", (e) => toggleSpotlight(e.altKey));
-    window.addEventListener("touchstart", () => toggleSpotlight(true));
-    window.addEventListener("touchend", () => toggleSpotlight(false));
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("keyup", onKey);
+    window.addEventListener("touchstart", onTouchStart);
+    window.addEventListener("touchend", onTouchEnd);
+
+    // Without this cleanup every visit to the article stacked another five
+    // window-level listeners for the rest of the SPA session.
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   return (

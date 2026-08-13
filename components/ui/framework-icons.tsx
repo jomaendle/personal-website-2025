@@ -98,7 +98,7 @@ export const AstroIcon = ({ className = "", size = 20 }: IconProps) => (
     <svg
       width={size}
       height={size * 1.2}
-      className={`${className}hidden dark:block`}
+      className={`${className} hidden dark:block`}
       viewBox="0 0 85 107"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -135,7 +135,7 @@ export const AstroIcon = ({ className = "", size = 20 }: IconProps) => (
       width={size}
       height={size * 1.2}
       viewBox="0 0 85 107"
-      className={`${className}dark:hidden`}
+      className={`${className} dark:hidden`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Astro Logo"
