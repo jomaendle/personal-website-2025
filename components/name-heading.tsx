@@ -33,7 +33,7 @@ export const NameHeading = ({
   jobTitle?: string;
 }) => {
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="flex flex-col gap-8 sm:gap-10">
       <div className="flex items-center justify-end gap-5">
         <nav
           aria-label="Primary"

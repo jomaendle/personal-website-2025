@@ -63,7 +63,7 @@ export default function MdxLayout({
         />
       )}
 
-      <div className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 py-16 sm:px-6 xl:max-w-[1072px]">
+      <div className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 pt-6 pb-16 sm:px-6 sm:pt-16 xl:max-w-[1072px]">
         <div className="flex justify-center gap-16">
           <aside
             className="sticky top-[100px] hidden 3xl:w-[300px] w-[240px] shrink-0 flex-col gap-6 self-start xl:flex"
@@ -83,7 +83,7 @@ export default function MdxLayout({
                 <main id="main-content">, all three inside .glass-container.
                 Nesting either one inside <main> costs it its implicit
                 banner/contentinfo role. */}
-            <header className="z-51 flex h-24 items-center justify-center gap-12">
+            <header className="z-51 flex h-16 items-center justify-center gap-12 sm:h-24">
               <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
                 <div className="absolute left-0 z-10 xl:hidden">
                   <BackLink />
