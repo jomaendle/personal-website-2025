@@ -83,8 +83,13 @@ export default function MdxLayout({
                 <main id="main-content">, all three inside .glass-container.
                 Nesting either one inside <main> costs it its implicit
                 banner/contentinfo role. */}
-            <header className="z-51 flex h-16 items-center justify-center gap-12 sm:h-24">
-              <div className="relative flex w-full max-w-3xl items-center justify-center p-6 md:px-11 lg:px-24">
+            {/* Exactly 44px tall with no vertical padding: every page's top bar
+                (home masthead nav, /blog, /about) is a 44px row at the same
+                container offset, and the toggle must sit on the same line
+                site-wide. A taller centered box here pushed the article bar
+                10-26px below the shared baseline. */}
+            <header className="z-51 flex h-11 items-center justify-center gap-12">
+              <div className="relative flex w-full max-w-3xl items-center justify-center px-6 md:px-11 lg:px-24">
                 <div className="absolute left-0 z-10 xl:hidden">
                   <BackLink />
                 </div>
