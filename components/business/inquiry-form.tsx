@@ -1,12 +1,13 @@
 "use client";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { H3 } from "@/components/ui/heading";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
+
 import { cn } from "@/lib/utils";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * InquiryForm — Editorial design layer.
