@@ -14,7 +14,6 @@ export default function UltrathinkTerminal() {
     { char: "k", className: "text-yellow-500 dark:text-[#fdef93]" },
   ];
 
-
   return (
     <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-1 py-0.5 font-mono text-sm shadow-sm">
       <span className="flex items-center tracking-wide">

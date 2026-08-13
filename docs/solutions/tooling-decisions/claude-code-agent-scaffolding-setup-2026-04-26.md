@@ -60,6 +60,7 @@ Encodes four convention groups the agent applies silently on every task:
 Creates all five required artefacts from a slug and title:
 
 **Step 1** — register in `lib/state/blog.ts`:
+
 ```ts
 export const MY_POST_CONSTANT = {
   title: "The Post Title",
@@ -67,9 +68,11 @@ export const MY_POST_CONSTANT = {
   slug: "the-post-slug",
 };
 ```
+
 Add `MY_POST_CONSTANT` to the `BLOG_POSTS` array. Constant name = slug in SCREAMING_SNAKE_CASE (hyphens → underscores, all caps).
 
 **Step 2** — create `app/blog/[slug]/page.mdx` (single file, all real posts use this pattern):
+
 ```mdx
 import { MY_POST_CONSTANT } from "../../../lib/state/blog";
 import MdxLayout from "../../../components/mdx-layout";
@@ -114,26 +117,32 @@ Output: per-check PASS/FAIL list with exact fix instructions, then "X passed, Y 
 `.claude/settings.json` — stored at project scope so they are committed and apply to every collaborator.
 
 **PreToolUse** blocks writes to `.env` files (exit code 2 cancels the tool call):
+
 ```json
 {
   "matcher": "Edit|Write",
-  "hooks": [{
-    "type": "command",
-    "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && if echo \"$FILE\" | grep -qE '\\.env'; then echo 'Blocked: direct edits to .env files are not allowed — edit them manually' && exit 2; fi"
-  }]
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && if echo \"$FILE\" | grep -qE '\\.env'; then echo 'Blocked: direct edits to .env files are not allowed — edit them manually' && exit 2; fi"
+    }
+  ]
 }
 ```
 
 Note: `grep -qE '\\.env'` matches any path containing `.env` (e.g. `some.env.config.js`), not only root-level dotenv files. This is intentionally broad — it prevents writes to any file with `.env` in the name. If the codebase ever introduces files with `.env` in their names that the agent should be able to edit, the pattern needs to be tightened (e.g. `grep -qE '(^|/)\.env(\.|$)'`).
 
 **PostToolUse** auto-formats every written file with Prettier (`|| true` ensures a Prettier failure never blocks the agent):
+
 ```json
 {
   "matcher": "Edit|Write",
-  "hooks": [{
-    "type": "command",
-    "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && [ -n \"$FILE\" ] && npx prettier --write \"$FILE\" 2>/dev/null || true"
-  }]
+  "hooks": [
+    {
+      "type": "command",
+      "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty') && [ -n \"$FILE\" ] && npx prettier --write \"$FILE\" 2>/dev/null || true"
+    }
+  ]
 }
 ```
 
@@ -142,6 +151,7 @@ Note: `settings.json` is committed (project-scoped); `settings.local.json` is gi
 ### 5. Context7 MCP server (live documentation)
 
 `.mcp.json` at repo root — project-scoped so it is committed and available to all sessions:
+
 ```json
 {
   "mcpServers": {
@@ -171,6 +181,7 @@ The hooks address a different failure mode: **accidental secret exposure**. An a
 Auto-formatting eliminates review friction — generated code that is functionally correct but inconsistently formatted creates noisy diffs.
 
 The combination of:
+
 - conventions skill (passive, always-on → fewer violations created)
 - scaffolding skill (active, eliminates blank-slate errors)
 - validator agent (auditing, actionable feedback after the fact)
@@ -196,12 +207,13 @@ Less necessary when the codebase follows framework conventions exactly, has no r
 **Without agent-ready setup:** Agent creates a new blog post with triple-backtick fences, no `dynamic = "force-static"`, and metadata in MDX frontmatter. Build succeeds, code blocks render incorrectly, page is not statically generated, metadata is silently ignored.
 
 **With skills + validator:**
+
 1. User invokes the `new-blog-post` skill with slug `my-new-post` and title "My New Post"
 2. Agent registers `MY_NEW_POST` in `lib/state/blog.ts` and adds it to `BLOG_POSTS`
 3. Agent creates `app/blog/my-new-post/page.mdx` from the single-file template
 4. Agent creates `public/my-new-post/` directory
-6. User or agent dispatches the `mdx-content-validator` agent on `my-new-post`
-7. Validator confirms all checks pass — or outputs specific line-level fix instructions
+5. User or agent dispatches the `mdx-content-validator` agent on `my-new-post`
+6. Validator confirms all checks pass — or outputs specific line-level fix instructions
 
 The `.env` protection fires silently if the agent ever attempts to write an env file.
 
@@ -210,13 +222,19 @@ The `.env` protection fires silently if the agent ever attempts to write an env 
 **MDX comment syntax**: HTML comments (`<!-- -->`) are invalid in MDX files — MDX requires JSX comment syntax (`{/* */}`). The `content.mdx` starter template initially used HTML comments and caused a build error (`Unexpected character !`). Verify the `new-blog-post` skill template uses `{/* */}` for any comments in the MDX stub. (session history)
 
 **TypeScript `noUncheckedIndexedAccess`**: This project's `tsconfig.json` has `noUncheckedIndexedAccess: true`, meaning every array index access returns `T | undefined`. Agent-generated code that directly indexes arrays without null guards will fail type-checking. Always use a null check when accessing `BLOG_POSTS` by index:
+
 ```ts
 const post = BLOG_POSTS[0];
-if (post) { /* safe */ }
+if (post) {
+  /* safe */
+}
 // or
 const post = BLOG_POSTS.at(0);
-if (post) { /* safe */ }
+if (post) {
+  /* safe */
+}
 ```
+
 The `mdx-content-validator` and `new-blog-post` skill should be tested against this when generating TypeScript. (session history)
 
 ## Related

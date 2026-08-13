@@ -34,13 +34,20 @@ export type Lang = "de" | "en";
  * they are interpolated rather than typed out. Change them here and the page,
  * both mirrors and the JSON-LD follow.
  *
- * `PRICE_FROM` is an entry price, not the fixed price for every engagement:
- * scope moves with headcount and with how much of the Git and CI history is
- * actually queryable.
+ * A flat fixed price, deliberately without an "ab": the scope section pins the
+ * engagement to 50 to 800 developers and four weeks, so the price can be a
+ * commitment rather than an opening position. The figure follows the concept
+ * document behind the page.
+ *
+ * `PRICE_EUR` is the number; the display strings are derived from it, and the
+ * JSON-LD `offers` node in `components/structured-data.tsx` reads it directly.
+ * That keeps the price a single value even though it renders in three shapes.
  */
-const PRICE_FROM = {
-  de: "Festpreis ab 10.000 €",
-  en: "Fixed price from €10,000",
+export const PRICE_EUR = 18000;
+
+const PRICE = {
+  de: `${PRICE_EUR.toLocaleString("de-DE")} € Festpreis`,
+  en: `€${PRICE_EUR.toLocaleString("en-US")} fixed price`,
 };
 const NEXT_SLOT = { de: "September 2026", en: "September 2026" };
 
@@ -201,7 +208,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
     },
     scope: {
       heading: "Umfang und Preis",
-      priceLine: `${PRICE_FROM.de} · 4 Wochen · remote, ein Tag vor Ort optional`,
+      priceLine: `${PRICE.de} · 4 Wochen · remote, ein Tag vor Ort optional`,
       rows: [
         {
           term: "Enthalten",
@@ -346,7 +353,7 @@ export const AI_IMPACT_COPY: Record<Lang, AiImpactCopy> = {
     },
     scope: {
       heading: "Scope and price",
-      priceLine: `${PRICE_FROM.en} · 4 weeks · remote, one day on site optional`,
+      priceLine: `${PRICE.en} · 4 weeks · remote, one day on site optional`,
       rows: [
         {
           term: "Included",

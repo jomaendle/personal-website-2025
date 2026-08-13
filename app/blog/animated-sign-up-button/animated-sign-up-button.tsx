@@ -76,7 +76,7 @@ export function AnimatedSignUpButton() {
         </div>
       </ComponentPreview>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col gap-8 md:flex-row">
         <label className="min-w-[200px]">
           Duration
           <div className="flex items-center gap-2">

@@ -6,10 +6,7 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "animate-pulse rounded-md bg-muted/50",
-        className
-      )}
+      className={cn("animate-pulse rounded-md bg-muted/50", className)}
       {...props}
     />
   );
@@ -17,8 +14,8 @@ function Skeleton({
 
 function SandpackSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn("w-full", className)} 
+    <div
+      className={cn("w-full", className)}
       style={{ contain: "layout style paint" }}
     >
       <div className="flex h-[400px] overflow-hidden rounded-lg border border-border bg-background">
@@ -29,7 +26,7 @@ function SandpackSkeleton({ className }: { className?: string }) {
             <Skeleton className="h-4 w-16" />
           </div>
           {/* Editor Content */}
-          <div className="flex-1 p-4 space-y-2">
+          <div className="flex-1 space-y-2 p-4">
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-4/5" />
             <Skeleton className="h-3 w-3/4" />
@@ -40,7 +37,7 @@ function SandpackSkeleton({ className }: { className?: string }) {
             <Skeleton className="h-3 w-1/2" />
           </div>
         </div>
-        
+
         {/* Preview Side */}
         <div className="flex w-1/2 flex-col border-l border-border">
           {/* Preview Header */}
@@ -63,7 +60,7 @@ function BaselineStatusSkeleton({ className }: { className?: string }) {
       className={cn(
         "relative mb-8 rounded-[.25rem] border border-border bg-card",
         "min-h-[200px] sm:min-h-[160px] md:min-h-[128px]",
-        className
+        className,
       )}
       style={{ contain: "layout style paint" }}
     >

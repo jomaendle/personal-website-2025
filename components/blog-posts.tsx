@@ -60,7 +60,7 @@ const BlogPostItem = memo(
       >
         <MotionLink
           href={"/blog/" + post.slug}
-          className="group flex items-center gap-4 border-b border-border px-3 py-4 ledger-row"
+          className="ledger-row group flex items-center gap-4 border-b border-border px-3 py-4"
           prefetch={false}
         >
           <span className="hidden w-[96px] shrink-0 font-mono text-xs uppercase tracking-[0.05em] text-brand sm:block">
@@ -170,9 +170,15 @@ export function BlogPosts() {
         <motion.div
           layout
           className="mt-6 flex justify-center"
-          transition={{ layout: { duration: ANIMATION_DURATION, ease: "easeInOut" } }}
+          transition={{
+            layout: { duration: ANIMATION_DURATION, ease: "easeInOut" },
+          }}
         >
-          <Button variant="outline" onClick={handleToggle} disabled={isCollapsing}>
+          <Button
+            variant="outline"
+            onClick={handleToggle}
+            disabled={isCollapsing}
+          >
             {showAll ? "Show Less" : "Show More"}
           </Button>
         </motion.div>

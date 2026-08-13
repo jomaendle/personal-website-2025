@@ -43,11 +43,10 @@ const ScrollMarker = ({
       ? "h-4 w-0.5 bg-white/40"
       : "h-0.5 w-6 bg-white/40";
   return orientation === "horizontal" ? (
-    <span
-      className="relative flex flex-col items-center"
-      aria-label={label}
-      aria-orientation={orientation}
-    >
+    // No aria-orientation: the attribute is only valid on widget roles like
+    // scrollbar or listbox, and this span is a diagram label. The visible text
+    // already carries the label for everyone.
+    <span className="relative flex flex-col items-center">
       <span className={markerClass} />
       <span className={lineClass} />
       <span className="mt-2 whitespace-nowrap text-[10px] text-white/80">

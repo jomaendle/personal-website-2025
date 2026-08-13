@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="page-container">
       <div
-        className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
+        className="glass-container mx-auto flex max-w-3xl flex-col gap-10 sm:gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
         {/* The masthead carries the nav, so it is the page banner and has to

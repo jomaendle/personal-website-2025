@@ -2,10 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabaseClient";
 import { withRateLimit } from "@/lib/rate-limit";
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader(
     "Cache-Control",
     "public, s-maxage=10, stale-while-revalidate=59",
@@ -31,5 +28,5 @@ async function handler(
 export default withRateLimit(handler, {
   maxRequests: 60,
   windowMs: 60 * 1000, // 60 requests per minute per IP
-  message: "Too many requests, please try again later"
+  message: "Too many requests, please try again later",
 });

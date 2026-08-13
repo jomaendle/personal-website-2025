@@ -107,8 +107,11 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   return (
     <div className="mt-16">
       <h2 className="mb-6 text-2xl font-bold">Comments</h2>
+      {/* red-700 on the tinted panel, not red-500: over the light theme's
+          cream the 500 measured 3.01:1 against the panel tint, short of the
+          4.5:1 WCAG AA wants for body text. Dark mode keeps a lighter red. */}
       {error ? (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-500">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-700 dark:text-red-400">
           <p>{error}</p>
         </div>
       ) : (

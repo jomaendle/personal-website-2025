@@ -1,6 +1,10 @@
 import Script from "next/script";
 import { SITE } from "@/lib/config/site";
-import { AI_IMPACT_COPY, type Lang } from "@/lib/state/ai-impact-copy";
+import {
+  AI_IMPACT_COPY,
+  PRICE_EUR,
+  type Lang,
+} from "@/lib/state/ai-impact-copy";
 
 interface PersonStructuredData {
   "@context": "https://schema.org";
@@ -280,8 +284,11 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
  * and is read by the AI crawlers `app/robots.ts` admits by name, which is the
  * audience this page is written for.
  *
- * No `offers`: the published price is an entry point ("ab 10.000 €"), and a
- * `PriceSpecification` would state it as the price of every engagement.
+ * The `offers` node carries the price because the page publishes a flat fixed
+ * price. It reads `PRICE_EUR` from the copy module, so the number cannot
+ * drift from what the page and the markdown mirrors display. (An earlier
+ * version priced the audit as an "ab" entry point, which is why `offers` was
+ * initially omitted.)
  */
 export function AiImpactStructuredData({ lang }: { lang: Lang }) {
   const isDe = lang === "de";
@@ -343,6 +350,12 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
             "https://www.linkedin.com/in/johannes-maendle/",
             "https://github.com/jomaendle",
           ],
+        },
+        offers: {
+          "@type": "Offer",
+          price: PRICE_EUR,
+          priceCurrency: "EUR",
+          url,
         },
         potentialAction: {
           "@type": "ReserveAction",

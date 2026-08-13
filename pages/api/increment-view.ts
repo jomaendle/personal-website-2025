@@ -5,14 +5,11 @@ import { withCsrfProtection, composeMiddleware } from "@/lib/csrf-protection";
 
 // Validate slug format: only lowercase letters, numbers, and hyphens
 function isValidSlug(slug: unknown): slug is string {
-  if (typeof slug !== 'string') return false;
+  if (typeof slug !== "string") return false;
   return /^[a-z0-9-]+$/.test(slug) && slug.length <= 100;
 }
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { slug } = req.body;
 
@@ -71,7 +68,9 @@ async function handler(
 
             if (retryError) {
               console.error("Error on retry:", retryError);
-              return res.status(500).json({ error: "Failed to fetch view count" });
+              return res
+                .status(500)
+                .json({ error: "Failed to fetch view count" });
             }
 
             const newViews = retryData.views + 1;
@@ -82,7 +81,9 @@ async function handler(
 
             if (retryUpdateError) {
               console.error("Error updating on retry:", retryUpdateError);
-              return res.status(500).json({ error: "Failed to update view count" });
+              return res
+                .status(500)
+                .json({ error: "Failed to update view count" });
             }
 
             return res.status(200).json({ views: newViews });
@@ -104,13 +105,12 @@ async function handler(
   }
 }
 
-const middleware = composeMiddleware(
-  withCsrfProtection,
-  (h) => withRateLimit(h, {
+const middleware = composeMiddleware(withCsrfProtection, (h) =>
+  withRateLimit(h, {
     maxRequests: 30,
     windowMs: 60 * 1000, // 30 requests per minute per IP
-    message: "Too many requests, please try again later"
-  })
+    message: "Too many requests, please try again later",
+  }),
 );
 
 export default middleware(handler);

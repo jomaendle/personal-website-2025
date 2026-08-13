@@ -36,7 +36,7 @@ function createUnsubscribeToken(email: string): string {
   };
 
   const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString(
-    "base64url"
+    "base64url",
   );
   const signature = createSignature(payloadBase64);
 
@@ -118,7 +118,10 @@ export function verifyUnsubscribeToken(token: string): VerifyResult {
 /**
  * Generates an unsubscribe URL with a signed token.
  */
-export function generateUnsubscribeUrl(email: string, baseUrl: string = "https://www.jomaendle.com"): string {
+export function generateUnsubscribeUrl(
+  email: string,
+  baseUrl: string = "https://www.jomaendle.com",
+): string {
   const token = createUnsubscribeToken(email);
   return `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(token)}`;
 }

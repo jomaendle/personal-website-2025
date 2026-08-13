@@ -3,7 +3,6 @@
 import { FormEvent, useMemo, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { H2 } from "@/components/ui/heading";
-import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 export default function NewsletterForm() {
@@ -88,31 +87,28 @@ export default function NewsletterForm() {
             Enter your email address to subscribe to the newsletter
           </p>
         </div>
-        <motion.button
+        {/* A plain button. The motion.button/AnimatePresence pair it replaces
+            configured a spring but animated no values, so nothing visible is
+            lost, and dropping it takes framer-motion out of every route that
+            renders the newsletter. */}
+        <button
           type="submit"
           disabled={isLoading}
-          transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
-          initial={false}
           // Same CTA language as the /business submit button: ink fill, mono
           // uppercase label, h-11 — the one height every form CTA now shares.
           className="inline-flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-[0.25rem] bg-foreground px-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
         >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={status}
-              className="inline-flex items-center gap-1"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  <span>Subscribing</span>
-                </>
-              ) : (
-                "Subscribe"
-              )}
-            </motion.span>
-          </AnimatePresence>
-        </motion.button>
+          <span className="inline-flex items-center gap-1">
+            {isLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Subscribing</span>
+              </>
+            ) : (
+              "Subscribe"
+            )}
+          </span>
+        </button>
       </form>
 
       {/* Bordered panels rather than coloured text: the old mint/salmon ran at

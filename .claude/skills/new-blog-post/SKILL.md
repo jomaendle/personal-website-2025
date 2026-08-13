@@ -51,6 +51,7 @@ export default function Page({ children }) {
 ```
 
 **Important conventions:**
+
 - Use **relative imports** (`../../../`) — not `@/` aliases. The MDX compiler does not resolve `@/` path aliases.
 - Use `{/* */}` for comments — HTML `<!-- -->` comments are **invalid in MDX** and cause a build error (`Unexpected character !`).
 - `metadata` must include **both** `title` and `date` — `MdxLayout` expects the `date` field.
@@ -64,6 +65,7 @@ Create the directory `public/[slug]/` so assets can be added later.
 ## Step 4 — Report
 
 List the files created/modified:
+
 - `lib/state/blog.ts` (modified — added export + BLOG_POSTS entry)
 - `app/blog/[slug]/page.mdx` (created)
 - `public/[slug]/` (created)

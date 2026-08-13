@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Impressum",
-  description: "Impressum gemäß § 5 TMG.",
+  description: "Impressum gemäß § 5 DDG.",
   alternates: { canonical: "/impressum" },
 };
 
@@ -15,7 +15,7 @@ export default function ImpressumPage() {
   return (
     <div className="page-container">
       <div
-        className="glass-container mx-auto flex max-w-3xl flex-col gap-16"
+        className="glass-container mx-auto flex max-w-3xl flex-col gap-10 sm:gap-16"
         style={{ viewTransitionName: "main-content" }}
       >
         <PageTopBar />
@@ -36,7 +36,7 @@ export default function ImpressumPage() {
             </p>
             <BlogH1>Impressum</BlogH1>
             <p className="text-xs text-muted-foreground">
-              Angaben gemäß § 5 TMG
+              Angaben gemäß § 5 DDG
             </p>
           </section>
 

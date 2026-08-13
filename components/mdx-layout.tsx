@@ -1,13 +1,13 @@
 import { ViewCounter } from "@/components/view-counter";
-import { SidebarNavigation } from "@/components/sidebar-navigation";
+import SidebarNavigation from "@/components/sidebar-navigation-lazy";
 import { Footer } from "@/components/ui/footer";
 import { Link } from "next-view-transitions";
 import Image from "next/image";
 import NewsletterForm from "@/components/newsletter";
 import { ReadMoreArticles } from "@/components/read-more-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { MobileTableOfContents } from "@/components/table-of-contents";
-import { BackToTop } from "@/components/back-to-top";
+import MobileTableOfContents from "@/components/table-of-contents-lazy";
+import BackToTop from "@/components/back-to-top-lazy";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import GiscusComments from "@/components/giscus-comments-lazy";
@@ -133,9 +133,20 @@ export default function MdxLayout({
                 </div>
 
                 <div className="relative -mt-2 mb-8 h-10 xl:hidden">
-                  <div className="absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in">
+                  {/* Visual placeholder only: the real, working button renders
+                      inside MobileTableOfContents on top of this one once the
+                      headings are read from the DOM. Without aria-hidden and
+                      tabIndex={-1} this was a second focusable button in the
+                      tab order that could never be activated, sitting covered
+                      beneath the live one. pointer-events-none keeps it out of
+                      hit testing entirely. */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 h-9 rounded-md border motion-opacity-in"
+                  >
                     <Button
                       variant="outline"
+                      tabIndex={-1}
                       className="w-full justify-between"
                     >
                       On This Page
@@ -157,9 +168,12 @@ export default function MdxLayout({
 
             {/* Same `mx-auto max-w-3xl` wrapper the article content uses, so
                 moving the footer out of <main> changes the landmark tree
-                without changing where it sits on the page. */}
+                without changing where it sits on the page. This is also the
+                only Footer that carries its own top margin: unlike every other
+                route, this container is not a flex column, so there is no
+                parent gap for the footer to sit in. */}
             <div className="mx-auto max-w-3xl">
-              <Footer />
+              <Footer className="mt-16" />
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export default function Error({
 
   return (
     <div className="page-container">
-      <div className="glass-container mx-auto flex max-w-3xl flex-col gap-16">
+      <div className="glass-container mx-auto flex max-w-3xl flex-col gap-10 sm:gap-16">
         <PageTopBar />
 
         <main id="main-content" tabIndex={-1} className="flex flex-col gap-6">

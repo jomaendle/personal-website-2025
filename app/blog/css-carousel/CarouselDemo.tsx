@@ -13,13 +13,13 @@ export const CarouselDemo = () => {
     const images = [img1, img2, img3, img4, img5, img6];
     const imageAlts = [
       "Scenic landscape with mountains",
-      "Forest pathway with autumn colors", 
+      "Forest pathway with autumn colors",
       "Ocean waves on a sandy beach",
       "Urban architecture with modern buildings",
       "Desert landscape with rock formations",
-      "Snowy mountain peaks at sunset"
+      "Snowy mountain peaks at sunset",
     ];
-    
+
     return images.map((image, index) => (
       <li key={index}>
         <Image
@@ -43,7 +43,9 @@ export const CarouselDemo = () => {
       </section>
 
       <section className={style.container}>
-        <h4 className="my-0 px-4 font-medium">With Default Buttons</h4>
+        {/* A <p>, not a heading: the article's outline goes h1 → h2, and an h4
+            inside the demo skipped a level. It is a caption on the demo box. */}
+        <p className="my-0 px-4 font-medium">With Default Buttons</p>
         <p className="px-4 text-sm leading-5">
           This demo uses Anchor positioning to layout the scroll buttons.
         </p>

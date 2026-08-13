@@ -9,7 +9,6 @@ const nextConfig = {
       "framer-motion",
       "lucide-react",
       "@radix-ui/react-slot",
-      "@radix-ui/react-collapsible",
       "@radix-ui/react-tabs",
       "@codesandbox/sandpack-react",
     ],
