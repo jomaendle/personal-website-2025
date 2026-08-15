@@ -4,7 +4,10 @@ import createMDX from "@next/mdx";
 const nextConfig = {
   pageExtensions: ["mdx", "jsx", "js", "ts", "tsx"],
   experimental: {
-    viewTransition: true,
+    // No `viewTransition` flag: Next 16 removed it, and this site never needed
+    // it anyway — navigation transitions come from `next-view-transitions`
+    // (which drives `document.startViewTransition` itself), not from React's
+    // `<ViewTransition>`.
     optimizePackageImports: [
       "framer-motion",
       "lucide-react",
@@ -58,16 +61,11 @@ const nextConfig = {
     ].join("; ");
 
     return [
-      // Immutable Next.js static chunks (hashed JS/CSS)
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
+      // No rule for `/_next/static/:path*`. Next serves its own hashed chunks
+      // as `public,max-age=31536000,immutable` already, so the rule only
+      // duplicated the framework's own header — and Next 16 warns about custom
+      // Cache-Control under `/_next/` because it can break dev behaviour.
+      // Everything below is in `public/`, which gets no automatic caching.
       // Self-hosted fonts
       {
         source: "/fonts/:path*",

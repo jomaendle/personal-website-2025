@@ -164,7 +164,16 @@ export default function MdxLayout({
                 <div className="prose">{children}</div>
 
                 <hr className="my-12" />
-                <GiscusComments slug={slug} />
+                {/* The heading lives here, in server-rendered markup, rather
+                    than inside the comments component: that one is loaded with
+                    `ssr: false`, so anything it owns is absent from the
+                    prerendered HTML and would grow the page when it mounts.
+                    <GiscusComments> carries its own height reservation for the
+                    same reason — see components/giscus-comments-lazy.tsx. */}
+                <section className="mt-16">
+                  <h2 className="mb-6 font-bold text-2xl">Comments</h2>
+                  <GiscusComments slug={slug} />
+                </section>
                 <hr className="my-12" />
                 <ReadMoreArticles currentSlug={slug} />
                 <NewsletterForm />

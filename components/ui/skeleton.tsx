@@ -79,6 +79,62 @@ function BaselineStatusSkeleton({ className }: { className?: string }) {
   );
 }
 
-// `Skeleton` stays module-local: it is the shared shimmer block the two
-// exported skeletons are built from, and has no consumers of its own.
-export { BaselineStatusSkeleton, SandpackSkeleton };
+/**
+ * Height the giscus iframe settles at once loaded, in px.
+ *
+ * Measured against production at both 500px and 1280px viewport widths — the
+ * empty state is width-independent (a reaction bar, a comment-count row and
+ * the comment box all stack at fixed heights), so one number covers every
+ * breakpoint. Reserving it in the *server-rendered* parent is what buys the
+ * zero CLS: the lazy comment component is `ssr: false`, so nothing about it
+ * reaches the prerendered HTML and a reservation made inside it would arrive
+ * too late to stop the page from growing.
+ *
+ * Posts that already have comments still exceed this and shift by the
+ * difference. That is unavoidable client-side — the count isn't known until
+ * giscus answers — and it is still far better than growing from zero.
+ */
+const GISCUS_MIN_HEIGHT = 372;
+
+function GiscusSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("w-full", className)}
+      style={{ contain: "layout style paint" }}
+    >
+      {/* Reaction pills */}
+      <div className="mb-4 flex gap-2">
+        <Skeleton className="size-9 rounded-full" />
+        <Skeleton className="size-9 rounded-full" />
+        <Skeleton className="size-9 rounded-full" />
+      </div>
+
+      {/* "N Comments" heading */}
+      <Skeleton className="mb-4 h-5 w-28" />
+
+      {/* Comment box, with its Write/Preview tab row */}
+      <div className="rounded-md border border-border">
+        <div className="flex gap-3 border-border border-b px-3 py-2">
+          <Skeleton className="h-5 w-14" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <div className="space-y-3 p-3">
+          <Skeleton className="h-20 w-full rounded" />
+          <div className="flex justify-end">
+            <Skeleton className="h-8 w-28 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// `Skeleton` stays module-local: it is the shared shimmer block the exported
+// skeletons are built from, and has no consumers of its own.
+export {
+  BaselineStatusSkeleton,
+  GISCUS_MIN_HEIGHT,
+  GiscusSkeleton,
+  SandpackSkeleton,
+};
