@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { GiscusSkeleton } from "@/components/ui/skeleton";
 
 // Lazy load Giscus comments (below the fold) in a Client Component
 const GiscusComments = dynamic(
@@ -9,11 +10,11 @@ const GiscusComments = dynamic(
       default: mod.GiscusComments,
     })),
   {
-    loading: () => (
-      <div className="flex items-center justify-center py-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-      </div>
-    ),
+    // The same skeleton the loaded component shows while giscus boots, so the
+    // chunk arriving is invisible in layout terms. A centred spinner here used
+    // to be much shorter than the comments it stood in for, which meant the
+    // handover itself moved the page.
+    loading: () => <GiscusSkeleton />,
     ssr: false,
   },
 );

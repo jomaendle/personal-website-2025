@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/ui/footer";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { GISCUS_MIN_HEIGHT } from "@/components/ui/skeleton";
 import { ViewCounter } from "@/components/view-counter";
 import { SITE } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/state/blog";
@@ -164,7 +165,21 @@ export default function MdxLayout({
                 <div className="prose">{children}</div>
 
                 <hr className="my-12" />
-                <GiscusComments slug={slug} />
+                {/* Heading and the reserved box live here, in server-rendered
+                    markup, rather than inside <GiscusComments>. That component
+                    is loaded with `ssr: false`, so anything it owns is absent
+                    from the prerendered HTML and would grow the page when it
+                    mounts — pushing everything below it down. Reserving the
+                    space up here is what keeps that shift at zero. */}
+                <section className="mt-16">
+                  <h2 className="mb-6 font-bold text-2xl">Comments</h2>
+                  <div
+                    className="relative"
+                    style={{ minHeight: GISCUS_MIN_HEIGHT }}
+                  >
+                    <GiscusComments slug={slug} />
+                  </div>
+                </section>
                 <hr className="my-12" />
                 <ReadMoreArticles currentSlug={slug} />
                 <NewsletterForm />

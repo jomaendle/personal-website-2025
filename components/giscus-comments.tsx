@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { GiscusSkeleton } from "@/components/ui/skeleton";
 
 interface GiscusCommentsProps {
   slug: string;
@@ -10,7 +11,9 @@ interface GiscusCommentsProps {
 export function GiscusComments({ slug }: GiscusCommentsProps) {
   const commentsRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Readiness of the *iframe*, not of the script. See the listener below for
+  // why `script.onload` is the wrong signal to configure giscus on.
+  const [isFrameReady, setIsFrameReady] = useState(false);
   const { resolvedTheme } = useTheme();
 
   // Reset load/error state when the post changes. Done during render rather
@@ -21,8 +24,26 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   if (prevSlug !== slug) {
     setPrevSlug(slug);
     setError(null);
-    setIsLoaded(false);
+    setIsFrameReady(false);
   }
+
+  // Giscus announces itself by posting a `{ giscus: ... }` message from inside
+  // the iframe once that iframe has actually navigated to giscus.app. That is
+  // the only safe moment to configure it: `script.onload` fires when client.js
+  // finishes downloading, before the iframe it injects has left about:blank,
+  // so a `postMessage(..., "https://giscus.app")` at that point is rejected
+  // with a target-origin mismatch and the config is silently dropped.
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== "https://giscus.app") return;
+      if (typeof event.data !== "object" || event.data === null) return;
+      if (!("giscus" in event.data)) return;
+      setIsFrameReady(true);
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   // Initialize Giscus (only once per slug)
   useEffect(() => {
@@ -59,18 +80,13 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
       console.error("Failed to load Giscus script");
     };
 
-    // Mark as loaded when script loads
-    script.onload = () => {
-      setIsLoaded(true);
-    };
-
     currentRef.appendChild(script);
 
     // Cleanup function
     return () => {
       if (currentRef) {
         currentRef.innerHTML = "";
-        setIsLoaded(false);
+        setIsFrameReady(false);
       }
     };
   }, [slug]);
@@ -79,7 +95,7 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   // This approach uses giscus's native themes which work reliably
   // while still loading our custom CSS initially
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isFrameReady) return;
 
     const iframe = document.querySelector<HTMLIFrameElement>(
       "iframe.giscus-frame",
@@ -100,21 +116,34 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
       },
       "https://giscus.app",
     );
-  }, [resolvedTheme, isLoaded]);
+  }, [resolvedTheme, isFrameReady]);
+
+  // The heading and the height reservation are owned by the server-rendered
+  // caller (components/mdx-layout.tsx); this component renders only what has
+  // to be client-side.
+  if (error) {
+    return (
+      // red-700 on the tinted panel, not red-500: over the light theme's
+      // cream the 500 measured 3.01:1 against the panel tint, short of the
+      // 4.5:1 WCAG AA wants for body text. Dark mode keeps a lighter red.
+      <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-700 dark:text-red-400">
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-16">
-      <h2 className="mb-6 font-bold text-2xl">Comments</h2>
-      {/* red-700 on the tinted panel, not red-500: over the light theme's
-          cream the 500 measured 3.01:1 against the panel tint, short of the
-          4.5:1 WCAG AA wants for body text. Dark mode keeps a lighter red. */}
-      {error ? (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-700 dark:text-red-400">
-          <p>{error}</p>
+    <>
+      <div ref={commentsRef} className="giscus" />
+      {/* Overlaid rather than swapped: the giscus container above stays
+          mounted underneath while the skeleton covers it, so the script always
+          has its mount point and the iframe can size itself from a rendered
+          frame. Rendering one *or* the other would tear down the iframe. */}
+      {!isFrameReady && (
+        <div className="absolute inset-0">
+          <GiscusSkeleton />
         </div>
-      ) : (
-        <div ref={commentsRef} className="giscus" />
       )}
-    </div>
+    </>
   );
 }
