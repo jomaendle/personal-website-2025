@@ -190,7 +190,7 @@ export function BusinessStructuredData({ lang }: { lang: Lang }) {
     {
       "@type": "Offer",
       name: t.ladder.tiers[0]?.name,
-      description: t.ladder.tiers[0]?.audience,
+      description: t.ladder.tiers[0]?.desc,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: PRICING.audit,
@@ -200,7 +200,7 @@ export function BusinessStructuredData({ lang }: { lang: Lang }) {
     {
       "@type": "Offer",
       name: t.ladder.tiers[1]?.name,
-      description: t.ladder.tiers[1]?.audience,
+      description: t.ladder.tiers[1]?.desc,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         minPrice: PRICING.program.small,
@@ -214,7 +214,7 @@ export function BusinessStructuredData({ lang }: { lang: Lang }) {
     {
       "@type": "Offer",
       name: t.ladder.tiers[2]?.name,
-      description: t.ladder.tiers[2]?.audience,
+      description: t.ladder.tiers[2]?.desc,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: PRICING.advisory,

@@ -1,23 +1,21 @@
 /**
  * Bilingual copy for the /business route.
  *
- * Positioning: one offer, one buyer. The page sells AI in the engineering
- * lifecycle to whoever owns that budget in an organisation of 50 to 800
- * developers. It is priced as an outcome on a three-step ladder, never as a
- * day rate.
+ * One offer, one buyer, three prices. The page sells AI measurement and
+ * rollout in the engineering lifecycle to whoever owns that budget in an
+ * organisation of 50 to 800 developers.
  *
- * This replaces two pages that pointed in opposite directions. `/business`
- * used to sell embedded contract engineering, which is capacity priced by
- * time and benchmarked against every other contractor. `/ki-wirkung` sold a
- * four-week audit as a separate offer with its own buyer, and ended by telling
- * that buyer the implementation was somebody else's mandate. The audit is now
- * step one of the ladder on this page, and the engineering work is proof
- * rather than the offer: it appears in the credibility section and in one FAQ
- * answer, not in a service list.
+ * Written short on purpose. An earlier draft ran to roughly twice this length
+ * and leaned on rhetorical constructions ("belegt aus Systemdaten statt aus
+ * Selbstauskunft", "eingeführt, nicht nur bewertet", "keine Auswertung, keine
+ * Rangliste, kein Profil") that read as machine-written. The rules in
+ * `.claude/skills/writing-voice` ban those: no antithesis, no tricolons, no
+ * aphorisms, no em dashes. Plain declarative sentences and real numbers
+ * instead.
  *
- * Copy lives here rather than in the component so the page stays a server
- * component and `lib/business-markdown.ts` renders the `/business.md` mirrors
- * from the same source instead of drifting.
+ * The argument is carried by published research rather than by adjectives.
+ * `MARKET_STATS` holds the three figures, each with its source, because a CTO
+ * who recognises the DORA and METR numbers is the buyer this page is for.
  */
 
 export type Lang = "de" | "en";
@@ -26,21 +24,18 @@ export type Lang = "de" | "en";
  * Earliest quarter the ongoing programme can start.
  *
  * The audit is four weeks and fits alongside a full-time role, so it carries
- * no such gate and the hero says so separately. Interpolated into the hero
- * availability line, the ladder, and process step 03, because four hardcoded
- * copies drifted apart the first time the date moved.
+ * no such gate and the hero states the two availabilities separately.
  */
 const AVAILABLE_FROM = "Q1 2027";
 
 /**
- * Every published price, in euro. One object so the page, the JSON-LD offer
+ * Every published price, in euro. One object, so the page, the JSON-LD offer
  * catalogue and the markdown mirrors can never disagree.
  *
- * `audit` is a one-off flat price, deliberately without an "ab": the scope
- * pins it to four weeks and to 50 to 800 developers, so it can be a number.
- * `program` and `advisory` are monthly. The programme is banded by developer
- * count rather than by days, because a day count invites the reader to divide
- * and arrive back at an hourly rate.
+ * Publishing at all is a deliberate position: DX, Jellyfish, Faros and Swarmia
+ * all quote through sales, which the FAQ says out loud. The programme is
+ * banded by developer count rather than by days, because a day count invites
+ * the reader to divide and arrive back at an hourly rate.
  */
 export const PRICING = {
   audit: 18_000,
@@ -49,27 +44,20 @@ export const PRICING = {
 } as const;
 
 /**
- * The reference organisation the economics section is calculated from.
+ * The reference organisation the cost comparison is calculated from.
  *
- * Deliberately conservative on both inputs: 200 developers is the middle of
- * the 50 to 800 band, and 120k is a fully loaded annual cost that no German
- * engineering lead will call inflated. The section shows its own arithmetic so
- * a reader can substitute their numbers, which is the point of it.
+ * Conservative on both inputs: 200 developers is the middle of the 50 to 800
+ * band, and 120k is a fully loaded annual cost no engineering lead will call
+ * inflated. The page shows the arithmetic so a reader can substitute theirs.
  */
 const REFERENCE_ORG = { developers: 200, costPerDeveloper: 120_000 } as const;
-
-/** Assumed throughput gain used to show the return side of the comparison. */
-const THROUGHPUT_GAIN_PERCENT = 3;
 
 const ANNUAL_ENGINEERING_COST =
   REFERENCE_ORG.developers * REFERENCE_ORG.costPerDeveloper;
 const PROGRAM_ANNUAL_COST = PRICING.program.mid * 12;
 const PROGRAM_COST_SHARE =
   (PROGRAM_ANNUAL_COST / ANNUAL_ENGINEERING_COST) * 100;
-const THROUGHPUT_GAIN_VALUE =
-  ANNUAL_ENGINEERING_COST * (THROUGHPUT_GAIN_PERCENT / 100);
 
-/** Locale-aware money and number formatting, so both languages read natively. */
 const money = (value: number, lang: Lang) =>
   lang === "de"
     ? `${value.toLocaleString("de-DE")} €`
@@ -80,7 +68,7 @@ const millions = (value: number, lang: Lang) =>
     ? `${(value / 1_000_000).toLocaleString("de-DE")} Millionen Euro`
     : `€${(value / 1_000_000).toLocaleString("en-US")} million`;
 
-/** The headline figure of the economics section, e.g. "0,75 %". */
+/** The single oversized figure on the page, e.g. "0,75 %". */
 const COST_SHARE_FIGURE = {
   de: `${PROGRAM_COST_SHARE.toLocaleString("de-DE", { minimumFractionDigits: 2 })} %`,
   en: `${PROGRAM_COST_SHARE.toLocaleString("en-US", { minimumFractionDigits: 2 })}%`,
@@ -89,13 +77,10 @@ const COST_SHARE_FIGURE = {
 /**
  * Option values accepted by `/api/inquiry` for the two optional select fields.
  *
- * The API validates against these arrays and silently drops anything it does
- * not recognise, so the form and the endpoint can never disagree about what a
- * valid value is. A value added here needs a label in *both* language blocks
- * below, or the option renders blank and never reaches the email.
- *
- * These mirror the ladder, plus `engineering` for the contract work the page
- * no longer advertises but still takes on, and which people do still ask for.
+ * The API validates against these arrays and drops anything it does not
+ * recognise, so the form and the endpoint cannot disagree about what is valid.
+ * A value added here needs a label in *both* language blocks below, or the
+ * option renders blank and never reaches the email.
  */
 export const ENGAGEMENT_TYPES = [
   "audit",
@@ -112,15 +97,11 @@ interface SelectOption {
   label: string;
 }
 
-interface LabelledItem {
-  title: string;
-  desc: string;
-}
-
-interface ProcessStep {
-  num: string;
-  title: string;
-  desc: string;
+/** One headline figure in the KPI row, with the study it comes from. */
+interface Stat {
+  value: string;
+  label: string;
+  source: string;
 }
 
 interface FaqItem {
@@ -130,37 +111,21 @@ interface FaqItem {
 
 /** One rung of the offer ladder. */
 interface Tier {
-  /** Stable id, used for the anchor and the React key. */
   id: string;
-  /** Step number rendered as a mono label above the name. */
   step: string;
   name: string;
-  /** The price itself, rendered large. */
   price: string;
-  /** Term and shape, rendered under the price. */
   terms: string;
-  /** One line on who this rung is for. */
-  audience: string;
   desc: string;
   items: string[];
   /**
-   * The rung the page is actually selling. Exactly one tier carries this: it
-   * gets the tinted panel and the solid call to action, the others get a
-   * hairline border. Two highlighted tiers would highlight neither.
+   * The rung the page recommends. Exactly one tier carries this: it gets the
+   * brand left rule and the tint. Two highlighted tiers would highlight none.
    */
   featured?: boolean;
 }
 
-/** A credibility block, optionally carrying a mono list of supporting terms. */
-interface MoatBlock {
-  title: string;
-  paragraphs: string[];
-  /** Rendered as a mono row under the prose. Proof, not a service menu. */
-  terms?: string[];
-}
-
 export interface BusinessCopy {
-  /** Label on the language switch (the language it switches *to*). */
   switchTo: string;
   switchHref: string;
   switchLabel: string;
@@ -170,40 +135,26 @@ export interface BusinessCopy {
     lede: string;
     availability: string;
     ctaPrimary: string;
-    ctaSecondary: string;
     jumpLabel: string;
   };
-  /**
-   * The credential band under the hero. Three facts a C-level reader uses to
-   * decide whether to keep reading, in the order they ask them: how big, how
-   * long, from where.
-   */
-  credentials: { value: string; label: string }[];
-  clients: { heading: string };
-  problem: { heading: string; items: LabelledItem[]; closing: string };
-  /**
-   * The economics section. The one place on the page with an oversized figure,
-   * because this is the number that decides whether a monthly fee reads as
-   * large or as a rounding error.
-   */
-  economics: {
+  /** The published research the page opens on, plus the read on it. */
+  evidence: { heading: string; stats: Stat[]; closing: string };
+  ladder: {
     heading: string;
+    tiers: Tier[];
+    /** The cost comparison, carrying the page's one oversized figure. */
     figure: string;
-    figureLabel: string;
-    paragraphs: string[];
+    figureNote: string;
     note: string;
   };
-  ladder: { heading: string; lede: string; tiers: Tier[]; note: string };
-  moat: { heading: string; blocks: MoatBlock[] };
-  work: { heading: string; lede: string };
-  process: { heading: string; steps: ProcessStep[] };
+  why: { heading: string; items: string[] };
+  work: { heading: string };
   faq: { heading: string; items: FaqItem[] };
   engage: {
     heading: string;
     lede: string;
-    bookingTitle: string;
-    bookingDesc: string;
     bookingCta: string;
+    formToggle: string;
     emailLabel: string;
     markdownLabel: string;
   };
@@ -242,228 +193,135 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     switchLabel: "Switch to English",
     hero: {
       eyebrow: "KI im Engineering · 50 bis 800 Entwickler:innen",
-      heading: "KI im Engineering. Erst gemessen, dann eingeführt.",
-      lede: "Ihre Lizenzen sind bezahlt, die Nutzung ist ungleich verteilt, und in der nächsten Budgetrunde fragt jemand nach Zahlen. Ich messe aus Ihren Systemdaten, was der KI-Einsatz tatsächlich verändert hat, und setze anschließend um, was davon trägt. Auf Team- und Repository-Ebene, ohne personenbezogene Auswertung.",
+      heading: "Der KI-Einsatz in Ihrem Engineering, in Zahlen.",
+      lede: "Ich messe aus Ihren System- und Prozessdaten, was sich seit der Einführung verändert hat. Vier Wochen, Festpreis, ohne personenbezogene Auswertung.",
       availability: `Audit ab sofort · Programm ab ${AVAILABLE_FROM}`,
       ctaPrimary: "Gespräch buchen",
-      ctaSecondary: "Anfrage schreiben",
-      jumpLabel: "Stufen und Preise",
+      jumpLabel: "Preise",
     },
-    credentials: [
-      {
-        value: "Mehrere hundert",
-        label: "Entwickler:innen im Konzern, für die ich das heute verantworte",
-      },
-      { value: "6+ Jahre", label: "TypeScript in Produktion, nicht im Blog" },
-      {
-        value: "0 Zeilen",
-        label: "Quellcode, die für die Messung Ihr Haus verlassen",
-      },
-    ],
-    clients: { heading: "Kunden" },
-    problem: {
-      heading: "Woran Sie es erkennen",
-      items: [
+    evidence: {
+      heading: "Der Stand der Forschung",
+      stats: [
         {
-          title: "Die Lizenzkosten stehen im Budget, der Nutzen nicht.",
-          desc: "Sie können auf den Cent genau sagen, was die Werkzeuge kosten. Auf die Frage, was sie eingebracht haben, folgt eine Schätzung.",
+          value: "90 %",
+          label: "der Entwickler:innen nutzen KI bei der Arbeit",
+          source: "DORA 2025",
         },
         {
-          title: "Die Berichte aus Ihren Teams widersprechen sich.",
-          desc: "Ein Team meldet doppelte Geschwindigkeit, das nächste hat die Werkzeuge nach drei Wochen wieder ausgeschaltet. Beide beschreiben ihre Erfahrung korrekt.",
+          value: "19 %",
+          label:
+            "langsamer arbeiteten erfahrene Entwickler:innen mit KI, während sie sich schneller fühlten",
+          source: "METR 2025",
         },
         {
-          title: "Ihre besten Leute ziehen davon, der Rest steht.",
-          desc: "Einzelne holen aus denselben Werkzeugen ein Vielfaches heraus. Warum, kann niemand aufschreiben, und deshalb lässt es sich auch nicht weitergeben.",
-        },
-        {
-          title: "Die Einführung hängt im Betriebsrat.",
-          desc: "Das eingekaufte Dashboard wertet pro Entwickler:in aus. Damit ist es mitbestimmungspflichtig, und die Verhandlung läuft seit Monaten.",
+          value: "+23,5 %",
+          label: "Incidents pro Pull Request bei gestiegener Liefermenge",
+          source: "DORA 2024 – 2025",
         },
       ],
       closing:
-        "Alle vier haben dieselbe Ursache. Die Werkzeuge sind eingekauft, die Messung fehlt.",
-    },
-    economics: {
-      heading: "Was das kostet, gemessen an Ihrem Engineering",
-      figure: COST_SHARE_FIGURE.de,
-      figureLabel: "des jährlichen Engineering-Budgets",
-      paragraphs: [
-        `Eine Organisation mit ${REFERENCE_ORG.developers} Entwickler:innen kostet Sie bei ${money(REFERENCE_ORG.costPerDeveloper, "de")} Vollkosten rund ${millions(ANNUAL_ENGINEERING_COST, "de")} im Jahr. Das Programm kostet auf der mittleren Stufe ${money(PROGRAM_ANNUAL_COST, "de")} im Jahr.`,
-        `Bewegt es den Durchsatz um ${THROUGHPUT_GAIN_PERCENT} Prozent, stehen ${money(THROUGHPUT_GAIN_VALUE, "de")} gegen ${money(PROGRAM_ANNUAL_COST, "de")}. Bewegt es gar nichts, wissen Sie das nach dem Audit und nicht nach zwei Jahren.`,
-      ],
-      note: "Rechnen Sie mit Ihren eigenen Zahlen nach. An der Größenordnung ändert das nichts.",
+        "Der Output einzelner Entwickler:innen steigt messbar. Auf Organisationsebene bleiben rund zehn Prozent Zuwachs übrig. Wo Ihr Haus in dieser Spanne liegt, steht in Ihren eigenen Daten.",
     },
     ladder: {
-      heading: "Die drei Stufen",
-      lede: "Jede Stufe steht für sich, und Sie entscheiden nach jeder neu. Anfangen können Sie nur bei der ersten.",
+      heading: "Leistungen",
       tiers: [
         {
           id: "audit",
-          step: "Stufe 01",
+          step: "01",
           name: "Wirkungs-Audit",
-          price: `${money(PRICING.audit, "de")}`,
-          terms: "Festpreis · 4 Wochen · sofort möglich",
-          audience: "Wenn Sie Zahlen für die nächste Budgetrunde brauchen.",
-          desc: "Vier Wochen, zwei Termine pro Woche, ein Ergebnisdokument. Baseline aus Systemdaten, sechs bis acht Interviews, Wirkungsanalyse, priorisierte Maßnahmen.",
+          price: money(PRICING.audit, "de"),
+          terms: "Festpreis · 4 Wochen · ab sofort",
+          desc: "Baseline aus Ihren Systemdaten, sechs bis acht Interviews, ein Ergebnisdokument mit priorisierten Maßnahmen.",
           items: [
-            "Ein Kennzahlen-Set, das Ihr Team ohne mich fortschreiben kann: Definitionen, Abfragen, Skripte",
-            "Baseline und Ist-Wert, belegt aus Systemdaten statt aus Selbstauskunft",
-            "Eine Seite für die Geschäftsführung, die eine Budgetentscheidung trägt",
-            "Drei bis fünf priorisierte Maßnahmen mit Aufwandsschätzung",
-            "Alle Rohdaten und Auswertungsskripte, in Ihrem Repository",
+            "Kennzahlen-Set mit Definitionen, Abfragen und Skripten, in Ihrem Repository",
+            "Eine Seite für die Geschäftsführung",
+            "Drei bis fünf Maßnahmen mit Aufwandsschätzung",
           ],
         },
         {
           id: "programm",
-          step: "Stufe 02",
+          step: "02",
           name: "Wirkungsprogramm",
           price: `${money(PRICING.program.small, "de")} – ${money(PRICING.program.large, "de")}`,
           terms: `pro Monat · ab 6 Monaten · ab ${AVAILABLE_FROM}`,
-          audience:
-            "Wenn die Maßnahmen aus dem Audit umgesetzt werden sollen, nachweisbar.",
-          desc: "Ich setze um, was das Audit priorisiert hat, und schreibe die Kennzahlen weiter, damit die Wirkung belegbar bleibt. Zwei bis drei Tage pro Woche, im Rhythmus Ihrer Teams.",
+          desc: "Umsetzung der Maßnahmen im Rhythmus Ihrer Teams, mit monatlichem Reporting auf demselben Kennzahlen-Set.",
           items: [
-            `Preis nach Größe: ${money(PRICING.program.small, "de")} bei 50 bis 150 Entwickler:innen, ${money(PRICING.program.mid, "de")} bis 400, ${money(PRICING.program.large, "de")} bis 800`,
-            "Umsetzung der Maßnahmen: Projektregeln, Leitplanken, Agenten-Standards, Spec-first-Workflow, Prüfungen im Pull Request, Evaluierung in der CI",
-            "Enablement mit fester Taktung: Sprechstunde, Pairing, eine verantwortliche Person je Team",
-            "Monatliches Reporting auf demselben Kennzahlen-Set, in der Form, die Sie im Vorstand vorlegen",
-            "Unterlagen für die Betriebsvereinbarung, inklusive der Beschreibung der Messung",
-            "Quartalsweise Steuerung mit Ihnen, schriftlich festgehalten",
+            "Projektregeln, Leitplanken und Agenten-Standards in Ihrer Codebase",
+            "Sprechstunde und Pairing, eine verantwortliche Person je Team",
+            "Unterlagen für die Betriebsvereinbarung",
+            `Preis nach Größe: ${money(PRICING.program.small, "de")} bis 150 Entwickler:innen, ${money(PRICING.program.mid, "de")} bis 400, ${money(PRICING.program.large, "de")} bis 800`,
           ],
           featured: true,
         },
         {
           id: "begleitung",
-          step: "Stufe 03",
+          step: "03",
           name: "Begleitung",
-          price: `${money(PRICING.advisory, "de")}`,
+          price: money(PRICING.advisory, "de"),
           terms: "pro Monat · monatlich kündbar",
-          audience:
-            "Wenn das Programm steht und nicht wieder einschlafen soll.",
-          desc: "Die Stufe nach dem Programm. Ihr Team fährt selbst, ich bleibe an den Zahlen und an den Entscheidungen, die keine Woche Zeit haben.",
+          desc: "Monatliche Durchsicht der Kennzahlen und ein fester Termin, sobald Ihr Team selbst fährt.",
           items: [
-            "Monatliche Durchsicht der Kennzahlen mit schriftlicher Einordnung",
-            "Ein fester Termin im Monat mit Ihnen und den Verantwortlichen",
-            "Erreichbarkeit für Architektur- und Werkzeugentscheidungen zwischendurch",
-            "Fortschreibung der Standards, wenn sich die Modelle oder die Werkzeuge ändern",
+            "Schriftliche Einordnung der Zahlen",
+            "Erreichbarkeit für Architektur- und Werkzeugentscheidungen",
           ],
         },
       ],
-      note: "Alle Preise netto, zuzüglich Umsatzsteuer. Reisekosten nur nach Absprache.",
+      figure: COST_SHARE_FIGURE.de,
+      figureNote: `${REFERENCE_ORG.developers} Entwickler:innen kosten Sie bei ${money(REFERENCE_ORG.costPerDeveloper, "de")} Vollkosten rund ${millions(ANNUAL_ENGINEERING_COST, "de")} im Jahr. Das Programm kostet auf der mittleren Stufe ${money(PROGRAM_ANNUAL_COST, "de")} im Jahr.`,
+      note: "Alle Preise netto, zuzüglich Umsatzsteuer.",
     },
-    moat: {
-      heading: "Warum das hier trägt",
-      blocks: [
-        {
-          title: "Messung ohne Leistungskontrolle",
-          paragraphs: [
-            "Werkzeuge aus den USA messen pro Entwickler:in. In Deutschland ist das mitbestimmungspflichtig und in vielen Häusern der Grund, warum die Einführung im Betriebsrat hängen bleibt.",
-            "Ich messe auf Team- und Repository-Ebene. Keine personenbezogene Auswertung, keine Rangliste, kein individuelles Profil. Das Kennzahlen-Set ist so aufgebaut, dass es einer Betriebsvereinbarung standhält, und die Beschreibung, die Sie dafür brauchen, liefere ich mit.",
-          ],
-        },
-        {
-          title: "Ich habe das selbst eingeführt, nicht nur bewertet",
-          paragraphs: [
-            "Hauptberuflich bin ich Principal Solution Architect in einem Konzern mit mehreren hundert Entwickler:innen und arbeite genau daran: wie KI in den Entwicklungszyklus großer Teams einzieht, von Architektur und Tooling bis zu den täglichen Gewohnheiten.",
-            "Unter denselben Zwängen, die Sie kennen: Betriebsrat, Beschaffung, gewachsene Codebases, Teams mit Fristen.",
-          ],
-        },
-        {
-          title: "Ich kann den Code lesen, über den wir reden",
-          paragraphs: [
-            "Ob der Output eines Agenten trägt, kann nur beurteilen, wer ihn selbst schreiben könnte. Über sechs Jahre TypeScript in Produktion, in Angular ebenso wie in React und Next.js, dazu Node und NestJS im Backend.",
-            "Deshalb bleibt es bei Empfehlungen, die in Ihrer Codebase funktionieren, statt bei Folien über KI im Allgemeinen.",
-          ],
-          terms: [
-            "React",
-            "Next.js",
-            "Angular",
-            "Vue",
-            "Astro",
-            "TypeScript",
-            "Node.js",
-            "NestJS",
-            "Claude Code",
-            "OpenAI Codex",
-            "MCP",
-            "Playwright",
-          ],
-        },
+    why: {
+      heading: "Warum ich",
+      items: [
+        "Principal Solution Architect in einem Konzern mit mehreren hundert Entwickler:innen. Ich führe das dort selbst ein.",
+        "Messung auf Team- und Repository-Ebene, ausgelegt auf § 87 BetrVG. Die Beschreibung für die Betriebsvereinbarung liefere ich mit.",
+        "Über sechs Jahre TypeScript in Produktion, in Angular ebenso wie in React und Next.js. Ich kann beurteilen, was die Agenten in Ihrer Codebase produzieren.",
+        "Kein Quellcode verlässt Ihr Haus. Ich arbeite mit Metadaten aus Git, CI und Ticketsystem.",
       ],
     },
-    work: {
-      heading: "Ausgewählte Kundenprojekte",
-      lede: "Freelance-Mandate der letzten Jahre. Sie zeigen, woher die Urteilsfähigkeit kommt, die im Audit und im Programm gebraucht wird.",
-    },
-    process: {
-      heading: "So fangen wir an",
-      steps: [
-        {
-          num: "01",
-          title: "Gespräch",
-          desc: "20 Minuten. Ich stelle Fragen zu Ihrer Datenlage. Trägt sie kein Audit, sage ich das im Gespräch und nicht nach der Beauftragung.",
-        },
-        {
-          num: "02",
-          title: "Audit",
-          desc: "Vier Wochen zum Festpreis. Unter zehn Stunden Aufwand auf Ihrer Seite. Am Ende liegt ein Ergebnisdokument vor, mit dem Sie auch ohne mich weiterarbeiten können.",
-        },
-        {
-          num: "03",
-          title: "Programm",
-          desc: `Sie entscheiden nach dem Audit, ob umgesetzt wird und mit wem. Wenn mit mir, startet das Programm ab ${AVAILABLE_FROM}.`,
-        },
-      ],
-    },
+    work: { heading: "Kunden" },
     faq: {
-      heading: "Häufige Fragen",
+      heading: "Fragen",
       items: [
         {
           question: "Was, wenn das Ergebnis negativ ausfällt?",
           answer:
-            "Dann steht das im Dokument. Ein Audit, dessen Ergebnis vorher feststeht, ist wertlos. In dem Fall haben Sie eine belastbare Grundlage, Lizenzen zu reduzieren. Das rechnet sich schneller als jede Optimierung.",
+            "Dann steht das im Dokument. Sie haben damit eine belastbare Grundlage, Lizenzen zu reduzieren.",
         },
         {
           question: "Bekommen Sie Zugriff auf unseren Code?",
           answer:
-            "Nein. Ich brauche Metadaten: Commit-Zeitstempel, Pull-Request-Historie, CI-Läufe, Tickets. Kein Quellcode verlässt Ihr Haus, das steht im Vertrag.",
-        },
-        {
-          question: "Können wir direkt mit dem Programm starten?",
-          answer:
-            "Nein. Ohne Baseline setze ich Maßnahmen um, deren Wirkung hinterher niemand belegen kann. Das ist genau das Problem, mit dem Sie hier angekommen sind. Das Audit ist vier Wochen und kostet einen Bruchteil des Programms.",
-        },
-        {
-          question: "Wie viel Zeit kostet uns das Audit?",
-          answer:
-            "Sechs bis acht Interviews à 30 Minuten, ein technischer Zugang in Woche 1, ein Abschlusstermin. Zusammen unter zehn Stunden auf Ihrer Seite.",
+            "Nein. Ich brauche Commit-Zeitstempel, Pull-Request-Historie, CI-Läufe und Tickets. Dass kein Quellcode Ihr Haus verlässt, steht im Vertrag.",
         },
         {
           question: "Warum nicht eines der fertigen Werkzeuge?",
           answer:
-            "Das können Sie tun. Nach dem Audit wissen Sie, welche Kennzahlen bei Ihnen aussagekräftig sind. Vorher kaufen Sie ein Dashboard und stellen erst danach fest, welche Kennzahlen Sie gebraucht hätten.",
+            "DX, Jellyfish, Faros und Swarmia werten pro Entwickler:in aus und nennen ihre Preise erst im Vertrieb. Nach dem Audit wissen Sie, welche Kennzahlen bei Ihnen aussagekräftig sind, und können ein Werkzeug gezielt auswählen.",
         },
         {
-          question: "Passt das auch unter 50 Entwickler:innen?",
+          question: "Können wir direkt mit dem Programm starten?",
           answer:
-            "Selten. Unter 50 ist die Datenmenge zu klein, um Veränderungen von Rauschen zu trennen, und Sie bekommen dieselbe Antwort günstiger durch ein paar Gespräche. Sagen Sie mir Ihre Größe im Erstgespräch, dann klären wir das in fünf Minuten.",
+            "Ohne Baseline lässt sich die Wirkung der Maßnahmen hinterher nicht belegen. Das Audit dauert vier Wochen und kostet einen Bruchteil des Programms.",
+        },
+        {
+          question: "Wie viel Zeit kostet uns das Audit?",
+          answer:
+            "Unter zehn Stunden auf Ihrer Seite: sechs bis acht Interviews à 30 Minuten, ein technischer Zugang in Woche 1, ein Abschlusstermin.",
         },
         {
           question: "Übernehmen Sie auch reine Entwicklungsarbeit?",
           answer:
-            "Im Rahmen eines laufenden Programms ja, und bei bestehenden Kunden ohnehin. Als eigenständiges Mandat verkaufe ich es nicht mehr. Wenn Sie Frontend-Kapazität suchen, schreiben Sie mir trotzdem: entweder es passt in ein Programm, oder ich empfehle Ihnen jemanden.",
+            "Innerhalb eines laufenden Programms und bei bestehenden Kunden ja. Als eigenständiges Mandat biete ich es nicht mehr an.",
         },
       ],
     },
     engage: {
-      heading: "Nächster Schritt",
-      lede: "20 Minuten, unverbindlich. Ich stelle Fragen, Sie entscheiden danach. Wenn Ihre Datenlage kein Audit trägt, erfahren Sie das in diesem Gespräch.",
-      bookingTitle: "Lieber direkt sprechen?",
-      bookingDesc: "20 Minuten, unverbindlich, in Ihrem Kalender.",
-      bookingCta: "Gespräch buchen",
-      emailLabel: "Oder per E-Mail",
-      markdownLabel: "Diese Seite als Markdown ansehen",
+      heading: "Gespräch",
+      lede: "20 Minuten. Ich frage nach Ihrer Datenlage und sage Ihnen, ob ein Audit bei Ihnen etwas misst.",
+      bookingCta: "Termin wählen",
+      formToggle: "Lieber schreiben? Anfrage per Formular",
+      emailLabel: "E-Mail",
+      markdownLabel: "Diese Seite als Markdown",
     },
     form: {
       heading: "Anfrage",
@@ -473,14 +331,14 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       emailPlaceholder: "sie@unternehmen.de",
       message: "Worum geht es?",
       messagePlaceholder:
-        "Kurz zur Lage: Wie viele Entwickler:innen, welche KI-Werkzeuge seit wann, und was in der nächsten Budgetrunde beantwortet sein muss.",
+        "Wie viele Entwickler:innen, welche KI-Werkzeuge seit wann, und was in der nächsten Budgetrunde beantwortet sein muss.",
       company: "Unternehmen",
       companyPlaceholder: "Firmenname",
       engagementType: "Worum geht es",
       engagementTypeOptions: [
-        { value: "audit", label: "Wirkungs-Audit (Stufe 01)" },
-        { value: "program", label: "Wirkungsprogramm (Stufe 02)" },
-        { value: "advisory", label: "Begleitung (Stufe 03)" },
+        { value: "audit", label: "Wirkungs-Audit" },
+        { value: "program", label: "Wirkungsprogramm" },
+        { value: "advisory", label: "Begleitung" },
         { value: "engineering", label: "Entwicklungskapazität" },
         { value: "other", label: "Etwas anderes" },
       ],
@@ -519,232 +377,135 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
     switchLabel: "Zu Deutsch wechseln",
     hero: {
       eyebrow: "AI in engineering · 50 to 800 developers",
-      heading: "AI in engineering. Measured first, then rolled out.",
-      lede: "The licences are paid for, the usage is uneven, and in the next budget round someone will ask for numbers. I measure what your AI tooling actually changed, from your own system data, then implement whatever holds up. At team and repository level, with no per-developer analysis.",
+      heading: "AI in your engineering, in numbers.",
+      lede: "I measure what changed since rollout, from your own system and process data. Four weeks, fixed price, with no per-developer analysis.",
       availability: `Audit now · Programme from ${AVAILABLE_FROM}`,
       ctaPrimary: "Book a call",
-      ctaSecondary: "Send an inquiry",
-      jumpLabel: "Steps and prices",
+      jumpLabel: "Pricing",
     },
-    credentials: [
-      {
-        value: "Several hundred",
-        label: "developers in the group I do this for today",
-      },
-      {
-        value: "6+ years",
-        label: "of TypeScript in production, not in a blog",
-      },
-      {
-        value: "0 lines",
-        label: "of source code leave your building for the measurement",
-      },
-    ],
-    clients: { heading: "Clients" },
-    problem: {
-      heading: "How you recognise it",
-      items: [
+    evidence: {
+      heading: "What the research shows",
+      stats: [
         {
-          title: "The licence cost is in the budget. The return is not.",
-          desc: "You can name what the tools cost to the cent. Asked what they returned, you get an estimate.",
+          value: "90%",
+          label: "of developers use AI at work",
+          source: "DORA 2025",
         },
         {
-          title: "The reports from your teams contradict each other.",
-          desc: "One team reports twice the speed, the next switched the tools off after three weeks. Both are describing their experience accurately.",
+          value: "19%",
+          label:
+            "slower were experienced developers using AI, while they felt faster",
+          source: "METR 2025",
         },
         {
-          title:
-            "Your best people are pulling away, the rest are standing still.",
-          desc: "A few get a multiple out of the same tools. Nobody can write down why, so nobody can pass it on.",
-        },
-        {
-          title: "The rollout is stuck with the works council.",
-          desc: "The dashboard you bought reports per developer. That makes it subject to codetermination, and the negotiation has been running for months.",
+          value: "+23.5%",
+          label: "incidents per pull request as delivery volume rose",
+          source: "DORA 2024 – 2025",
         },
       ],
       closing:
-        "All four have the same cause. The tools are bought, the measurement is missing.",
-    },
-    economics: {
-      heading: "What this costs, against what your engineering costs",
-      figure: COST_SHARE_FIGURE.en,
-      figureLabel: "of the annual engineering budget",
-      paragraphs: [
-        `An organisation of ${REFERENCE_ORG.developers} developers at ${money(REFERENCE_ORG.costPerDeveloper, "en")} fully loaded costs you about ${millions(ANNUAL_ENGINEERING_COST, "en")} a year. The programme at the middle band costs ${money(PROGRAM_ANNUAL_COST, "en")} a year.`,
-        `If it moves throughput by ${THROUGHPUT_GAIN_PERCENT} percent, that is ${money(THROUGHPUT_GAIN_VALUE, "en")} against ${money(PROGRAM_ANNUAL_COST, "en")}. If it moves nothing, you know that after the audit rather than after two years.`,
-      ],
-      note: "Run it with your own numbers. The order of magnitude does not change.",
+        "Individual output rises measurably. At organisation level about ten percent of that survives. Where your company sits in that range is in your own data.",
     },
     ladder: {
-      heading: "The three steps",
-      lede: "Each step stands on its own and you decide again after each one. The only place to start is the first.",
+      heading: "Services",
       tiers: [
         {
           id: "audit",
-          step: "Step 01",
+          step: "01",
           name: "Impact audit",
-          price: `${money(PRICING.audit, "en")}`,
+          price: money(PRICING.audit, "en"),
           terms: "fixed price · 4 weeks · available now",
-          audience: "When you need numbers for the next budget round.",
-          desc: "Four weeks, two sessions a week, one written result. Baseline from system data, six to eight interviews, impact analysis, prioritised measures.",
+          desc: "A baseline from your system data, six to eight interviews, and one written result with prioritised measures.",
           items: [
-            "A metrics set your team can keep running without me: definitions, queries, scripts",
-            "Baseline and current value, evidenced from system data rather than self-reporting",
-            "One page for the executive board that carries a budget decision",
-            "Three to five prioritised measures with effort estimates",
-            "All raw data and analysis scripts, in your repository",
+            "A metrics set with definitions, queries and scripts, in your repository",
+            "One page for the executive board",
+            "Three to five measures with effort estimates",
           ],
         },
         {
           id: "programme",
-          step: "Step 02",
+          step: "02",
           name: "Impact programme",
           price: `${money(PRICING.program.small, "en")} – ${money(PRICING.program.large, "en")}`,
           terms: `per month · from 6 months · from ${AVAILABLE_FROM}`,
-          audience:
-            "When the measures from the audit need implementing, provably.",
-          desc: "I implement what the audit prioritised and keep the metrics running, so the effect stays evidenced. Two to three days a week, in your teams' rhythm.",
+          desc: "Implementation of the measures in your teams' rhythm, with monthly reporting on the same metrics set.",
           items: [
-            `Priced by size: ${money(PRICING.program.small, "en")} at 50 to 150 developers, ${money(PRICING.program.mid, "en")} up to 400, ${money(PRICING.program.large, "en")} up to 800`,
-            "Implementation of the measures: project rules, guardrails, agent standards, spec-first workflow, checks in the pull request, evaluation in CI",
-            "Enablement on a fixed cadence: office hours, pairing, one accountable person per team",
-            "Monthly reporting on the same metrics set, in the form you take to the board",
-            "Documentation for the works agreement, including the description of the measurement",
-            "Quarterly steering with you, written down",
+            "Project rules, guardrails and agent standards in your codebase",
+            "Office hours and pairing, one accountable person per team",
+            "Documentation for the works agreement",
+            `Priced by size: ${money(PRICING.program.small, "en")} up to 150 developers, ${money(PRICING.program.mid, "en")} up to 400, ${money(PRICING.program.large, "en")} up to 800`,
           ],
           featured: true,
         },
         {
           id: "advisory",
-          step: "Step 03",
+          step: "03",
           name: "Ongoing advisory",
-          price: `${money(PRICING.advisory, "en")}`,
+          price: money(PRICING.advisory, "en"),
           terms: "per month · cancel monthly",
-          audience:
-            "When the programme has landed and should not quietly lapse.",
-          desc: "The step after the programme. Your team drives, I stay on the numbers and on the decisions that cannot wait a week.",
+          desc: "A monthly review of the metrics and one fixed session, once your team is driving.",
           items: [
-            "Monthly review of the metrics with a written read on them",
-            "One fixed session a month with you and the people accountable",
-            "Reachable for architecture and tooling decisions in between",
-            "Standards kept current as the models and the tools change",
+            "A written read on the numbers",
+            "Reachable for architecture and tooling decisions",
           ],
         },
       ],
-      note: "All prices net, plus VAT. Travel costs by agreement only.",
+      figure: COST_SHARE_FIGURE.en,
+      figureNote: `${REFERENCE_ORG.developers} developers at ${money(REFERENCE_ORG.costPerDeveloper, "en")} fully loaded cost you about ${millions(ANNUAL_ENGINEERING_COST, "en")} a year. The programme at the middle band costs ${money(PROGRAM_ANNUAL_COST, "en")} a year.`,
+      note: "All prices net, plus VAT.",
     },
-    moat: {
-      heading: "Why this holds up",
-      blocks: [
-        {
-          title: "Measurement without performance monitoring",
-          paragraphs: [
-            "Tools from the US measure per developer. In Germany that is subject to codetermination, and in many companies it is the reason the rollout is stuck with the works council.",
-            "I measure at team and repository level. No per-person analysis, no ranking, no individual profile. The metrics set is built to survive a works agreement, and I supply the description you need for it.",
-          ],
-        },
-        {
-          title: "I have introduced this myself, not only assessed it",
-          paragraphs: [
-            "In my day job I'm a Principal Solution Architect in a group with several hundred developers, working on exactly this: how AI enters the development lifecycle of large teams, from architecture and tooling to the daily habits.",
-            "Under the same constraints you know: works council, procurement, mature codebases, teams with deadlines.",
-          ],
-        },
-        {
-          title: "I can read the code we're discussing",
-          paragraphs: [
-            "Whether an agent's output holds up can only be judged by someone who could have written it. Six-plus years of TypeScript in production, in Angular as much as React and Next.js, with Node and NestJS on the backend.",
-            "That is why this ends in recommendations that work in your codebase rather than slides about AI in general.",
-          ],
-          terms: [
-            "React",
-            "Next.js",
-            "Angular",
-            "Vue",
-            "Astro",
-            "TypeScript",
-            "Node.js",
-            "NestJS",
-            "Claude Code",
-            "OpenAI Codex",
-            "MCP",
-            "Playwright",
-          ],
-        },
+    why: {
+      heading: "Why me",
+      items: [
+        "Principal Solution Architect in a group with several hundred developers. I run this there myself.",
+        "Measurement at team and repository level, built for § 87 BetrVG. I supply the description your works agreement needs.",
+        "Six-plus years of TypeScript in production, in Angular as much as React and Next.js. I can judge the agent output in question.",
+        "No source code leaves your building. I work from Git, CI and ticket metadata.",
       ],
     },
-    work: {
-      heading: "Selected client work",
-      lede: "Freelance engagements from the last few years. They show where the judgement used in the audit and the programme comes from.",
-    },
-    process: {
-      heading: "How we start",
-      steps: [
-        {
-          num: "01",
-          title: "Conversation",
-          desc: "20 minutes. I ask about your data. If it won't carry an audit, you hear that in the call and not after the contract.",
-        },
-        {
-          num: "02",
-          title: "Audit",
-          desc: "Four weeks at a fixed price. Under ten hours of effort on your side. You end up with a written result you can act on without me.",
-        },
-        {
-          num: "03",
-          title: "Programme",
-          desc: `After the audit you decide whether to implement, and with whom. If with me, the programme starts from ${AVAILABLE_FROM}.`,
-        },
-      ],
-    },
+    work: { heading: "Clients" },
     faq: {
-      heading: "Common questions",
+      heading: "Questions",
       items: [
         {
           question: "What if the result is negative?",
           answer:
-            "Then that is what the document says. An audit whose result is fixed in advance is worthless. In that case you have solid ground to cut licences, which pays back faster than any optimisation.",
+            "Then that is what the document says. It gives you solid ground to cut licences.",
         },
         {
           question: "Do you get access to our code?",
           answer:
-            "No. I need metadata: commit timestamps, pull request history, CI runs, tickets. No source code leaves your building, and that is in the contract.",
-        },
-        {
-          question: "Can we start with the programme directly?",
-          answer:
-            "No. Without a baseline I implement measures whose effect nobody can evidence afterwards, which is the exact problem you arrived here with. The audit is four weeks and costs a fraction of the programme.",
-        },
-        {
-          question: "How much of our time does the audit take?",
-          answer:
-            "Six to eight interviews of 30 minutes, one technical access in week 1, one closing session. Under ten hours on your side in total.",
+            "No. I need commit timestamps, pull request history, CI runs and tickets. The contract states that no source code leaves your building.",
         },
         {
           question: "Why not one of the off-the-shelf tools?",
           answer:
-            "You can. After the audit you know which metrics are meaningful in your organisation. Before it, you buy a dashboard and only then find out which metrics you needed.",
+            "DX, Jellyfish, Faros and Swarmia report per developer and quote through sales. After the audit you know which metrics are meaningful in your organisation, and can pick a tool deliberately.",
         },
         {
-          question: "Does this fit under 50 developers?",
+          question: "Can we start with the programme directly?",
           answer:
-            "Rarely. Below 50 the data is too thin to separate change from noise, and you get the same answer more cheaply from a few conversations. Tell me your size in the first call and we settle it in five minutes.",
+            "Without a baseline the effect of the measures cannot be evidenced afterwards. The audit takes four weeks and costs a fraction of the programme.",
+        },
+        {
+          question: "How much of our time does the audit take?",
+          answer:
+            "Under ten hours on your side: six to eight interviews of 30 minutes, one technical access in week 1, one closing session.",
         },
         {
           question: "Do you take on plain engineering work?",
           answer:
-            "Inside a running programme yes, and for existing clients anyway. I no longer sell it as a mandate of its own. If you are looking for frontend capacity, write anyway: either it fits into a programme, or I point you to someone.",
+            "Inside a running programme and for existing clients, yes. I no longer offer it as a mandate of its own.",
         },
       ],
     },
     engage: {
-      heading: "Next step",
-      lede: "20 minutes, no strings. I ask the questions, you decide afterwards. If your data won't carry an audit, you find that out in this call.",
-      bookingTitle: "Rather talk it through?",
-      bookingDesc: "20 minutes, no strings, straight into your calendar.",
-      bookingCta: "Book a call",
-      emailLabel: "Or by email",
-      markdownLabel: "View this page as Markdown",
+      heading: "Talk it through",
+      lede: "20 minutes. I ask about your data and tell you whether an audit would measure anything.",
+      bookingCta: "Pick a slot",
+      formToggle: "Rather write? Send an inquiry",
+      emailLabel: "Email",
+      markdownLabel: "This page as Markdown",
     },
     form: {
       heading: "Inquiry",
@@ -754,14 +515,14 @@ export const BUSINESS_COPY: Record<Lang, BusinessCopy> = {
       emailPlaceholder: "you@company.com",
       message: "What's this about?",
       messagePlaceholder:
-        "A few lines on where you are: how many developers, which AI tools since when, and what has to be answered in the next budget round.",
+        "How many developers, which AI tools since when, and what has to be answered in the next budget round.",
       company: "Company",
       companyPlaceholder: "Company name",
       engagementType: "What this is about",
       engagementTypeOptions: [
-        { value: "audit", label: "Impact audit (step 01)" },
-        { value: "program", label: "Impact programme (step 02)" },
-        { value: "advisory", label: "Ongoing advisory (step 03)" },
+        { value: "audit", label: "Impact audit" },
+        { value: "program", label: "Impact programme" },
+        { value: "advisory", label: "Ongoing advisory" },
         { value: "engineering", label: "Engineering capacity" },
         { value: "other", label: "Something else" },
       ],

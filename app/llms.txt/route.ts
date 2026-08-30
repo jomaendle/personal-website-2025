@@ -29,13 +29,15 @@ const t = BUSINESS_COPY.en;
 const ladder = t.ladder.tiers
   .map(
     (tier) =>
-      `- **${tier.name}** (${tier.step}): ${tier.price} ${tier.terms}. ${tier.audience} ${tier.desc}`,
+      `- **${tier.name}** (${tier.step}): ${tier.price} ${tier.terms}. ${tier.desc}`,
   )
   .join("\n");
 
-const credibility = t.moat.blocks
-  .map((block) => `- **${block.title}**: ${block.paragraphs[0]}`)
+const evidence = t.evidence.stats
+  .map((stat) => `- **${stat.value}** ${stat.label} (${stat.source})`)
   .join("\n");
+
+const credibility = t.why.items.map((item) => `- ${item}`).join("\n");
 
 const clientWork = CLIENT_PROJECTS.map(
   (project) =>
@@ -58,9 +60,15 @@ Contact:
 
 One page, one offer, with published prices. The former /ki-wirkung and /ai-impact routes were folded into it and now redirect there.
 
-- [AI in engineering (EN)](https://www.jomaendle.com/business/en): the problem, the economics, the three priced steps, and how an engagement starts.
+- [AI in engineering (EN)](https://www.jomaendle.com/business/en): the research, the three priced steps, and how an engagement starts.
 - [KI im Engineering (DE)](https://www.jomaendle.com/business): German version of the same page.
 - [Markdown version (EN)](https://www.jomaendle.com/business/en.md): the full page as plain markdown.
+
+## What the research shows
+
+${evidence}
+
+${t.evidence.closing}
 
 ## The offer
 
@@ -68,9 +76,9 @@ Fits organisations of 50 to 800 developers that have been running AI coding tool
 
 ${ladder}
 
-${t.ladder.note}
+**${t.ladder.figure}** ${t.ladder.figureNote} ${t.ladder.note}
 
-## Why this holds up
+## Why me
 
 ${credibility}
 
