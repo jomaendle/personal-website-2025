@@ -4,32 +4,32 @@ import { BusinessStructuredData } from "@/components/structured-data";
 
 export const dynamic = "force-static";
 
-const title = "Freelance Frontend- & AI-Engineering";
-// "Frontend-Engineering auf Enterprise-Niveau" rather than naming React and
-// Next.js as the enterprise stack: the enterprise years are Vue and NestJS at
-// E.ON plus Micro Focus, while React and Next.js are the client work.
+const title = "KI im Engineering · Messen und einführen";
+// The description sells the outcome and the constraint, not the stack. The
+// works-council line is the differentiator against the US measurement tools
+// and it is the phrase German engineering leads actually search for.
 const description =
-  "Senior Contract Engineering für Produktteams: Frontend-Engineering auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen.";
+  "Für Organisationen mit 50 bis 800 Entwickler:innen: Ich messe aus Ihren Systemdaten, was der KI-Einsatz gebracht hat, und setze um, was trägt. Ohne personenbezogene Auswertung.";
 
 const ogImage = `/api/og-image?title=${encodeURIComponent(
-  "Freelance Frontend & AI Engineering",
+  "KI im Engineering",
 )}&description=${encodeURIComponent(
-  "Frontend auf Enterprise-Niveau. Und KI, die in Produktion geht.",
+  "Erst gemessen, dann eingeführt. Ohne personenbezogene Auswertung.",
 )}`;
 
 export const metadata: Metadata = {
   title,
   description,
   keywords: [
-    "Freelance Frontend Engineer",
-    "Next.js Freelancer",
-    "React Contract Engineering",
-    "Angular Freelancer",
-    "Astro Entwickler",
-    "LLM Integration Entwickler",
-    "AI Engineering Freelance",
-    "KI-native Entwicklung",
-    "TypeScript Contractor",
+    "KI-Wirkung messen Engineering",
+    "KI Rollout Softwareentwicklung",
+    "Entwicklerproduktivität messen Betriebsrat",
+    "Engineering-Kennzahlen ohne personenbezogene Auswertung",
+    "DORA Metriken KI",
+    "GitHub Copilot Nutzen messen",
+    "KI-native Entwicklung einführen",
+    "Betriebsvereinbarung KI Entwicklung",
+    "AI Engineering Beratung",
   ],
   alternates: {
     canonical: "/business",

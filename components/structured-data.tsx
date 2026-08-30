@@ -1,10 +1,6 @@
 import Script from "next/script";
 import { SITE } from "@/lib/config/site";
-import {
-  AI_IMPACT_COPY,
-  type Lang,
-  PRICE_EUR,
-} from "@/lib/state/ai-impact-copy";
+import { BUSINESS_COPY, type Lang, PRICING } from "@/lib/state/business-copy";
 
 const WHITESPACE = /\s+/;
 
@@ -166,157 +162,99 @@ export function BlogPostStructuredData({
   );
 }
 
-export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
+/**
+ * `Service` + `FAQPage` JSON-LD for /business.
+ *
+ * Two graph nodes in one script. The `Service` describes the offer and its
+ * provider and carries the three ladder rungs as an `OfferCatalog`; the
+ * `FAQPage` is generated from the same `BUSINESS_COPY.faq` the page renders,
+ * so the markup can never answer a question the page does not ask. Google
+ * retired FAQ rich results in 2026, but the type is still valid and is read by
+ * the AI crawlers `app/robots.ts` admits by name.
+ *
+ * Prices come from `PRICING` rather than from the display strings, so the
+ * markup cannot drift from the page when a number moves. The audit is a
+ * one-off figure; the other two rungs are monthly, which is why they carry a
+ * `UnitPriceSpecification` with a `MON` billing duration rather than a bare
+ * price. The programme is a band, so it states min and max instead of a point.
+ */
+export function BusinessStructuredData({ lang }: { lang: Lang }) {
   const isDe = lang === "de";
+  const t = BUSINESS_COPY[lang];
   const url = isDe
     ? "https://www.jomaendle.com/business"
     : "https://www.jomaendle.com/business/en";
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "@id": `${url}#service`,
-    name: isDe
-      ? "Freelance Frontend- & AI-Engineering · Jo Mändle"
-      : "Freelance Frontend & AI Engineering · Jo Mändle",
-    // The enterprise track record is Vue/NestJS at E.ON and Micro Focus; the
-    // React and Next.js work is client-side (ImmoKäpsele, Memberspot). So the
-    // claim is frontend engineering at enterprise scale, not React and Next.js
-    // *as* the enterprise stack. The page body says the same thing.
-    description: isDe
-      ? "Senior Contract Engineering für Produktteams: Frontend-Engineering auf Enterprise-Niveau, plus LLM-Integrationen, die es in die Produktion schaffen."
-      : "Senior contract engineering for product teams: frontend engineering at enterprise scale, plus LLM integrations that reach production.",
-    url,
-    inLanguage: isDe ? "de-DE" : "en-US",
-    image: "https://www.jomaendle.com/avatar.jpeg",
-    // No `priceRange`: the site publishes no rate, and the "€€" convention is a
-    // restaurant-tier signal that would say something untrue about the seat.
-    areaServed: [
-      { "@type": "Country", name: "Germany" },
-      { "@type": "Country", name: "Austria" },
-      { "@type": "Country", name: "Switzerland" },
-      { "@type": "Place", name: "Remote / EU" },
-    ],
-    provider: {
-      "@type": "Person",
-      "@id": "https://www.jomaendle.com#person",
-      name: "Johannes Mändle",
-      alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
-      jobTitle: isDe
-        ? "Freelance Frontend- & AI-Engineer"
-        : "Freelance Frontend & AI Engineer",
-      url: "https://www.jomaendle.com",
-      email: "mailto:business@jomaendle.com",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Im Hirschmorgen 12",
-        postalCode: "69181",
-        addressLocality: "Leimen",
-        addressCountry: "DE",
+  /** One offer per rung, priced from `PRICING`. */
+  const offers = [
+    {
+      "@type": "Offer",
+      name: t.ladder.tiers[0]?.name,
+      description: t.ladder.tiers[0]?.audience,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: PRICING.audit,
+        priceCurrency: "EUR",
       },
-      sameAs: [
-        "https://www.linkedin.com/in/johannes-maendle/",
-        "https://github.com/jomaendle",
-      ],
-      // Kept in step with the stack table in `lib/state/business-copy.ts`: if a
-      // technology is claimed there, it belongs here too.
-      knowsAbout: [
-        "Next.js",
-        "React",
-        "Angular",
-        "Vue.js",
-        "Astro",
-        "TypeScript",
-        "Node.js",
-        "NestJS",
-        "Frontend Architecture",
-        "Large Language Models",
-        "LLM Integration",
-        "Model Context Protocol",
-        "AI-native Software Development",
-        "Web Performance",
-        "Web Accessibility",
-        "WCAG",
-        "Automated Testing",
-        "Legacy Frontend Migration",
-        "GDPR",
-        "DSGVO",
-      ],
-      knowsLanguage: ["de", "en"],
     },
-    serviceType: isDe
-      ? [
-          "Embedded Contract Engineering",
-          "Frontend-Entwicklung (React, Next.js, Angular, Vue, Astro)",
-          "KI-native Entwicklung und Team-Enablement",
-          "KI- und LLM-Produktintegration",
-          "Frontend-Architektur, Performance und Barrierefreiheit",
-          "Frontend-Modernisierung und Migration",
-        ]
-      : [
-          "Embedded contract engineering",
-          "Frontend engineering (React, Next.js, Angular, Vue, Astro)",
-          "AI-native development and team enablement",
-          "AI and LLM product integration",
-          "Frontend architecture, performance and accessibility",
-          "Frontend modernization and migration",
-        ],
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: isDe ? "Projektanfrage" : "Business inquiries",
-      email: "business@jomaendle.com",
-      url: `${url}#engage`,
-      availableLanguage: ["de", "en"],
+    {
+      "@type": "Offer",
+      name: t.ladder.tiers[1]?.name,
+      description: t.ladder.tiers[1]?.audience,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        minPrice: PRICING.program.small,
+        maxPrice: PRICING.program.large,
+        priceCurrency: "EUR",
+        billingDuration: 1,
+        billingIncrement: 1,
+        unitCode: "MON",
+      },
     },
-  };
-
-  const scriptProps = {
-    id: `business-structured-data-${lang}`,
-    type: "application/ld+json",
-    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
-  };
-  return <Script {...scriptProps} />;
-}
-
-/**
- * `Service` + `FAQPage` JSON-LD for the AI impact audit route.
- *
- * Two graph nodes in one script. The `Service` describes the mandate and its
- * provider; the `FAQPage` is generated from the same `AI_IMPACT_COPY.faq` the
- * page renders, so the markup can never answer a question the page does not
- * ask. Google retired FAQ rich results in 2026, but the type is still valid
- * and is read by the AI crawlers `app/robots.ts` admits by name, which is the
- * audience this page is written for.
- *
- * The `offers` node carries the price because the page publishes a flat fixed
- * price. It reads `PRICE_EUR` from the copy module, so the number cannot
- * drift from what the page and the markdown mirrors display. (An earlier
- * version priced the audit as an "ab" entry point, which is why `offers` was
- * initially omitted.)
- */
-export function AiImpactStructuredData({ lang }: { lang: Lang }) {
-  const isDe = lang === "de";
-  const t = AI_IMPACT_COPY[lang];
-  const url = `https://www.jomaendle.com${t.path}`;
+    {
+      "@type": "Offer",
+      name: t.ladder.tiers[2]?.name,
+      description: t.ladder.tiers[2]?.audience,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: PRICING.advisory,
+        priceCurrency: "EUR",
+        billingDuration: 1,
+        billingIncrement: 1,
+        unitCode: "MON",
+      },
+    },
+  ];
 
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "Service",
+        "@type": "ProfessionalService",
         "@id": `${url}#service`,
         name: isDe
-          ? "KI-Wirkung im Engineering messen · 4-Wochen-Audit"
-          : "Measuring AI impact in engineering · 4-week audit",
+          ? "KI im Engineering: Messung, Einführung und Begleitung · Jo Mändle"
+          : "AI in engineering: measurement, rollout and advisory · Jo Mändle",
         description: t.hero.lede,
         url,
         inLanguage: isDe ? "de-DE" : "en-US",
-        serviceType: isDe
-          ? "Audit der KI-Wirkung in der Softwareentwicklung"
-          : "Audit of AI impact on software delivery",
+        image: "https://www.jomaendle.com/avatar.jpeg",
         // Team- and repository-level only. Stating the category this way keeps
         // the markup in step with the page's central claim: no per-developer
         // analysis, which is what makes it survivable under § 87 BetrVG.
+        serviceType: isDe
+          ? [
+              "Audit der KI-Wirkung in der Softwareentwicklung",
+              "Einführung KI-nativer Entwicklung",
+              "Engineering-Kennzahlen ohne personenbezogene Auswertung",
+              "Begleitung von Engineering-Organisationen",
+            ]
+          : [
+              "Audit of AI impact on software delivery",
+              "AI-native development rollout",
+              "Engineering metrics without per-developer analysis",
+              "Ongoing engineering advisory",
+            ],
         category: isDe
           ? [
               "Engineering-Kennzahlen",
@@ -341,6 +279,12 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
           audienceType: isDe
             ? "VP Engineering, CTO, Budgetverantwortliche"
             : "VP Engineering, CTO, budget owners",
+          numberOfEmployees: {
+            "@type": "QuantitativeValue",
+            minValue: 50,
+            maxValue: 800,
+            unitText: isDe ? "Entwickler:innen" : "developers",
+          },
         },
         provider: {
           "@type": "Person",
@@ -350,21 +294,61 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
           jobTitle: "Principal Solution Architect",
           url: "https://www.jomaendle.com",
           email: `mailto:${SITE.contact.email}`,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "Im Hirschmorgen 12",
+            postalCode: "69181",
+            addressLocality: "Leimen",
+            addressCountry: "DE",
+          },
           sameAs: [
             "https://www.linkedin.com/in/johannes-maendle/",
             "https://github.com/jomaendle",
           ],
+          // Kept in step with the terms listed under the third credibility
+          // block in `lib/state/business-copy.ts`: if a technology is claimed
+          // there, it belongs here too.
+          knowsAbout: [
+            "AI-native Software Development",
+            "Large Language Models",
+            "LLM Integration",
+            "Model Context Protocol",
+            "Engineering Metrics",
+            "DORA Metrics",
+            "Developer Productivity Measurement",
+            "Works Council Compliance",
+            "Betriebsvereinbarung",
+            "Next.js",
+            "React",
+            "Angular",
+            "Vue.js",
+            "Astro",
+            "TypeScript",
+            "Node.js",
+            "NestJS",
+            "Frontend Architecture",
+            "Automated Testing",
+            "GDPR",
+            "DSGVO",
+          ],
+          knowsLanguage: ["de", "en"],
         },
-        offers: {
-          "@type": "Offer",
-          price: PRICE_EUR,
-          priceCurrency: "EUR",
-          url,
+        hasOfferCatalog: {
+          "@type": "OfferCatalog",
+          name: t.ladder.heading,
+          itemListElement: offers,
         },
         potentialAction: {
           "@type": "ReserveAction",
-          name: t.hero.cta,
+          name: t.hero.ctaPrimary,
           target: SITE.contact.booking,
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: isDe ? "Projektanfrage" : "Business inquiries",
+          email: SITE.contact.email,
+          url: `${url}#engage`,
+          availableLanguage: ["de", "en"],
         },
       },
       {
@@ -381,7 +365,7 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
   };
 
   const scriptProps = {
-    id: `ai-impact-structured-data-${lang}`,
+    id: `business-structured-data-${lang}`,
     type: "application/ld+json",
     dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
   };

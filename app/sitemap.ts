@@ -78,32 +78,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
-    // The AI impact audit. A separate offer with its own buyer, so it carries
-    // the same priority as /business rather than sitting below it.
-    {
-      url: `${baseUrl}/ki-wirkung`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.9,
-      alternates: {
-        languages: {
-          de: `${baseUrl}/ki-wirkung`,
-          en: `${baseUrl}/ai-impact`,
-        },
-      },
-    },
-    {
-      url: `${baseUrl}/ai-impact`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-      alternates: {
-        languages: {
-          de: `${baseUrl}/ki-wirkung`,
-          en: `${baseUrl}/ai-impact`,
-        },
-      },
-    },
     {
       url: `${baseUrl}/about`,
       lastModified: now,

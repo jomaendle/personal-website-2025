@@ -25,6 +25,29 @@ const nextConfig = {
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  /**
+   * The AI impact audit used to live on its own pair of routes. It is now step
+   * one of the ladder on /business, so both routes and both markdown mirrors
+   * redirect there permanently, in the matching language. These URLs are
+   * indexed and have been linked from LinkedIn and from applications, so they
+   * must not 404.
+   */
+  async redirects() {
+    return [
+      { source: "/ki-wirkung", destination: "/business", permanent: true },
+      { source: "/ai-impact", destination: "/business/en", permanent: true },
+      {
+        source: "/ki-wirkung.md",
+        destination: "/business.md",
+        permanent: true,
+      },
+      {
+        source: "/ai-impact.md",
+        destination: "/business/en.md",
+        permanent: true,
+      },
+    ];
+  },
   compress: true,
   poweredByHeader: false,
   generateEtags: true,

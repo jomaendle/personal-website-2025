@@ -4,32 +4,32 @@ import { BusinessStructuredData } from "@/components/structured-data";
 
 export const dynamic = "force-static";
 
-const title = "Freelance Frontend & AI Engineering";
-// "Frontend engineering at enterprise scale" rather than naming React and
-// Next.js as the enterprise stack: the enterprise years are Vue and NestJS at
-// E.ON plus Micro Focus, while React and Next.js are the client work.
+const title = "AI in engineering · Measure and roll out";
+// The description sells the outcome and the constraint, not the stack. The
+// works-council line is the differentiator against the US measurement tools
+// and it is the phrase German engineering leads actually search for.
 const description =
-  "Senior contract engineering for product teams: frontend engineering at enterprise scale, plus LLM integrations that reach production.";
+  "For organisations of 50 to 800 developers: I measure what your AI tooling returned, from your own system data, then implement what holds up. With no per-developer analysis.";
 
 const ogImage = `/api/og-image?title=${encodeURIComponent(
-  "Freelance Frontend & AI Engineering",
+  "AI in engineering",
 )}&description=${encodeURIComponent(
-  "Frontend at enterprise scale. And AI that reaches production.",
+  "Measured first, then rolled out. With no per-developer analysis.",
 )}`;
 
 export const metadata: Metadata = {
   title,
   description,
   keywords: [
-    "Freelance frontend engineer",
-    "Next.js contractor",
-    "React contract engineering",
-    "Angular contractor",
-    "Astro developer",
-    "LLM integration developer",
-    "AI engineering freelance",
-    "AI-native development",
-    "TypeScript contractor",
+    "measure AI impact engineering",
+    "AI coding assistant ROI",
+    "developer productivity audit",
+    "DORA metrics AI",
+    "engineering metrics without performance monitoring",
+    "works council AI measurement",
+    "GitHub Copilot impact measurement",
+    "AI-native development rollout",
+    "AI engineering consultant",
   ],
   alternates: {
     canonical: "/business/en",

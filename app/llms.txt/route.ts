@@ -19,21 +19,22 @@
  */
 
 import { SITE } from "@/lib/config/site";
-import { AI_IMPACT_COPY } from "@/lib/state/ai-impact-copy";
 import { BUSINESS_COPY } from "@/lib/state/business-copy";
 import { CLIENT_PROJECTS } from "@/lib/state/business-projects";
 
 export const dynamic = "force-static";
 
 const t = BUSINESS_COPY.en;
-const aiImpact = AI_IMPACT_COPY.en;
 
-const services = t.services.items
-  .map((item) => `- **${item.title}**: ${item.desc}`)
+const ladder = t.ladder.tiers
+  .map(
+    (tier) =>
+      `- **${tier.name}** (${tier.step}): ${tier.price} ${tier.terms}. ${tier.audience} ${tier.desc}`,
+  )
   .join("\n");
 
-const stack = t.stack.groups
-  .map((group) => `- **${group.label}**: ${group.items.join(", ")}`)
+const credibility = t.moat.blocks
+  .map((block) => `- **${block.title}**: ${block.paragraphs[0]}`)
   .join("\n");
 
 const clientWork = CLIENT_PROJECTS.map(
@@ -43,9 +44,9 @@ const clientWork = CLIENT_PROJECTS.map(
 
 const content = `# ${SITE.name}
 
-> ${t.hero.lede} Freelance contract engineering with product teams and engineering leads.
+> ${t.hero.lede}
 
-**${t.hero.availability}.** Short, time-boxed mandates such as an audit or an architecture review can start at short notice. Ongoing work inside a team does not start before that quarter.
+**${t.hero.availability}.** The four-week audit can start at short notice. The ongoing programme does not start before that quarter.
 
 Contact:
 - Email: ${SITE.contact.email}
@@ -55,27 +56,23 @@ Contact:
 
 ## For businesses (hire me)
 
-- [Freelance Frontend & AI Engineering (DE)](https://www.jomaendle.com/business): German page describing services, stack, selected client work and how an engagement starts.
-- [Freelance Frontend & AI Engineering (EN)](https://www.jomaendle.com/business/en): English version of the same page.
+One page, one offer, with published prices. The former /ki-wirkung and /ai-impact routes were folded into it and now redirect there.
+
+- [AI in engineering (EN)](https://www.jomaendle.com/business/en): the problem, the economics, the three priced steps, and how an engagement starts.
+- [KI im Engineering (DE)](https://www.jomaendle.com/business): German version of the same page.
 - [Markdown version (EN)](https://www.jomaendle.com/business/en.md): the full page as plain markdown.
 
-## Separate offer: AI impact audit
+## The offer
 
-A self-contained four-week mandate, priced and scoped on its own page. ${aiImpact.hero.lede} Measured at team and repository level, with no per-developer analysis.
+Fits organisations of 50 to 800 developers that have been running AI coding tools for at least a quarter. Measured at team and repository level, with no per-developer analysis, so the rollout survives a German works agreement.
 
-- [Measuring AI in engineering (EN)](https://www.jomaendle.com/ai-impact): scope, the four weeks, deliverables, price and FAQ.
-- [KI im Engineering messen (DE)](https://www.jomaendle.com/ki-wirkung): German version of the same page.
-- [Markdown version (EN)](https://www.jomaendle.com/ai-impact.md): the full page as plain markdown.
+${ladder}
 
-## Core services
+${t.ladder.note}
 
-${services}
+## Why this holds up
 
-## Stack
-
-${stack}
-
-${t.stack.note}
+${credibility}
 
 ## Selected client work
 

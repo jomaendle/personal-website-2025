@@ -24,8 +24,8 @@ import { SITE } from "@/lib/config/site";
  * was room: at 320px `/blog` needs 223px of the 252px available. What actually
  * did not fit was the back link, 115px of "← Jo Mändle" out of those 252. Below
  * `sm` it is the arrow alone, with the name kept for screen readers, and the
- * whole bar fits on one line down to 320px on every route except /business and
- * /ki-wirkung, which also carry a language switch and wrap below roughly 365px.
+ * whole bar fits on one line down to 320px on every route except /business,
+ * which also carries a language switch and wraps below roughly 365px.
  */
 
 export function PageTopBar({

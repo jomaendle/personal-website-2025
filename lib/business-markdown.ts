@@ -5,6 +5,9 @@
  * the mirror is derived from the same `BUSINESS_COPY` and `CLIENT_PROJECTS`
  * the page renders from. Previously each route held a hand-maintained template
  * literal, which silently drifted the moment the page copy changed.
+ *
+ * The ladder is rendered with its prices intact. An agent asked "what does
+ * this cost" should be able to answer from this file without loading the HTML.
  */
 
 import { SITE } from "@/lib/config/site";
@@ -14,6 +17,32 @@ import { CLIENT_PROJECTS, CLIENTS } from "@/lib/state/business-projects";
 export function renderBusinessMarkdown(lang: Lang): string {
   const t = BUSINESS_COPY[lang];
   const isDe = lang === "de";
+
+  const tiers = t.ladder.tiers
+    .map((tier) =>
+      [
+        `### ${tier.step}: ${tier.name}`,
+        `**${tier.price} ${tier.terms}**`,
+        "",
+        `*${tier.audience}*`,
+        "",
+        tier.desc,
+        "",
+        ...tier.items.map((item) => `- ${item}`),
+      ].join("\n"),
+    )
+    .join("\n\n");
+
+  const moat = t.moat.blocks
+    .map((block) =>
+      [
+        `### ${block.title}`,
+        "",
+        block.paragraphs.join("\n\n"),
+        ...(block.terms ? ["", block.terms.join(" · ")] : []),
+      ].join("\n"),
+    )
+    .join("\n\n");
 
   const projects = CLIENT_PROJECTS.map((project) =>
     [
@@ -40,31 +69,45 @@ ${t.hero.lede}
 
 **${t.hero.availability}**
 
+${t.credentials.map((credential) => `- **${credential.value}** ${credential.label}`).join("\n")}
+
 - ${isDe ? "E-Mail" : "Email"}: ${SITE.contact.email}
-- ${isDe ? "Gespräch buchen" : "Book a call"}: ${SITE.contact.booking}
+- ${t.hero.ctaPrimary}: ${SITE.contact.booking}
 - LinkedIn: ${SITE.social.linkedin}
 
 ## ${t.clients.heading}
 
 ${CLIENTS.map((client) => client.name).join(" · ")}
 
-## ${t.pitch.heading}
+## ${t.problem.heading}
 
-${t.pitch.paragraphs.join("\n\n")}
+${t.problem.items.map((item) => `- **${item.title}** ${item.desc}`).join("\n")}
 
-## ${t.services.heading}
+${t.problem.closing}
 
-${t.services.items.map((item) => `- **${item.title}**: ${item.desc}`).join("\n")}
+## ${t.economics.heading}
 
-${t.services.note} [${t.services.noteLinkLabel}](https://www.jomaendle.com${t.services.noteHref})
+**${t.economics.figure} ${t.economics.figureLabel}**
 
-## ${t.stack.heading}
+${t.economics.paragraphs.join("\n\n")}
 
-${t.stack.groups.map((group) => `- **${group.label}**: ${group.items.join(" · ")}`).join("\n")}
+${t.economics.note}
 
-${t.stack.note}
+## ${t.ladder.heading}
+
+${t.ladder.lede}
+
+${tiers}
+
+${t.ladder.note}
+
+## ${t.moat.heading}
+
+${moat}
 
 ## ${t.work.heading}
+
+${t.work.lede}
 
 ${projects}
 
@@ -72,9 +115,9 @@ ${projects}
 
 ${t.process.steps.map((step, i) => `${i + 1}. **${step.title}**: ${step.desc}`).join("\n")}
 
-## ${t.why.heading}
+## ${t.faq.heading}
 
-${t.why.items.map((item) => `- ${item}`).join("\n")}
+${t.faq.items.map((item) => `**${item.question}**\n\n${item.answer}`).join("\n\n")}
 
 ## ${t.engage.heading}
 
