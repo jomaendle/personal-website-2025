@@ -19,9 +19,9 @@ interface ContactChannels {
 export interface SiteConfig {
   /** Display name / wordmark used across the masthead, footer and article meta. */
   name: string;
-  /** Full role, including the focus qualifier — used as the homepage eyebrow. */
+  /** Role and employer, shown under the name on the homepage. */
   role: string;
-  /** Condensed role — used in the article author row where space is tight. */
+  /** Role only, for the article author row. */
   shortRole: string;
   /** Avatar served from `public/`. */
   avatar: string;
@@ -31,7 +31,7 @@ export interface SiteConfig {
 
 export const SITE: SiteConfig = {
   name: "Jo Mändle",
-  role: "Principal Solution Architect – AI in SDLC",
+  role: "Principal Solution Architect, E.ON Digital Technology",
   shortRole: "Principal Solution Architect",
   avatar: "/avatar.jpeg",
   social: {

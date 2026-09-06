@@ -4,12 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- `npm run dev` - Start the development server (http://localhost:3000)
-- `npm run build` - Build the application for production
-- `npm run start` - Start the production server
-- `npm run lint` - Run Biome to check for code issues (lint + format + import order)
-- `npm run lint:fix` - Apply Biome's safe fixes
-- `npm run format` - Format with Biome
+The package manager is pnpm (`pnpm-lock.yaml` is the lockfile).
+
+- `pnpm dev` - Start the development server (http://localhost:3000)
+- `pnpm build` - Build the application for production
+- `pnpm start` - Start the production server
+- `pnpm lint` - Run Biome to check for code issues (lint + format + import order)
+- `pnpm lint:fix` - Apply Biome's safe fixes
+- `pnpm format` - Format with Biome
 
 ## Architecture Overview
 
@@ -62,13 +64,13 @@ This is a Next.js 15 personal website built with the App Router, featuring a blo
 
 ### Design System
 
-The site uses a custom dark-first design system built on Tailwind CSS:
+An editorial system: cream paper in light mode, near-black in dark, one vermilion accent (`--brand`).
 
-- CSS variables defined in `app/globals.css` for consistent theming
-- Color scheme uses HSL values for better color manipulation
-- Custom link colors: `#2997ff` (default) and `#0070f3` (hover)
-- Typography uses Inter font with specific prose styling
-- Components follow shadcn/ui patterns
+- Tokens are HSL CSS variables in `app/editorial-theme.css`; `app/globals.css` holds the Tailwind `@theme`, fonts and base styles
+- Type: Newsreader (serif) for titles, Geist for body, Geist Mono for eyebrows, dates and labels. Geist is self-hosted from `app/fonts`; see `app/layout.tsx` for how each is loaded
+- Lists are hairline "ledger" rows (`.ledger-row`), with a brand rule and tint on hover
+- Content is server-rendered; motion is an enhancement and never the only way content becomes visible
+- Voice rules for all copy live in `.claude/skills/writing-voice`
 
 ### Key Features
 

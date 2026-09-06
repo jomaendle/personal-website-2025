@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { JobPositions } from "@/components/job-positions";
-import NewsletterForm from "@/components/newsletter";
 import { Footer } from "@/components/ui/footer";
-import { H1, H2, H3 } from "@/components/ui/heading";
+import { H1, H2 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
 import { SITE } from "@/lib/config/site";
-import { PRINCIPLES } from "@/lib/state/principles";
 
 export const dynamic = "force-static";
 
@@ -61,37 +59,23 @@ export default function AboutPage() {
           <section className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
             <p>
               I&apos;m a full-stack engineer and Principal Solution Architect at
-              E.ON Digital Technology. My job is working out how AI fits into
-              the way we build software: the architecture, the tooling, and the
-              daily habits of the teams doing the shipping.
+              E.ON Digital Technology. My job: figure out how AI fits into how
+              large teams actually ship software. Architecture, tooling, daily
+              habits, all of it.
             </p>
             <p>
-              I come from the front end. Years of performance work,
-              accessibility, and whatever new CSS and HTML primitive had just
-              landed. I still look at everything that way, including AI. It
-              makes it easier to see where it helps and where it only adds
-              noise.
+              I studied Applied Computer Science in Stuttgart. I always liked
+              where code meets design, so front-end was the natural fit. Five or
+              six years of Angular, then React, and I&apos;m more full-stack
+              now.
             </p>
-          </section>
-
-          {/* Principles */}
-          <section>
-            <H2>How I work</H2>
-            <div className="grid gap-8 sm:grid-cols-3">
-              {PRINCIPLES.map((p) => (
-                <div key={p.num} className="flex flex-col gap-3">
-                  <span className="font-mono text-[0.8rem] text-brand">
-                    {p.num}
-                  </span>
-                  <H3 interactive={false} className="text-[1.25rem]">
-                    {p.title}
-                  </H3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {p.body}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p>
+              I still build constantly, side projects and production work at
+              E.ON. Most of that work now sits at the AI shift itself: how to
+              work well with Claude Code, how a repo should be set up, what
+              maintenance looks like, what skills and setup a project actually
+              needs.
+            </p>
           </section>
 
           {/* Experience */}
@@ -101,8 +85,6 @@ export default function AboutPage() {
               <JobPositions />
             </div>
           </section>
-
-          <NewsletterForm />
         </main>
 
         <Footer />

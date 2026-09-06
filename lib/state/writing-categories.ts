@@ -1,10 +1,6 @@
 /**
- * Writing categories — Editorial design layer (additive).
- *
- * The canonical post list in `lib/state/blog.ts` has no taxonomy, so rather
- * than mutate it we map slug -> category here. Used by the Writing index
- * filter and the article meta header. Add a line when you publish a post;
- * anything unmapped falls back to "Notes".
+ * Slug to category, for the eyebrow on article rows and the article header.
+ * Add a line when you publish a post; anything unmapped falls back to "Notes".
  */
 
 export type WritingCategory =
@@ -25,14 +21,6 @@ const WRITING_CATEGORY: Record<string, WritingCategory> = {
   "responsive-ui-components": "CSS",
   animations: "CSS",
 };
-
-export const WRITING_FILTERS: ("All" | WritingCategory)[] = [
-  "All",
-  "AI · SDLC",
-  "CSS",
-  "Build",
-  "Platform",
-];
 
 export function categoryFor(slug: string): WritingCategory {
   return WRITING_CATEGORY[slug] ?? "Notes";

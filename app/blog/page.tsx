@@ -38,10 +38,6 @@ export default function WritingPage() {
             <H1 className="max-w-[16ch]">
               Notes on the web platform, and on building with AI.
             </H1>
-            <p className="max-w-[52ch] text-muted-foreground">
-              What I&apos;m figuring out about using AI on real projects, and
-              what I run into on the front end.
-            </p>
           </header>
 
           <WritingIndex />

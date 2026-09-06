@@ -18,10 +18,9 @@ export default function NotFound() {
           <span className="font-mono text-[0.72rem] text-brand uppercase tracking-[0.16em]">
             404
           </span>
-          <H1 className="max-w-[16ch]">This page wandered off.</H1>
+          <H1 className="max-w-[16ch]">Page not found.</H1>
           <p className="max-w-[52ch] text-muted-foreground">
-            The page you&apos;re looking for doesn&apos;t exist or may have
-            moved.
+            Nothing lives at this address.
           </p>
           <Link
             href="/"

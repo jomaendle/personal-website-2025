@@ -33,20 +33,6 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
-/**
- * Draft — intentionally NOT in `BLOG_POSTS`, so it stays off the blog index.
- *
- * The post previously imported `CSS_CAROUSEL` for its title, date and view
- * counter, which made it render as the carousel article and increment that
- * post's view count. It has its own identity here so neither can happen again.
- * The body is still empty; write it or delete the route before publishing.
- */
-export const FIRST_MONTH_AS_SOLUTION_ARCHITECT = {
-  title: "My First Month as a Solution Architect",
-  date: "Jul 26, 2026",
-  slug: "first-month-as-solution-architect",
-};
-
 export const BLOG_POSTS: {
   title: string;
   date: string;

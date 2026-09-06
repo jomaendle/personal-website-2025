@@ -47,3 +47,12 @@ export const LEGAL_LINKS: NavLink[] = [
   { label: "Legal Notice", href: "/impressum", hrefLang: "de" },
   { label: "Privacy", href: "/datenschutz", hrefLang: "de" },
 ];
+
+/** Profiles elsewhere, rendered in the footer. */
+export const SOCIAL_LINKS: NavLink[] = [
+  { label: "GitHub", href: "https://github.com/jomaendle" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/johannes-maendle/" },
+  { label: "Medium", href: "https://medium.com/@johannes.maendle" },
+  { label: "YouTube", href: "https://www.youtube.com/@jo.maendle/videos" },
+  { label: "Unsplash", href: "https://unsplash.com/@leonardo_64" },
+];

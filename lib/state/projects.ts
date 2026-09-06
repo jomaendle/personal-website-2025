@@ -22,6 +22,14 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   {
+    id: "youmightnotneed",
+    title: "youmightnotneed",
+    description:
+      "Paste a package.json, find the CSS, HTML or Web API that replaces each dependency. Open source.",
+    link: "https://youmightnotneed-web.vercel.app",
+    isExternal: true,
+  },
+  {
     id: "beauty-of-earth",
     title: "The Beauty of Earth",
     description: "Landscape photography from wherever I've been.",

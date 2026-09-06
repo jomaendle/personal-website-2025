@@ -1,6 +1,3 @@
-"use client";
-
-import { m, type Variants } from "framer-motion";
 import { H3 } from "@/components/ui/heading";
 
 const jobPositions = [
@@ -30,54 +27,23 @@ const jobPositions = [
   },
 ];
 
-const containerVariants: Variants = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-    },
-  },
-};
-
 export const JobPositions = () => {
   return (
-    <m.div
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      className="flex flex-col gap-6"
-    >
+    <div className="flex flex-col gap-6">
       {jobPositions.map((position) => (
-        <m.article
+        <article
           key={`${position.company}-${position.role}`}
-          variants={itemVariants}
           className="flex items-center"
         >
           <div className="flex-1">
-            {/* Not a link, so the brand hover is opted out — these sit directly
-                beneath the serif principle cards on /about and must match. */}
             <H3 interactive={false}>{position.company}</H3>
             <p className="text-muted-foreground">{position.role}</p>
           </div>
           <p className="text-muted-foreground text-xs md:text-sm">
             {position.startDate} – {position.endDate}
           </p>
-        </m.article>
+        </article>
       ))}
-    </m.div>
+    </div>
   );
 };
