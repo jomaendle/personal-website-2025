@@ -27,13 +27,11 @@ export default function Home() {
             <H2>About</H2>
             <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               <p>
-                I work on how AI changes the way large teams ship software. I
-                came up through the front end, drawn to the point where code
-                meets design: years of Angular, then React, more full-stack now.
-                I still build all the time, and most of it lately is about
-                working well with Claude Code. How a repo is set up, what
-                maintenance looks like, what a project needs so the model does
-                good work.
+                I started as a front-end engineer, years of it on large Angular
+                codebases, then React. Today I run AI-native development inside
+                real teams: agents doing the work, tests and review keeping it
+                honest, and engineers learning to lead the process rather than
+                watch it.
               </p>
             </div>
           </section>
