@@ -27,4 +27,10 @@ export const PROJECTS: Project[] = [
       "Links I want to be able to find again. Programming, design, productivity.",
     link: "https://links.jomaendle.com",
   },
+  {
+    id: "music-player",
+    title: "Music Player",
+    description: "A player for songs from my band, Car Kids.",
+    link: "https://radio.jomaendle.com",
+  },
 ];
