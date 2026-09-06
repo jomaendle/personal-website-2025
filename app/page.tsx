@@ -1,7 +1,8 @@
 import { BlogPosts } from "@/components/blog-posts";
-import { CraftsOverview } from "@/components/crafts/crafts-overview";
+import { CraftsContainer } from "@/components/crafts/CraftsContainer";
+import { Minimap } from "@/components/crafts/Minimap";
+import { JobPositions } from "@/components/job-positions";
 import { NameHeading } from "@/components/name-heading";
-import NewsletterForm from "@/components/newsletter";
 import { Footer } from "@/components/ui/footer";
 import { H2 } from "@/components/ui/heading";
 import { WorkExperience } from "@/components/work-experience";
@@ -23,15 +24,16 @@ export default function Home() {
 
         <main id="main-content" tabIndex={-1} className="flex flex-col gap-16">
           <section>
-            <H2>Now</H2>
-            <div className="flex max-w-[56ch] flex-col gap-4 text-[1.05rem] text-foreground/90 leading-relaxed">
+            <H2>About</H2>
+            <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               <p>
-                I work on how AI changes the way large teams ship software:
-                architecture, tooling, daily habits.
-              </p>
-              <p>
-                Years of front-end work in Angular, then React, more full-stack
-                now. I still build for the web, and write about it here.
+                I work on how AI changes the way large teams ship software. I
+                came up through the front end, drawn to the point where code
+                meets design: years of Angular, then React, more full-stack now.
+                I still build all the time, and most of it lately is about
+                working well with Claude Code. How a repo is set up, what
+                maintenance looks like, what a project needs so the model does
+                good work.
               </p>
             </div>
           </section>
@@ -42,8 +44,10 @@ export default function Home() {
           </section>
 
           <section>
-            <H2>Crafts</H2>
-            <CraftsOverview />
+            <H2>Craft</H2>
+            <CraftsContainer title="Minimap">
+              <Minimap />
+            </CraftsContainer>
           </section>
 
           <section>
@@ -51,7 +55,10 @@ export default function Home() {
             <BlogPosts />
           </section>
 
-          <NewsletterForm />
+          <section>
+            <H2>Experience</H2>
+            <JobPositions />
+          </section>
         </main>
 
         <Footer />

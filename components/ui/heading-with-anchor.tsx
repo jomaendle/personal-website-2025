@@ -1,8 +1,23 @@
 "use client";
 
 import { Link2 } from "lucide-react";
-import { useCallback } from "react";
+import { Children, isValidElement, useCallback } from "react";
 import { cn } from "@/lib/utils";
+
+/** Flatten heading children to text, so inline code and links still slug. */
+function textOf(node: React.ReactNode): string {
+  return Children.toArray(node)
+    .map((child) => {
+      if (typeof child === "string" || typeof child === "number") {
+        return String(child);
+      }
+      if (isValidElement<{ children?: React.ReactNode }>(child)) {
+        return textOf(child.props.children);
+      }
+      return "";
+    })
+    .join("");
+}
 
 // Generate slug from text (similar to GitHub's approach)
 function generateSlug(text: string): string {
@@ -27,11 +42,7 @@ export function HeadingWithAnchor({
   id,
   ...props
 }: HeadingWithAnchorProps) {
-  // Extract text content for slug generation
-  const textContent =
-    typeof children === "string" ? children : children?.toString() || "";
-
-  // Use provided id or generate from text
+  const textContent = textOf(children);
   const headingId = id || generateSlug(textContent);
 
   const copyToClipboard = useCallback(async () => {

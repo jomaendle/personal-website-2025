@@ -90,8 +90,7 @@ ${clientWork}
 
 ## Personal site
 
-- [Homepage](https://www.jomaendle.com): Personal portfolio, articles, and crafts.
-- [About](https://www.jomaendle.com/about): Background and work history.
+- [Homepage](https://www.jomaendle.com): Who I am, selected work, work history, and articles.
 - [Blog](https://www.jomaendle.com/blog): Articles on web development, AI tooling, and the software development lifecycle.
 
 ## Legal

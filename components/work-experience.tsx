@@ -1,11 +1,7 @@
 import { H3 } from "@/components/ui/heading";
 import { PROJECTS } from "@/lib/state/projects";
 
-/**
- * Selected work as hairline ledger rows (`.ledger-row` in
- * `app/editorial-theme.css`). Server-rendered: the list is data, and it must
- * be readable before any JavaScript arrives.
- */
+/** Selected work as hairline ledger rows, server-rendered. */
 export function WorkExperience() {
   return (
     <div className="-mx-3 flex flex-col">
@@ -19,16 +15,7 @@ export function WorkExperience() {
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <H3 className="flex flex-wrap items-center">
-                  {project.title}
-                  {/* Inside the H3 so a screen reader hears the caveat with
-                      the title. */}
-                  {project.status ? (
-                    <span className="ml-2 inline-flex shrink-0 items-center rounded-[0.2rem] border border-border-strong px-1.5 py-0.5 font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[0.12em]">
-                      {project.status}
-                    </span>
-                  ) : null}
-                </H3>
+                <H3>{project.title}</H3>
                 <p className="mt-1 text-muted-foreground">
                   {project.description}
                 </p>

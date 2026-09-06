@@ -1,16 +1,11 @@
 import { Link } from "next-view-transitions";
 import { H3 } from "@/components/ui/heading";
-import { ViewCounter } from "@/components/view-counter";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import { categoryFor } from "@/lib/state/writing-categories";
 
 const HOMEPAGE_POST_COUNT = 5;
 
-/**
- * The latest articles on the homepage, server-rendered. The full list lives at
- * /blog; a link there replaces the old show-more toggle. `ViewCounter` is the
- * only client island in the row.
- */
+/** The latest articles on the homepage; the full list lives at /blog. */
 export function BlogPosts() {
   return (
     <div className="-mx-3 flex flex-col">
@@ -41,9 +36,6 @@ export function BlogPosts() {
                 {post.date}
               </p>
             </div>
-            <span className="transition-colors group-hover:text-brand">
-              <ViewCounter slug={post.slug} shouldIncrement={false} />
-            </span>
           </Link>
         </article>
       ))}

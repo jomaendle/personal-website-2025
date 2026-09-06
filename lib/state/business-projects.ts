@@ -8,7 +8,7 @@
  *
  * Only genuine freelance engagements belong here. Employment is not client
  * work: E.ON and StudySmarter are jobs and stay out, because listing them would
- * be contradicted by the CV on /about (`components/job-positions.tsx`) that any
+ * be contradicted by the CV on the homepage (`components/job-positions.tsx`) that any
  * prospect can reach in one click. Those credentials live in
  * `BUSINESS_COPY.pitch` instead.
  *

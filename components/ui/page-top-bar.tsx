@@ -6,7 +6,7 @@ import { SITE } from "@/lib/config/site";
 /**
  * PageTopBar — Editorial design layer.
  *
- * Shared top bar used by the /blog, /about, /business, /impressum, /datenschutz,
+ * Shared top bar used by the /blog, /business, /impressum, /datenschutz,
  * 404 and error routes: a mono "← back" link on the left and the ThemeToggle on
  * the right. Defaults to the homepage and the site name; pass `backHref` /
  * `label` to override.

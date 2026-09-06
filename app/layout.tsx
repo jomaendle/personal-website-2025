@@ -19,7 +19,7 @@ const ogImageDescription = encodeURIComponent(
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.jomaendle.com/"),
   title: {
-    default: "Jo Mändle | Building for the Web.",
+    default: "Jo Mändle",
     template: "%s | Jo Mändle",
   },
   description:

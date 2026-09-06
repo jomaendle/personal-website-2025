@@ -2,350 +2,167 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Detect if device is mobile/touch-enabled
-const isTouchDevice = () => {
-  if (typeof window === "undefined") return false;
-  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
-};
+const MARKER_COUNT = 41;
+const CENTER = (MARKER_COUNT - 1) / 2;
+/** Pointer distance, in px, over which neighbouring ticks stop growing. */
+const REACH = 110;
 
-// Determine optimal marker count based on device
-const getMarkerCount = () => {
-  if (typeof window === "undefined") {
-    return 41;
-  }
-  return isTouchDevice() ? 16 : 41; // Reduced count for mobile performance
-};
-
-// Cached marker position data
-interface MarkerPosition {
-  element: HTMLElement;
-  centerX: number;
-  centerY: number;
-  index: number;
-}
-
+/**
+ * A ruler that leans toward the pointer. Ticks near the cursor stretch on a
+ * quadratic falloff, and a needle snaps to the nearest tick and reports its
+ * index. Works with mouse, touch, and the arrow keys.
+ *
+ * Tick geometry is read from the DOM on every frame rather than cached, so
+ * scrolling and resizing never desynchronise it. Forty-one ticks is cheap.
+ */
 export function Minimap() {
-  const [markerCount] = useState(getMarkerCount());
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tickRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const frameRef = useRef<number | null>(null);
+  const [active, setActive] = useState(CENTER);
+  const [needleX, setNeedleX] = useState<number | null>(null);
 
-  // Refs for DOM elements and cached data
-  const containerRef = useRef<HTMLDivElement>(null);
-  const markerWrapperRef = useRef<HTMLDivElement>(null);
-  const currentMarkerRef = useRef<SVGSVGElement>(null);
-  const currentMarkerLineRef = useRef<HTMLDivElement>(null);
+  /** Stretch ticks around `x` (track-relative) and snap the needle to the nearest. */
+  const settle = useCallback((x: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const left = track.getBoundingClientRect().left;
 
-  // Performance optimization refs
-  const markerPositionsRef = useRef<MarkerPosition[]>([]);
-  const rafIdRef = useRef<number | null>(null);
-  const lastUpdateTimeRef = useRef(0);
-  const isInteractingRef = useRef(false);
+    let nearest = CENTER;
+    let nearestDistance = Infinity;
+    let nearestX = 0;
 
-  // Marker components with optimized rendering
-  const marker = <div className="marker h-6 w-px bg-foreground/50"></div>;
-  const largerMarker = (
-    <div className="marker h-10 w-px bg-foreground/80"></div>
-  );
-  const largestMarker = <div className="marker h-20 w-px bg-foreground"></div>;
-
-  // Cache marker positions - called on mount and resize
-  const cacheMarkerPositions = useCallback(() => {
-    if (!markerWrapperRef.current) return;
-
-    const markers =
-      markerWrapperRef.current.querySelectorAll<HTMLElement>(".marker");
-
-    markerPositionsRef.current = Array.from(markers).map((marker, index) => {
-      const rect = marker.getBoundingClientRect();
-      // Set transition property for smooth scale animations
-      marker.style.transition = "transform 0.15s ease-out";
-      marker.style.willChange = "transform";
-      return {
-        element: marker,
-        // Store positions relative to viewport for now, will adjust during interaction
-        centerX: rect.left + rect.width / 2,
-        centerY: rect.top + rect.height / 2,
-        index,
-      };
-    });
-  }, []);
-
-  // Optimized interaction handler using RAF
-  const handleInteraction = useCallback((clientX: number, clientY: number) => {
-    // Throttle to 60fps (16ms)
-    const now = performance.now();
-    if (now - lastUpdateTimeRef.current < 16) {
-      return;
-    }
-    lastUpdateTimeRef.current = now;
-
-    // Cancel any pending RAF
-    if (rafIdRef.current !== null) {
-      cancelAnimationFrame(rafIdRef.current);
-    }
-
-    // Schedule update in next animation frame
-    rafIdRef.current = requestAnimationFrame(() => {
-      if (!(markerWrapperRef.current && currentMarkerRef.current)) {
-        return;
-      }
-
-      const markerWrapper = markerWrapperRef.current;
-      const areaRect = markerWrapper.getBoundingClientRect();
-
-      // Early exit if outside interaction area
-      if (
-        clientX < areaRect.left ||
-        clientX > areaRect.right ||
-        clientY < areaRect.top ||
-        clientY > areaRect.bottom
-      ) {
-        return;
-      }
-
-      const maxDistance = 100;
-      let nearestMarker:
-        | (MarkerPosition & { centerX: number; centerY: number })
-        | null = null;
-      let minDistanceSquared = Infinity; // Use squared distance to avoid sqrt
-
-      // Re-calculate positions on each interaction (handles scroll/resize)
-      const markers = markerPositionsRef.current;
-
-      for (const markerPos of markers) {
-        const rect = markerPos.element.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        // Calculate squared distance (faster than Math.sqrt)
-        const dx = clientX - centerX;
-        const dy = clientY - centerY;
-        const distanceSquared = dx * dx + dy * dy;
-
-        // Track nearest marker
-        if (distanceSquared < minDistanceSquared) {
-          minDistanceSquared = distanceSquared;
-          nearestMarker = { ...markerPos, centerX, centerY };
-        }
-
-        // Apply scale effect based on distance (use actual distance here)
-        const distance = Math.sqrt(distanceSquared);
-        if (distance < maxDistance) {
-          const scale = 2.5 - distance / maxDistance;
-          // Use transform for GPU acceleration
-          markerPos.element.style.transform = `scaleY(${scale})`;
-        } else {
-          markerPos.element.style.transform = "scaleY(1)";
-        }
-      }
-
-      // Update pointer position
-      if (nearestMarker !== null && currentMarkerRef.current) {
-        const containerRect = markerWrapper.getBoundingClientRect();
-        const containerCenterX = containerRect.width / 2;
-        const nearest: MarkerPosition & { centerX: number; centerY: number } =
-          nearestMarker;
-        let snapX = nearest.centerX - containerRect.left;
-
-        // Constrain to first and last marker
-        if (markers.length > 0) {
-          const firstMarker = markers[0];
-          const lastMarker = markers.at(-1);
-          if (firstMarker && lastMarker) {
-            const firstRect = firstMarker.element.getBoundingClientRect();
-            const lastRect = lastMarker.element.getBoundingClientRect();
-
-            const firstX =
-              firstRect.left + firstRect.width / 2 - containerRect.left;
-            const lastX =
-              lastRect.left + lastRect.width / 2 - containerRect.left;
-
-            snapX = Math.max(firstX, Math.min(lastX, snapX));
-          }
-        }
-
-        // Use transform for better performance
-        // Transform is relative to element's current position, so adjust from container center
-        const currentMarker = currentMarkerRef.current;
-        const translateX =
-          snapX - containerCenterX + 9 - currentMarker.clientWidth / 2;
-        currentMarker.style.transition = "transform 0.2s ease-out";
-        // Include rotation in transform to maintain the rotate-180 class effect
-        currentMarker.style.transform = `translate(${translateX}px, -60px) rotate(180deg)`;
-
-        // Update line position (also relative to container center)
-        if (currentMarkerLineRef.current) {
-          const line = currentMarkerLineRef.current;
-          const lineTranslateX = snapX - containerCenterX;
-          line.style.transition = "transform 0.2s ease-out";
-          line.style.transform = `translateX(${lineTranslateX}px)`;
-        }
+    tickRefs.current.forEach((tick, index) => {
+      if (!tick) return;
+      const rect = tick.getBoundingClientRect();
+      const tickX = rect.left - left + rect.width / 2;
+      const distance = Math.abs(x - tickX);
+      const t = Math.max(0, 1 - distance / REACH);
+      // Short ticks grow the most; the long ones only nod, so nothing
+      // collides with the readout above.
+      const grow = Number(tick.dataset.grow);
+      tick.style.transform = `scaleY(${1 + grow * t * t})`;
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = index;
+        nearestX = tickX;
       }
     });
+
+    setActive(nearest);
+    setNeedleX(nearestX);
   }, []);
 
-  // Unified pointer event handler for mouse and touch
-  const handlePointerMove = useCallback(
-    (e: PointerEvent) => {
-      e.preventDefault();
-      isInteractingRef.current = true;
-      handleInteraction(e.clientX, e.clientY);
+  const release = useCallback(() => {
+    for (const tick of tickRefs.current) {
+      if (tick) tick.style.transform = "";
+    }
+  }, []);
+
+  const onPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const track = trackRef.current;
+      if (!track) return;
+      const x = event.clientX - track.getBoundingClientRect().left;
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      frameRef.current = requestAnimationFrame(() => settle(x));
     },
-    [handleInteraction],
+    [settle],
   );
 
-  const handlePointerLeave = useCallback(() => {
-    isInteractingRef.current = false;
+  const onKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const step =
+        event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (step === 0) return;
+      event.preventDefault();
+      const next = Math.min(MARKER_COUNT - 1, Math.max(0, active + step));
+      const tick = tickRefs.current[next];
+      const track = trackRef.current;
+      if (!(tick && track)) return;
+      const rect = tick.getBoundingClientRect();
+      settle(rect.left - track.getBoundingClientRect().left + rect.width / 2);
+    },
+    [active, settle],
+  );
 
-    // Reset marker scales
-    for (const markerPos of markerPositionsRef.current) {
-      markerPos.element.style.transform = "scaleY(1)";
-    }
-
-    // Cancel any pending RAF
-    if (rafIdRef.current !== null) {
-      cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = null;
-    }
-  }, []);
-
+  // Park the needle on the centre tick once the ticks have laid out.
   useEffect(() => {
-    // Cache marker positions on mount
-    cacheMarkerPositions();
-
-    // Recalculate positions on resize (debounced)
-    let resizeTimeout: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(cacheMarkerPositions, 150);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    // Attach pointer events to the marker wrapper (not document!)
-    const markerWrapper = markerWrapperRef.current;
-    if (markerWrapper) {
-      // Use pointer events for unified mouse/touch handling
-      markerWrapper.addEventListener(
-        "pointermove",
-        handlePointerMove as EventListener,
-        {
-          passive: false, // Allow preventDefault for touch
-        },
-      );
-      markerWrapper.addEventListener("pointerleave", handlePointerLeave);
-
-      // Additional touch-specific handling for better mobile UX
-      if (isTouchDevice()) {
-        markerWrapper.addEventListener(
-          "touchstart",
-          (e) => {
-            const touch = e.touches[0];
-            if (touch) {
-              handleInteraction(touch.clientX, touch.clientY);
-            }
-          },
-          { passive: false },
-        );
-      }
-    }
-
+    const tick = tickRefs.current[CENTER];
+    const track = trackRef.current;
+    if (!(tick && track)) return;
+    const rect = tick.getBoundingClientRect();
+    setNeedleX(rect.left - track.getBoundingClientRect().left + rect.width / 2);
     return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(resizeTimeout);
-
-      if (markerWrapper) {
-        markerWrapper.removeEventListener(
-          "pointermove",
-          handlePointerMove as EventListener,
-        );
-        markerWrapper.removeEventListener("pointerleave", handlePointerLeave);
-      }
-
-      // Cancel any pending RAF
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-      }
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, [
-    cacheMarkerPositions,
-    handleInteraction,
-    handlePointerMove,
-    handlePointerLeave,
-  ]);
+  }, []);
 
   return (
-    <main
-      ref={containerRef}
-      className="flex size-full flex-col items-center justify-center"
-    >
-      <div className="relative flex w-full items-center justify-center">
-        <svg
-          ref={currentMarkerRef}
-          aria-hidden="true"
-          width="18"
-          height="18"
-          viewBox="0 0 100 100"
-          className="absolute top-10 z-10"
-          style={{
-            // Use transform for positioning instead of left/top
-            // Rotation is included in transform to prevent override
-            transform: "translate(0, -60px) rotate(180deg)",
-            // Static willChange since this element is animated via JS transforms
-            willChange: "transform",
-          }}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <polygon
-            className="fill-orange-500 stroke-orange-600"
-            points="50,20 80,80 20,80"
-            strokeWidth="5"
-          />
-        </svg>
-        <div
-          ref={currentMarkerLineRef}
-          className="absolute z-0 w-px"
-          style={{
-            top: "-12px",
-            bottom: "-50vh",
-            transform: "translateX(0)",
-            // Static willChange since this element is animated via JS transforms
-            willChange: "transform",
-            backgroundImage:
-              "repeating-linear-gradient(to bottom, #f97316 0, #f97316 4px, transparent 4px, transparent 8px)",
-          }}
-        ></div>
-      </div>
-
+    <div className="flex size-full flex-col items-center justify-center">
       <div
-        ref={markerWrapperRef}
-        className="marker-wrapper flex items-center gap-0 p-8"
-        style={{
-          // Improve touch target size on mobile
-          touchAction: "none", // Prevent default touch behaviors
-          cursor: "pointer",
-        }}
+        ref={trackRef}
+        role="slider"
+        tabIndex={0}
+        aria-label="Ruler"
+        aria-valuemin={0}
+        aria-valuemax={MARKER_COUNT - 1}
+        aria-valuenow={active}
+        onPointerMove={onPointerMove}
+        onPointerDown={onPointerMove}
+        onPointerLeave={release}
+        onKeyDown={onKeyDown}
+        className="relative flex touch-none select-none items-center rounded-[0.35rem] px-4 py-10 outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        style={{ cursor: "crosshair" }}
       >
-        {Array.from({ length: markerCount }).map((_, index) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: markers are a fixed-length positional scale with no identity beyond their index
-            key={index}
-            className={`z-0 ${isTouchDevice() ? "px-2" : "px-1.5"}`} // Larger spacing on mobile
+        {/* Needle: index readout, triangle, dashed rule. Positioned by
+            translateX so the ticks never reflow. Hidden until measured. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 flex w-px flex-col items-center transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none"
+          style={{
+            transform: `translateX(${needleX ?? 0}px)`,
+            opacity: needleX === null ? 0 : 1,
+          }}
+        >
+          <span className="absolute top-1 left-1/2 -translate-x-1/2 font-mono text-[0.65rem] text-brand tabular-nums tracking-[0.12em]">
+            {String(active).padStart(2, "0")}
+          </span>
+          <span className="absolute top-6 h-0 w-0 border-x-[5px] border-x-transparent border-t-[7px] border-t-brand" />
+          <span
+            className="absolute top-9 bottom-0 w-px"
             style={{
-              // Add larger touch targets for mobile
-              minWidth: isTouchDevice() ? "20px" : "auto",
-              minHeight: isTouchDevice() ? "44px" : "auto",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              backgroundImage:
+                "repeating-linear-gradient(to bottom, hsl(var(--brand)) 0 4px, transparent 4px 8px)",
             }}
+          />
+        </div>
+
+        {Array.from({ length: MARKER_COUNT }, (_, index) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: ticks are a fixed positional scale
+            key={index}
+            className="flex h-24 w-[clamp(6px,2vw,12px)] items-center justify-center"
           >
-            {index % 20 === 0
-              ? largestMarker
-              : index % 5 === 0
-                ? largerMarker
-                : marker}
+            <div
+              ref={(el) => {
+                tickRefs.current[index] = el;
+              }}
+              data-grow={index % 20 === 0 ? 0.3 : index % 5 === 0 ? 0.9 : 1.8}
+              className={
+                index % 20 === 0
+                  ? "h-16 w-px bg-foreground"
+                  : index % 5 === 0
+                    ? "h-9 w-px bg-foreground/80"
+                    : "h-5 w-px bg-foreground/45"
+              }
+              style={{
+                transition: "transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+              }}
+            />
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

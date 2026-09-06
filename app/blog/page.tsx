@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import NewsletterForm from "@/components/newsletter";
 import { Footer } from "@/components/ui/footer";
 import { H1 } from "@/components/ui/heading";
 import { PageTopBar } from "@/components/ui/page-top-bar";
@@ -41,8 +40,6 @@ export default function WritingPage() {
           </header>
 
           <WritingIndex />
-
-          <NewsletterForm />
         </main>
 
         <Footer />

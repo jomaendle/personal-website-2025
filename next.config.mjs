@@ -29,6 +29,10 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: true,
   trailingSlash: false,
+  async redirects() {
+    // /about folded into the homepage.
+    return [{ source: "/about", destination: "/", permanent: true }];
+  },
   async headers() {
     // Content-Security-Policy. Kept deliberately explicit about the third
     // parties this site loads:

@@ -25,10 +25,7 @@ export interface NavLink {
  * once, since all three read this array. The page still carries its own
  * metadata, JSON-LD and sitemap entry, so search and AI crawlers can find it.
  */
-export const PRIMARY_NAV: NavLink[] = [
-  { label: "Writing", href: "/blog" },
-  { label: "About", href: "/about" },
-];
+export const PRIMARY_NAV: NavLink[] = [{ label: "Writing", href: "/blog" }];
 
 /**
  * Legal links surfaced in the footer.
@@ -52,7 +49,4 @@ export const LEGAL_LINKS: NavLink[] = [
 export const SOCIAL_LINKS: NavLink[] = [
   { label: "GitHub", href: "https://github.com/jomaendle" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/johannes-maendle/" },
-  { label: "Medium", href: "https://medium.com/@johannes.maendle" },
-  { label: "YouTube", href: "https://www.youtube.com/@jo.maendle/videos" },
-  { label: "Unsplash", href: "https://unsplash.com/@leonardo_64" },
 ];
