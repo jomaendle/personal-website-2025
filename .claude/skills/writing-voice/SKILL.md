@@ -5,9 +5,17 @@ user-invocable: true
 ---
 
 All user-visible text on this site shares one voice: plain, first person, concrete.
-The reference is the older CSS articles (`app/blog/animations`, `app/blog/css-carousel`,
-`app/blog/align-dates-in-tables`), which were written by hand. Match those, not a
-landing-page template.
+
+Two references, one per kind of copy:
+
+- **Page copy** (bio, descriptions, metadata, labels): Emil Kowalski's site,
+  https://emilkowal.ski. His whole bio is two sentences: "I work on the Web team at
+  Linear. I like to build things for designers and developers, think deeply about
+  the user interface, how it looks, feels, behaves." Then one line: "Previously, I
+  worked on the design team at Vercel." Match that register, not a landing page.
+- **Articles**: the older hand-written CSS posts (`app/blog/animations`,
+  `app/blog/css-carousel`, `app/blog/align-dates-in-tables`). Conversational,
+  second person is fine there, "let's build this" is fine there.
 
 ## Rule 1: no em dashes
 
@@ -129,6 +137,37 @@ GOOD  I build LLM integrations with the unglamorous pieces in place: context
       cost budget.
 ```
 
+## Rule 8: the Emil shape for page copy
+
+A bio or description says where you are and what you like to build, then stops.
+
+- Verbs are `work`, `build`, `like`, `write`. Nothing stronger.
+- No adjectives about yourself. Not `curious`, not `passionate`, not `restless`.
+  If a trait matters, the nouns show it.
+- No motive, no theme, no through-line. Three facts do not need a spine.
+- No proof. No years of experience, no team size, no "in production". The CV
+  and the work list on the same page carry that.
+- A job is a place, not a title. `I work at E.ON`, not `Principal Solution
+  Architect at E.ON`. The title lives in the byline.
+- Two sentences, maybe a third starting with `Previously`. Under 40 words.
+
+```
+BAD   I started as a front-end engineer, years of it on large Angular
+      codebases, then React. Today I run AI-native development inside real
+      teams: agents doing the work, tests and review keeping it honest, and
+      engineers learning to lead the process rather than watch it.
+BAD   I build things to find out how they work: a music player for my band,
+      this site, whatever the last article was about.
+GOOD  I work on how software gets built at E.ON. I like to build things for
+      the web, lately mostly with Claude Code, and to be somewhere new with a
+      camera.
+```
+
+The first BAD sells. The second BAD explains itself. The GOOD one just says.
+
+Test: read it as if you wrote it for yourself in five years, not for a
+recruiter. If a sentence exists to convince, cut it.
+
 ## German copy (`/business`, `/impressum`, `/datenschutz`)
 
 Same rules. German AI copy leans on `—` even harder than English does, so Rule 1
@@ -163,5 +202,7 @@ Only JSX needs the entity.
 3. No banned vocabulary from Rule 5.
 4. Every description says something the title does not.
 5. Read it aloud. If it sounds like a pitch deck, cut a third of the words.
+   For page copy, hold it next to Emil's two sentences. If yours has more
+   adjectives or more clauses, it is not done.
 6. `npm run lint && npm run build` still pass, and the `/business.md`, `/business/en.md`
    and `/llms.txt` mirrors still render with their interpolations intact.

@@ -27,11 +27,9 @@ export default function Home() {
             <H2>About</H2>
             <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               <p>
-                I started as a front-end engineer, years of it on large Angular
-                codebases, then React. Today I run AI-native development inside
-                real teams: agents doing the work, tests and review keeping it
-                honest, and engineers learning to lead the process rather than
-                watch it.
+                I work on how software gets built at E.ON. I like to build
+                things for the web, lately mostly with Claude Code, and to be
+                somewhere new with a camera.
               </p>
             </div>
           </section>
