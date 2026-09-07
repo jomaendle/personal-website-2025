@@ -86,8 +86,7 @@ export function PersonStructuredData() {
       "https://www.linkedin.com/in/johannes-maendle/",
       "https://github.com/jomaendle",
     ],
-    description:
-      "Full-stack engineer writing about the web platform and building software with AI.",
+    description: "I build things for the web and write about it here.",
   };
 
   return (
@@ -394,8 +393,7 @@ export function WebsiteStructuredData() {
     "@type": "WebSite",
     name: "Jo Mändle | Building for the Web",
     url: "https://www.jomaendle.com",
-    description:
-      "Full-stack engineer writing about the web platform and building software with AI.",
+    description: "I build things for the web and write about it here.",
     author: {
       "@type": "Person",
       name: "Johannes Mändle",

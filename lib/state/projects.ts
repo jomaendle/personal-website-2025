@@ -12,7 +12,7 @@ export const PROJECTS: Project[] = [
     title: "youmightnotneed",
     description:
       "Paste a package.json, find the CSS, HTML or Web API that replaces each dependency. Open source.",
-    link: "https://youmightnotneed-web.vercel.app",
+    link: "https://youmightnotneed.dev/",
   },
   {
     id: "beauty-of-earth",
