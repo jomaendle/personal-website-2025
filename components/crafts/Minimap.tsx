@@ -80,6 +80,9 @@ export function Minimap() {
     /** Recent drag positions, to read the release speed from. */
     samples: [] as { v: number; t: number }[],
     hovering: false,
+    focused: false,
+    /** False while the ruler is scrolled out of view or the tab is hidden. */
+    visible: true,
     idle: false,
     idleTimer: 0 as ReturnType<typeof setTimeout> | 0,
     frame: 0,
@@ -88,15 +91,31 @@ export function Minimap() {
     shown: CENTER,
   });
 
-  /** Left edge of the first tick centre and the spacing between ticks, in page px. */
+  /**
+   * Tick geometry in page px: centre of the first tick, spacing between ticks,
+   * and the root's left edge. Cached, since reading it forces layout; the
+   * resize and visibility listeners drop the cache.
+   */
+  const geoRef = useRef<{
+    start: number;
+    cell: number;
+    rootLeft: number;
+  } | null>(null);
   const geometry = useCallback(() => {
+    if (geoRef.current) return geoRef.current;
     const first = tickRefs.current[0];
     const last = tickRefs.current[LAST];
-    if (!(first && last)) return null;
+    const root = rootRef.current;
+    if (!(first && last && root)) return null;
     const a = first.getBoundingClientRect();
     const b = last.getBoundingClientRect();
     const start = a.left + a.width / 2;
-    return { start, cell: (b.left + b.width / 2 - start) / LAST };
+    geoRef.current = {
+      start,
+      cell: (b.left + b.width / 2 - start) / LAST,
+      rootLeft: root.getBoundingClientRect().left,
+    };
+    return geoRef.current;
   }, []);
 
   /** Paint the mark, the hairline to the needle, and the signed distance. */
@@ -141,8 +160,8 @@ export function Minimap() {
       const radius = WAVE_SPEED * age;
       const envelope = Math.exp(-age * 1.7);
       const origins = [wave.origin, -wave.origin, 2 * LAST - wave.origin];
-      for (let k = 0; k < origins.length; k++) {
-        const d = i - origins[k];
+      for (const [k, origin] of origins.entries()) {
+        const d = i - origin;
         const g = Math.exp(
           -((Math.abs(d) - radius) ** 2) / (2 * WAVE_WIDTH ** 2),
         );
@@ -187,10 +206,9 @@ export function Minimap() {
   /** Paint the current simulation state. */
   const paint = useCallback(() => {
     const s = sim.current;
-    const root = rootRef.current;
     const geo = geometry();
-    if (!(root && geo)) return;
-    const rootLeft = root.getBoundingClientRect().left;
+    if (!geo) return;
+    const rootLeft = geo.rootLeft;
     const needleX = geo.start - rootLeft + s.pos * geo.cell;
     paintTicks();
 
@@ -245,7 +263,8 @@ export function Minimap() {
   const integrate = useCallback(
     (now: number, dt: number) => {
       const s = sim.current;
-      if (s.free) s.idle = false;
+      // Drift never runs under a hand or a focused keyboard user.
+      if (s.free || s.hovering || s.focused) s.idle = false;
       if (s.idle) {
         s.target =
           CENTER +
@@ -254,21 +273,25 @@ export function Minimap() {
       }
 
       if (s.reduced) {
-        s.pos = s.target;
+        // Snap everything, and drop anything that would keep the loop alive.
+        s.free = false;
+        s.pos = clamp(s.target, 0, LAST);
         s.vel = 0;
         s.strength = s.strengthTarget;
-      } else if (s.free) {
+        s.pulse = 0;
+        s.waves = [];
+        return;
+      }
+      if (s.free) {
         coast(dt);
-        s.strength += (s.strengthTarget - s.strength) * (1 - Math.exp(-dt * 9));
-        s.pulse *= Math.exp(-dt * 7);
       } else {
         const accel = STIFFNESS * (s.target - s.pos) - DAMPING * s.vel;
         s.vel += accel * dt;
         s.pos += s.vel * dt;
-        s.strength += (s.strengthTarget - s.strength) * (1 - Math.exp(-dt * 9));
-        s.pulse *= Math.exp(-dt * 7);
-        if (s.pulse < 0.005) s.pulse = 0;
       }
+      s.strength += (s.strengthTarget - s.strength) * (1 - Math.exp(-dt * 9));
+      s.pulse *= Math.exp(-dt * 7);
+      if (s.pulse < 0.005) s.pulse = 0;
     },
     [coast],
   );
@@ -307,7 +330,7 @@ export function Minimap() {
 
   const wake = useCallback(() => {
     const s = sim.current;
-    if (!s.frame) {
+    if (!s.frame && s.visible) {
       s.last = 0;
       s.frame = requestAnimationFrame(step);
     }
@@ -320,6 +343,8 @@ export function Minimap() {
     if (s.idleTimer) clearTimeout(s.idleTimer);
     if (s.reduced) return;
     s.idleTimer = setTimeout(() => {
+      s.idleTimer = 0;
+      if (s.hovering || s.focused || !s.visible) return;
       s.idle = true;
       wake();
     }, IDLE_DELAY);
@@ -359,12 +384,17 @@ export function Minimap() {
     [interrupt, strike, wake],
   );
 
-  /** Speed of the drag at release, in ticks per second, read off the last 120ms. */
+  /**
+   * Speed of the drag at release, in ticks per second, read off the last
+   * 120ms of movement. A pointer that has been held still is not moving,
+   * however fast it got there.
+   */
   const releaseSpeed = useCallback(() => {
     const samples = sim.current.samples;
     const last = samples.at(-1);
+    if (!last || performance.now() - last.t > 120) return 0;
     const first = samples.find((sample) => last.t - sample.t <= 120);
-    if (!(last && first) || last.t === first.t) return 0;
+    if (!first || last.t === first.t) return 0;
     return ((last.v - first.v) / (last.t - first.t)) * 1000;
   }, []);
 
@@ -441,21 +471,23 @@ export function Minimap() {
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       const s = sim.current;
+      // Step from the value on screen: a drifting target is fractional.
+      const from = s.shown;
       let next: number | null = null;
       switch (event.key) {
         case "ArrowRight":
         case "ArrowUp":
-          next = s.target + 1;
+          next = from + 1;
           break;
         case "ArrowLeft":
         case "ArrowDown":
-          next = s.target - 1;
+          next = from - 1;
           break;
         case "PageUp":
-          next = s.target + 5;
+          next = from + 5;
           break;
         case "PageDown":
-          next = s.target - 5;
+          next = from - 5;
           break;
         case "Home":
           next = 0;
@@ -466,7 +498,7 @@ export function Minimap() {
         case "Enter":
         case " ":
           event.preventDefault();
-          toggleMark(s.target);
+          toggleMark(from);
           return;
         case "Escape":
           if (s.mark === null) return;
@@ -486,11 +518,17 @@ export function Minimap() {
   useEffect(() => {
     const s = sim.current;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const root = rootRef.current;
     const apply = () => {
       s.reduced = media.matches;
       if (s.reduced) {
         s.idle = false;
         if (s.idleTimer) clearTimeout(s.idleTimer);
+        s.idleTimer = 0;
+        wake();
+      } else {
+        // Motion is allowed again: drift comes back after the usual pause.
+        interrupt();
       }
     };
     apply();
@@ -500,17 +538,58 @@ export function Minimap() {
     if (!s.reduced) s.idle = true;
     wake();
 
-    const onResize = () => wake();
+    // The loop only runs while the ruler is on screen and the tab is visible.
+    const setVisible = (visible: boolean) => {
+      if (s.visible === visible) return;
+      s.visible = visible;
+      geoRef.current = null;
+      if (visible) {
+        s.last = 0;
+        if (!s.reduced && !s.hovering && !s.focused) s.idle = true;
+        wake();
+      } else {
+        s.idle = false;
+        if (s.frame) cancelAnimationFrame(s.frame);
+        s.frame = 0;
+        if (s.idleTimer) clearTimeout(s.idleTimer);
+        s.idleTimer = 0;
+      }
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries.at(-1);
+        if (entry) setVisible(entry.isIntersecting && !document.hidden);
+      },
+      { threshold: 0 },
+    );
+    if (root) observer.observe(root);
+    const onVisibility = () => {
+      if (document.hidden) setVisible(false);
+      else if (root) {
+        // Re-observing an element already observed is a no-op, so drop and
+        // re-add it to get a fresh intersection callback.
+        observer.unobserve(root);
+        observer.observe(root);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const onResize = () => {
+      geoRef.current = null;
+      wake();
+    };
     window.addEventListener("resize", onResize);
 
     return () => {
       media.removeEventListener("change", apply);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", onResize);
+      observer.disconnect();
       if (s.frame) cancelAnimationFrame(s.frame);
       if (s.idleTimer) clearTimeout(s.idleTimer);
       s.frame = 0;
     };
-  }, [wake]);
+  }, [wake, interrupt]);
 
   return (
     <div
@@ -532,8 +611,14 @@ export function Minimap() {
       onPointerCancel={relax}
       onPointerLeave={relax}
       onKeyDown={onKeyDown}
-      onFocus={() => setTarget(sim.current.target)}
-      onBlur={relax}
+      onFocus={() => {
+        sim.current.focused = true;
+        setTarget(sim.current.target);
+      }}
+      onBlur={() => {
+        sim.current.focused = false;
+        relax();
+      }}
       className="relative flex size-full cursor-crosshair touch-none select-none items-center justify-center outline-hidden"
     >
       {/* Needle: index readout, triangle, dashed rule. Server-rendered on the

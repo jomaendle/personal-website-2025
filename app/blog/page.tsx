@@ -34,7 +34,7 @@ export default function WritingPage() {
               Writing
             </p>
             <H1 className="max-w-[16ch]">
-              Notes on the web platform, and on building with AI.
+              Notes on building for the web, lately with Claude Code.
             </H1>
           </header>
 
