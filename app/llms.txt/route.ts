@@ -91,7 +91,7 @@ ${clientWork}
 ## Personal site
 
 - [Homepage](https://www.jomaendle.com): Who I am, selected work, work history, and articles.
-- [Blog](https://www.jomaendle.com/blog): Articles on web development, AI tooling, and the software development lifecycle.
+- [Blog](https://www.jomaendle.com/blog): Notes on building for the web, lately with Claude Code.
 
 ## Legal
 

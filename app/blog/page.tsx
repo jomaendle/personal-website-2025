@@ -8,8 +8,7 @@ export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Writing",
-  description:
-    "Notes on the web platform, front-end details, and building software with AI.",
+  description: "Notes on building for the web, lately with Claude Code.",
 };
 
 export default function WritingPage() {

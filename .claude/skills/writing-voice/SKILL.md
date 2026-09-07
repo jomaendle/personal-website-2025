@@ -139,6 +139,10 @@ GOOD  I build LLM integrations with the unglamorous pieces in place: context
 
 ## Rule 8: the Emil shape for page copy
 
+Applies to the personal pages: homepage, writing, project descriptions, site
+metadata. It does not apply to `/business` or `/ai-impact`, which exist to
+convince and are allowed proof. Those stay under Rules 1 to 7.
+
 A bio or description says where you are and what you like to build, then stops.
 
 - Verbs are `work`, `build`, `like`, `write`. Nothing stronger.

@@ -13,7 +13,7 @@ import {
 import { MotionProvider } from "./providers";
 
 const ogImageDescription = encodeURIComponent(
-  "Full-stack engineer writing about the web platform and building software with AI.",
+  "I build things for the web and write about it here.",
 );
 
 export const metadata: Metadata = {
@@ -22,16 +22,8 @@ export const metadata: Metadata = {
     default: "Jo Mändle",
     template: "%s | Jo Mändle",
   },
-  description:
-    "Full-stack engineer writing about the web platform and building software with AI.",
-  keywords: [
-    "Jo Mändle",
-    "Johannes Mändle",
-    "jo maendle",
-    "johannes maendle",
-    "Full-Stack Developer",
-    "Web Development",
-  ],
+  description: "I build things for the web and write about it here.",
+  keywords: ["Jo Mändle", "Johannes Mändle", "jo maendle", "johannes maendle"],
   authors: [{ name: "Johannes Mändle", url: "https://www.jomaendle.com" }],
   creator: "Johannes Mändle",
   icons: {

@@ -144,7 +144,7 @@ export function ContactForm() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               rows={4}
-              placeholder="I'm interested in a new software product and would like to know more about your services."
+              placeholder="What are you building, and where does it hurt?"
               className="w-full"
               required
               aria-required="true"

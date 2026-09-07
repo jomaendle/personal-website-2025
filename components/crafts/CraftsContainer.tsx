@@ -28,6 +28,8 @@ export const CraftsContainer = ({
     <div
       className={cn(
         "relative flex h-full min-h-60 w-full items-center justify-center overflow-hidden rounded-lg border",
+        // The craft inside fills the card, so keyboard focus rings the card itself.
+        "has-focus-visible:ring-2 has-focus-visible:ring-brand has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background",
         className,
       )}
       {...props}
