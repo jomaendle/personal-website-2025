@@ -107,3 +107,18 @@
     outline-offset: 5px;
   }
 }
+
+/* The 45px offset parks the buttons outside the container, which needs room
+   on both sides. Narrow viewports have none, so the buttons were rendered off
+   screen; there they sit over the slides instead. */
+@media (width < 48rem) {
+  .base {
+    &::scroll-button(inline-start) {
+      left: calc(anchor(left) + 4px);
+    }
+
+    &::scroll-button(inline-end) {
+      right: calc(anchor(right) + 4px);
+    }
+  }
+}

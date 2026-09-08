@@ -1,6 +1,29 @@
+/*
+ * The demo popover sits in the top layer, so by default the browser centres it
+ * in the viewport and it floats away from the button that opened it. Anchor
+ * positioning ties it to the trigger instead. Browsers without it fall back to
+ * the centred default, which still opens and closes correctly.
+ */
+.trigger {
+  anchor-name: --popover-demo-trigger;
+}
+
 .popoverWrapper {
+  position-anchor: --popover-demo-trigger;
+  /* `span-all` lets the popover size to its text instead of the button's
+     width; `anchor-center` keeps it centred on the button. */
+  position-area: top span-all;
+  justify-self: anchor-center;
+  /* The UA centres the popover with `margin: auto`; keep that for the sides
+     and use the bottom margin as the gap above the button. */
+  margin: auto auto 0.75rem auto;
+
   padding: 0.5rem 1rem;
+  /* The preview box is dark in both themes, so the popover cannot inherit the
+     page text colour: in light mode that is near-black on near-black. */
   background: #1d1d1d;
+  color: #fafafa;
+  border: 1px solid #333;
   border-radius: 0.25rem;
   transform: translateY(-1rem);
   opacity: 0.3;
