@@ -475,14 +475,16 @@ export function ImageStack() {
      * print under a hovering pointer stays raised: a print the keys leaf
      * away from goes down rather than staying up.
      *
-     * Its neighbour keeps off it only if a hover had already moved it. A
-     * finger has no hover, and a lifted print is above the pile at nearly
-     * twice the size, so it needs no room made for it — setting this on a
-     * tap slid every print to its right 42px sideways at once, which read
-     * as the page lurching under the thumb. */
+     * Its neighbour slides off it and stays off until it has landed. That
+     * slide is what makes the drop back into the pile invisible: the print
+     * rejoins the stacking order at the moment nothing is covering it, and
+     * the neighbour closes afterwards. Without it the neighbour snapped over
+     * the print the instant its z-index changed, a one-frame flicker at the
+     * end of every minimise. It is carried on the lift's own spring, so it
+     * reads as the pile opening rather than jumping. */
     const raiseOne = (next: number) => {
       s.fTarget[next] = 1;
-      s.uTarget[next] = s.hovering ? 1 : 0;
+      s.uTarget[next] = 1;
       s.target.fill(0);
       if (s.hovering) s.target[next] = 1;
       report.current("lift", next + 1);
@@ -852,9 +854,11 @@ function raise(
   if (tile.style.zIndex !== z) tile.style.zIndex = z;
 }
 
-/** Below this much lift a print counts as landed: within 2px of its resting
- * size and a pixel of its resting height. */
-const LANDED = 0.02;
+/** Below this much lift a print counts as landed. Small enough that the
+ * print is within a fifth of a pixel of its resting size when it rejoins
+ * the pile's stacking order: at the old 0.02 it was still 1.35% larger, and
+ * the neighbour closing over it at that moment was a visible flicker. */
+const LANDED = 0.002;
 
 /** Source width to ask for: the print at its largest on screen, lifted by a
  * click, so a lift never changes the source. Swapping to a sharper image as

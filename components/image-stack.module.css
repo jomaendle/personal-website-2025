@@ -268,8 +268,6 @@
      a narrow portrait print is never swallowed by a wide neighbour. */
   margin-right: calc(var(--print) * var(--w) * var(--tuck) * -1);
   border-radius: 5px;
-  box-sizing: border-box;
-  border: var(--frame) solid hsl(var(--paper));
   background: hsl(var(--paper));
   box-shadow:
     0 0 0 1px var(--hairline),
@@ -332,13 +330,21 @@
   }
 }
 
-/* The photograph. `inset: 0` on an absolutely positioned child resolves to
-   the padding box, which is already inside the paper border above. */
+/* The photograph, and the paper around it. The border belongs to this
+   element rather than to the print, because this element is separately
+   rasterised — it clips and rounds its own corners — and a layer is snapped
+   to whole device pixels independently of its parent. With the paper on the
+   print and the hole here, the two rounded apart: on a 3x phone the frame
+   measured 12 device px above the photograph and 4 below, though both were
+   authored as the same 2px. Owned by one element, the paper and the hole it
+   frames can only ever snap together. */
 .photo {
   position: absolute;
   inset: 0;
+  box-sizing: border-box;
+  border: var(--frame) solid hsl(var(--paper));
   overflow: hidden;
-  border-radius: calc(5px - var(--frame));
+  border-radius: 5px;
 }
 
 /* One mark per print, centred under the visible window (the zone less its
