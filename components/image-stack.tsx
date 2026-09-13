@@ -704,30 +704,39 @@ export function ImageStack() {
               >
                 {/* First child on purpose: `pose` reaches it as firstElementChild. */}
                 <span className={styles.shadow} />
-                {index < revealed ? (
-                  <div className={styles.photo}>
+                {/* The blur placeholder is the frame's own background, and the
+                    photograph fades in over it once it has decoded. Left to
+                    `placeholder="blur"`, the blur is the image's background and
+                    is dropped the instant it loads — a single-frame cut from
+                    soft to sharp, which on a print held at 1.85x reads as the
+                    picture jumping. */}
+                <div
+                  className={styles.photo}
+                  style={{
+                    backgroundImage: `url(${print.blurDataURL})`,
+                    backgroundSize: "cover",
+                  }}
+                >
+                  {index < revealed && (
                     <Image
                       src={print}
                       alt=""
                       fill
-                      placeholder="blur"
                       sizes={sizesFor(landscape)}
                       quality={80}
                       draggable={false}
-                      className="object-cover"
+                      className={`object-cover ${styles.reveal}`}
+                      onLoad={(event) => {
+                        event.currentTarget.dataset.loaded = "true";
+                      }}
+                      ref={(node) => {
+                        // A cached image can be complete before React attaches
+                        // the handler, which would leave it faded out for good.
+                        if (node?.complete) node.dataset.loaded = "true";
+                      }}
                     />
-                  </div>
-                ) : (
-                  // Not in the window yet: the blur placeholder alone, until the
-                  // strip brings this print into view.
-                  <div
-                    className={styles.photo}
-                    style={{
-                      backgroundImage: `url(${print.blurDataURL})`,
-                      backgroundSize: "cover",
-                    }}
-                  />
-                )}
+                  )}
+                </div>
               </li>
             );
           })}

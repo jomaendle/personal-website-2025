@@ -301,6 +301,25 @@
   pointer-events: none;
 }
 
+/* The photograph fading in over its own blur placeholder. Opacity only, so
+   it composites; 320ms is long enough to read as the picture resolving
+   rather than swapping, and short enough not to feel like a wait. Under
+   reduced motion it simply appears. */
+.reveal {
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.reveal[data-loaded="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none;
+  }
+}
+
 /* The photograph. `inset: 0` on an absolutely positioned child resolves to
    the padding box, which is already inside the paper border above. */
 .photo {
