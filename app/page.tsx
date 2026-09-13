@@ -29,8 +29,8 @@ export default function Home() {
             <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               <p>
                 I work on how software gets built at E.ON using AI. I like to
-                build things for the web, lately mostly with Claude Code, and to
-                capture the beauty of earth with my camera.
+                build things for the web and to capture the beauty of earth with
+                my camera.
               </p>
             </div>
             <ImageStack />
