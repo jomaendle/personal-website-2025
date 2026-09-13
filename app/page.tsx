@@ -28,9 +28,9 @@ export default function Home() {
             <H2>About</H2>
             <div className="flex max-w-[60ch] flex-col gap-5 text-[1.05rem] text-foreground/90 leading-relaxed">
               <p>
-                I work on how software gets built at E.ON. I like to build
-                things for the web, lately mostly with Claude Code, and to be
-                somewhere new with a camera.
+                I work on how software gets built at E.ON using AI. I like to
+                build things for the web, lately mostly with Claude Code, and to
+                capture the beauty of earth with my camera.
               </p>
             </div>
             <ImageStack />
