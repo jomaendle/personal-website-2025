@@ -1,5 +1,6 @@
 import MdxLayout from "../../../components/mdx-layout";
 import { CodeBlock } from "../../../components/code-block";
+import { ImageStack } from "../../../components/image-stack";
 import { LeanDemo } from "./LeanDemo";
 import { HoverDemo } from "./HoverDemo";
 import { PHOTO_PILE_BUGS } from "../../../lib/state/blog";
@@ -13,17 +14,17 @@ export const dynamic = 'force-static'
 
 # {metadata.title}
 
-A pile of photographs feels right when it behaves like paper. Prints tuck under each other, the one you reach for comes forward, and the stack slides as a stack.
+A pile of photos feels right when it behaves like paper. Prints tuck under each other. The one you reach for comes forward. The pile slides as one thing.
 
-Getting there was four decisions. Each one I made the obvious way first, and the obvious way was wrong every time.
+There is one on my homepage. It took four decisions. I made each the obvious way first, and the obvious way was wrong every time.
 
-## Lean belongs to the window, not to the print
+## 1. The lean belongs to the window
 
-Give print `n` a rotation of `n` degrees and the fan looks correct standing still. Then you move it.
+Give print `n` a rotation of `n` degrees and the fan looks fine standing still. Then you drag it.
 
 <LeanDemo />
 
-The lean is glued to the paper, so the whole row slides as a rigid block. What paper does is roll: a print stands upright as it passes in front of you and leans as it goes away. So the angle has to come from where the print is in the window, not from which print it is.
+With the lean fixed to the paper, the row slides as a rigid block. Paper rolls instead. A print stands upright as it passes in front of you and leans away on either side. So the angle has to come from where the print is in the window.
 
 <CodeBlock
   language="ts"
@@ -34,9 +35,9 @@ const drop = print * Math.min(DROP, SAG * (1 - Math.cos(angle)));
 `}
 />
 
-`dx` is the distance from the middle of the window, `half` is half its width. `Math.max(half, RADIUS)` is there for phones: a narrow window means a tight circle, and at 390px the prints leaned into each other hard enough to look like a kink in the row.
+`dx` is the print's distance from the middle of the window. `half` is half the window's width. The `Math.max` is for phones. A narrow window means a tight circle, and at 390px the prints leaned into each other like a kink.
 
-CSS does this now, so the server renders the fan and it holds without JavaScript.
+The same curve runs in CSS, so the server renders the fan and it holds without JavaScript.
 
 <CodeBlock
   language="css"
@@ -46,13 +47,13 @@ CSS does this now, so the server renders the fan and it holds without JavaScript
 `}
 />
 
-## Hovering is a state, not a dial
+## 2. Hover is a state, not a dial
 
-The obvious open is a falloff. The print under your pointer grows most, its neighbours a little less. Every pixel of movement resizes three or four prints and shifts everything after them.
+The obvious open is a falloff. The print under the pointer grows most, its neighbours a little less. Every pixel of movement resizes three or four prints and shifts everything after them.
 
 <HoverDemo />
 
-The left row never holds still. The right one moves only when you cross into a different print.
+The left row never holds still. The right one changes only when the pointer crosses into a different print.
 
 <CodeBlock
   language="ts"
@@ -65,15 +66,15 @@ for (let i = 0; i < s.target.length; i++) {
 `}
 />
 
-That early return is the line I would have left out. Prints have gaps between them, and without it the pile snaps shut every time your pointer crosses one.
+The early return matters. There are gaps between prints. Without it, the pile closes every time the pointer crosses one.
 
-## Promoting a layer moves it
+## 3. Promoting a layer moves it
 
-Thirteen prints, their shadows and their marks is forty elements holding `will-change: transform`, which is forty compositor layers a phone keeps for something nobody has scrolled to. So I gated it: promote on pointer down, release when the springs settle.
+Thirteen prints, their shadows and their marks add up to forty elements with `will-change: transform`. That is forty compositor layers a phone holds for something nobody has scrolled to. So I gated it: promote on pointer down, release once the springs settle.
 
-That is the textbook advice and it was the worst bug in the component.
+That is the textbook advice, and it was the worst bug in the component.
 
-**Giving an element its own layer snaps it to whole device pixels.** The prints sit on fractional ones. So the entire row jumped a pixel or two at the moment of promotion, and I had arranged for that moment to be when your finger touched the screen.
+**An element that gets its own layer snaps to whole device pixels.** The prints sit on fractional ones. So the whole row jumped a pixel or two at the moment of promotion, and I had made that moment the one where your finger touches the screen.
 
 Add the class, change nothing else, diff the pixels:
 
@@ -82,7 +83,7 @@ Add the class, change nothing else, diff the pixels:
   code={`45,557 pixels changed by more than 2%`}
 />
 
-Promote while the page is already moving instead, and nothing shifts under your hand.
+Promote while the page is already moving instead. Then nothing shifts under your hand.
 
 <CodeBlock
   language="ts"
@@ -94,11 +95,11 @@ new IntersectionObserver(
 `}
 />
 
-Zero layers before you reach the pile, forty while it is on screen, zero once it is past.
+No layers before you reach the pile. Forty while it is on screen. None once it is past.
 
-## A frame and the hole it frames must be one element
+## 4. A frame and its hole are one element
 
-Each print has a paper border. On a phone it measured like this, with all four sides authored as the same 2px:
+Each print has a paper border. All four sides were written as 2px. On a phone they measured like this:
 
 <CodeBlock
   language="text"
@@ -110,9 +111,9 @@ right    7
 `}
 />
 
-An element that clips and rounds its own corners gets its own rasterised layer, and that layer snaps to device pixels independently of its parent. The border was on the outer box and the photograph in an inset child, so the two rounded apart. Sub-pixel, until a 2.13x lift on a 3x screen multiplies it.
+An element that clips and rounds its own corners is drawn on its own layer, and that layer snaps to device pixels on its own. The border was on the outer box and the photo in an inset child, so the two snapped apart. A fraction of a pixel, until a lift of 2.13x on a 3x screen multiplies it.
 
-Making the border uniform does not help. The two boxes still snap separately. They have to be one box.
+Evening out the border does not help. Two boxes still snap separately. They have to be one box.
 
 <CodeBlock
   language="css"
@@ -127,21 +128,29 @@ Making the border uniform does not help. The two boxes still snap separately. Th
 `}
 />
 
-Make that border a share of the print rather than a fixed width, too. At a flat 3px it was 2.5% of a desktop print and 4.2% of a phone's, so the same border read half again as heavy on the smaller paper.
+The border is a share of the print's size now, not a fixed width. At a flat 3px it was 2.5% of a desktop print and 4.2% of a phone's, so the same border looked half again as heavy on the smaller paper.
 
-## If you hand-roll springs
+## The springs under it
 
-Semi-implicit Euler is stable only while `k · h² + 2 · c · h < 4`. At my stiffness that is `h < 20.7ms`, and I had capped the frame clock at 32ms so a tab switch could not cause one huge jump.
+Everything above moves on springs I wrote by hand. One loop, semi-implicit Euler. That method is stable only while `k · h² + 2 · c · h < 4`. At my stiffness that means a frame shorter than 20.7ms, and I had let frames run to 32ms.
 
-Below about 48fps the spring diverged instead of settling. Transforms went to infinity, which is not valid CSS and is silently dropped, so nothing looked broken. And a spring that never reaches its target means a loop that never stops.
+Below about 48fps the spring blew up instead of settling. The transforms went to infinity, which is not valid CSS and is dropped without a word. Nothing looked broken. The loop just never stopped.
 
-Sub-steps of 8ms fix it. Check the bound against your worst frame, because a 30Hz display and a laden tab are both past it.
+Sub-steps of 8ms fix it. Check the bound against your worst frame, not your best one.
 
-## What I would do differently
+## All of it together
 
-Sample every animation frame, not the before and after. I deleted a correct behaviour because a snapshot showed 42 pixels of movement; per frame it was 30 frames with no step larger than 7. That deletion caused the next bug.
+This is the pile as it ships. Lean from the window, hover as a state, layers promoted by scroll, one box per print, springs in 8ms steps. Drag it, hover it, click a print.
 
-And get on a real device early. Emulators caught two of these and missed the two that need real pixel density. The layer jump only became findable when someone tapped the screen and said "it happens on tap".
+<figure className="not-prose my-10">
+  <ImageStack />
+</figure>
+
+## Two things I would do differently
+
+Sample every frame, not just before and after. I deleted correct code because a snapshot showed 42 pixels of movement. Per frame it was 30 frames with no step over 7. That deletion caused the next bug.
+
+Get on a real phone early. Emulators found two of these bugs and missed the two that need real pixel density. The layer jump only became findable when someone tapped and said "it happens on tap".
 
 export default function Page({ children }) {
   return (

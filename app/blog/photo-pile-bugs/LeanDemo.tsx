@@ -39,6 +39,8 @@ export function LeanDemo() {
 
   useEffect(() => {
     if (dragging) return;
+    // Idle drift is decoration; leave it out under reduced motion.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
@@ -114,7 +116,8 @@ export function LeanDemo() {
                 width: CARD,
                 height: 72,
                 transformOrigin: "50% 100%",
-                transform: `translate(${x}px, ${drop}px) rotate(${lean}deg)`,
+                // rounded so the server and client render the same string
+                transform: `translate(${x.toFixed(2)}px, ${drop.toFixed(2)}px) rotate(${lean.toFixed(2)}deg)`,
               }}
             />
           );
@@ -122,9 +125,9 @@ export function LeanDemo() {
       </div>
 
       <figcaption className="mt-3 text-muted-foreground text-sm">
-        Drag either one. With the lean fixed per print, the row slides as one
-        rigid block. Taken from the window, each print rolls upright as it
-        passes the middle, the way a fan of paper behaves.
+        Drag the row. Fixed per print, the lean travels with the paper and the
+        whole row slides as a block. Taken from the window, each print rolls
+        upright as it passes the middle.
       </figcaption>
     </figure>
   );

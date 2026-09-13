@@ -72,7 +72,7 @@ function Row({ mode, label }: { mode: "falloff" | "state"; label: string }) {
                 width: card,
                 height: 66,
                 transformOrigin: "50% 100%",
-                transform: `translate(${pad + i * step + (offsets[i] ?? 0)}px, ${-up * 8}px) scale(${1 + up * GROWTH})`,
+                transform: `translate(${(pad + i * step + (offsets[i] ?? 0)).toFixed(2)}px, ${(-up * 8).toFixed(2)}px) scale(${(1 + up * GROWTH).toFixed(3)})`,
                 zIndex: i,
               }}
             />
@@ -92,9 +92,8 @@ export function HoverDemo() {
       </div>
       <figcaption className="mt-3 text-muted-foreground text-sm">
         Sweep across both, or drag a finger along them. On the left every pixel
-        of movement resizes three or four cards and shifts the rest, so the row
-        shimmers. On the right nothing changes until you cross into a different
-        card.
+        of movement resizes three or four cards and shifts the rest. On the
+        right nothing changes until you cross into a different card.
       </figcaption>
     </figure>
   );
