@@ -33,6 +33,12 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
+export const PHOTO_PILE_BUGS = {
+  title: "Nine Ways a Photo Pile Broke on a Phone",
+  date: "Sep 13, 2026",
+  slug: "photo-pile-bugs",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;
@@ -59,4 +65,5 @@ export const BLOG_POSTS: {
   FREELANCE_TOOL,
   CSS_CAROUSEL,
   CLAUDE_CODE_ESSENTIALS_FOUNDATIONS,
+  PHOTO_PILE_BUGS,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

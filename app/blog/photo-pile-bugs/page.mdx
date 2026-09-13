@@ -1,0 +1,196 @@
+import MdxLayout from "../../../components/mdx-layout";
+import { CodeBlock } from "../../../components/code-block";
+import { PHOTO_PILE_BUGS } from "../../../lib/state/blog";
+
+export const metadata = {
+  title: PHOTO_PILE_BUGS.title,
+  date: PHOTO_PILE_BUGS.date,
+};
+
+export const dynamic = 'force-static'
+
+# {metadata.title}
+
+I built a fanned pile of photographs for the About section of this site. Thirteen prints on a shallow arc, one rising under your pointer, another lifting out of the pile when you tap it. On my laptop it was finished in an afternoon.
+
+Then I opened it on my phone.
+
+What followed was a day of "it still does that", and nine bugs. What makes them worth writing up is not the bugs themselves. It is that I fixed the wrong cause three times, and that most of the later bugs were introduced by the fix for the earlier one.
+
+## The page moves when I open an image
+
+The first report was the vaguest and the most important: tapping a photo made the page shift.
+
+I assumed a document reflow. It was not. Both Chromium and WebKit report a cumulative layout shift of exactly zero across the whole interaction, with images held back two and a half seconds and the cache disabled.
+
+So I assumed the image load. Loading a photograph swaps a blur placeholder for a real one, and that seemed like the sort of thing that nudges a layout. I measured it: through the load, the row's position has one distinct value at frame rate. Nothing moves.
+
+I did find a layout shift on the dev server, traced the shifting node, and it was `NEXTJS-PORTAL`, the dev overlay badge that production never serves. I would have reported that as the fix if I had not resolved the node.
+
+What broke it open was two more sentences from the person testing it:
+
+> It happens when I open an image, when I tap on it.
+
+> Doesn't matter if loaded or fresh, happens always.
+
+That rules out loading entirely. So what happens on tap?
+
+A few hours earlier I had made the pile smarter about GPU memory. Forty elements carried `will-change: transform` for the life of the page, which is forty compositor layers a phone is holding for a component nobody has touched. I gated it: promote on pointer down, release when the springs settle.
+
+Promoting an element to its own compositor layer snaps it to whole device pixels. The prints stand on fractional ones. So the whole row jumped a pixel or two at the instant of promotion, and I had put that instant directly under the reader's finger.
+
+Isolating it is simple once you suspect it. Add the class, change nothing else, diff the pixels:
+
+<CodeBlock
+  language="text"
+  code={`
+45,557 pixels changed by more than 2%
+`}
+/>
+
+The fix is not to stop managing layers. It is to promote when the pile scrolls into view, where the page is already moving and a pixel cannot be seen, and release when it leaves.
+
+**Rule one: never add or remove `will-change` in response to a pointer event.**
+
+## The border is thicker at the top
+
+Next: the white paper border around a lifted print looked uneven. I measured a screenshot from the device, across four columns:
+
+<CodeBlock
+  language="text"
+  code={`
+top    12 device px
+bottom  4
+left    8
+right   7
+`}
+/>
+
+All four are authored as the same 2px.
+
+My first fix was wrong in an interesting way. I had the border as an absolutely positioned inset child, moved it to a real CSS `border`, and the frame became uniform in every emulator I could point at it. Spread of at most two device pixels at 2x, 2.5x and 3x.
+
+It kept coming back on the phone.
+
+The photograph clips and rounds its own corners, which earns it its own rasterised layer. A layer is snapped to whole device pixels independently of its parent. I had put the border on the print and the hole on the photograph, so the two rounded apart, and the lift's 1.85x scale multiplied a sub-pixel error into something you can see.
+
+Making the frame uniform was never going to fix that. The frame and the hole have to be the same box.
+
+<CodeBlock
+  language="css"
+  code={`
+.photo {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--frame) solid hsl(var(--paper));
+  overflow: hidden;
+}
+`}
+/>
+
+**Rule two: a frame and the hole it frames belong to the same element.**
+
+## The bottom of the border is darker than the top
+
+Related, and a separate mechanism. Once the thickness was even, the colour was not: 252 at the top, 187 at the bottom.
+
+The elevation shadow lives on a layer inside the print. `inset: 0` on an absolutely positioned child of a bordered box resolves to the padding box, which is inside the border. So that layer's shadow was being cast across the white paper itself, worst at the bottom where the shadow is offset downward.
+
+<CodeBlock
+  language="css"
+  code={`
+.shadow {
+  inset: calc(var(--frame) * -1);
+}
+`}
+/>
+
+Pull it out by the border's width and the shadow starts where the paper ends. Spread went from 65 to 0.
+
+## The pool of shadow stopped existing
+
+Somewhere in the middle of this I moved the pool of shadow out of its container, because the container clips sideways and was cutting it.
+
+A cross-browser test found that the pool no longer painted at all. Not in Safari, not in Chrome, not in Firefox.
+
+Its ink colour was declared on the container it used to live in. Custom properties inherit downward, and I had moved the element sideways. Every `hsl(var(--shadow-ink) / 0.38)` stop was invalid at computed-value time, so the browser dropped the whole `background` declaration. Meanwhile the animation loop went on tweening its opacity and position every frame, for nothing.
+
+<CodeBlock
+  language="js"
+  code={`
+getComputedStyle(pool).backgroundImage        // "none"
+getComputedStyle(pool).getPropertyValue('--shadow-ink')  // ""
+`}
+/>
+
+**Rule three: after moving an element out of a subtree, check that its `var()`-based declarations still compute.**
+
+## It goes to infinity below 48fps
+
+This one never shipped a visible symptom, which is why it is my favourite.
+
+The pile integrates its springs with semi-implicit Euler, one step per frame, with the frame clock capped at 32ms so a tab switch cannot produce a huge jump. That integrator is stable only while:
+
+<CodeBlock
+  language="text"
+  code={`
+k·h² + 2·c·h < 4
+`}
+/>
+
+At the stiffness and damping I had chosen, that is `h < 20.7ms`. The cap allowed 32ms.
+
+So on a 30Hz display, or a laden tab, or the first frame after switching back, the spring diverged instead of settling. The transforms went to infinity, which is not valid CSS and is silently dropped, so nothing looked obviously broken. And because the spring never settles, the animation loop runs for ever.
+
+<CodeBlock
+  language="text"
+  code={`
+dt = 16.7ms  settles
+dt = 20.0ms  settles
+dt = 22.2ms  diverges
+dt = 32.0ms  diverges
+`}
+/>
+
+The fix is to advance in fixed sub-steps of at most 8ms rather than one jump per frame.
+
+## The fix that caused the next bug
+
+Here is the part I would most like to have back.
+
+When a print lifts, its neighbour slides off it. I measured a tap before and after and saw every print to the right move 42 pixels, decided that was the "page moves" complaint, and removed it on touch.
+
+It was not the complaint. The complaint was the compositor promotion. And a before-and-after measurement cannot tell a jump from a smooth animation. Sampled per frame, that 42 pixels was spread over 30 frames with no step larger than 7.
+
+Worse, the slide was load-bearing. A print rejoins the pile's stacking order when it has landed, and that swap is invisible only because its neighbour is still held off it at that moment. Remove the slide and the neighbour is permanently overlapping, so it snaps over the print the instant the z-index changes. One frame, at the end of every minimise.
+
+The recording made it unmistakable. Frames with motion, then a gap, then a single isolated frame of change:
+
+<CodeBlock
+  language="text"
+  code={`
+frames 137..163  (the animation)
+frame  173       (one frame, 166ms later)
+`}
+/>
+
+Logging every frame showed the swap happening while the print was still 1.35% larger than its resting size.
+
+**Rule four: sample every animation frame, not the endpoints.**
+
+## What actually found these
+
+Not the emulators. I ran Chromium, WebKit and Firefox against every one of these, at three pixel densities, with CPU and network throttling. Firefox found nothing at all. WebKit and Chromium each found a defect the other missed. The frame asymmetry never reproduced in any of them, because it needs a real fractional page zoom.
+
+What found them was someone looking at a phone and saying precisely what they saw. "It happens on tap." "Doesn't matter if cached." "The border is higher at the top than the bottom." Each of those sentences eliminated a mechanism I would otherwise have spent another hour on.
+
+The measurement still mattered. Every fix here is backed by a number, because three of my first attempts were confident and wrong. It just came second. I spent a lot of that day measuring things that turned out to be fine.
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug="photo-pile-bugs">
+      {children}
+    </MdxLayout>
+  );
+}
