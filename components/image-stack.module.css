@@ -141,8 +141,14 @@
      was still at about 5% ink when it met that edge and cut there, a
      straight vertical seam down the page. Now it is transparent by 68% of
      its radius, which is inside the viewport wherever the print stands. */
-  width: min(calc(var(--print) * 5), 78vw);
-  margin-left: min(calc(var(--print) * -2.5), -39vw);
+  /* One name for the width, and the margin derived from it. Written out
+     twice, the pair silently came apart: the width took `min()` of the two
+     arms and the margin took `min()` of their negatives, which is the other
+     arm, so the pool hung 262px to the left of the print it belonged under
+     at a 1440px window. Halving the width it actually has cannot drift. */
+  --pool: min(calc(var(--print) * 5), 78vw);
+  width: var(--pool);
+  margin-left: calc(var(--pool) / -2);
   background: radial-gradient(
     ellipse 50% 50% at 50% 40%,
     hsl(var(--shadow-ink) / 0.4) 0%,
@@ -204,6 +210,20 @@
   }
 }
 
+/* The start padding, registered so it has a value to fall back on. `--pad`
+   below is built from `atan2()` and `sin()` through two custom properties,
+   and an engine that cannot follow that would otherwise drop the padding to
+   zero and clip the first print's corner, which is the failure this whole
+   calculation exists to avoid. Registered, the same failure falls back to
+   this instead: the flat padding the pile used before, which merely starts
+   the pile a little inside the text. A gap is recoverable, a cut is not.
+   Engines without `@property` ignore this rule and are no worse off. */
+@property --pad {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1.25rem;
+}
+
 .list {
   /* Share of its own width each print tucks under the next one at rest. */
   --tuck: 0.4;
@@ -228,13 +248,16 @@
      the desktop needed, so on a phone the pile started 15px inside the
      paragraph above it.
 
-     One frame's width of slack on top, because the zone clips sideways and
-     the corner must not land on the clip line. Aimed exactly at it, the
-     print was flush in Chromium and cut in Safari: a rotated print is
-     rasterised on its own layer (see `backface-visibility` on `.tile`) and
-     that layer is snapped to whole device pixels, so a corner with no room
-     loses its paper border to the clip. The slack is the border itself,
-     which is the thing that has to survive.
+     Slack on top, because the zone clips sideways and the corner must not
+     land on the clip line. Aimed exactly at it, the print was flush in
+     Chromium and cut in Safari: a rotated print is rasterised on its own
+     layer (see `backface-visibility` on `.tile`) and that layer is snapped
+     to whole device pixels, so a corner with no room loses its paper border
+     to the clip. One border's width of slack was still not enough on a 3x
+     iPhone, where the paper is 2px and the snap ate all of it. A part of
+     the print, like everything else here, so it grows with the paper: 5.8px
+     on a phone and 9.6px on a desktop, far past any rounding, and small
+     enough that the pile still reads as starting at the text.
 
      `--c0` is the first print's resting centre, written by the server beside
      each print's own `--c`. A property cannot refer to itself, so the lean
@@ -247,7 +270,7 @@
     calc(atan2(calc(var(--c0) * var(--print) - var(--half)), var(--r)) * 0.2222),
     10deg
   );
-  --pad: calc(var(--frame) + var(--print) * -1 * sin(var(--lean0)));
+  --pad: calc(var(--print) * 0.08 + var(--print) * -1 * sin(var(--lean0)));
   /* Prints sit on a shared baseline and grow upward from it. */
   position: relative;
   display: flex;
