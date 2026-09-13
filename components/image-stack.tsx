@@ -1300,14 +1300,20 @@ function shade(
 
 /**
  * The left-hand fade. Its mask layer sits just off the window at rest, so the
- * first print lands crisp on the text edge, and slides in over the first
- * `fade` px of travel. Written on the zone itself, not through a custom
- * property, so nothing inside it has to recalculate style. The fades never
- * move for a lift: a lifted print is pulled clear of them instead (see
- * `inward`), so it is never seen through.
+ * first print lands crisp on the text edge, and slides in as soon as the
+ * pile travels. Over the first ARRIVE px, not over the fade's own
+ * width: at a fade's width the mask was still almost entirely off-canvas
+ * after the first few pixels of travel, so a barely-moved pile showed its
+ * leading print sliced off square at the window's edge. Two pixels: the fade is simply
+ * there the moment the pile moves, without being switched on at a hard
+ * boundary of exactly zero. Written on the zone itself, not through a custom property, so
+ * nothing inside it has to recalculate style. The fades never move for a
+ * lift: a lifted print is pulled clear of them instead (see `inward`), so
+ * it is never seen through.
  */
+const ARRIVE = 2;
 function fadeLeft(zone: HTMLElement, travel: number, fade: number) {
-  const offset = -fade * (1 - clamp(travel / fade, 0, 1));
+  const offset = -fade * (1 - clamp(travel / ARRIVE, 0, 1));
   const position = `${offset.toFixed(1)}px 0, 0 0`;
   if (zone.style.maskPosition !== position) {
     zone.style.maskPosition = position;
