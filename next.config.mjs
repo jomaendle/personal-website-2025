@@ -19,8 +19,9 @@ const nextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    // 160 and 224 serve the homepage image stack: its prints are 72px and
-    // 112px wide at most, which on a 2× display wants 144 and 224, not 256.
+    // 160 and 224 serve the homepage image stack on 1× displays: its prints
+    // ask for 128px and 192px (their open width), which lands on 128/224
+    // here and on 256/384 at 2×.
     imageSizes: [16, 32, 48, 64, 96, 128, 160, 224, 256, 384],
     minimumCacheTTL: 31536000, // 1 year
     dangerouslyAllowSVG: false,
