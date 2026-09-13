@@ -120,6 +120,11 @@ const FOCUS_GROWTH = 0.78;
 const FOCUS_LIFT = 44;
 const FOCUS_STIFFNESS = 580;
 const FOCUS_DAMPING = 48;
+/** Spring for putting a lifted print back. Critically damped, response
+ * ≈ 0.20s: a dismissal is the system answering and should be quicker than
+ * the deliberate act that raised it. */
+const PUTBACK_STIFFNESS = 1000;
+const PUTBACK_DAMPING = 63;
 /** A press dips the print under the pointer by this share of its size until
  * it is released: the pile answers on pointer-down, before the click lands. */
 const PRESS = 0.04;
@@ -155,6 +160,14 @@ const BOUNCE = 40;
  * handoff from one print to the next is one clean motion. */
 const STIFFNESS = 1600;
 const DAMPING = 80;
+/** Spring for the strip while a wheel or trackpad swipe is driving it, and
+ * how long after the last event it keeps it. A swipe is direct manipulation
+ * like a drag, so it should land with the gesture: on the travel spring only
+ * 18% of a 160px swipe had arrived by the time the fingers stopped, and the
+ * pile spent another 430ms catching up. Response ≈ 0.16s. */
+const WHEEL_STIFFNESS = 1600;
+const WHEEL_DAMPING = 80;
+const WHEEL_HOLD = 120;
 /** Spring for the strip's travel. Critically damped, response ≈ 0.39s: the
  * pile glides rather than chases, and carries a released drag's velocity.
  * Near Apple's 0.4s for a repositioning gesture, and enough quicker than it
@@ -293,6 +306,8 @@ export function ImageStack() {
     /** How much of each edge fade is on screen, 0 to 1. */
     edgeL: 0,
     edgeR: 1,
+    /** When a wheel or trackpad swipe last drove the strip. */
+    wheeledAt: -Infinity,
     /** How far the strip has travelled left, in px. */
     travel: 0,
     travelV: 0,
@@ -419,6 +434,10 @@ export function ImageStack() {
 
     const handleDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
+      // A second finger landing mid-drag would take the strip with it, since
+      // the drag records where it began: the pile would jump to the new
+      // finger. The first one keeps the gesture.
+      if (s.drag) return;
       if (!s.geometry) measure();
       // Capture keeps the drag alive outside the zone. It throws if the
       // pointer is already gone, which is no reason to drop the drag.
@@ -605,6 +624,7 @@ export function ImageStack() {
         0,
         geometry.maxTravel,
       );
+      s.wheeledAt = event.timeStamp;
       report.current("travel");
       start();
     };
@@ -802,6 +822,17 @@ function isTyping(node: Element | null): boolean {
   if (node.isContentEditable) return true;
   const tag = node.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+}
+
+/** With reduced motion a print still grows and its shadow still deepens —
+ * an opacity and a size are not what makes motion sickening — but it no
+ * longer travels: the rise and the arc's drop are dropped, so nothing moves
+ * across the screen. Snapping the whole lift instead, as this once did,
+ * replaced the animation with the single-frame cut that reduced motion
+ * exists to prevent, and on touch it is the only feedback a tap gets. */
+function riseOf(g: number, f: number, drop: number, reduced: boolean): number {
+  if (reduced) return 0;
+  return (drop - g * LIFT) * (1 - f) - f * (LIFT + FOCUS_LIFT);
 }
 
 /** A press that barely moved and didn't linger is a click, not a drag. */
@@ -1025,47 +1056,43 @@ type Sim = Springs &
   Edges &
   Aim & { hovering: boolean; drag: unknown };
 
+/** Advance the lift, the uncover and the press by `dt` seconds. The lift is
+ * never snapped for reduced motion — `riseOf` takes the travel out of it
+ * instead — and it runs quicker on the way back down than on the way up. */
+function lifts(s: Focus, dt: number, putBack: boolean): boolean {
+  let moving = integrate(
+    { g: s.f, v: s.fv, target: s.fTarget, reduced: false },
+    putBack ? PUTBACK_STIFFNESS : FOCUS_STIFFNESS,
+    putBack ? PUTBACK_DAMPING : FOCUS_DAMPING,
+    dt,
+  );
+  const uncover = { g: s.u, v: s.uv, target: s.uTarget, reduced: s.reduced };
+  moving = integrate(uncover, FOCUS_STIFFNESS, FOCUS_DAMPING, dt) || moving;
+  const press = { g: s.p, v: s.pv, target: s.pTarget, reduced: s.reduced };
+  return integrate(press, STIFFNESS, DAMPING, dt) || moving;
+}
+
 /** Advance the whole simulation by `dt` seconds. Returns whether anything is
  * still moving. */
 function step(s: Sim, dt: number): boolean {
   let moving = creep(s, dt);
+  // Putting a print back is the system answering, not the reader deciding,
+  // so it goes quicker than the lift that raised it.
+  const putBack = s.focused < 0;
   // Re-aim every frame: the pile may be drifting under a still pointer. With
   // a print lifted the pile holds as it was at the click: nothing under the
   // print changes, so the print rises straight up from where it was.
   if (s.focused < 0 && s.hovering && s.geometry) aim(s, s.geometry);
   moving = integrate(s, STIFFNESS, DAMPING, dt) || moving;
-  moving =
-    integrate(
-      { g: s.f, v: s.fv, target: s.fTarget, reduced: s.reduced },
-      FOCUS_STIFFNESS,
-      FOCUS_DAMPING,
-      dt,
-    ) || moving;
   // A print's neighbour stays off it until it has landed, and, while any
   // print is up, until the pile is closed again: a print that is up must not
   // be slid about by a neighbour settling.
-  if (s.focused < 0) {
+  if (putBack) {
     for (let i = 0; i < s.u.length; i++) {
       if ((s.f[i] ?? 0) < LANDED) s.uTarget[i] = 0;
     }
   }
-  // On the lift's own spring, so that whatever the neighbour still has to
-  // slide (a print clicked off-centre was not fully uncovered) moves with
-  // the print rising, as one motion, rather than darting off ahead of it.
-  moving =
-    integrate(
-      { g: s.u, v: s.uv, target: s.uTarget, reduced: s.reduced },
-      FOCUS_STIFFNESS,
-      FOCUS_DAMPING,
-      dt,
-    ) || moving;
-  moving =
-    integrate(
-      { g: s.p, v: s.pv, target: s.pTarget, reduced: s.reduced },
-      STIFFNESS,
-      DAMPING,
-      dt,
-    ) || moving;
+  moving = lifts(s, dt, putBack) || moving;
   moving = settleEdges(s, dt) || moving;
   return settleTravel(s, dt) || moving;
 }
@@ -1153,7 +1180,12 @@ function integrate(
   return moving;
 }
 
-type Travel = { travel: number; travelV: number; travelTarget: number };
+type Travel = {
+  travel: number;
+  travelV: number;
+  travelTarget: number;
+  wheeledAt: number;
+};
 
 /** A drag holds the strip 1:1 and the spring only takes over on release;
  * reduced motion never glides, the strip is simply where it was put. */
@@ -1171,8 +1203,10 @@ function settleTravel(
 
 /** Advance the strip's travel spring by `dt` seconds. Returns whether it is still moving. */
 function integrateTravel(s: Travel, dt: number): boolean {
-  const accel =
-    TRAVEL_STIFFNESS * (s.travelTarget - s.travel) - TRAVEL_DAMPING * s.travelV;
+  const wheeling = performance.now() - s.wheeledAt < WHEEL_HOLD;
+  const k = wheeling ? WHEEL_STIFFNESS : TRAVEL_STIFFNESS;
+  const c = wheeling ? WHEEL_DAMPING : TRAVEL_DAMPING;
+  const accel = k * (s.travelTarget - s.travel) - c * s.travelV;
   const nextV = s.travelV + accel * dt;
   const next = s.travel + nextV * dt;
   // Travel is in px, so settle on a tenth of one.
@@ -1198,7 +1232,15 @@ function layout(
     u,
     p,
     offsets,
-  }: Lifts & { f: number[]; p: number[]; offsets: number[] },
+    edgeL,
+    reduced,
+  }: Lifts & {
+    f: number[];
+    p: number[];
+    offsets: number[];
+    edgeL: number;
+    reduced: boolean;
+  },
   geometry: Geometry,
   travel: number,
   tiles: (HTMLLIElement | null)[],
@@ -1216,11 +1258,11 @@ function layout(
     const arc = curve(centre - half, half, geometry.height);
     // A lifted print rises where it is, sliding inward only by as much as
     // it needs to clear the window's edges. Nothing else moves for it.
-    const nudge = inward(i, { g, f }, { shift: x - travel, travel }, geometry);
+    const nudge = inward(i, { g, f }, { shift: x - travel, edgeL }, geometry);
     offsets[i] = x + nudge;
     pose(
       arc,
-      { g: g[i] ?? 0, f: f[i] ?? 0, p: p[i] ?? 0 },
+      { g: g[i] ?? 0, f: f[i] ?? 0, p: p[i] ?? 0, reduced },
       x + nudge - travel,
       tiles[i],
     );
@@ -1240,13 +1282,14 @@ const INSET = 8;
  * pointer. A lifted print, though, is pulled clear of both fades, easing in
  * with the lift: the mask covers everything in the zone, and a print left
  * inside a fade would be seen through, with the paragraph showing in it.
- * The left fade is only as far in as the travel has brought it. `shift` is
- * where the print sits relative to its resting place on screen (opening
- * less travel). */
+ * The left fade is only as far in as it has eased, which is what `edgeL`
+ * says — read from the same value that places the mask, so the two cannot
+ * drift apart. `shift` is where the print sits relative to its resting place
+ * on screen (opening less travel). */
 function inward(
   i: number,
   { g, f }: { g: number[]; f: number[] },
-  { shift, travel }: { shift: number; travel: number },
+  { shift, edgeL }: { shift: number; edgeL: number },
   geometry: Geometry,
 ): number {
   const up = g[i] ?? 0;
@@ -1257,7 +1300,7 @@ function inward(
   const halfWidth = ((geometry.widths[i] ?? 0) * scale) / 2;
   const centre = (geometry.centres[i] ?? 0) + shift;
   const edge = Math.min(0, centre - halfWidth - INSET);
-  const fadeIn = fade * clamp(travel / fade, 0, 1);
+  const fadeIn = fade * edgeL;
   const left = Math.min(0, centre - halfWidth - INSET - fadeIn);
   const right = Math.max(0, centre + halfWidth - (visible - INSET));
   // Eased by the print's own rise: a print already past the edge at rest
@@ -1272,16 +1315,15 @@ function inward(
  * goes — though a press still dips it, as it dips any print. */
 function pose(
   arc: { lean: number; drop: number },
-  { g, f, p }: { g: number; f: number; p: number },
+  { g, f, p, reduced }: { g: number; f: number; p: number; reduced: boolean },
   x: number,
   tile: HTMLLIElement | null | undefined,
 ) {
   const shadow = tile?.firstElementChild as HTMLElement | null | undefined;
   if (!(tile && shadow)) return;
   const up = Math.max(g, f);
-  const rest = 1 - f;
-  const y = (arc.drop - g * LIFT) * rest - f * (LIFT + FOCUS_LIFT);
-  const lean = arc.lean * (1 - up);
+  const y = riseOf(g, f, arc.drop, reduced);
+  const lean = reduced ? 0 : arc.lean * (1 - up);
   const scale = paperScale(g, f) * (1 - p * PRESS);
   tile.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${lean.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
   shadow.style.opacity = Math.min(1, g + f).toFixed(3);

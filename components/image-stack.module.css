@@ -322,7 +322,7 @@
    reduced motion it simply appears. */
 .reveal {
   opacity: 0;
-  transition: opacity 320ms ease;
+  transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .reveal[data-loaded="true"] {
@@ -330,8 +330,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Shorter, not absent. A cross-fade is the one thing reduced motion is
+     meant to keep; removing it restores the single-frame cut from blur to
+     sharp that this transition exists to prevent. */
   .reveal {
-    transition: none;
+    transition: opacity 160ms linear;
   }
 }
 
