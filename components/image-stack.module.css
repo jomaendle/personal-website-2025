@@ -127,15 +127,21 @@
   top: calc(var(--lift-room) * -1 - 10%);
   bottom: -10%;
   left: 0;
-  width: calc(var(--print) * 6);
-  margin-left: calc(var(--print) * -3);
+  /* Narrower than it looks, and spent well before its own edge. The pool
+     is centred on a print that can sit anywhere, so its box regularly
+     reaches past the viewport, where the page clips it. At the old stops it
+     was still at about 5% ink when it met that edge and cut there, a
+     straight vertical seam down the page. Now it is transparent by 68% of
+     its radius, which is inside the viewport wherever the print stands. */
+  width: min(calc(var(--print) * 5), 78vw);
+  margin-left: min(calc(var(--print) * -2.5), -39vw);
   background: radial-gradient(
     ellipse 50% 50% at 50% 40%,
-    hsl(var(--shadow-ink) / 0.38) 0%,
-    hsl(var(--shadow-ink) / 0.26) 22%,
-    hsl(var(--shadow-ink) / 0.12) 48%,
-    hsl(var(--shadow-ink) / 0.03) 74%,
-    transparent 100%
+    hsl(var(--shadow-ink) / 0.4) 0%,
+    hsl(var(--shadow-ink) / 0.26) 18%,
+    hsl(var(--shadow-ink) / 0.1) 38%,
+    hsl(var(--shadow-ink) / 0.02) 55%,
+    transparent 68%
   );
   opacity: 0;
   pointer-events: none;
@@ -242,8 +248,12 @@
      inside the paper — which the lift's 1.85x scale then multiplied into a
      frame twice as thick at the top as at the bottom on a 3x phone. A border
      belongs to the print's own paint, so the paper and the hole in it round
-     together and the frame stays even at any scale. */
-  --frame: 3px;
+     together and the frame stays even at any scale.
+
+     Measured as a share of the paper, not a fixed width: at 3px it was
+     2.5% of a desktop print's height but 4.2% of a phone's, so the same
+     border read as half again as heavy on the smaller paper. */
+  --frame: max(2px, calc(var(--print) * 0.025));
   position: relative;
   flex: none;
   height: var(--print);
