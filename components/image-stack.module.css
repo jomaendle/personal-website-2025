@@ -13,7 +13,7 @@
   /* Room above the window for a print lifted by a click. Part of the zone's
      box (so the mask covers it) but not of the layout (see the negative
      margin) and not of the pointer's surface. */
-  --lift-room: 6rem;
+  --lift-room: 8.5rem;
   /* The list's start padding; the curve needs it (see `.tile`). */
   --pad: 1.25rem;
   /* The ink these are drawn with, and the prints' paper and hairline edge;
@@ -85,21 +85,26 @@
     black
   );
   mask-image: var(--edge), var(--edge-end);
+  /* Both layers are a fade wider than the box, so either can be slid clean
+     off its edge. At rest the left one is parked off-canvas (the first print
+     lands crisp against the text) and the right one is in. The JS eases each
+     between those two places as there becomes, or stops being, more pile to
+     see in that direction. */
   mask-size:
     calc(100% + var(--fade)) 100%,
-    100% 100%;
+    calc(100% + var(--fade)) 100%;
   mask-position:
     calc(var(--fade) * -1) 0,
-    0 0;
+    calc(var(--fade) * -1) 0;
   mask-repeat: no-repeat;
   mask-composite: intersect;
   -webkit-mask-image: var(--edge), var(--edge-end);
   -webkit-mask-size:
     calc(100% + var(--fade)) 100%,
-    100% 100%;
+    calc(100% + var(--fade)) 100%;
   -webkit-mask-position:
     calc(var(--fade) * -1) 0,
-    0 0;
+    calc(var(--fade) * -1) 0;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-composite: source-in;
 }

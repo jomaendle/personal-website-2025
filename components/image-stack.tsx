@@ -99,6 +99,15 @@ const GROWTH = 0.35;
 const LIFT = 12;
 /** Daylight between a fully uncovered print and the neighbour that slid off it. */
 const GAP = 6;
+
+/** How large a print is drawn: its hover growth, with the lift's growth on
+ * top of it and taking over from it as the print comes up out of the pile.
+ * Three places need this and they must agree — the pose that draws it, the
+ * hit test that decides what the pointer is over, and the nudge that keeps a
+ * lifted print inside the window. */
+function paperScale(g: number, f: number): number {
+  return 1 + g * GROWTH * (1 - f) + f * (GROWTH + FOCUS_GROWTH);
+}
 /** A click pulls the print up out of the pile where it is: lifted and grown
  * beyond the hover pose by these, on top of the hover growth and lift. Its
  * own spring, critically damped: a click carries no momentum, so nothing
@@ -107,7 +116,7 @@ const GAP = 6;
  * answer to a touch and has to arrive inside the 300ms a UI gesture is
  * allowed: at the old 0.36s it took 380ms to look finished and was still
  * moving most of a second later. */
-const FOCUS_GROWTH = 0.5;
+const FOCUS_GROWTH = 0.78;
 const FOCUS_LIFT = 44;
 const FOCUS_STIFFNESS = 580;
 const FOCUS_DAMPING = 48;
@@ -152,6 +161,8 @@ const DAMPING = 80;
  * was that a flick stops feeling like it is still deciding. */
 const TRAVEL_STIFFNESS = 260;
 const TRAVEL_DAMPING = 32;
+/** Time constant for the edge fades easing in and out, in seconds. */
+const EDGE_EASE = 0.16;
 /** Below this a spring counts as settled and the loop can stop. */
 const EPSILON = 0.0005;
 /** The longest step the springs are integrated over, in seconds. A frame
@@ -170,6 +181,8 @@ type Geometry = {
   zoneLeft: number;
   zoneTop: number;
   zoneWidth: number;
+  /** The window the reader actually sees: the zone less its fade. */
+  visible: number;
   /** The strip's vertical band, in zone coordinates: where the prints stand
    * at rest, less the room the tallest lift needs above them. */
   stripTop: number;
@@ -277,6 +290,9 @@ export function ImageStack() {
      * px: the room its neighbours and its own growth have made. */
     offsets: PRINTS.map(() => 0),
     focused: -1,
+    /** How much of each edge fade is on screen, 0 to 1. */
+    edgeL: 0,
+    edgeR: 1,
     /** How far the strip has travelled left, in px. */
     travel: 0,
     travelV: 0,
@@ -285,8 +301,6 @@ export function ImageStack() {
     pointerX: 0,
     pointerY: 0,
     hovering: false,
-    /** Which print the pointer is over, from `aim`. -1 for the background. */
-    over: -1,
     /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle.
      * `drive` is where the pointer is; `driving` follows it over DWELL and
      * is what moves the pile. */
@@ -389,6 +403,7 @@ export function ImageStack() {
         stripTop: listRect.top - zoneRect.top - (LIFT + FOCUS_LIFT),
         stripBottom: listRect.bottom - zoneRect.top,
         zoneWidth: zoneRect.width,
+        visible: zoneRect.width - fade,
         fade,
         height: tiles[0]?.offsetHeight ?? 0,
         lefts,
@@ -446,8 +461,7 @@ export function ImageStack() {
 
     const hoverMove = (geometry: Geometry) => {
       s.hovering = true;
-      s.over = printUnder(s, geometry);
-      showCursor(hit, s);
+      showCursor(hit, printUnder(s, geometry));
       // No edge drift while a print is lifted: the pile holds still.
       s.drive = s.focused >= 0 ? 0 : driveFor(s.pointerX, geometry);
       reportHover(report.current, s.drive);
@@ -805,8 +819,8 @@ function isClick(
  * Taken from `printUnder`, which reads geometry rather than the DOM:
  * hit-testing thirteen boxes on every pointermove forced the layout the
  * loop is busy writing transforms into. */
-function showCursor(hit: HTMLElement, s: { over: number }) {
-  const cursor = s.over >= 0 ? "pointer" : "";
+function showCursor(hit: HTMLElement, over: number) {
+  const cursor = over >= 0 ? "pointer" : "";
   if (hit.style.cursor !== cursor) hit.style.cursor = cursor;
 }
 
@@ -875,8 +889,8 @@ const LANDED = 0.002;
  * can show. */
 function sizesFor(landscape: boolean): string {
   return landscape
-    ? "(min-width: 640px) 288px, 168px"
-    : "(min-width: 640px) 192px, 108px";
+    ? "(min-width: 640px) 320px, 192px"
+    : "(min-width: 640px) 208px, 128px";
 }
 
 type Drag = {
@@ -903,7 +917,7 @@ function dragTo(s: Drag, event: PointerEvent, geometry: Geometry) {
 /** Edge drift for a pointer at `pointerX`: the visible window is the zone
  * less the fade, and only its outer bands drift the pile, toward that end. */
 function driveFor(pointerX: number, geometry: Geometry): number {
-  const visible = geometry.zoneWidth - geometry.fade;
+  const { visible } = geometry;
   const band = visible * BAND;
   if (pointerX < band) return -(1 - pointerX / band);
   if (pointerX > visible - band) return 1 - (visible - pointerX) / band;
@@ -946,8 +960,6 @@ type Aim = {
   pointerX: number;
   pointerY: number;
   travel: number;
-  /** Which print the pointer is over, as last judged from the geometry. */
-  over: number;
 };
 
 /**
@@ -965,7 +977,7 @@ function printUnder(s: Aim, geometry: Geometry): number {
   for (let i = s.target.length - 1; i >= 0; i--) {
     const g = s.g[i] ?? 0;
     const f = s.f[i] ?? 0;
-    const scale = 1 + g * GROWTH * (1 - f) + f * (GROWTH + FOCUS_GROWTH);
+    const scale = paperScale(g, f);
     const centre = (geometry.centres[i] ?? 0) + (s.offsets[i] ?? 0);
     const half = ((geometry.widths[i] ?? 0) * scale) / 2;
     if (Math.abs(x - centre) <= half) return i;
@@ -1010,6 +1022,7 @@ type Sim = Springs &
   Focus &
   Travel &
   Drift &
+  Edges &
   Aim & { hovering: boolean; drag: unknown };
 
 /** Advance the whole simulation by `dt` seconds. Returns whether anything is
@@ -1053,6 +1066,7 @@ function step(s: Sim, dt: number): boolean {
       DAMPING,
       dt,
     ) || moving;
+  moving = settleEdges(s, dt) || moving;
   return settleTravel(s, dt) || moving;
 }
 
@@ -1065,7 +1079,7 @@ function paint(
 ): number {
   if (!s.geometry) return 0;
   layout(s, s.geometry, s.travel, tiles);
-  if (zone) fadeLeft(zone, s.travel, s.geometry.fade);
+  if (zone) fadeEdges(zone, s, s.geometry.fade);
   if (backdrop) shade(backdrop, s, s.geometry, s.travel);
   for (let i = 0; i < tiles.length; i++) {
     const level =
@@ -1189,7 +1203,7 @@ function layout(
   travel: number,
   tiles: (HTMLLIElement | null)[],
 ) {
-  const half = (geometry.zoneWidth - geometry.fade) / 2;
+  const half = geometry.visible / 2;
   let x = 0;
   for (let i = 0; i < g.length; i++) {
     if (i > 0) x += separation({ g, u }, geometry, i - 1);
@@ -1238,8 +1252,8 @@ function inward(
   const up = g[i] ?? 0;
   const lift = f[i] ?? 0;
   const { fade } = geometry;
-  const visible = geometry.zoneWidth - fade;
-  const scale = 1 + up * GROWTH * (1 - lift) + lift * (GROWTH + FOCUS_GROWTH);
+  const { visible } = geometry;
+  const scale = paperScale(up, lift);
   const halfWidth = ((geometry.widths[i] ?? 0) * scale) / 2;
   const centre = (geometry.centres[i] ?? 0) + shift;
   const edge = Math.min(0, centre - halfWidth - INSET);
@@ -1268,8 +1282,7 @@ function pose(
   const rest = 1 - f;
   const y = (arc.drop - g * LIFT) * rest - f * (LIFT + FOCUS_LIFT);
   const lean = arc.lean * (1 - up);
-  const scale =
-    (1 + g * GROWTH * rest + f * (GROWTH + FOCUS_GROWTH)) * (1 - p * PRESS);
+  const scale = paperScale(g, f) * (1 - p * PRESS);
   tile.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${lean.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
   shadow.style.opacity = Math.min(1, g + f).toFixed(3);
 }
@@ -1299,26 +1312,47 @@ function shade(
 }
 
 /**
- * The left-hand fade. Its mask layer sits just off the window at rest, so the
- * first print lands crisp on the text edge, and slides in as soon as the
- * pile travels. Over the first ARRIVE px, not over the fade's own
- * width: at a fade's width the mask was still almost entirely off-canvas
- * after the first few pixels of travel, so a barely-moved pile showed its
- * leading print sliced off square at the window's edge. Two pixels: the fade is simply
- * there the moment the pile moves, without being switched on at a hard
- * boundary of exactly zero. Written on the zone itself, not through a custom property, so
- * nothing inside it has to recalculate style. The fades never move for a
- * lift: a lifted print is pulled clear of them instead (see `inward`), so
- * it is never seen through.
+ * The two edge fades. Each says there is more pile beyond it, so each
+ * belongs on screen exactly when there is: the left one once the pile has
+ * travelled at all, the right one until it reaches the end. At rest the left
+ * edge is crisp, which is what puts the first print's own edge on the text.
+ *
+ * Eased over time rather than driven off the travel, because distance made
+ * them switch: tied to the travel they were either absent or complete within
+ * a pixel or two of movement, and the fade snapped on rather than arriving.
+ * EDGE_EASE is the time constant, so each covers about two thirds of the way
+ * in 0.16s. Written on the zone itself, not through a custom property, so
+ * nothing inside it has to recalculate style. Neither moves for a lift: a
+ * lifted print is pulled clear of them instead (see `inward`), so it is
+ * never seen through.
  */
-const ARRIVE = 2;
-function fadeLeft(zone: HTMLElement, travel: number, fade: number) {
-  const offset = -fade * (1 - clamp(travel / ARRIVE, 0, 1));
-  const position = `${offset.toFixed(1)}px 0, 0 0`;
+function fadeEdges(zone: HTMLElement, s: Edges, fade: number) {
+  const left = -fade * (1 - s.edgeL);
+  const right = -fade * s.edgeR;
+  const position = `${left.toFixed(1)}px 0, ${right.toFixed(1)}px 0`;
   if (zone.style.maskPosition !== position) {
     zone.style.maskPosition = position;
     zone.style.webkitMaskPosition = position;
   }
+}
+
+type Edges = { edgeL: number; edgeR: number };
+
+/** Ease each edge toward where it belongs and say whether either is still
+ * moving, so the loop keeps running until they have arrived. */
+function settleEdges(
+  s: Edges & Travel & { geometry: Geometry | null },
+  dt: number,
+): boolean {
+  if (!s.geometry) return false;
+  const want = (at: number, target: number) => {
+    const next = at + (target - at) * (1 - Math.exp(-dt / EDGE_EASE));
+    return Math.abs(target - next) < 0.001 ? target : next;
+  };
+  const before = s.edgeL + s.edgeR;
+  s.edgeL = want(s.edgeL, s.travel > 0.5 ? 1 : 0);
+  s.edgeR = want(s.edgeR, s.travel < s.geometry.maxTravel - 0.5 ? 1 : 0);
+  return s.edgeL + s.edgeR !== before;
 }
 
 /**
@@ -1332,7 +1366,7 @@ function markDots(
   travel: number,
   dots: HTMLElement,
 ) {
-  const visible = geometry.zoneWidth - geometry.fade;
+  const { visible } = geometry;
   let x = 0;
   for (let i = 0; i < lifts.g.length; i++) {
     if (i > 0) x += separation(lifts, geometry, i - 1);
@@ -1351,7 +1385,7 @@ function markDots(
  * print gets its real image the first time it comes into view.
  */
 function countInView(lifts: Lifts, geometry: Geometry, travel: number): number {
-  const visible = geometry.zoneWidth - geometry.fade;
+  const { visible } = geometry;
   let x = 0;
   let count = 0;
   for (let i = 0; i < lifts.g.length; i++) {
