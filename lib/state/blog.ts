@@ -34,7 +34,7 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
 };
 
 export const PHOTO_PILE_BUGS = {
-  title: "Nine Ways a Photo Pile Broke on a Phone",
+  title: "Building a Photo Pile That Feels Right",
   date: "Sep 13, 2026",
   slug: "photo-pile-bugs",
 };
