@@ -1,5 +1,7 @@
 import MdxLayout from "../../../components/mdx-layout";
 import { CodeBlock } from "../../../components/code-block";
+import { LeanDemo } from "./LeanDemo";
+import { HoverDemo } from "./HoverDemo";
 import { PHOTO_PILE_BUGS } from "../../../lib/state/blog";
 
 export const metadata = {
@@ -11,100 +13,92 @@ export const dynamic = 'force-static'
 
 # {metadata.title}
 
-There is a pile of my photographs on the homepage now. Thirteen prints fanned on a shallow arc, tucked under each other. One stands up under your pointer, and clicking or tapping lifts it clear of the pile. You can drag the strip, and it rubber-bands at the ends and coasts when you let go.
+A pile of photographs feels right when it behaves like paper. Prints tuck under each other, the one you reach for comes forward, and the stack slides as a stack.
 
-It is one `requestAnimationFrame` loop and a few springs. No library. Four things about building it were not obvious to me, and three of those only showed up on a real phone.
+Getting there was four decisions. Each one I made the obvious way first, and the obvious way was wrong every time.
 
-## The curve belongs to the window
+## Lean belongs to the window, not to the print
 
-My first fan gave print `n` a rotation of `n` degrees. It looks fine standing still and wrong the moment the strip moves, because the lean is stuck to the print.
+Give print `n` a rotation of `n` degrees and the fan looks correct standing still. Then you move it.
 
-What you want is for a print to stand upright as it passes the middle of the window and lean as it nears either edge. Then dragging the pile rolls each print through upright, which is what a fan of paper actually does. So the lean comes from the print's angle as seen from the centre of a circle:
+<LeanDemo />
+
+The lean is glued to the paper, so the whole row slides as a rigid block. What paper does is roll: a print stands upright as it passes in front of you and leans as it goes away. So the angle has to come from where the print is in the window, not from which print it is.
 
 <CodeBlock
   language="ts"
   code={`
-function curve(dx: number, half: number, print: number) {
-  const angle = Math.atan2(dx, Math.max(half, RADIUS));
-  return {
-    lean: clamp(angle * (180 / Math.PI) * (LEAN / 45), -LEAN, LEAN),
-    drop: print * Math.min(DROP, SAG * (1 - Math.cos(angle))),
-  };
-}
+const angle = Math.atan2(dx, Math.max(half, RADIUS));
+const lean = clamp(angle * (180 / Math.PI) * (LEAN / 45), -LEAN, LEAN);
+const drop = print * Math.min(DROP, SAG * (1 - Math.cos(angle)));
 `}
 />
 
-`dx` is the distance from the middle of the window, `half` is half its width. The `Math.max(half, RADIUS)` is there because of phones: a narrow window means a tight circle, and at 390px the prints leaned into each other hard enough to look like a kink.
+`dx` is the distance from the middle of the window, `half` is half its width. `Math.max(half, RADIUS)` is there for phones: a narrow window means a tight circle, and at 390px the prints leaned into each other hard enough to look like a kink in the row.
 
-CSS can do this now, so the server renders the resting fan and it works without JavaScript:
+CSS does this now, so the server renders the fan and it holds without JavaScript.
 
 <CodeBlock
   language="css"
   code={`
 --angle: atan2(var(--dx), var(--r));
 --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
---drop: min(calc(var(--print) * 0.1167),
-            calc((1 - cos(var(--angle))) * var(--print) * 0.4));
 `}
 />
 
-`atan2()` and `cos()` inside `calc()` work in all three engines. The cost is that the same numbers now live in TypeScript and in CSS, and if they drift, the server's pose and the first client frame disagree and the pile twitches on load.
-
 ## Hovering is a state, not a dial
 
-The first version raised prints on a smooth falloff: nearest grew most, neighbours a little less. It is the obvious design and it felt terrible. Every pixel of pointer movement resized three or four prints and shifted everything after them, so sweeping across the pile made the whole row shimmer.
+The obvious open is a falloff. The print under your pointer grows most, its neighbours a little less. Every pixel of movement resizes three or four prints and shifts everything after them.
 
-One print fully up, everything else fully down, and nothing changes until you cross into a different print:
+<HoverDemo />
+
+The left row never holds still. The right one moves only when you cross into a different print.
 
 <CodeBlock
   language="ts"
   code={`
 const over = printUnder(s, geometry);
-if (over < 0) return;          // over a gap: hold what is already up
+if (over < 0) return;          // over a gap: keep whatever is already up
 for (let i = 0; i < s.target.length; i++) {
   s.target[i] = i === over ? 1 : 0;
 }
 `}
 />
 
-That early return is the part I would have left out. Prints have gaps between them, and without it the pile closes every time your pointer crosses one.
+That early return is the line I would have left out. Prints have gaps between them, and without it the pile snaps shut every time your pointer crosses one.
 
 ## Promoting a layer moves it
 
-This is the one I would want someone to tell me.
+Thirteen prints, their shadows and their marks is forty elements holding `will-change: transform`, which is forty compositor layers a phone keeps for something nobody has scrolled to. So I gated it: promote on pointer down, release when the springs settle.
 
-Thirteen prints, thirteen shadows, thirteen marks and a shadow pool is forty elements carrying `will-change: transform`, which is forty compositor layers a phone holds for a component nobody has scrolled to. So I gated it: promote on pointer down, release when the springs settle. Textbook.
+That is the textbook advice and it was the worst bug in the component.
 
-It was the worst bug in the component. **Giving an element its own compositor layer snaps it to whole device pixels**, and the prints stand on fractional ones. So the entire row jumped a pixel or two at the moment of promotion, and I had arranged for that moment to be when your finger touched the screen.
+**Giving an element its own layer snaps it to whole device pixels.** The prints sit on fractional ones. So the entire row jumped a pixel or two at the moment of promotion, and I had arranged for that moment to be when your finger touched the screen.
 
-You can isolate it in one measurement. Add the class, change nothing else, diff the pixels:
+Add the class, change nothing else, diff the pixels:
 
 <CodeBlock
   language="text"
   code={`45,557 pixels changed by more than 2%`}
 />
 
-The answer is not to stop managing layers, it is to promote while the page is already moving:
+Promote while the page is already moving instead, and nothing shifts under your hand.
 
 <CodeBlock
   language="ts"
   code={`
-const promote = new IntersectionObserver(
-  (entries) => {
-    stackRef.current?.classList.toggle(ARMED, entries.at(-1)?.isIntersecting ?? false);
-  },
+new IntersectionObserver(
+  (entries) => stack.classList.toggle(ARMED, entries.at(-1)?.isIntersecting ?? false),
   { rootMargin: "200px 0px" },
 );
 `}
 />
 
-Zero layers before you reach the pile, forty while it is on screen, zero once it is past. And nothing moves under your hand.
-
-Before I found this I had "fixed" the same complaint twice, once as a document reflow and once as an image-loading shift. It was neither. What located it was the person testing it saying "it happens on tap" and "it doesn't matter if the image is cached", which ruled out both of my theories in one message.
+Zero layers before you reach the pile, forty while it is on screen, zero once it is past.
 
 ## A frame and the hole it frames must be one element
 
-Each print has a white paper border. On a phone it looked uneven, and measuring a screenshot said it really was:
+Each print has a paper border. On a phone it measured like this, with all four sides authored as the same 2px:
 
 <CodeBlock
   language="text"
@@ -116,11 +110,9 @@ right    7
 `}
 />
 
-All four are authored as the same 2px.
+An element that clips and rounds its own corners gets its own rasterised layer, and that layer snaps to device pixels independently of its parent. The border was on the outer box and the photograph in an inset child, so the two rounded apart. Sub-pixel, until a 2.13x lift on a 3x screen multiplies it.
 
-An element that clips and rounds its own corners gets its own rasterised layer, and that layer is snapped to device pixels independently of its parent. I had the border on the outer box and the photograph in an inset child, so the two rounded apart. Normally that is a sub-pixel nothing. Multiply it by a 2.13x lift on a 3x screen and you can see it.
-
-Making the border uniform in CSS does not help, because the two boxes still snap separately. They have to be the same box:
+Making the border uniform does not help. The two boxes still snap separately. They have to be one box.
 
 <CodeBlock
   language="css"
@@ -135,21 +127,21 @@ Making the border uniform in CSS does not help, because the two boxes still snap
 `}
 />
 
-While I was in there: make the border a proportion of the print, not a fixed width. At a flat 3px it was 2.5% of a desktop print and 4.2% of a phone's, so the same border read half again as heavy on the smaller one.
+Make that border a share of the print rather than a fixed width, too. At a flat 3px it was 2.5% of a desktop print and 4.2% of a phone's, so the same border read half again as heavy on the smaller paper.
 
-## One more, for anyone hand-rolling springs
+## If you hand-roll springs
 
-Semi-implicit Euler is stable only while `k · h² + 2 · c · h < 4`. At the stiffness I picked that is `h < 20.7ms`, and I had capped the frame clock at 32ms so a tab switch could not cause one huge jump.
+Semi-implicit Euler is stable only while `k · h² + 2 · c · h < 4`. At my stiffness that is `h < 20.7ms`, and I had capped the frame clock at 32ms so a tab switch could not cause one huge jump.
 
-So below about 48fps the spring diverged instead of settling. The transforms went to infinity, which is not valid CSS and is silently dropped, so nothing looked broken. And since the spring never reaches its target, the loop never stops.
+Below about 48fps the spring diverged instead of settling. Transforms went to infinity, which is not valid CSS and is silently dropped, so nothing looked broken. And a spring that never reaches its target means a loop that never stops.
 
-Advancing in fixed sub-steps of 8ms instead of one jump per frame fixes it. Worth checking against your worst frame, because a 30Hz display and a laden tab are both well past that bound.
+Sub-steps of 8ms fix it. Check the bound against your worst frame, because a 30Hz display and a laden tab are both past it.
 
-## The thing I keep relearning
+## What I would do differently
 
-I measured constantly and it still took three attempts to find the layer promotion, because I was measuring the wrong thing carefully. Emulators found two of these bugs and missed the two that needed a real device at a real pixel density.
+Sample every animation frame, not the before and after. I deleted a correct behaviour because a snapshot showed 42 pixels of movement; per frame it was 30 frames with no step larger than 7. That deletion caused the next bug.
 
-The one that actually worked: sample every animation frame, not the before and after. I deleted a correct behaviour because a before-and-after snapshot showed 42 pixels of movement. Per frame, it was 30 frames with no step larger than 7.
+And get on a real device early. Emulators caught two of these and missed the two that need real pixel density. The layer jump only became findable when someone tapped the screen and said "it happens on tap".
 
 export default function Page({ children }) {
   return (
