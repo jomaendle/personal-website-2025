@@ -31,7 +31,7 @@ export interface SiteConfig {
 
 export const SITE: SiteConfig = {
   name: "Jo Mändle",
-  role: "Principal Solution Architect, E.ON Digital Technology",
+  role: "Builder & Principal Solution Architect",
   shortRole: "Principal Solution Architect",
   avatar: "/avatar.jpeg",
   social: {

@@ -30,6 +30,9 @@
    container, so the prints can place themselves on the arc from its width. */
 .zone {
   --shadow-ink: 0 0% 0%;
+  /* The prints' paper and its hairline edge; light mode overrides both. */
+  --paper: var(--foreground);
+  --hairline: hsl(var(--shadow-ink) / 0.06);
   position: relative;
   width: 100%;
   container-type: inline-size;
@@ -86,6 +89,11 @@
 
 :global(.light) .zone {
   --shadow-ink: var(--foreground);
+  /* On paper a print has white paper for a border, not ink: the dark frame
+     was the loudest thing in the section. The hairline is the design
+     system's decorative border, so the white print sits on the cream. */
+  --paper: 0 0% 100%;
+  --hairline: hsl(var(--border));
 }
 
 /* A pool of shadow under a lifted print, a few prints wide and blurred. The
@@ -156,21 +164,31 @@
   /* Resting pose. `--c`, set inline per print, is where its centre sits in
      paper heights from the list's padding edge. The rest is the same curve
      the JS draws (see `curve` in image-stack.tsx): the print's angle as
-     seen from the centre of a circle, 45° at the visible window's edge,
-     scaled to 10° of lean; and the arc's sag, at most 14px, as its drop.
+     seen from the centre of a circle, 45° at the visible window's edge on
+     a desktop window, scaled to 10° of lean; and the arc's sag, capped, as
+     its drop.
      The container's inline size is its content box, which is the window
      less the fade. Computed here so the server's fan matches the first
      client frame at any width. */
   --c: 0;
-  --dx: calc(var(--c) * var(--print) + var(--pad) - var(--r));
-  --r: calc(100cqi / 2);
+  --half: calc(100cqi / 2);
+  --dx: calc(var(--c) * var(--print) + var(--pad) - var(--half));
+  /* The circle's radius: half the window, but never tighter than 260px,
+     so a phone's narrow window gets a gentler arc. */
+  --r: max(var(--half), 260px);
   --angle: atan2(var(--dx), var(--r));
   --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
-  --drop: min(14px, calc((1 - cos(var(--angle))) * 48px));
+  /* Sag in print heights: 0.4 of one at most 14/120 of one (14px at the
+     desktop's 120px prints, 8.4px at a phone's 72px). */
+  --drop: min(
+    calc(var(--print) * 0.1167),
+    calc((1 - cos(var(--angle))) * var(--print) * 0.4)
+  );
   /* Width as a share of the paper height; set by orientation below. */
   --w: 0.8;
-  /* The paper. Prints have a border: white paper in dark mode, dark card in
-     light mode, which is what the ink colour already is in each. */
+  /* The paper. Prints have a border of paper: the ink colour in dark mode
+     (which is near-white there), white in light mode; both set on `.zone`,
+     edged with a hairline. */
   --frame: 3px;
   position: relative;
   flex: none;
@@ -180,9 +198,9 @@
      a narrow portrait print is never swallowed by a wide neighbour. */
   margin-right: calc(var(--print) * var(--w) * var(--tuck) * -1);
   border-radius: 5px;
-  background: hsl(var(--foreground));
+  background: hsl(var(--paper));
   box-shadow:
-    0 0 0 1px hsl(var(--shadow-ink) / 0.06),
+    0 0 0 1px var(--hairline),
     0 1px 2px hsl(var(--shadow-ink) / 0.1),
     0 3px 10px -2px hsl(var(--shadow-ink) / 0.14);
   transform-origin: 50% 100%;

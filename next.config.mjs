@@ -19,13 +19,13 @@ const nextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    // 160 and 224 serve the homepage image stack on 1× displays: its prints
-    // ask for 128px and 192px (their open width), which lands on 128/224
-    // here and on 256/384 at 2×.
-    imageSizes: [16, 32, 48, 64, 96, 128, 160, 224, 256, 384],
-    // The homepage image stack asks for 80 in the pile and 90 for a print
-    // lifted by a click; Next 16 only serves qualities listed here.
-    qualities: [75, 80, 90],
+    // 224 serves the homepage image stack on 1× displays: its prints ask
+    // for 192px and 288px (their width lifted by a click), which lands on
+    // 224/384 here and on 384/640 at 2×.
+    imageSizes: [16, 32, 48, 64, 96, 128, 224, 256, 384],
+    // The homepage image stack asks for 80; Next 16 only serves qualities
+    // listed here.
+    qualities: [75, 80],
     minimumCacheTTL: 31536000, // 1 year
     dangerouslyAllowSVG: false,
     contentDispositionType: "attachment",

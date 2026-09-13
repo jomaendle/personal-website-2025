@@ -49,20 +49,29 @@ const INITIAL_WINDOW = 6;
  * the window's centre and leans out toward either edge, so as the pile
  * travels each print rolls through upright. It is the arc of a circle seen
  * from its centre: a print's angle is atan2(its distance from the window's
- * centre, half the window), so at the window's edge it is 45°. The lean is
- * that angle scaled to LEAN at the edge; the drop is the arc's sag, capped at
- * DROP. The stylesheet computes the same curve in CSS for the resting fan
- * (`--angle`, `--lean`, `--drop` on `.tile`), so the server's pose matches the
- * first client frame at any window width: keep the numbers in step.
+ * centre, the circle's radius), which is half the window, so at the window's
+ * edge it is 45°. The radius never drops below RADIUS, though: a phone's
+ * window is a quarter as wide as a desktop's, and prints on the tight
+ * circle that would give leaned into one another like a bump. The lean is
+ * the angle scaled to LEAN at 45°; the drop is the arc's sag in print
+ * heights, capped at DROP. The stylesheet computes the same curve in CSS
+ * for the resting fan (`--angle`, `--lean`, `--drop` on `.tile`), so the
+ * server's pose matches the first client frame at any window width: keep
+ * the numbers in step.
  */
 const LEAN = 10;
-const DROP = 14;
-const SAG = 48;
-function curve(dx: number, half: number): { lean: number; drop: number } {
-  const angle = Math.atan2(dx, half);
+const RADIUS = 260;
+const DROP = 14 / 120;
+const SAG = 0.4;
+function curve(
+  dx: number,
+  half: number,
+  print: number,
+): { lean: number; drop: number } {
+  const angle = Math.atan2(dx, Math.max(half, RADIUS));
   return {
     lean: clamp(angle * (180 / Math.PI) * (LEAN / 45), -LEAN, LEAN),
-    drop: Math.min(DROP, SAG * (1 - Math.cos(angle))),
+    drop: print * Math.min(DROP, SAG * (1 - Math.cos(angle))),
   };
 }
 /** Layout ratios the stylesheet uses, repeated here so the server can write
@@ -81,12 +90,11 @@ const REST_CENTRES: number[] = (() => {
     return centre;
   });
 })();
-/** How far the pointer's pull reaches, in neighbour spacings (the average
- * distance between print centres). Measured that way so the crest keeps its
- * shape whatever the mix of print widths: at 1.7 the immediate neighbours
- * grow about a third as much as the hovered print, the next ones not at all. */
-const REACH = 1.7;
-/** Peak scale-up, as a fraction, and how far the print lifts at the peak, in px. */
+/** Scale-up of the print under the pointer, as a fraction, and how far it
+ * lifts, in px. Hovering is a state, not a dial: the print under the pointer
+ * is fully up and every other print is fully down, so the pointer wandering
+ * inside a print changes nothing, and the pile only moves when the pointer
+ * reaches another print. */
 const GROWTH = 0.35;
 const LIFT = 12;
 /** Daylight between a fully uncovered print and the neighbour that slid off it. */
@@ -112,17 +120,25 @@ const CLICK_TIME = 500;
  * band barely moves it and the pointer never has to fight the pile. */
 const BAND = 0.22;
 const CREEP = 200;
+/** The drift takes this long, in seconds, to come up to speed once the
+ * pointer has settled in a band, and as long to die away after it leaves.
+ * A pointer that only sweeps through the band on its way somewhere else
+ * moves the pile by next to nothing. */
+const DWELL = 0.35;
 /** A drag past either end follows the finger less and less: how far it can
  * go, in px, and how stiffly it resists. */
 const RUBBER_REACH = 96;
 const RUBBER = 0.55;
 /** Momentum after a release decays like a scroll view (Apple's projection). */
 const DECELERATION = 0.997;
-/** Spring for a print's prominence. Damping ratio ≈ 0.85, response ≈ 0.16s:
- * the print reaches the pointer almost at once and settles without a visible
- * bounce, which is what pointer-tracking wants. */
+/** How far a flick can carry the pile past either end before it springs
+ * back, in px. */
+const BOUNCE = 40;
+/** Spring for a print's prominence. Critically damped, response ≈ 0.16s:
+ * the print comes up almost at once and settles with no overshoot, so the
+ * handoff from one print to the next is one clean motion. */
 const STIFFNESS = 1600;
-const DAMPING = 68;
+const DAMPING = 80;
 /** Spring for the strip's travel. Critically damped, response ≈ 0.45s: the
  * pile glides rather than chases, and carries a released drag's velocity. */
 const TRAVEL_STIFFNESS = 200;
@@ -133,13 +149,13 @@ const EPSILON = 0.0005;
 type Report = (action: "hover" | "travel" | "lift", print?: number) => void;
 
 /** Resting layout, measured once per pointer visit. All in px, relative to
- * the list's left edge. `unit` is the average neighbour spacing; `overlap[k]`
- * is how much print k+1 covers print k. */
+ * the list's left edge. `overlap[k]` is how much print k+1 covers print k. */
 type Geometry = {
   zoneLeft: number;
   zoneWidth: number;
   fade: number;
-  unit: number;
+  /** The paper height, which the curve's drop is measured in. */
+  height: number;
   lefts: number[];
   centres: number[];
   widths: number[];
@@ -198,7 +214,6 @@ export function ImageStack() {
   const backdropRef = useRef<HTMLDivElement>(null);
   const tileRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [revealed, setRevealed] = useState(INITIAL_WINDOW);
-  const [focused, setFocused] = useState(-1);
   const plausible = usePlausible();
   // Which interactions happen at all is the question worth answering, so
   // hover and travel report once per page view; each lift reports, with
@@ -243,8 +258,11 @@ export function ImageStack() {
     /** The pointer, in window coordinates, and whether it can open prints. */
     pointerX: 0,
     hovering: false,
-    /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle. */
+    /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle.
+     * `drive` is where the pointer is; `driving` follows it over DWELL and
+     * is what moves the pile. */
     drive: 0,
+    driving: 0,
     /** An active drag: where it started, and recent samples for velocity. */
     drag: null as null | {
       originX: number;
@@ -313,7 +331,6 @@ export function ImageStack() {
       const lefts = tiles.map((tile) => tile?.offsetLeft ?? 0);
       const widths = tiles.map((tile) => tile?.offsetWidth ?? 0);
       const centres = lefts.map((left, i) => left + (widths[i] ?? 0) / 2);
-      const span = (centres.at(-1) ?? 0) - (centres[0] ?? 0);
       const overlaps = lefts.map((left, i) =>
         Math.max(0, left + (widths[i] ?? 0) - (lefts[i + 1] ?? Infinity)),
       );
@@ -327,7 +344,7 @@ export function ImageStack() {
         zoneLeft: zoneRect.left,
         zoneWidth: zoneRect.width,
         fade,
-        unit: Math.max(1, span / Math.max(1, centres.length - 1)),
+        height: tiles[0]?.offsetHeight ?? 0,
         lefts,
         centres,
         widths,
@@ -351,6 +368,7 @@ export function ImageStack() {
       s.travelTarget = s.travel;
       s.travelV = 0;
       s.drive = 0;
+      s.driving = 0;
       s.drag = {
         originX: event.clientX,
         originTravel: s.travel,
@@ -407,14 +425,20 @@ export function ImageStack() {
       if (next >= 0) {
         s.fTarget[next] = 1;
         s.uTarget[next] = 1;
-        // The pile holds while a print is up (see `step`), so take the
-        // pointer's aim once now: what it holds is where the pointer is at
-        // the click, not where it was at an earlier one.
-        if (s.hovering && s.geometry) aim(s, s.geometry);
+        // The pile holds while a print is up (see `step`): the lifted
+        // print is the one up under the pointer and nothing else is, so a
+        // print the keys leaf away from goes down rather than staying up
+        // under a pointer that is resting on it.
+        s.target.fill(0);
+        if (s.hovering) s.target[next] = 1;
         report.current("lift", next + 1);
       }
       s.focused = next;
-      setFocused(next);
+      // The pointer's surface grows to cover a lifted print. Written here,
+      // not rendered: a click must not re-render the pile, since React
+      // touching the prints' props mid-lift is how the images used to swap
+      // sources and pop while rising.
+      hit.style.top = next >= 0 ? "0" : "";
       start();
     };
 
@@ -440,7 +464,14 @@ export function ImageStack() {
       // starts at the finger's speed, so there is no seam at the release.
       const landing = s.travel + project(velocity);
       s.travelTarget = clamp(landing, 0, geometry.maxTravel);
-      s.travelV = velocity;
+      // A coast that would run past an end is caught there: the spring is
+      // started with only as much speed as bounces it BOUNCE px past the
+      // end, instead of the finger's whole speed carrying it far out and
+      // gliding back. A critically damped spring let go at v away from its
+      // target overshoots by v / (ω·e).
+      const cap = BOUNCE * Math.sqrt(TRAVEL_STIFFNESS) * Math.E;
+      s.travelV =
+        landing === s.travelTarget ? velocity : clamp(velocity, -cap, cap);
       start();
     };
 
@@ -532,14 +563,11 @@ export function ImageStack() {
         {/* A soft pool of shadow behind the pile, faded in with a lift. First
             child, so it is under every print. */}
         <div ref={backdropRef} className={styles.backdrop} />
-        {/* The pointer's surface: the window's box, grown to cover a lifted
-            print. The zone itself takes no pointer events, because its box
-            reaches up over the paragraph to give a lifted print room. */}
-        <div
-          ref={hitRef}
-          className={styles.hit}
-          style={focused >= 0 ? { top: 0 } : undefined}
-        />
+        {/* The pointer's surface: the window's box, grown (by `lift`, which
+            writes its `top`) to cover a lifted print. The zone itself takes
+            no pointer events, because its box reaches up over the paragraph
+            to give a lifted print room. */}
+        <div ref={hitRef} className={styles.hit} />
         <ul ref={listRef} aria-hidden="true" className={styles.list}>
           {PRINTS.map((print, index) => {
             const landscape = print.width >= print.height;
@@ -566,8 +594,8 @@ export function ImageStack() {
                       alt=""
                       fill
                       placeholder="blur"
-                      sizes={sizesFor(landscape, index === focused)}
-                      quality={index === focused ? 90 : 80}
+                      sizes={sizesFor(landscape)}
+                      quality={80}
                       draggable={false}
                       className="object-cover"
                     />
@@ -679,12 +707,14 @@ function raise(
  * size and a pixel of its resting height. */
 const LANDED = 0.02;
 
-/** Source width to ask for: the print at its largest on screen (paper ×
- * hover growth), or half as big again when lifted by a click. On a 2×
- * display these land on the 256/384 and 384/640 variants. */
-function sizesFor(landscape: boolean, lifted: boolean): string {
-  if (lifted) return landscape ? "288px" : "192px";
-  return landscape ? "192px" : "128px";
+/** Source width to ask for: the print at its largest on screen, lifted by a
+ * click (paper × hover growth × lift growth), so a lift never changes the
+ * source. Swapping to a sharper image as the print rose made it pop into
+ * focus a beat after it had landed. On a 1× display these land on the
+ * 224/384 variants, on 2× on 384/640. Only prints that have come into view
+ * load at all, so the larger sources cost little at rest. */
+function sizesFor(landscape: boolean): string {
+  return landscape ? "288px" : "192px";
 }
 
 type Drag = {
@@ -747,6 +777,7 @@ function project(velocity: number): number {
 }
 
 type Aim = {
+  g: number[];
   target: number[];
   offsets: number[];
   pointerX: number;
@@ -754,21 +785,30 @@ type Aim = {
 };
 
 /**
- * Set every print's target prominence from where the pointer is. Judged
- * against where each print's centre is right now: its resting place plus
- * the room the pile has opened around it, less the strip's travel. A print
- * that grows shifts a little to make room, and this keeps the pointer
- * pointing at it rather than at its resting outline.
+ * Set every print's target prominence from where the pointer is: 1 for the
+ * print under it, 0 for the rest. The print under the pointer is the topmost
+ * (later prints lie over earlier ones) whose extent, as it is right now,
+ * contains the pointer: its resting place plus the room the pile has opened
+ * around it, at its current size. A hovered print keeps its left edge where
+ * it was and grows to the right, so the pointer that raised it stays inside
+ * it, and the pile is stable under a pointer that does not cross into
+ * another print. Over a gap between prints, nothing changes: the pile only
+ * closes when the pointer leaves it.
  */
 function aim(s: Aim, geometry: Geometry) {
   const x = s.pointerX + s.travel;
-  for (let i = 0; i < s.target.length; i++) {
+  let over = -1;
+  for (let i = s.target.length - 1; i >= 0; i--) {
     const centre = (geometry.centres[i] ?? 0) + (s.offsets[i] ?? 0);
-    const distance = Math.abs(x - centre) / geometry.unit;
-    s.target[i] =
-      distance >= REACH
-        ? 0
-        : 0.5 * (1 + Math.cos((Math.PI * distance) / REACH));
+    const half = ((geometry.widths[i] ?? 0) / 2) * (1 + (s.g[i] ?? 0) * GROWTH);
+    if (Math.abs(x - centre) <= half) {
+      over = i;
+      break;
+    }
+  }
+  if (over < 0) return;
+  for (let i = 0; i < s.target.length; i++) {
+    s.target[i] = i === over ? 1 : 0;
   }
 }
 
@@ -835,11 +875,14 @@ function step(s: Sim, dt: number): boolean {
       if ((s.f[i] ?? 0) < LANDED) s.uTarget[i] = 0;
     }
   }
+  // On the lift's own spring, so that whatever the neighbour still has to
+  // slide (a print clicked off-centre was not fully uncovered) moves with
+  // the print rising, as one motion, rather than darting off ahead of it.
   moving =
     integrate(
       { g: s.u, v: s.uv, target: s.uTarget, reduced: s.reduced },
-      STIFFNESS,
-      DAMPING,
+      FOCUS_STIFFNESS,
+      FOCUS_DAMPING,
       dt,
     ) || moving;
   moving =
@@ -873,21 +916,29 @@ function paint(
 
 type Drift = {
   drive: number;
+  driving: number;
   travelTarget: number;
   geometry: Geometry | null;
 };
 
-/** Drift the travel target while the pointer rests in an edge band. Returns
- * whether it moved. */
+/** Drift the travel target while the pointer rests in an edge band. The
+ * drift follows the pointer's position over DWELL, so it has to rest there
+ * to move the pile, and lets go as gently. Returns whether anything moved. */
 function creep(s: Drift, dt: number): boolean {
-  if (s.drive === 0 || !s.geometry) return false;
+  if (!s.geometry) return false;
+  s.driving += (s.drive - s.driving) * (1 - Math.exp(-dt / DWELL));
+  if (Math.abs(s.driving) < 0.005) s.driving = 0;
+  if (s.driving === 0) return false;
   const before = s.travelTarget;
   s.travelTarget = clamp(
-    before + s.drive * Math.abs(s.drive) * CREEP * dt,
+    before + s.driving * Math.abs(s.driving) * CREEP * dt,
     0,
     s.geometry.maxTravel,
   );
-  return s.travelTarget !== before;
+  // Still moving while the target moves or the drift is still ramping; a
+  // pointer parked in a band with the pile already at that end lets the
+  // loop stop.
+  return s.travelTarget !== before || Math.abs(s.drive - s.driving) > 0.005;
 }
 
 type Springs = {
@@ -981,13 +1032,16 @@ function layout(
   let x = 0;
   for (let i = 0; i < g.length; i++) {
     if (i > 0) x += separation({ g, u }, geometry, i - 1);
-    // Where this print's centre sits across the window right now, and the
-    // curve it takes there.
-    const centre = (geometry.centres[i] ?? 0) + x - travel;
-    const arc = curve(centre - half, half);
+    // The curve is read from the print's resting place less the travel, not
+    // from where the opening has pushed it: a print sliding aside for a
+    // neighbour keeps its lean and its drop, so the pile parts as a rigid
+    // group instead of every print re-leaning as it goes. Travel still rolls
+    // each print through upright.
+    const centre = (geometry.centres[i] ?? 0) - travel;
+    const arc = curve(centre - half, half, geometry.height);
     // A lifted print rises where it is, sliding inward only by as much as
     // it needs to clear the window's edges. Nothing else moves for it.
-    const nudge = inward(i, { g, f }, x - travel, geometry);
+    const nudge = inward(i, { g, f }, x - travel, travel, geometry);
     offsets[i] = x + nudge;
     pose(
       arc,
@@ -998,27 +1052,40 @@ function layout(
   }
 }
 
-/** How far print `i`, lifted by `f`, must slide inward to stay clear of the
- * window's edges, in px, easing in with the lift. `shift` is where the print
- * sits relative to its resting place on screen (opening less travel). */
+/** How far print `i` must slide inward to stay clear of the window's
+ * edges, in px. The left edge is the text edge and is clipped hard, so a
+ * print growing past it (the first print has no earlier neighbour to make
+ * room for its growth) is pushed right by exactly its overhang, whether it
+ * is up under the pointer or lifted by a click. The fades are different:
+ * prints sit in them at rest, and a print up under the pointer stays where
+ * it is, since pulling it sideways would slide it out from under the
+ * pointer. A lifted print, though, is pulled clear of both fades, easing in
+ * with the lift: the mask covers everything in the zone, and a print left
+ * inside a fade would be seen through, with the paragraph showing in it.
+ * The left fade is only as far in as the travel has brought it. `shift` is
+ * where the print sits relative to its resting place on screen (opening
+ * less travel). */
 const INSET = 8;
 function inward(
   i: number,
   { g, f }: { g: number[]; f: number[] },
   shift: number,
+  travel: number,
   geometry: Geometry,
 ): number {
+  const up = g[i] ?? 0;
   const lift = f[i] ?? 0;
-  if (lift <= 0) return 0;
-  const visible = geometry.zoneWidth - geometry.fade;
-  const scale =
-    1 + (g[i] ?? 0) * GROWTH * (1 - lift) + lift * (GROWTH + FOCUS_GROWTH);
+  if (up <= 0 && lift <= 0) return 0;
+  const { fade } = geometry;
+  const visible = geometry.zoneWidth - fade;
+  const scale = 1 + up * GROWTH * (1 - lift) + lift * (GROWTH + FOCUS_GROWTH);
   const halfWidth = ((geometry.widths[i] ?? 0) * scale) / 2;
   const centre = (geometry.centres[i] ?? 0) + shift;
-  const over =
-    Math.min(0, centre - halfWidth - INSET) +
-    Math.max(0, centre + halfWidth - (visible - INSET));
-  return -over * lift;
+  const edge = Math.min(0, centre - halfWidth - INSET);
+  const fadeIn = fade * clamp(travel / fade, 0, 1);
+  const left = Math.min(0, centre - halfWidth - INSET - fadeIn);
+  const right = Math.max(0, centre + halfWidth - (visible - INSET));
+  return -edge - (left - edge + right) * lift;
 }
 
 /** Write a print's pose: its place on the arc, `g` its prominence, `f` its
@@ -1071,7 +1138,9 @@ function shade(
  * The left-hand fade. Its mask layer sits just off the window at rest, so the
  * first print lands crisp on the text edge, and slides in over the first
  * `fade` px of travel. Written on the zone itself, not through a custom
- * property, so nothing inside it has to recalculate style.
+ * property, so nothing inside it has to recalculate style. The fades never
+ * move for a lift: a lifted print is pulled clear of them instead (see
+ * `inward`), so it is never seen through.
  */
 function fadeLeft(zone: HTMLElement, travel: number, fade: number) {
   const offset = -fade * (1 - clamp(travel / fade, 0, 1));
