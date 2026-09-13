@@ -24,7 +24,7 @@ export interface SiteConfig {
   /** Role only, for the article author row. */
   shortRole: string;
   /** Avatar served from `public/`. */
-  avatar: string;
+  avatar?: string;
   social: SocialLinks;
   contact: ContactChannels;
 }
@@ -33,7 +33,7 @@ export const SITE: SiteConfig = {
   name: "Jo Mändle",
   role: "Builder & Principal Solution Architect",
   shortRole: "Principal Solution Architect",
-  avatar: "/avatar.jpeg",
+  /*avatar: "/avatar.jpeg",*/
   social: {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
   },

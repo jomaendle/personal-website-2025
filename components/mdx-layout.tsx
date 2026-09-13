@@ -37,10 +37,10 @@ import { categoryFor } from "@/lib/state/writing-categories";
  */
 
 export default function MdxLayout({
-  children,
-  metadata,
-  slug,
-}: {
+                                    children,
+                                    metadata,
+                                    slug
+                                  }: {
   children: React.ReactNode;
   slug: string;
   metadata: { date: string };
@@ -63,7 +63,8 @@ export default function MdxLayout({
         />
       )}
 
-      <div className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 pt-6 pb-16 sm:px-6 sm:pt-16 xl:max-w-[1072px]">
+      <div
+        className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 pt-6 pb-16 sm:px-6 sm:pt-16 xl:max-w-[1072px]">
         <div className="flex justify-center gap-16">
           <aside
             className="sticky top-[100px] hidden 3xl:w-[300px] w-[240px] shrink-0 flex-col gap-6 self-start xl:flex"
@@ -111,19 +112,22 @@ export default function MdxLayout({
                 {/* Editorial meta header */}
                 <div className="mb-10 flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 font-mono text-muted-foreground text-xs uppercase tracking-wider">
+                    <div
+                      className="flex items-center gap-3 font-mono text-muted-foreground text-xs uppercase tracking-wider">
                       <span className="text-brand">{categoryFor(slug)}</span>
                       <span aria-hidden="true">·</span>
                       <time dateTime={metadata.date}>{metadata.date}</time>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Image
-                        src={SITE.avatar}
-                        alt={SITE.name}
-                        width={36}
-                        height={36}
-                        className="size-9 rounded-full object-cover"
-                      />
+                      {SITE.avatar && (
+                        <Image
+                          src={SITE.avatar}
+                          alt={SITE.name}
+                          width={36}
+                          height={36}
+                          className="size-9 rounded-full object-cover"
+                        />
+                      )}
                       <div className="leading-tight">
                         <div className="font-medium text-foreground text-sm">
                           {SITE.name}
