@@ -298,8 +298,14 @@
    print lifts. Cheaper than animating box-shadow, which repaints every frame. */
 .shadow {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  /* Out to the print's own edge, not the photograph's. `inset: 0` on a child
+     of a bordered box resolves to the padding box — inside the paper — so
+     this layer's shadow was cast across the white border itself and dulled
+     it, worst at the bottom where the shadow is offset: 187 against 252 at
+     the top, on a border that is the same 11 device px all round. Pulled out
+     by the border's width, the shadow begins where the paper ends. */
+  inset: calc(var(--frame) * -1);
+  border-radius: 5px;
   box-shadow:
     0 6px 12px -4px hsl(var(--shadow-ink) / 0.18),
     0 16px 32px -8px hsl(var(--shadow-ink) / 0.3);
