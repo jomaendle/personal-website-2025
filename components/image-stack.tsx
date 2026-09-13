@@ -466,23 +466,31 @@ export function ImageStack() {
       start();
     };
 
+    /** Take print `next` up out of the pile. The pile holds still while it
+     * is up (see `step`), so the hover targets are cleared and only the
+     * print under a hovering pointer stays raised: a print the keys leaf
+     * away from goes down rather than staying up.
+     *
+     * Its neighbour keeps off it only if a hover had already moved it. A
+     * finger has no hover, and a lifted print is above the pile at nearly
+     * twice the size, so it needs no room made for it — setting this on a
+     * tap slid every print to its right 42px sideways at once, which read
+     * as the page lurching under the thumb. */
+    const raiseOne = (next: number) => {
+      s.fTarget[next] = 1;
+      s.uTarget[next] = s.hovering ? 1 : 0;
+      s.target.fill(0);
+      if (s.hovering) s.target[next] = 1;
+      report.current("lift", next + 1);
+    };
+
     /** Lift print `index` out of the pile, or put the lifted one back (-1).
      * Uncovering it (its neighbour sliding off) is its own state, so that it
      * can outlast the lift: see `step`. */
     const lift = (index: number) => {
       const next = index < PRINTS.length ? index : -1;
       s.fTarget.fill(0);
-      if (next >= 0) {
-        s.fTarget[next] = 1;
-        s.uTarget[next] = 1;
-        // The pile holds while a print is up (see `step`): the lifted
-        // print is the one up under the pointer and nothing else is, so a
-        // print the keys leaf away from goes down rather than staying up
-        // under a pointer that is resting on it.
-        s.target.fill(0);
-        if (s.hovering) s.target[next] = 1;
-        report.current("lift", next + 1);
-      }
+      if (next >= 0) raiseOne(next);
       s.focused = next;
       // The pointer's surface grows to cover a lifted print. Written here,
       // not rendered: a click must not re-render the pile, since React
@@ -510,6 +518,13 @@ export function ImageStack() {
       s.drag = null;
       s.pTarget.fill(0);
       s.samples.length = 0;
+      // A drag holds the strip at its target, rubber-banded up to
+      // RUBBER_REACH past an end. A release clamps it back; a cancel must
+      // too, or the pile parks outside its range with nothing left to move
+      // it: the spring sees no distance to travel and the loop stops there.
+      if (s.geometry) {
+        s.travelTarget = clamp(s.travel, 0, s.geometry.maxTravel);
+      }
       start();
     };
 
