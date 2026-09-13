@@ -35,11 +35,9 @@
      further to `pan-y`, since sideways drags are the pile's own. */
   touch-action: manipulation;
   /* The pile keeps the text column's width. It used to bleed to the
-     viewport's right edge, which put the drift band (see BAND in
-     image-stack.tsx, the outer fifth of the window where resting the pointer
-     slides the pile) out at the edge of the screen, where a pointer arrives
-     from: moving toward the pile set it off before the reader had touched
-     anything. The fade at the right edge already says there is more. */
+     viewport's right edge, which put the pile's own sensitive area out where
+     a pointer arrives from — the pile answered before the reader had reached
+     it. The fade at the right edge already says there is more. */
   width: 100%;
 }
 

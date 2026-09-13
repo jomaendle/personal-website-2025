@@ -23,7 +23,8 @@ export interface SiteConfig {
   role: string;
   /** Role only, for the article author row. */
   shortRole: string;
-  /** Avatar served from `public/`. */
+  /** Avatar served from `public/`. Left out while the masthead and the
+   * article author row stand without a portrait; both drop it when absent. */
   avatar?: string;
   social: SocialLinks;
   contact: ContactChannels;
@@ -33,7 +34,6 @@ export const SITE: SiteConfig = {
   name: "Jo Mändle",
   role: "Builder & Principal Solution Architect",
   shortRole: "Principal Solution Architect",
-  /*avatar: "/avatar.jpeg",*/
   social: {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
   },

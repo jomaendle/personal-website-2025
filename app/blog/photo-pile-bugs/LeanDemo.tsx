@@ -92,14 +92,12 @@ export function LeanDemo() {
         {Array.from({ length: count }, (_, i) => {
           // wrap each card around the row so it is continuous in both directions
           const x = ((((i * STEP - offset) % span) + span) % span) - STEP * 2;
-          const centre = x + CARD / 2;
-          const dx = centre - half;
           // The two modes are identical at rest. In "per print" the lean is
           // baked in from the card's home slot, so it travels with the card;
-          // in "from the window" it is recomputed from where the card is now.
+          // in "from the window" it is read from where the card is now.
           const home = ((i * STEP) % span) - STEP * 2;
-          const source = mode === "print" ? home + CARD / 2 - half : dx;
-          const angle = Math.atan2(source, Math.max(half, RADIUS));
+          const centre = (mode === "print" ? home : x) + CARD / 2;
+          const angle = Math.atan2(centre - half, Math.max(half, RADIUS));
           const lean = Math.max(
             -LEAN,
             Math.min(LEAN, ((angle * 180) / Math.PI) * (LEAN / 45)),

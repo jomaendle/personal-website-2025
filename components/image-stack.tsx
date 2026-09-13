@@ -43,6 +43,11 @@ const PRINTS: StaticImageData[] = [
  * server renders these with real images and the rest as placeholders; a
  * wider window reveals more as soon as it has been measured. */
 const INITIAL_WINDOW = 6;
+/** One number per print, all zero: the shape every per-print array takes. */
+const zeros = () => PRINTS.map(() => 0);
+/** Prints share a baseline and a paper height, so orientation is the only
+ * thing that decides a print's width — and its class. */
+const isLandscape = (print: StaticImageData) => print.width >= print.height;
 
 /**
  * The curve belongs to the window, not the strip: a print stands upright at
@@ -84,7 +89,7 @@ const TUCK = 0.4;
 const REST_CENTRES: number[] = (() => {
   let x = 0;
   return PRINTS.map((print) => {
-    const w = print.width >= print.height ? PAPER.landscape : PAPER.portrait;
+    const w = isLandscape(print) ? PAPER.landscape : PAPER.portrait;
     const centre = x + w / 2;
     x += w * (1 - TUCK);
     return centre;
@@ -176,6 +181,18 @@ const ARMED = styles.armed ?? "armed";
 
 type Report = (action: "hover" | "travel" | "lift", print?: number) => void;
 
+/** An active drag: where and when it began, the strip's travel at that
+ * moment, and the print it landed on. */
+type DragState = {
+  /** The finger that owns the gesture. Every later pointer event is matched
+   * against it; see `handleDown`. */
+  pointerId: number;
+  originX: number;
+  originTravel: number;
+  at: number;
+  index: number;
+};
+
 /** Resting layout, measured once per pointer visit. All in px, relative to
  * the list's left edge. `overlap[k]` is how much print k+1 covers print k. */
 type Geometry = {
@@ -212,14 +229,13 @@ type Geometry = {
  * the print: see `raise`.)
  *
  * The pile is longer than its window, and whichever end has more behind it
- * fades out to say so. Resting the pointer near an edge drifts the pile that
- * way, slowly and only while it stays there; a sideways wheel or trackpad
- * swipe leafs through directly; and a drag, mouse or finger, moves it 1:1,
- * rubber-bands past the ends and coasts on release with the velocity it was
- * let go at. Nothing moves under a pointer resting in the middle. Prints only
- * get a real image once they have entered the window; until then they carry
- * their blur placeholder, which is a few hundred bytes and never visible at
- * rest.
+ * fades out to say so. A sideways wheel or trackpad swipe leafs through
+ * directly, and a drag, mouse or finger, moves it 1:1, rubber-bands past the
+ * ends and coasts on release with the velocity it was let go at. Nothing
+ * moves under a resting pointer: the pile only travels when it is asked to.
+ * Prints only get a real image once they have entered the window; until then
+ * they carry their blur placeholder, which is a few hundred bytes and never
+ * visible at rest.
  *
  * A press dips the print under the pointer at once; a click lifts it up out
  * of the pile where it is, to full size whatever the pointer does, over a
@@ -242,8 +258,8 @@ type Geometry = {
  * Decoration, not content: hidden from assistive tech. Opening under the
  * pointer is only wired up for fine pointers that can hover; dragging works
  * for every pointer. With reduced motion the drag still tracks 1:1 and a
- * click still lifts, but nothing coasts and nothing opens under the pointer. Without JavaScript, the resting fan the server
- * rendered is what you get.
+ * click still lifts, but nothing coasts and nothing opens under the pointer.
+ * Without JavaScript, the resting fan the server rendered is what you get.
  */
 export function ImageStack() {
   const stackRef = useRef<HTMLDivElement>(null);
@@ -270,26 +286,27 @@ export function ImageStack() {
     track("Photo pile", props);
   };
   const state = useRef({
-    /** Prominence per print: 0 at rest, 1 directly under the pointer. */
-    g: PRINTS.map(() => 0),
-    v: PRINTS.map(() => 0),
-    target: PRINTS.map(() => 0),
+    /** Prominence per print: 0 at rest, 1 directly under the pointer. Each
+     * spring is a triple: where it is, how fast, and where it is headed. */
+    g: zeros(),
+    v: zeros(),
+    target: zeros(),
     /** Lift per print: 1 for the one print pulled out by a click. */
-    f: PRINTS.map(() => 0),
-    fv: PRINTS.map(() => 0),
-    fTarget: PRINTS.map(() => 0),
+    f: zeros(),
+    fv: zeros(),
+    fTarget: zeros(),
     /** Uncover per print: 1 while its neighbour has slid off it for a lift.
      * Set with the lift, cleared only once the print has landed. */
-    u: PRINTS.map(() => 0),
-    uv: PRINTS.map(() => 0),
-    uTarget: PRINTS.map(() => 0),
+    u: zeros(),
+    uv: zeros(),
+    uTarget: zeros(),
     /** Press per print: 1 while the pointer is down on it. */
-    p: PRINTS.map(() => 0),
-    pv: PRINTS.map(() => 0),
-    pTarget: PRINTS.map(() => 0),
+    p: zeros(),
+    pv: zeros(),
+    pTarget: zeros(),
     /** Where each print sits right now, relative to its resting place, in
      * px: the room its neighbours and its own growth have made. */
-    offsets: PRINTS.map(() => 0),
+    offsets: zeros(),
     focused: -1,
     /** How much of each edge fade is on screen, 0 to 1. */
     edgeL: 0,
@@ -304,17 +321,9 @@ export function ImageStack() {
     pointerX: 0,
     pointerY: 0,
     hovering: false,
-    /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle.
-    /** An active drag: where it started, and recent samples for velocity. */
-    drag: null as null | {
-      /** The finger that owns the gesture. Every later pointer event is
-       * matched against it; see `handleDown`. */
-      pointerId: number;
-      originX: number;
-      originTravel: number;
-      at: number;
-      index: number;
-    },
+    /** An active drag, and the recent samples its release velocity is read
+     * from. */
+    drag: null as DragState | null,
     samples: [] as { x: number; t: number }[],
     reduced: false,
     revealed: INITIAL_WINDOW,
@@ -340,15 +349,11 @@ export function ImageStack() {
     const substeps = Math.max(1, Math.ceil(elapsed / MAX_STEP));
     const dt = elapsed / substeps;
     for (let i = 0; i < substeps; i++) moving = step(s, dt) || moving;
-    let inView = paint(
-      s,
-      zoneRef.current,
-      backdropRef.current,
-      tileRefs.current,
-    );
-    if (s.geometry && dotsRef.current) {
-      markDots(s, s.geometry, s.travel, dotsRef.current);
-    }
+    let inView = paint(s, tileRefs.current, {
+      zone: zoneRef.current,
+      backdrop: backdropRef.current,
+      dots: dotsRef.current,
+    });
     // A print lifted by key from beyond the window needs its image too.
     if (s.focused >= 0) inView = Math.max(inView, s.focused + 1);
     if (inView > s.revealed) {
@@ -380,11 +385,12 @@ export function ImageStack() {
     ).matches;
     s.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Measured once per visit of the pointer. offsetLeft/offsetWidth ignore
-    // transforms, so this is the resting layout and the prints can't chase
-    // themselves; reading it here keeps layout off the pointermove path. It
-    // is kept after the pointer leaves, because the pile is still settling.
-    const measure = () => {
+    // Measured once per visit of the pointer, and handed back so a caller can
+    // use it without a null check. offsetLeft/offsetWidth ignore transforms,
+    // so this is the resting layout and the prints can't chase themselves;
+    // reading it here keeps layout off the pointermove path. It is kept after
+    // the pointer leaves, because the pile is still settling.
+    const measure = (): Geometry => {
       const tiles = tileRefs.current;
       const lefts = tiles.map((tile) => tile?.offsetLeft ?? 0);
       const widths = tiles.map((tile) => tile?.offsetWidth ?? 0);
@@ -399,7 +405,7 @@ export function ImageStack() {
       // gap, and its own growth.
       const opened = Math.max(...overlaps) + GAP + GROWTH * Math.max(...widths);
       const listRect = list.getBoundingClientRect();
-      s.geometry = {
+      const geometry: Geometry = {
         zoneLeft: zoneRect.left,
         zoneTop: zoneRect.top,
         stripTop: listRect.top - zoneRect.top - (LIFT + FOCUS_LIFT),
@@ -417,6 +423,8 @@ export function ImageStack() {
           list.offsetWidth + opened - (zoneRect.width - fade),
         ),
       };
+      s.geometry = geometry;
+      return geometry;
     };
 
     const handleDown = (event: PointerEvent) => {
@@ -477,8 +485,7 @@ export function ImageStack() {
 
     const handleMove = (event: PointerEvent) => {
       if (s.drag && event.pointerId !== s.drag.pointerId) return;
-      if (!s.geometry) measure();
-      const geometry = s.geometry as Geometry;
+      const geometry = s.geometry ?? measure();
       // Kept fresh whatever the pointer is doing. `step` re-aims every frame
       // while the pointer is on the pile, so a drag that left this stale had
       // the pile aiming at where the pointer was before the drag began,
@@ -493,33 +500,31 @@ export function ImageStack() {
       start();
     };
 
-    /** Take print `next` up out of the pile. The pile holds still while it
-     * is up (see `step`), so the hover targets are cleared and only the
-     * print under a hovering pointer stays raised: a print the keys leaf
-     * away from goes down rather than staying up.
-     *
-     * Its neighbour slides off it and stays off until it has landed. That
-     * slide is what makes the drop back into the pile invisible: the print
-     * rejoins the stacking order at the moment nothing is covering it, and
-     * the neighbour closes afterwards. Without it the neighbour snapped over
-     * the print the instant its z-index changed, a one-frame flicker at the
-     * end of every minimise. It is carried on the lift's own spring, so it
-     * reads as the pile opening rather than jumping. */
-    const raiseOne = (next: number) => {
-      s.fTarget[next] = 1;
-      s.uTarget[next] = 1;
-      s.target.fill(0);
-      if (s.hovering) s.target[next] = 1;
-      report.current("lift", next + 1);
-    };
-
     /** Lift print `index` out of the pile, or put the lifted one back (-1).
-     * Uncovering it (its neighbour sliding off) is its own state, so that it
-     * can outlast the lift: see `step`. */
+     *
+     * The pile holds still while a print is up (see `step`), so the hover
+     * targets are cleared and only the print under a hovering pointer stays
+     * raised: a print the keys leaf away from goes down rather than staying
+     * up.
+     *
+     * Uncovering the print — its neighbour sliding off it — is its own state,
+     * so that it can outlast the lift: see `step`. That slide is what makes
+     * the drop back into the pile invisible: the print rejoins the stacking
+     * order at the moment nothing is covering it, and the neighbour closes
+     * afterwards. Without it the neighbour snapped over the print the instant
+     * its z-index changed, a one-frame flicker at the end of every minimise.
+     * It is carried on the lift's own spring, so it reads as the pile opening
+     * rather than jumping. */
     const lift = (index: number) => {
       const next = index < PRINTS.length ? index : -1;
       s.fTarget.fill(0);
-      if (next >= 0) raiseOne(next);
+      if (next >= 0) {
+        s.fTarget[next] = 1;
+        s.uTarget[next] = 1;
+        s.target.fill(0);
+        if (s.hovering) s.target[next] = 1;
+        report.current("lift", next + 1);
+      }
       s.focused = next;
       // The pointer's surface grows to cover a lifted print. Written here,
       // not rendered: a click must not re-render the pile, since React
@@ -562,7 +567,7 @@ export function ImageStack() {
       const drag = s.drag;
       s.drag = null;
       s.pTarget.fill(0);
-      const geometry = s.geometry as Geometry;
+      const geometry = s.geometry ?? measure();
       if (isClick(drag, event)) {
         click(drag.index);
         return;
@@ -605,8 +610,7 @@ export function ImageStack() {
     // Vertical wheel is left to the page.
     const handleWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
-      if (!s.geometry) measure();
-      const geometry = s.geometry as Geometry;
+      const geometry = s.geometry ?? measure();
       event.preventDefault();
       s.travelTarget = clamp(
         s.travelTarget + event.deltaX,
@@ -625,16 +629,14 @@ export function ImageStack() {
     // so it behaves like a fixed detection region.
     // Paint once on mount so the resting marks match the real window, not
     // the server's guess; the loop itself only runs when something moves.
-    measure();
-    if (s.geometry) {
-      if (dotsRef.current) markDots(s, s.geometry, s.travel, dotsRef.current);
-      // A window wider than the server assumed shows more prints: give them
-      // their images now rather than at the first movement.
-      const inView = countInView(s, s.geometry, s.travel);
-      if (inView > s.revealed) {
-        s.revealed = inView;
-        setRevealed(inView);
-      }
+    const mounted = measure();
+    if (dotsRef.current) markDots(s, mounted, s.travel, dotsRef.current);
+    // A window wider than the server assumed shows more prints: give them
+    // their images now rather than at the first movement.
+    const inView = countInView(s, mounted, s.travel);
+    if (inView > s.revealed) {
+      s.revealed = inView;
+      setRevealed(inView);
     }
 
     // The window's width decides the strip's travel range, and the paper
@@ -645,12 +647,12 @@ export function ImageStack() {
     // gesture, and nothing should glide while the user drags a window edge.
     const observer = new ResizeObserver(() => {
       const before = s.geometry?.zoneWidth;
-      measure();
+      const geometry = measure();
       // Observing fires once straight away, and the mount already measured:
       // do nothing unless the width really changed, so nothing is painted
       // before the first interaction.
-      if (!s.geometry || s.geometry.zoneWidth === before) return;
-      s.travel = clamp(s.travel, 0, s.geometry.maxTravel);
+      if (geometry.zoneWidth === before) return;
+      s.travel = clamp(s.travel, 0, geometry.maxTravel);
       s.travelTarget = s.travel;
       s.travelV = 0;
       start();
@@ -730,7 +732,7 @@ export function ImageStack() {
           }
         >
           {PRINTS.map((print, index) => {
-            const landscape = print.width >= print.height;
+            const landscape = isLandscape(print);
             return (
               <li
                 key={print.src}
@@ -919,13 +921,7 @@ function sizesFor(landscape: boolean): string {
 }
 
 type Drag = {
-  drag: null | {
-    pointerId: number;
-    originX: number;
-    originTravel: number;
-    at: number;
-    index: number;
-  };
+  drag: DragState | null;
   samples: { x: number; t: number }[];
   travelTarget: number;
 };
@@ -1009,8 +1005,9 @@ function printUnder(s: Aim, geometry: Geometry): number {
  * around it, at its current size. A hovered print only ever grows around
  * the pointer that raised it (about its centre, or, shifted by half its
  * growth, about its left edge), so the pointer stays inside it, and the pile
- * is stable under a pointer that does not cross into another print. Over a gap between prints, nothing changes: the pile only
- * closes when the pointer leaves it.
+ * is stable under a pointer that does not cross into another print. Over a
+ * gap between prints, nothing changes: the pile only closes when the pointer
+ * leaves it.
  */
 function aim(s: Aim, geometry: Geometry) {
   const over = printUnder(s, geometry);
@@ -1063,9 +1060,9 @@ function step(s: Sim, dt: number): boolean {
   // Putting a print back is the system answering, not the reader deciding,
   // so it goes quicker than the lift that raised it.
   const putBack = s.focused < 0;
-  // Re-aim every frame: the pile may still be gliding under a still pointer. With
-  // a print lifted the pile holds as it was at the click: nothing under the
-  // print changes, so the print rises straight up from where it was.
+  // Re-aim every frame: the pile may still be gliding under a still pointer.
+  // With a print lifted the pile holds as it was at the click: nothing under
+  // the print changes, so the print rises straight up from where it was.
   if (s.focused < 0 && s.hovering && s.geometry) aim(s, s.geometry);
   moving = integrate(s, STIFFNESS, DAMPING, dt) || moving;
   // A print's neighbour stays off it until it has landed, and, while any
@@ -1084,14 +1081,22 @@ function step(s: Sim, dt: number): boolean {
 /** Write the simulation to the DOM. Returns how many prints are in view. */
 function paint(
   s: Sim,
-  zone: HTMLElement | null,
-  backdrop: HTMLElement | null,
   tiles: (HTMLLIElement | null)[],
+  {
+    zone,
+    backdrop,
+    dots,
+  }: {
+    zone: HTMLElement | null;
+    backdrop: HTMLElement | null;
+    dots: HTMLElement | null;
+  },
 ): number {
   if (!s.geometry) return 0;
   layout(s, s.geometry, s.travel, tiles);
   if (zone) fadeEdges(zone, s, s.geometry.fade);
   if (backdrop) shade(backdrop, s, s.geometry, s.travel);
+  if (dots) markDots(s, s.geometry, s.travel, dots);
   for (let i = 0; i < tiles.length; i++) {
     const level =
       i === s.focused ? "top" : (s.f[i] ?? 0) >= LANDED ? "descending" : "pile";
@@ -1158,7 +1163,8 @@ function settleTravel(
   return integrateTravel(s, dt);
 }
 
-/** Advance the strip's travel spring by `dt` seconds. Returns whether it is still moving. */
+/** Advance the strip's travel spring by `dt` seconds. Returns whether it is
+ * still moving. */
 function integrateTravel(s: Travel, dt: number): boolean {
   const wheeling = performance.now() - s.wheeledAt < WHEEL_HOLD;
   const k = wheeling ? WHEEL_STIFFNESS : TRAVEL_STIFFNESS;
@@ -1251,8 +1257,7 @@ function inward(
 ): number {
   const up = g[i] ?? 0;
   const lift = f[i] ?? 0;
-  const { fade } = geometry;
-  const { visible } = geometry;
+  const { fade, visible } = geometry;
   const scale = paperScale(up, lift);
   const halfWidth = ((geometry.widths[i] ?? 0) * scale) / 2;
   const centre = (geometry.centres[i] ?? 0) + shift;
