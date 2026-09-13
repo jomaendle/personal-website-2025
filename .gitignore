@@ -44,3 +44,6 @@ next-env.d.ts
 /test-results
 /playwright-report
 .compound-engineering/*.local.yaml
+
+# Playwright MCP console logs
+.playwright-mcp/

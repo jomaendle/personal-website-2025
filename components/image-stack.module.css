@@ -13,6 +13,7 @@
   --lift-room: 6rem;
   /* The list's start padding; the curve needs it (see `.tile`). */
   --pad: 1.25rem;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -96,24 +97,30 @@
   --hairline: hsl(var(--border));
 }
 
-/* A pool of shadow under a lifted print, a few prints wide and blurred. The
-   JS moves it under the print and fades it in with the lift; the blur is
-   rasterised once and only transform and opacity move. Its left edge sits at
-   the window's edge and the margin centres it on x = 0, so a translateX of
+/* A pool of shadow under a lifted print, a few prints wide. The JS moves it
+   under the print and fades it in with the lift; only transform and opacity
+   ever change. It is a plain radial gradient, soft by its own stops, with
+   no `filter: blur()`: a blurred, composited layer this size renders as a
+   hard-edged rectangle in Safari. It lives on the stack, not in the zone,
+   so nothing clips or fades it; the stack's box starts one lift room below
+   the zone's, hence the top. Its left edge sits at the window's edge (the
+   stack's, the same) and the margin centres it on x = 0, so a translateX of
    the print's centre puts it under the print. */
 .backdrop {
   position: absolute;
-  top: -10%;
+  top: calc(var(--lift-room) * -1 - 10%);
   bottom: -10%;
   left: 0;
-  width: calc(var(--print) * 5);
-  margin-left: calc(var(--print) * -2.5);
+  width: calc(var(--print) * 6);
+  margin-left: calc(var(--print) * -3);
   background: radial-gradient(
     ellipse 50% 50% at 50% 40%,
-    hsl(var(--shadow-ink) / 0.42),
-    transparent 70%
+    hsl(var(--shadow-ink) / 0.38) 0%,
+    hsl(var(--shadow-ink) / 0.26) 22%,
+    hsl(var(--shadow-ink) / 0.12) 48%,
+    hsl(var(--shadow-ink) / 0.03) 74%,
+    transparent 100%
   );
-  filter: blur(24px);
   opacity: 0;
   will-change: transform, opacity;
   pointer-events: none;

@@ -131,8 +131,9 @@ const RUBBER_REACH = 96;
 const RUBBER = 0.55;
 /** Momentum after a release decays like a scroll view (Apple's projection). */
 const DECELERATION = 0.997;
-/** How far a flick can carry the pile past either end before it springs
- * back, in px. */
+/** How far a flick let go inside the range can carry the pile past either
+ * end before it springs back, in px. Let go already rubber-banded past an
+ * end, it goes somewhat further, still well inside RUBBER_REACH. */
 const BOUNCE = 40;
 /** Spring for a print's prominence. Critically damped, response ≈ 0.16s:
  * the print comes up almost at once and settles with no overshoot, so the
@@ -167,11 +168,13 @@ type Geometry = {
  * A fanned pile of photographs that opens under the pointer. At rest the
  * prints lean and drop along a shallow arc, each one covering part of the
  * print before it; portrait and landscape prints share the baseline and the
- * paper height, as prints do. Under the pointer the nearest print straightens,
- * lifts and grows, and the prints to its right slide aside in proportion, so
- * it is uncovered by its neighbour gliding off it rather than by jumping in
- * front. Nothing ever changes stacking order: the reveal is continuous, and
- * crossing to the next print is the same motion played backwards.
+ * paper height, as prints do. Under the pointer the print it is over
+ * straightens, lifts and grows, and the prints to its right slide aside to
+ * uncover it, so it is uncovered by its neighbour gliding off it rather than
+ * by jumping in front. Over the gap between prints nothing changes: the
+ * pile only moves when the pointer reaches another print. Nothing ever
+ * changes stacking order, and crossing to the next print is the same motion
+ * played backwards.
  *
  * The pile is longer than its window, and whichever end has more behind it
  * fades out to say so. Resting the pointer near an edge drifts the pile that
@@ -559,10 +562,12 @@ export function ImageStack() {
     // print in every state: check it if LIFT, GROWTH or DROP change. Its
     // right padding is the fade.
     <div className={styles.stack}>
+      {/* A soft pool of shadow behind the pile, faded in with a lift. Outside
+          the zone, which clips sideways and fades at both ends: the pool
+          falls on the page with no edge. Before the zone, so it is under
+          every print. */}
+      <div ref={backdropRef} className={styles.backdrop} />
       <div ref={zoneRef} className={styles.zone}>
-        {/* A soft pool of shadow behind the pile, faded in with a lift. First
-            child, so it is under every print. */}
-        <div ref={backdropRef} className={styles.backdrop} />
         {/* The pointer's surface: the window's box, grown (by `lift`, which
             writes its `top`) to cover a lifted print. The zone itself takes
             no pointer events, because its box reaches up over the paragraph
@@ -789,10 +794,10 @@ type Aim = {
  * print under it, 0 for the rest. The print under the pointer is the topmost
  * (later prints lie over earlier ones) whose extent, as it is right now,
  * contains the pointer: its resting place plus the room the pile has opened
- * around it, at its current size. A hovered print keeps its left edge where
- * it was and grows to the right, so the pointer that raised it stays inside
- * it, and the pile is stable under a pointer that does not cross into
- * another print. Over a gap between prints, nothing changes: the pile only
+ * around it, at its current size. A hovered print only ever grows around
+ * the pointer that raised it (about its centre, or, shifted by half its
+ * growth, about its left edge), so the pointer stays inside it, and the pile
+ * is stable under a pointer that does not cross into another print. Over a gap between prints, nothing changes: the pile only
  * closes when the pointer leaves it.
  */
 function aim(s: Aim, geometry: Geometry) {
@@ -832,31 +837,6 @@ type Sim = Springs &
   Drift &
   Aim & { hovering: boolean; drag: unknown };
 
-/** Advance every print's lift spring by `dt` seconds. With reduced motion
- * the print is simply up, or back. */
-function integrateFocus(s: Focus, dt: number): boolean {
-  let moving = false;
-  for (let i = 0; i < s.f.length; i++) {
-    const f = s.f[i] ?? 0;
-    const v = s.fv[i] ?? 0;
-    const target = s.fTarget[i] ?? 0;
-    if (s.reduced) {
-      moving = moving || f !== target;
-      s.f[i] = target;
-      s.fv[i] = 0;
-      continue;
-    }
-    const nextV = v + (FOCUS_STIFFNESS * (target - f) - FOCUS_DAMPING * v) * dt;
-    const nextF = f + nextV * dt;
-    const settled =
-      Math.abs(target - nextF) <= EPSILON && Math.abs(nextV) <= EPSILON;
-    s.fv[i] = settled ? 0 : nextV;
-    s.f[i] = settled ? target : nextF;
-    if (!settled) moving = true;
-  }
-  return moving;
-}
-
 /** Advance the whole simulation by `dt` seconds. Returns whether anything is
  * still moving. */
 function step(s: Sim, dt: number): boolean {
@@ -866,7 +846,13 @@ function step(s: Sim, dt: number): boolean {
   // print changes, so the print rises straight up from where it was.
   if (s.focused < 0 && s.hovering && s.geometry) aim(s, s.geometry);
   moving = integrate(s, STIFFNESS, DAMPING, dt) || moving;
-  moving = integrateFocus(s, dt) || moving;
+  moving =
+    integrate(
+      { g: s.f, v: s.fv, target: s.fTarget, reduced: s.reduced },
+      FOCUS_STIFFNESS,
+      FOCUS_DAMPING,
+      dt,
+    ) || moving;
   // A print's neighbour stays off it until it has landed, and, while any
   // print is up, until the pile is closed again: a print that is up must not
   // be slid about by a neighbour settling.
@@ -1075,7 +1061,6 @@ function inward(
 ): number {
   const up = g[i] ?? 0;
   const lift = f[i] ?? 0;
-  if (up <= 0 && lift <= 0) return 0;
   const { fade } = geometry;
   const visible = geometry.zoneWidth - fade;
   const scale = 1 + up * GROWTH * (1 - lift) + lift * (GROWTH + FOCUS_GROWTH);
@@ -1085,7 +1070,10 @@ function inward(
   const fadeIn = fade * clamp(travel / fade, 0, 1);
   const left = Math.min(0, centre - halfWidth - INSET - fadeIn);
   const right = Math.max(0, centre + halfWidth - (visible - INSET));
-  return -edge - (left - edge + right) * lift;
+  // Eased by the print's own rise: a print already past the edge at rest
+  // (the first print, once the pile has travelled) must not jump the whole
+  // way on the first frame of a hover.
+  return -edge * Math.max(up, lift) - (left - edge + right) * lift;
 }
 
 /** Write a print's pose: its place on the arc, `g` its prominence, `f` its
