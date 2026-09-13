@@ -19,9 +19,10 @@ const nextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    // 224 serves the homepage image stack on 1× displays: its prints ask
-    // for 192px and 288px (their width lifted by a click), which lands on
-    // 224/384 here and on 384/640 at 2×.
+    // 128 and 224 serve the homepage image stack. Its prints ask for the
+    // width they reach lifted by a click, which differs by viewport (see
+    // `sizesFor`): 192/288px above 640px wide, 108/168px below. Those land
+    // on 128/224/384 here at 1× and on 224/384/640 at 2×.
     imageSizes: [16, 32, 48, 64, 96, 128, 224, 256, 384],
     // The homepage image stack asks for 80; Next 16 only serves qualities
     // listed here.
