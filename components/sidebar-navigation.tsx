@@ -143,7 +143,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                         >
                           <Link
                             href={`#${item.id}`}
-                            className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${
+                            className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-colors duration-200 hover:bg-accent hover:text-accent-foreground ${
                               item.level === 3
                                 ? "ml-4 text-muted-foreground"
                                 : ""
@@ -206,7 +206,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
                       >
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="group block w-full rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-accent/50"
+                          className="group block w-full rounded-lg border border-transparent p-3 transition-colors duration-200 hover:border-border hover:bg-accent/50"
                           prefetch={false}
                         >
                           {/* Deliberately a span, not a heading. These are nav

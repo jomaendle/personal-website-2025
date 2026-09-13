@@ -229,7 +229,7 @@ export function BusinessContent({ lang }: { lang: Lang }) {
                       <H3 itemProp="name">{project.title}</H3>
                       <span
                         aria-hidden="true"
-                        className="font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+                        className="font-mono text-muted-foreground transition-[transform,color] duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
                       >
                         ↗
                       </span>

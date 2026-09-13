@@ -201,7 +201,7 @@ function BackLink() {
   return (
     <Link
       href="/blog"
-      className="group inline-flex items-center gap-2 font-mono text-foreground text-sm transition-all duration-200 hover:text-brand"
+      className="group inline-flex items-center gap-2 font-mono text-foreground text-sm transition-colors duration-200 hover:text-brand"
     >
       <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
         ←

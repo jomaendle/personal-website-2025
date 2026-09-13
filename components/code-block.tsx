@@ -163,7 +163,7 @@ export function CodeBlock({
 
       <div
         id={panelId}
-        className={`relative transition-all duration-300 ${
+        className={`relative ${
           collapsible && !isOpen ? "max-h-24 overflow-hidden" : ""
         }`}
       >
