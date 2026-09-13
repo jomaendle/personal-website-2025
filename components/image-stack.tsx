@@ -683,7 +683,8 @@ function printAt(
 
 function within(x: number, y: number, tile: HTMLElement | null | undefined) {
   const r = tile?.getBoundingClientRect();
-  return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  if (!r) return false;
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
 }
 
 /** Where a print sits in the stacking order: the lifted print on top of
@@ -713,13 +714,19 @@ function raise(
 const LANDED = 0.02;
 
 /** Source width to ask for: the print at its largest on screen, lifted by a
- * click (paper × hover growth × lift growth), so a lift never changes the
- * source. Swapping to a sharper image as the print rose made it pop into
- * focus a beat after it had landed. On a 1× display these land on the
- * 224/384 variants, on 2× on 384/640. Only prints that have come into view
- * load at all, so the larger sources cost little at rest. */
+ * click, so a lift never changes the source. Swapping to a sharper image as
+ * the print rose made it pop into focus a beat after it had landed.
+ *
+ * Paper height × the orientation's width share × the lift's scale
+ * (1 + GROWTH + FOCUS_GROWTH = 1.85), at both of the stylesheet's paper
+ * heights: 120px above 640px wide, 72px below (see `--print`). The query
+ * must stay in step with that breakpoint. A phone's print is two-fifths of
+ * a desktop's, so without the narrow arm of this query every phone would
+ * fetch a source four times the area it can show. */
 function sizesFor(landscape: boolean): string {
-  return landscape ? "288px" : "192px";
+  return landscape
+    ? "(min-width: 640px) 288px, 168px"
+    : "(min-width: 640px) 192px, 108px";
 }
 
 type Drag = {
@@ -1027,7 +1034,7 @@ function layout(
     const arc = curve(centre - half, half, geometry.height);
     // A lifted print rises where it is, sliding inward only by as much as
     // it needs to clear the window's edges. Nothing else moves for it.
-    const nudge = inward(i, { g, f }, x - travel, travel, geometry);
+    const nudge = inward(i, { g, f }, { shift: x - travel, travel }, geometry);
     offsets[i] = x + nudge;
     pose(
       arc,
@@ -1055,8 +1062,7 @@ const INSET = 8;
 function inward(
   i: number,
   { g, f }: { g: number[]; f: number[] },
-  shift: number,
-  travel: number,
+  { shift, travel }: { shift: number; travel: number },
   geometry: Geometry,
 ): number {
   const up = g[i] ?? 0;
