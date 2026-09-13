@@ -110,7 +110,12 @@
      was the loudest thing in the section. The hairline is the design
      system's decorative border, so the white print sits on the cream. */
   --paper: 0 0% 100%;
-  --hairline: hsl(var(--border));
+  /* Barely there. At full strength the hairline is an opaque grey ring, and
+     on a phone — where the paper border is 2px — that ring is a third of
+     the whole frame and reads as a heavy grey outline. The shadow beneath
+     already lifts the print off the page; this only has to stop white paper
+     dissolving into cream. */
+  --hairline: hsl(var(--border) / 0.45);
 }
 
 /* A pool of shadow under a lifted print, a few prints wide. The JS moves it
@@ -150,9 +155,10 @@
 /* Compositor layers cost GPU memory, and a phone has little of it: forty
    permanently promoted elements (thirteen prints, their shadows, thirteen
    marks and the pool of shadow) is a standing tax on a pile nobody has
-   touched. The JS arms this class when the pointer arrives — notice enough
-   for the browser to promote before anything moves — and drops it once the
-   springs have settled. */
+   scrolled to. The JS arms this class while the pile is on screen and drops
+   it when it leaves — never on a pointer event, because promoting snaps
+   every one of those elements to whole device pixels and the row visibly
+   jumps as it happens. */
 .armed .tile {
   will-change: transform;
 }

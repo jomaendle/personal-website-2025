@@ -343,7 +343,6 @@ export function ImageStack() {
     s.frame = moving ? requestAnimationFrame(runFrame) : null;
     if (!moving) {
       s.last = 0;
-      disarm(s, stackRef.current);
     }
   }, []);
 
@@ -406,7 +405,6 @@ export function ImageStack() {
     const handleDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
       if (!s.geometry) measure();
-      stackRef.current?.classList.add(ARMED);
       // Capture keeps the drag alive outside the zone. It throws if the
       // pointer is already gone, which is no reason to drop the drag.
       try {
@@ -634,15 +632,24 @@ export function ImageStack() {
     });
     observer.observe(zone);
 
-    // Promoting on arrival gives the browser notice before the first frame,
-    // which is what `will-change` is for; `runFrame` drops it when the
-    // springs settle.
-    const arm = () => {
-      measure();
-      stackRef.current?.classList.add(ARMED);
-    };
+    // Promotion is not free of consequence: giving forty elements their own
+    // compositor layers snaps each to whole device pixels, and the prints
+    // stand on fractional ones, so the whole row jumps a pixel or two the
+    // moment it happens. Doing that on pointerenter or pointerdown put the
+    // jump under the reader's finger on every single tap. It now happens
+    // when the pile scrolls into view, where the page is already moving and
+    // a pixel cannot be seen, and is given back when it scrolls away — so an
+    // off-screen pile still costs nothing.
+    const promote = new IntersectionObserver(
+      (entries) => {
+        const onScreen = entries.at(-1)?.isIntersecting ?? false;
+        stackRef.current?.classList.toggle(ARMED, onScreen);
+      },
+      { rootMargin: "200px 0px" },
+    );
+    if (stackRef.current) promote.observe(stackRef.current);
 
-    hit.addEventListener("pointerenter", arm);
+    hit.addEventListener("pointerenter", measure);
     hit.addEventListener("pointerdown", handleDown);
     hit.addEventListener("pointermove", handleMove, { passive: true });
     hit.addEventListener("pointerup", handleUp);
@@ -654,7 +661,8 @@ export function ImageStack() {
     return () => {
       observer.disconnect();
       window.removeEventListener("keydown", handleKey);
-      hit.removeEventListener("pointerenter", arm);
+      promote.disconnect();
+      hit.removeEventListener("pointerenter", measure);
       hit.removeEventListener("pointerdown", handleDown);
       hit.removeEventListener("pointermove", handleMove);
       hit.removeEventListener("pointerup", handleUp);
@@ -755,17 +763,6 @@ export function ImageStack() {
       </div>
     </div>
   );
-}
-
-/** Everything has settled: give the compositor layers back, unless the
- * pointer is still on the pile and about to need them again. A phone has
- * little GPU memory, and an untouched pile should hold none of it. */
-function disarm(
-  s: { hovering: boolean; drag: unknown },
-  stack: HTMLElement | null,
-) {
-  if (s.hovering || s.drag) return;
-  stack?.classList.remove(ARMED);
 }
 
 /** Hovering counts once; resting in an edge band also counts as travel. */
