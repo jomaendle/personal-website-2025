@@ -532,6 +532,26 @@ export function ImageStack() {
       }
     }
 
+    // The window's width decides the strip's travel range, and the paper
+    // height changes at the stylesheet's breakpoint, so a resize invalidates
+    // every measurement. Without this the pile keeps a travel that is now
+    // past the end: blank space at the right, and the next drag jumps the
+    // difference in one frame. Snapped, not sprung — a resize is not a
+    // gesture, and nothing should glide while the user drags a window edge.
+    const observer = new ResizeObserver(() => {
+      const before = s.geometry?.zoneWidth;
+      measure();
+      // Observing fires once straight away, and the mount already measured:
+      // do nothing unless the width really changed, so nothing is painted
+      // before the first interaction.
+      if (!s.geometry || s.geometry.zoneWidth === before) return;
+      s.travel = clamp(s.travel, 0, s.geometry.maxTravel);
+      s.travelTarget = s.travel;
+      s.travelV = 0;
+      start();
+    });
+    observer.observe(zone);
+
     hit.addEventListener("pointerenter", measure);
     hit.addEventListener("pointerdown", handleDown);
     hit.addEventListener("pointermove", handleMove, { passive: true });
@@ -542,6 +562,7 @@ export function ImageStack() {
     window.addEventListener("keydown", handleKey);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("keydown", handleKey);
       hit.removeEventListener("pointerenter", measure);
       hit.removeEventListener("pointerdown", handleDown);
@@ -719,10 +740,13 @@ const LANDED = 0.02;
  *
  * Paper height × the orientation's width share × the lift's scale
  * (1 + GROWTH + FOCUS_GROWTH = 1.85), at both of the stylesheet's paper
- * heights: 120px above 640px wide, 72px below (see `--print`). The query
- * must stay in step with that breakpoint. A phone's print is two-fifths of
- * a desktop's, so without the narrow arm of this query every phone would
- * fetch a source four times the area it can show. */
+ * heights — 120px above 640px wide, 72px below (see `--print`) — then
+ * rounded up to a round number: 177.6 and 277.5 become 192 and 288, 106.6
+ * and 166.5 become 108 and 168. The rounding changes no variant; it only
+ * spares the reader four awkward decimals. The query must stay in step with
+ * that breakpoint. A phone's print is two-fifths of a desktop's, so without
+ * the narrow arm every phone would fetch a source four times the area it
+ * can show. */
 function sizesFor(landscape: boolean): string {
   return landscape
     ? "(min-width: 640px) 288px, 168px"
