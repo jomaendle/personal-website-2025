@@ -33,6 +33,8 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
+/** Unpublished. Kept out of `BLOG_POSTS` so it stays off the index, the
+ * homepage and the sitemap while the route itself keeps working. */
 export const PHOTO_PILE_BUGS = {
   title: "Building a Photo Pile That Feels Right",
   date: "Sep 13, 2026",
@@ -65,5 +67,4 @@ export const BLOG_POSTS: {
   FREELANCE_TOOL,
   CSS_CAROUSEL,
   CLAUDE_CODE_ESSENTIALS_FOUNDATIONS,
-  PHOTO_PILE_BUGS,
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

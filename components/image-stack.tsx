@@ -729,7 +729,17 @@ export function ImageStack() {
             no pointer events, because its box reaches up over the paragraph
             to give a lifted print room. */}
         <div ref={hitRef} className={styles.hit} />
-        <ul ref={listRef} aria-hidden="true" className={styles.list}>
+        {/* `--c0` is the first print's resting centre. The stylesheet needs
+            it on the list to size the start padding, which is the room that
+            print's rotated corner takes to its left. */}
+        <ul
+          ref={listRef}
+          aria-hidden="true"
+          className={styles.list}
+          style={
+            { "--c0": (REST_CENTRES[0] ?? 0).toFixed(3) } as React.CSSProperties
+          }
+        >
           {PRINTS.map((print, index) => {
             const landscape = print.width >= print.height;
             return (

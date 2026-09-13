@@ -14,8 +14,6 @@
      box (so the mask covers it) but not of the layout (see the negative
      margin) and not of the pointer's surface. */
   --lift-room: 8.5rem;
-  /* The list's start padding; the curve needs it (see `.tile`). */
-  --pad: 1.25rem;
   /* The ink these are drawn with, and the prints' paper and hairline edge;
      light mode overrides all three below. Declared here on the stack rather
      than on the zone because the pool of shadow is a sibling of the zone,
@@ -209,10 +207,41 @@
 .list {
   /* Share of its own width each print tucks under the next one at rest. */
   --tuck: 0.4;
-  /* Prints sit on a shared baseline and grow upward from it. The start
-     padding is the room the first print's rotated corner needs, so its
-     leftmost pixel lands on the text edge instead of the clipped window
-     edge. */
+  /* Half the window and the arc's radius. The prints' curve is drawn from
+     them (see `.tile`), and so is the start padding below; declared here
+     because `cqi` resolves against `.zone` from anywhere inside it, and a
+     container cannot query itself. */
+  --half: calc(100cqi / 2);
+  --r: max(var(--half), 260px);
+  /* The start padding is the room the first print's rotated top corner needs
+     to its left, so the pile's leftmost pixel lands on the text edge rather
+     than inside it.
+
+     It cannot be a constant. That room is the print's height times the sine
+     of its lean, less what the corner swings back as the print turns, and
+     the lean falls off on a narrow window: the radius is held at 260px so a
+     phone gets a gentler arc, which left the first print leaning 3.5° there
+     against a desktop's 8°. A flat 1.25rem was the room the desktop needed,
+     so on a phone the pile started 15px inside the paragraph above it.
+
+     `--c0` is the first print's resting centre, written by the server beside
+     each print's own `--c`. The lean is taken from the nominal padding this
+     replaces, since a property cannot refer to itself; one round lands
+     within a pixel of the fixed point, and the curve itself uses the real
+     padding, so the stylesheet and the JS still measure the same pile. */
+  --lean0: clamp(
+    -10deg,
+    calc(
+      atan2(calc(var(--c0) * var(--print) + 1.25rem - var(--half)), var(--r)) *
+        0.2222
+    ),
+    10deg
+  );
+  --pad: calc(
+    var(--print) *
+      (-1 * sin(var(--lean0)) - var(--c0) * (1 - cos(var(--lean0))))
+  );
+  /* Prints sit on a shared baseline and grow upward from it. */
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -233,11 +262,9 @@
      less the fade. Computed here so the server's fan matches the first
      client frame at any width. */
   --c: 0;
-  --half: calc(100cqi / 2);
+  /* `--half` and `--r` (the circle's radius, never tighter than 260px so a
+     phone's narrow window gets a gentler arc) come from `.list`. */
   --dx: calc(var(--c) * var(--print) + var(--pad) - var(--half));
-  /* The circle's radius: half the window, but never tighter than 260px,
-     so a phone's narrow window gets a gentler arc. */
-  --r: max(var(--half), 260px);
   --angle: atan2(var(--dx), var(--r));
   --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
   /* Sag in print heights: 0.4 of one at most 14/120 of one (14px at the
