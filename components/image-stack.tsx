@@ -768,7 +768,7 @@ export function ImageStack() {
                       alt=""
                       fill
                       sizes={sizesFor(landscape)}
-                      quality={80}
+                      quality={90}
                       draggable={false}
                       className={`object-cover ${styles.reveal}`}
                       onLoad={(event) => {

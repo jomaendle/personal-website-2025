@@ -24,9 +24,11 @@ const nextConfig = {
     // (see `sizesFor`): 320/208px above 640px wide, 192/128px below. At 1×
     // those land on 384/224 and 224/128, at 2× on 640/640 and 384/256.
     imageSizes: [16, 32, 48, 64, 96, 128, 224, 256, 384],
-    // The homepage image stack asks for 80; Next 16 only serves qualities
-    // listed here.
-    qualities: [75, 80],
+    // The homepage image stack asks for 90: a print opened by a click is
+    // held at 2.13x and read as a photograph, not a thumbnail, and 80 was
+    // visibly soft there. 75 stays for everything else. Next 16 only serves
+    // qualities listed here.
+    qualities: [75, 90],
     minimumCacheTTL: 31536000, // 1 year
     dangerouslyAllowSVG: false,
     contentDispositionType: "attachment",
