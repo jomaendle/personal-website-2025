@@ -543,9 +543,14 @@ export function Minimap() {
       if (s.visible === visible) return;
       s.visible = visible;
       geoRef.current = null;
+      // The ticks are the only things the loop moves, so they hold their
+      // compositor layers exactly as long as it runs.
+      for (const tick of tickRefs.current) {
+        if (tick) tick.style.willChange = visible ? "transform" : "";
+      }
       if (visible) {
         s.last = 0;
-        if (!s.reduced && !s.hovering && !s.focused) s.idle = true;
+        if (!(s.reduced || s.hovering || s.focused)) s.idle = true;
         wake();
       } else {
         s.idle = false;
@@ -688,7 +693,11 @@ export function Minimap() {
                     ? "h-9 w-px bg-foreground/80"
                     : "h-5 w-px bg-foreground/45"
               }
-              style={{ willChange: "transform" }}
+              // No `will-change` here: forty-one permanently promoted
+              // layers is a standing charge on a phone's small GPU memory
+              // for a ruler that is usually below the fold. `setVisible`
+              // grants it when the ruler comes on screen, which is before
+              // the loop's first frame, and takes it back when it leaves.
             />
           </div>
         ))}
