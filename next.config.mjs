@@ -23,6 +23,9 @@ const nextConfig = {
     // ask for 128px and 192px (their open width), which lands on 128/224
     // here and on 256/384 at 2×.
     imageSizes: [16, 32, 48, 64, 96, 128, 160, 224, 256, 384],
+    // The homepage image stack asks for 80 in the pile and 90 for a print
+    // lifted by a click; Next 16 only serves qualities listed here.
+    qualities: [75, 80, 90],
     minimumCacheTTL: 31536000, // 1 year
     dangerouslyAllowSVG: false,
     contentDispositionType: "attachment",

@@ -247,7 +247,9 @@ body::after {
   }
 }
 
-/* Turn the glass card into a quiet paper sheet with a hairline edge. */
+/* Turn the glass card into a quiet paper sheet with a hairline edge. With no
+   background left to clip to, it needn't clip: the photo pile bleeds out of
+   it to the viewport's edge. */
 .glass-container {
   border-radius: 1rem !important;
   backdrop-filter: none !important;
@@ -255,6 +257,12 @@ body::after {
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* Whatever bleeds past the viewport's edge is clipped, never scrolled to. */
+body {
+  overflow-x: clip;
 }
 
 @media (min-width: 768px) {

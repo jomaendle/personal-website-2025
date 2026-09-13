@@ -4,40 +4,63 @@
    through custom properties at runtime: a property change on a print would
    recalculate style for everything inside it, sixty times a second. */
 
+.stack {
+  --print: 72px;
+  --fade: 88px;
+  /* Room above the window for a print lifted by a click. Part of the zone's
+     box (so the mask covers it) but not of the layout (see the negative
+     margin) and not of the pointer's surface. */
+  --lift-room: 6rem;
+  /* The list's start padding; the curve needs it (see `.tile`). */
+  --pad: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* Full bleed to the right: the column is centred, so half the column plus
+     half the viewport reaches the viewport's edge. The left edge stays on
+     the text. The page clips sideways overflow (see editorial-theme.css). */
+  width: calc(50% + 50vw);
+  max-width: none;
+}
+
 /* The window onto the strip, and the pointer's detection area. Clips
    sideways only: the prints lift above and drop below their layout box, and
    the vertical padding is the headroom that keeps them inside this box in
-   every state. The right padding is the fade, and the JS reads it. */
+   every state. The right padding is the fade, and the JS reads it. A size
+   container, so the prints can place themselves on the arc from its width. */
 .zone {
-  --print: 72px;
-  --fade: 72px;
+  --shadow-ink: 0 0% 0%;
   position: relative;
-  max-width: 100%;
-  width: calc(var(--print) * 4.6 + var(--fade));
-  padding: 3rem var(--fade) 2rem 0;
+  width: 100%;
+  container-type: inline-size;
+  padding: calc(3rem + var(--lift-room)) var(--fade) 2rem 0;
+  margin-top: calc(var(--lift-room) * -1);
   overflow-x: clip;
   overflow-y: visible;
+  pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  /* Sideways drags are ours; vertical stays with the page. */
-  touch-action: pan-y;
-  cursor: grab;
   /* Both ends dissolve rather than cut. Two mask layers, intersected: the
      right one is fixed; the left one is a fade wider than the box that sits
      one fade's width off-canvas at rest, so the first print lands crisp on
-     the text edge, and the JS slides it in as the pile travels. Two stops
-     each: most of the fade is a gentle roll-off, the last third to nothing. */
+     the text edge, and the JS slides it in as the pile travels. */
+  /* An eased ramp, not a straight one: prints thin out gradually and are
+     gone well before the edge, so the pile dissolves into the page. */
   --edge: linear-gradient(
     to right,
     transparent,
-    rgb(0 0 0 / 0.55) calc(var(--fade) * 0.4),
+    rgb(0 0 0 / 0.18) calc(var(--fade) * 0.3),
+    rgb(0 0 0 / 0.6) calc(var(--fade) * 0.62),
+    rgb(0 0 0 / 0.92) calc(var(--fade) * 0.88),
     black var(--fade),
     black
   );
   --edge-end: linear-gradient(
     to left,
     transparent,
-    rgb(0 0 0 / 0.55) calc(var(--fade) * 0.4),
+    rgb(0 0 0 / 0.18) calc(var(--fade) * 0.3),
+    rgb(0 0 0 / 0.6) calc(var(--fade) * 0.62),
+    rgb(0 0 0 / 0.92) calc(var(--fade) * 0.88),
     black var(--fade),
     black
   );
@@ -61,15 +84,55 @@
   -webkit-mask-composite: source-in;
 }
 
-.zone:active {
+:global(.light) .zone {
+  --shadow-ink: var(--foreground);
+}
+
+/* A pool of shadow under a lifted print, a few prints wide and blurred. The
+   JS moves it under the print and fades it in with the lift; the blur is
+   rasterised once and only transform and opacity move. Its left edge sits at
+   the window's edge and the margin centres it on x = 0, so a translateX of
+   the print's centre puts it under the print. */
+.backdrop {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: calc(var(--print) * 5);
+  margin-left: calc(var(--print) * -2.5);
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 40%,
+    hsl(var(--shadow-ink) / 0.42),
+    transparent 70%
+  );
+  filter: blur(24px);
+  opacity: 0;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* The pointer's surface: the window's box below the lift room. Sideways
+   drags are ours; vertical stays with the page. */
+.hit {
+  position: absolute;
+  inset: var(--lift-room) 0 0 0;
+  pointer-events: auto;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.hit:active {
   cursor: grabbing;
 }
 
 @media (min-width: 640px) {
-  .zone {
+  .stack {
     --print: 120px;
-    --fade: 96px;
-    padding-top: 4.5rem;
+    --fade: 128px;
+  }
+
+  .zone {
+    padding-top: calc(4.5rem + var(--lift-room));
   }
 }
 
@@ -85,17 +148,27 @@
   align-items: flex-end;
   width: fit-content;
   margin: 0;
-  padding: 0 0 0 1.25rem;
+  padding: 0 0 0 var(--pad);
   list-style: none;
 }
 
 .tile {
-  /* Resting pose, set inline per print: its lean and its drop on the arc. */
-  --lean: 0deg;
-  --drop: 0px;
+  /* Resting pose. `--c`, set inline per print, is where its centre sits in
+     paper heights from the list's padding edge. The rest is the same curve
+     the JS draws (see `curve` in image-stack.tsx): the print's angle as
+     seen from the centre of a circle, 45° at the visible window's edge,
+     scaled to 10° of lean; and the arc's sag, at most 14px, as its drop.
+     The container's inline size is its content box, which is the window
+     less the fade. Computed here so the server's fan matches the first
+     client frame at any width. */
+  --c: 0;
+  --dx: calc(var(--c) * var(--print) + var(--pad) - var(--r));
+  --r: calc(100cqi / 2);
+  --angle: atan2(var(--dx), var(--r));
+  --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
+  --drop: min(14px, calc((1 - cos(var(--angle))) * 48px));
   /* Width as a share of the paper height; set by orientation below. */
   --w: 0.8;
-  --shadow-ink: 0 0% 0%;
   /* The paper. Prints have a border: white paper in dark mode, dark card in
      light mode, which is what the ink colour already is in each. */
   --frame: 3px;
@@ -132,10 +205,6 @@
   --w: 1.25;
 }
 
-:global(.light) .tile {
-  --shadow-ink: var(--foreground);
-}
-
 /* Elevation. A deeper shadow on its own compositor layer, faded in as the
    print lifts. Cheaper than animating box-shadow, which repaints every frame. */
 .shadow {
@@ -156,4 +225,23 @@
   inset: var(--frame);
   overflow: hidden;
   border-radius: calc(5px - var(--frame));
+}
+
+/* One mark per print, centred under the visible window (the zone less its
+   fade). Lit by the JS as prints enter and leave the window; unlit marks keep
+   a resting glow so the count reads. */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-right: var(--fade);
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(var(--foreground));
+  opacity: 0.28;
+  will-change: opacity;
 }
