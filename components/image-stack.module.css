@@ -1,8 +1,11 @@
 /* A fanned pile of prints that opens under the pointer. The stylesheet owns
-   the resting pose and the look; the JS side writes `transform` and the shadow
-   layer's `opacity` straight onto the elements every frame. Nothing is driven
-   through custom properties at runtime: a property change on a print would
-   recalculate style for everything inside it, sixty times a second. */
+   the resting pose and the look; the JS side writes straight onto the
+   elements — each print's `transform` and its shadow layer's `opacity` every
+   frame, and, as they change, the stacking order, the zone's mask position,
+   the pointer surface's height and cursor, and the backdrop's and dots'
+   styles. Nothing is driven through custom properties at runtime: a property
+   change on a print would recalculate style for everything inside it, sixty
+   times a second. */
 
 .stack {
   --print: 72px;
@@ -24,7 +27,8 @@
   max-width: none;
 }
 
-/* The window onto the strip, and the pointer's detection area. Clips
+/* The window onto the strip. Not the pointer's surface — that is `.hit`
+   below, since this box takes no pointer events at all. Clips
    sideways only: the prints lift above and drop below their layout box, and
    the vertical padding is the headroom that keeps them inside this box in
    every state. The right padding is the fade, and the JS reads it. A size

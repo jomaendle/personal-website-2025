@@ -120,8 +120,9 @@ const CLICK_TIME = 500;
  * band barely moves it and the pointer never has to fight the pile. */
 const BAND = 0.22;
 const CREEP = 200;
-/** The drift takes this long, in seconds, to come up to speed once the
- * pointer has settled in a band, and as long to die away after it leaves.
+/** The drift's time constant, in seconds: it covers 63% of the way to full
+ * speed in this long once the pointer has settled in a band, and dies away
+ * as gently after it leaves.
  * A pointer that only sweeps through the band on its way somewhere else
  * moves the pile by next to nothing. */
 const DWELL = 0.35;
@@ -135,7 +136,8 @@ const DECELERATION = 0.997;
  * end before it springs back, in px. Let go already rubber-banded past an
  * end, it goes somewhat further, still well inside RUBBER_REACH. */
 const BOUNCE = 40;
-/** Spring for a print's prominence. Critically damped, response ≈ 0.16s:
+/** Spring for a print's prominence, its uncover and its press. Critically
+ * damped, response ≈ 0.16s:
  * the print comes up almost at once and settles with no overshoot, so the
  * handoff from one print to the next is one clean motion. */
 const STIFFNESS = 1600;
@@ -146,6 +148,9 @@ const TRAVEL_STIFFNESS = 200;
 const TRAVEL_DAMPING = 28;
 /** Below this a spring counts as settled and the loop can stop. */
 const EPSILON = 0.0005;
+/** The longest step the springs are integrated over, in seconds. A frame
+ * longer than this is split into several (see `runFrame`). */
+const MAX_STEP = 0.008;
 
 type Report = (action: "hover" | "travel" | "lift", print?: number) => void;
 
@@ -172,9 +177,10 @@ type Geometry = {
  * straightens, lifts and grows, and the prints to its right slide aside to
  * uncover it, so it is uncovered by its neighbour gliding off it rather than
  * by jumping in front. Over the gap between prints nothing changes: the
- * pile only moves when the pointer reaches another print. Nothing ever
+ * pile only moves when the pointer reaches another print. Hovering never
  * changes stacking order, and crossing to the next print is the same motion
- * played backwards.
+ * played backwards. (A lift does reorder, but only where nothing overlaps
+ * the print: see `raise`.)
  *
  * The pile is longer than its window, and whichever end has more behind it
  * fades out to say so. Resting the pointer near an edge drifts the pile that
@@ -189,8 +195,9 @@ type Geometry = {
  * A press dips the print under the pointer at once; a click lifts it up out
  * of the pile where it is, to full size whatever the pointer does, over a
  * pool of shadow that follows it; a second click, Escape or
- * the mouse leaving puts it back, and the arrow keys leaf from one print to
- * the next. The pile holds still underneath while a print is up. Its
+ * the mouse leaving puts it back — so does a click on the background, and a
+ * drag long enough to count as leafing — and the arrow keys leaf from one
+ * print to the next. The pile holds still underneath while a print is up. Its
  * neighbour slides off it the way it does under the pointer, no further, and
  * stays off until the print has landed: the print goes on top of the pile
  * while it is up, and the swap is made when nothing overlaps it, so the
@@ -205,8 +212,8 @@ type Geometry = {
  *
  * Decoration, not content: hidden from assistive tech. Opening under the
  * pointer is only wired up for fine pointers that can hover; dragging works
- * for every pointer. With reduced motion the drag still tracks 1:1 but
- * nothing coasts or opens. Without JavaScript, the resting fan the server
+ * for every pointer. With reduced motion the drag still tracks 1:1 and a
+ * click still lifts, but nothing coasts and nothing opens under the pointer. Without JavaScript, the resting fan the server
  * rendered is what you get.
  */
 export function ImageStack() {
@@ -283,10 +290,21 @@ export function ImageStack() {
 
   const runFrame = useCallback((now: number) => {
     const s = state.current;
-    const dt = Math.min(32, now - (s.last || now)) / 1000;
+    const elapsed = Math.min(32, now - (s.last || now)) / 1000;
     s.last = now;
 
-    const moving = step(s, dt);
+    // Advanced in fixed sub-steps, never in one jump. The prominence spring is
+    // integrated by semi-implicit Euler, which is only stable while
+    // k·h² + 2·c·h < 4 — at k = 1600 and c = 80 that is h < 20.7ms. One frame
+    // longer than that (a 30Hz display, a laden or backgrounded tab) and the
+    // spring diverges instead of settling: the transforms go to Infinity,
+    // which is not valid CSS and is silently dropped, and the loop never sees
+    // it settle, so it runs for ever. Sub-stepping keeps every spring inside
+    // its bound whatever the frame rate, and is more accurate besides.
+    let moving = false;
+    const substeps = Math.max(1, Math.ceil(elapsed / MAX_STEP));
+    const dt = elapsed / substeps;
+    for (let i = 0; i < substeps; i++) moving = step(s, dt) || moving;
     let inView = paint(
       s,
       zoneRef.current,
@@ -452,6 +470,20 @@ export function ImageStack() {
       lift(index === s.focused ? -1 : index);
     };
 
+    /** The browser has taken the gesture over (a vertical page pan on touch,
+     * say) or the pointer is gone. The drag is abandoned where it stands:
+     * never committed as a click, which would lift a print under a finger
+     * that was only scrolling the page. Chromium happens to report the
+     * cancelled pointer at x = 0, which the click's slop test rejects by
+     * accident; this makes it deliberate. */
+    const handleCancel = () => {
+      if (!s.drag) return;
+      s.drag = null;
+      s.pTarget.fill(0);
+      s.samples.length = 0;
+      start();
+    };
+
     const handleUp = (event: PointerEvent) => {
       if (!s.drag) return;
       const drag = s.drag;
@@ -556,7 +588,7 @@ export function ImageStack() {
     hit.addEventListener("pointerdown", handleDown);
     hit.addEventListener("pointermove", handleMove, { passive: true });
     hit.addEventListener("pointerup", handleUp);
-    hit.addEventListener("pointercancel", handleUp);
+    hit.addEventListener("pointercancel", handleCancel);
     hit.addEventListener("pointerleave", handleLeave);
     hit.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("keydown", handleKey);
@@ -568,7 +600,7 @@ export function ImageStack() {
       hit.removeEventListener("pointerdown", handleDown);
       hit.removeEventListener("pointermove", handleMove);
       hit.removeEventListener("pointerup", handleUp);
-      hit.removeEventListener("pointercancel", handleUp);
+      hit.removeEventListener("pointercancel", handleCancel);
       hit.removeEventListener("pointerleave", handleLeave);
       hit.removeEventListener("wheel", handleWheel);
       if (s.frame !== null) cancelAnimationFrame(s.frame);
@@ -577,8 +609,9 @@ export function ImageStack() {
   }, [start]);
 
   return (
-    // The zone is the window onto the strip and the pointer's detection
-    // area. Its vertical padding is headroom for the lift and the scale above
+    // The zone is the window onto the strip; `.hit` inside it is the
+    // pointer's surface, since the zone itself takes no pointer events. The
+    // zone's vertical padding is headroom for the lift and the scale above
     // and for the outer prints' rotated corners below, and must contain every
     // print in every state: check it if LIFT, GROWTH or DROP change. Its
     // right padding is the fade.
@@ -1025,14 +1058,14 @@ function integrateTravel(s: Travel, dt: number): boolean {
   return !settled;
 }
 
+/** Per-print prominence (hover) and uncover (lift). */
+type Lifts = { g: number[]; u: number[] };
+
 /**
  * Place every print for the current prominences and travel. The first print
  * is anchored, so the pile only ever opens to the right, never into the
  * window's clipped left edge.
  */
-/** Per-print prominence (hover) and uncover (lift). */
-type Lifts = { g: number[]; u: number[] };
-
 function layout(
   {
     g,
@@ -1069,6 +1102,9 @@ function layout(
   }
 }
 
+/** How close a lifted print may come to either edge of the window, in px. */
+const INSET = 8;
+
 /** How far print `i` must slide inward to stay clear of the window's
  * edges, in px. The left edge is the text edge and is clipped hard, so a
  * print growing past it (the first print has no earlier neighbour to make
@@ -1082,7 +1118,6 @@ function layout(
  * The left fade is only as far in as the travel has brought it. `shift` is
  * where the print sits relative to its resting place on screen (opening
  * less travel). */
-const INSET = 8;
 function inward(
   i: number,
   { g, f }: { g: number[]; f: number[] },
@@ -1108,8 +1143,8 @@ function inward(
 
 /** Write a print's pose: its place on the arc, `g` its prominence, `f` its
  * lift, `p` its press, `x` its horizontal offset. Lifted, the print is
- * upright, off the arc, and at its full size and height whatever the pointer
- * is doing. */
+ * upright, off the arc, and at its full size and height wherever the pointer
+ * goes — though a press still dips it, as it dips any print. */
 function pose(
   arc: { lean: number; drop: number },
   { g, f, p }: { g: number; f: number; p: number },

@@ -249,8 +249,15 @@ body::after {
 
 /* Turn the glass card into a quiet paper sheet with a hairline edge. With no
    background left to clip to, it needn't clip: the photo pile bleeds out of
-   it to the viewport's edge. */
-.glass-container {
+   it to the viewport's edge.
+
+   Not the sidebar, though. Every other `.glass-container` is a page sheet
+   that wraps the whole document and grows with it, but the article sidebar
+   is an `<aside>` capped at the viewport's height that scrolls its own table
+   of contents. Letting `overflow: visible !important` win over its
+   `overflow-y-auto` put a long contents list 971px past the bottom of a
+   sticky box, with no way to reach the entries below the fold. */
+.glass-container:not(aside) {
   border-radius: 1rem !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
