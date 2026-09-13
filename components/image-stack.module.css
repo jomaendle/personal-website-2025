@@ -16,6 +16,15 @@
   --lift-room: 6rem;
   /* The list's start padding; the curve needs it (see `.tile`). */
   --pad: 1.25rem;
+  /* The ink these are drawn with, and the prints' paper and hairline edge;
+     light mode overrides all three below. Declared here on the stack rather
+     than on the zone because the pool of shadow is a sibling of the zone,
+     not a child of it — on the zone the pool inherited nothing, every
+     `hsl(var(--shadow-ink) / …)` stop was invalid, and the browser dropped
+     its whole background: the pool never painted at all. */
+  --shadow-ink: 0 0% 0%;
+  --paper: var(--foreground);
+  --hairline: hsl(var(--shadow-ink) / 0.06);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -41,10 +50,6 @@
    every state. The right padding is the fade, and the JS reads it. A size
    container, so the prints can place themselves on the arc from its width. */
 .zone {
-  --shadow-ink: 0 0% 0%;
-  /* The prints' paper and its hairline edge; light mode overrides both. */
-  --paper: var(--foreground);
-  --hairline: hsl(var(--shadow-ink) / 0.06);
   position: relative;
   width: 100%;
   container-type: inline-size;
@@ -99,7 +104,7 @@
   -webkit-mask-composite: source-in;
 }
 
-:global(.light) .zone {
+:global(.light) .stack {
   --shadow-ink: var(--foreground);
   /* On paper a print has white paper for a border, not ink: the dark frame
      was the loudest thing in the section. The hairline is the design

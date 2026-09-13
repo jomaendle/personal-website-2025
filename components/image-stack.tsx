@@ -446,9 +446,7 @@ export function ImageStack() {
       }
     };
 
-    const hoverMove = (event: PointerEvent, geometry: Geometry) => {
-      s.pointerX = event.clientX - geometry.zoneLeft;
-      s.pointerY = event.clientY - geometry.zoneTop;
+    const hoverMove = (geometry: Geometry) => {
       s.hovering = true;
       s.over = printUnder(s, geometry);
       showCursor(hit, s);
@@ -460,8 +458,16 @@ export function ImageStack() {
     const handleMove = (event: PointerEvent) => {
       if (!s.geometry) measure();
       const geometry = s.geometry as Geometry;
+      // Kept fresh whatever the pointer is doing. `step` re-aims every frame
+      // while the pointer is on the pile, so a drag that left this stale had
+      // the pile aiming at where the pointer was before the drag began,
+      // while the strip slid underneath it: on release the wrong print stood
+      // raised until the next move snapped it, one print dropping and
+      // another rising for no reason the reader could see.
+      s.pointerX = event.clientX - geometry.zoneLeft;
+      s.pointerY = event.clientY - geometry.zoneTop;
       if (s.drag) dragMove(event, geometry);
-      else if (canHover && !s.reduced) hoverMove(event, geometry);
+      else if (canHover && !s.reduced) hoverMove(geometry);
       else return;
       start();
     };
@@ -562,14 +568,14 @@ export function ImageStack() {
       start();
     };
 
-    // Only while a print is lifted: the keys belong to the page
-    // otherwise.
+    // Only while a print is lifted, and never from someone typing: this
+    // listener is on the window, so without that guard a lifted print
+    // swallowed the arrow keys that move a caret in any field on the page.
     const handleKey = (event: KeyboardEvent) => {
-      if (s.focused < 0) return;
-      if (event.key === "Escape") lift(-1);
-      else if (event.key === "ArrowRight") lift(s.focused + 1);
-      else if (event.key === "ArrowLeft") lift(s.focused - 1);
-      else return;
+      if (s.focused < 0 || isTyping(document.activeElement)) return;
+      const next = leafTo(event.key, s.focused);
+      if (next === undefined) return;
+      lift(next);
       event.preventDefault();
     };
 
@@ -757,6 +763,23 @@ function disarm(
 function reportHover(report: Report, drive: number) {
   report("hover");
   if (drive !== 0) report("travel");
+}
+
+/** Where a key sends the lifted print: -1 puts it back, a step leafs to the
+ * neighbour, and undefined means the key was never ours to take. */
+function leafTo(key: string, focused: number): number | undefined {
+  if (key === "Escape") return -1;
+  if (key === "ArrowRight") return focused + 1;
+  if (key === "ArrowLeft") return focused - 1;
+  return undefined;
+}
+
+/** Whether the keyboard belongs to a field rather than to the page. */
+function isTyping(node: Element | null): boolean {
+  if (!(node instanceof HTMLElement)) return false;
+  if (node.isContentEditable) return true;
+  const tag = node.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 }
 
 /** A press that barely moved and didn't linger is a click, not a drag. */
