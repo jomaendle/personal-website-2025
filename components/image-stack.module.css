@@ -20,6 +20,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  /* Tapping a print and tapping it again to put it back is, to Safari, a
+     double-tap — which zooms the page, moving and resizing everything under
+     the finger. Any touch-action but `auto` takes double-tap zoom off this
+     box; `manipulation` keeps panning and pinch-zoom, which are the two
+     things a reader actually wants here. The pointer surface narrows this
+     further to `pan-y`, since sideways drags are the pile's own. */
+  touch-action: manipulation;
   /* Full bleed to the right: the column is centred, so half the column plus
      half the viewport reaches the viewport's edge. The left edge stays on
      the text. The page clips sideways overflow (see editorial-theme.css). */
@@ -126,8 +133,26 @@
     transparent 100%
   );
   opacity: 0;
-  will-change: transform, opacity;
   pointer-events: none;
+}
+
+/* Compositor layers cost GPU memory, and a phone has little of it: forty
+   permanently promoted elements (thirteen prints, their shadows, thirteen
+   marks and the pool of shadow) is a standing tax on a pile nobody has
+   touched. The JS arms this class when the pointer arrives — notice enough
+   for the browser to promote before anything moves — and drops it once the
+   springs have settled. */
+.armed .tile {
+  will-change: transform;
+}
+
+.armed .shadow,
+.armed .dot {
+  will-change: opacity;
+}
+
+.armed .backdrop {
+  will-change: transform, opacity;
 }
 
 /* The pointer's surface: the window's box below the lift room. Sideways
@@ -138,6 +163,10 @@
   pointer-events: auto;
   touch-action: pan-y;
   cursor: grab;
+  /* iOS flashes a grey box on tap and offers a long-press callout; neither
+     belongs on a pile of photographs that answers with motion instead. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 .hit:active {
@@ -199,7 +228,16 @@
   --w: 0.8;
   /* The paper. Prints have a border of paper: the ink colour in dark mode
      (which is near-white there), white in light mode; both set on `.zone`,
-     edged with a hairline. */
+     edged with a hairline.
+
+     A real border, not an inset child. The photograph sits in its own
+     rasterised layer (it clips and rounds its corners), and a layer is
+     snapped to whole device pixels independently of its parent. Inset by
+     `top`/`left`, that snap landed the photograph up to a pixel off centre
+     inside the paper — which the lift's 1.85x scale then multiplied into a
+     frame twice as thick at the top as at the bottom on a 3x phone. A border
+     belongs to the print's own paint, so the paper and the hole in it round
+     together and the frame stays even at any scale. */
   --frame: 3px;
   position: relative;
   flex: none;
@@ -209,6 +247,8 @@
      a narrow portrait print is never swallowed by a wide neighbour. */
   margin-right: calc(var(--print) * var(--w) * var(--tuck) * -1);
   border-radius: 5px;
+  box-sizing: border-box;
+  border: var(--frame) solid hsl(var(--paper));
   background: hsl(var(--paper));
   box-shadow:
     0 0 0 1px var(--hairline),
@@ -216,7 +256,6 @@
     0 3px 10px -2px hsl(var(--shadow-ink) / 0.14);
   transform-origin: 50% 100%;
   transform: translateY(var(--drop)) rotate(var(--lean));
-  will-change: transform;
   /* Rotated edges alias without this; a hidden backface makes the browser
      rasterise the print on its own antialiased layer. */
   backface-visibility: hidden;
@@ -244,14 +283,14 @@
     0 6px 12px -4px hsl(var(--shadow-ink) / 0.18),
     0 16px 32px -8px hsl(var(--shadow-ink) / 0.3);
   opacity: 0;
-  will-change: opacity;
   pointer-events: none;
 }
 
-/* The photograph, inset by the paper border. */
+/* The photograph. `inset: 0` on an absolutely positioned child resolves to
+   the padding box, which is already inside the paper border above. */
 .photo {
   position: absolute;
-  inset: var(--frame);
+  inset: 0;
   overflow: hidden;
   border-radius: calc(5px - var(--frame));
 }
@@ -272,5 +311,4 @@
   border-radius: 50%;
   background: hsl(var(--foreground));
   opacity: 0.28;
-  will-change: opacity;
 }

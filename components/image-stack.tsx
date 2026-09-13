@@ -102,11 +102,15 @@ const GAP = 6;
 /** A click pulls the print up out of the pile where it is: lifted and grown
  * beyond the hover pose by these, on top of the hover growth and lift. Its
  * own spring, critically damped: a click carries no momentum, so nothing
- * should bounce. */
+ * should bounce. Response ≈ 0.26s. On a desktop the hover has already shown
+ * most of the movement, but a tap has shown nothing, so this is the whole
+ * answer to a touch and has to arrive inside the 300ms a UI gesture is
+ * allowed: at the old 0.36s it took 380ms to look finished and was still
+ * moving most of a second later. */
 const FOCUS_GROWTH = 0.5;
 const FOCUS_LIFT = 44;
-const FOCUS_STIFFNESS = 300;
-const FOCUS_DAMPING = 35;
+const FOCUS_STIFFNESS = 580;
+const FOCUS_DAMPING = 48;
 /** A press dips the print under the pointer by this share of its size until
  * it is released: the pile answers on pointer-down, before the click lands. */
 const PRESS = 0.04;
@@ -142,15 +146,21 @@ const BOUNCE = 40;
  * handoff from one print to the next is one clean motion. */
 const STIFFNESS = 1600;
 const DAMPING = 80;
-/** Spring for the strip's travel. Critically damped, response ≈ 0.45s: the
- * pile glides rather than chases, and carries a released drag's velocity. */
-const TRAVEL_STIFFNESS = 200;
-const TRAVEL_DAMPING = 28;
+/** Spring for the strip's travel. Critically damped, response ≈ 0.39s: the
+ * pile glides rather than chases, and carries a released drag's velocity.
+ * Near Apple's 0.4s for a repositioning gesture, and enough quicker than it
+ * was that a flick stops feeling like it is still deciding. */
+const TRAVEL_STIFFNESS = 260;
+const TRAVEL_DAMPING = 32;
 /** Below this a spring counts as settled and the loop can stop. */
 const EPSILON = 0.0005;
 /** The longest step the springs are integrated over, in seconds. A frame
  * longer than this is split into several (see `runFrame`). */
 const MAX_STEP = 0.008;
+/** The class that promotes the pile's compositor layers while it is in use
+ * (see the stylesheet). Read once: a CSS module's members are typed as
+ * possibly absent, and `classList` will not take `undefined`. */
+const ARMED = styles.armed ?? "armed";
 
 type Report = (action: "hover" | "travel" | "lift", print?: number) => void;
 
@@ -158,7 +168,12 @@ type Report = (action: "hover" | "travel" | "lift", print?: number) => void;
  * the list's left edge. `overlap[k]` is how much print k+1 covers print k. */
 type Geometry = {
   zoneLeft: number;
+  zoneTop: number;
   zoneWidth: number;
+  /** The strip's vertical band, in zone coordinates: where the prints stand
+   * at rest, less the room the tallest lift needs above them. */
+  stripTop: number;
+  stripBottom: number;
   fade: number;
   /** The paper height, which the curve's drop is measured in. */
   height: number;
@@ -217,6 +232,7 @@ type Geometry = {
  * rendered is what you get.
  */
 export function ImageStack() {
+  const stackRef = useRef<HTMLDivElement>(null);
   const zoneRef = useRef<HTMLDivElement>(null);
   const hitRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -267,7 +283,10 @@ export function ImageStack() {
     travelTarget: 0,
     /** The pointer, in window coordinates, and whether it can open prints. */
     pointerX: 0,
+    pointerY: 0,
     hovering: false,
+    /** Which print the pointer is over, from `aim`. -1 for the background. */
+    over: -1,
     /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle.
      * `drive` is where the pointer is; `driving` follows it over DWELL and
      * is what moves the pile. */
@@ -322,7 +341,10 @@ export function ImageStack() {
     }
 
     s.frame = moving ? requestAnimationFrame(runFrame) : null;
-    if (!moving) s.last = 0;
+    if (!moving) {
+      s.last = 0;
+      disarm(s, stackRef.current);
+    }
   }, []);
 
   const start = useCallback(() => {
@@ -361,8 +383,12 @@ export function ImageStack() {
       // fully opened, clears the fade. Opening adds the overlap it sheds, the
       // gap, and its own growth.
       const opened = Math.max(...overlaps) + GAP + GROWTH * Math.max(...widths);
+      const listRect = list.getBoundingClientRect();
       s.geometry = {
         zoneLeft: zoneRect.left,
+        zoneTop: zoneRect.top,
+        stripTop: listRect.top - zoneRect.top - (LIFT + FOCUS_LIFT),
+        stripBottom: listRect.bottom - zoneRect.top,
         zoneWidth: zoneRect.width,
         fade,
         height: tiles[0]?.offsetHeight ?? 0,
@@ -380,6 +406,7 @@ export function ImageStack() {
     const handleDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
       if (!s.geometry) measure();
+      stackRef.current?.classList.add(ARMED);
       // Capture keeps the drag alive outside the zone. It throws if the
       // pointer is already gone, which is no reason to drop the drag.
       try {
@@ -421,8 +448,10 @@ export function ImageStack() {
 
     const hoverMove = (event: PointerEvent, geometry: Geometry) => {
       s.pointerX = event.clientX - geometry.zoneLeft;
+      s.pointerY = event.clientY - geometry.zoneTop;
       s.hovering = true;
-      showCursor(hit, event, tileRefs.current, s.focused);
+      s.over = printUnder(s, geometry);
+      showCursor(hit, s);
       // No edge drift while a print is lifted: the pile holds still.
       s.drive = s.focused >= 0 ? 0 : driveFor(s.pointerX, geometry);
       reportHover(report.current, s.drive);
@@ -584,7 +613,15 @@ export function ImageStack() {
     });
     observer.observe(zone);
 
-    hit.addEventListener("pointerenter", measure);
+    // Promoting on arrival gives the browser notice before the first frame,
+    // which is what `will-change` is for; `runFrame` drops it when the
+    // springs settle.
+    const arm = () => {
+      measure();
+      stackRef.current?.classList.add(ARMED);
+    };
+
+    hit.addEventListener("pointerenter", arm);
     hit.addEventListener("pointerdown", handleDown);
     hit.addEventListener("pointermove", handleMove, { passive: true });
     hit.addEventListener("pointerup", handleUp);
@@ -596,7 +633,7 @@ export function ImageStack() {
     return () => {
       observer.disconnect();
       window.removeEventListener("keydown", handleKey);
-      hit.removeEventListener("pointerenter", measure);
+      hit.removeEventListener("pointerenter", arm);
       hit.removeEventListener("pointerdown", handleDown);
       hit.removeEventListener("pointermove", handleMove);
       hit.removeEventListener("pointerup", handleUp);
@@ -615,7 +652,7 @@ export function ImageStack() {
     // and for the outer prints' rotated corners below, and must contain every
     // print in every state: check it if LIFT, GROWTH or DROP change. Its
     // right padding is the fade.
-    <div className={styles.stack}>
+    <div ref={stackRef} className={styles.stack}>
       {/* A soft pool of shadow behind the pile, faded in with a lift. Outside
           the zone, which clips sideways and fades at both ends: the pool
           falls on the page with no edge. Before the zone, so it is under
@@ -690,6 +727,17 @@ export function ImageStack() {
   );
 }
 
+/** Everything has settled: give the compositor layers back, unless the
+ * pointer is still on the pile and about to need them again. A phone has
+ * little GPU memory, and an untouched pile should hold none of it. */
+function disarm(
+  s: { hovering: boolean; drag: unknown },
+  stack: HTMLElement | null,
+) {
+  if (s.hovering || s.drag) return;
+  stack?.classList.remove(ARMED);
+}
+
 /** Hovering counts once; resting in an edge band also counts as travel. */
 function reportHover(report: Report, drive: number) {
   report("hover");
@@ -707,15 +755,12 @@ function isClick(
   );
 }
 
-/** Say what a click would do: a pointer over a print, a hand elsewhere. */
-function showCursor(
-  hit: HTMLElement,
-  event: PointerEvent,
-  tiles: (HTMLLIElement | null)[],
-  focused: number,
-) {
-  const over = printAt(event.clientX, event.clientY, tiles, focused);
-  const cursor = over >= 0 ? "pointer" : "";
+/** Say what a click would do: a pointer over a print, a hand elsewhere.
+ * Taken from `printUnder`, which reads geometry rather than the DOM:
+ * hit-testing thirteen boxes on every pointermove forced the layout the
+ * loop is busy writing transforms into. */
+function showCursor(hit: HTMLElement, s: { over: number }) {
+  const cursor = s.over >= 0 ? "pointer" : "";
   if (hit.style.cursor !== cursor) hit.style.cursor = cursor;
 }
 
@@ -847,11 +892,38 @@ function project(velocity: number): number {
 
 type Aim = {
   g: number[];
+  f: number[];
   target: number[];
   offsets: number[];
   pointerX: number;
+  pointerY: number;
   travel: number;
+  /** Which print the pointer is over, as last judged from the geometry. */
+  over: number;
 };
+
+/**
+ * Which print the pointer is over: the topmost — later prints lie over
+ * earlier ones — whose extent, at the size and place it has right now,
+ * contains it. -1 over a gap, past either end, or clear of the strip's
+ * vertical band. Geometry only: no box is measured, so this can be asked on
+ * every pointer move without forcing the layout the loop is writing into.
+ */
+function printUnder(s: Aim, geometry: Geometry): number {
+  if (s.pointerY < geometry.stripTop || s.pointerY > geometry.stripBottom) {
+    return -1;
+  }
+  const x = s.pointerX + s.travel;
+  for (let i = s.target.length - 1; i >= 0; i--) {
+    const g = s.g[i] ?? 0;
+    const f = s.f[i] ?? 0;
+    const scale = 1 + g * GROWTH * (1 - f) + f * (GROWTH + FOCUS_GROWTH);
+    const centre = (geometry.centres[i] ?? 0) + (s.offsets[i] ?? 0);
+    const half = ((geometry.widths[i] ?? 0) * scale) / 2;
+    if (Math.abs(x - centre) <= half) return i;
+  }
+  return -1;
+}
 
 /**
  * Set every print's target prominence from where the pointer is: 1 for the
@@ -865,16 +937,7 @@ type Aim = {
  * closes when the pointer leaves it.
  */
 function aim(s: Aim, geometry: Geometry) {
-  const x = s.pointerX + s.travel;
-  let over = -1;
-  for (let i = s.target.length - 1; i >= 0; i--) {
-    const centre = (geometry.centres[i] ?? 0) + (s.offsets[i] ?? 0);
-    const half = ((geometry.widths[i] ?? 0) / 2) * (1 + (s.g[i] ?? 0) * GROWTH);
-    if (Math.abs(x - centre) <= half) {
-      over = i;
-      break;
-    }
-  }
+  const over = printUnder(s, geometry);
   if (over < 0) return;
   for (let i = 0; i < s.target.length; i++) {
     s.target[i] = i === over ? 1 : 0;
