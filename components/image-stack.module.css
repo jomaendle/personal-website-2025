@@ -184,11 +184,26 @@
 /* The pointer's surface: the window's box below the lift room. Sideways
    drags are ours; vertical stays with the page. */
 .hit {
+  /* A real `<button>`, not a div with `role="button"`: the pile needed a
+     keyboard entry point (see the comment on `handleOpenKey`), and an
+     element the platform already knows how to focus and activate is what
+     a linter and a screen reader both expect there. Everything below the
+     position/pointer rules undoes the browser's own idea of what a button
+     looks like, since this one is a full-bleed drag surface, not a chip. */
   position: absolute;
   inset: var(--lift-room) 0 0 0;
   pointer-events: auto;
   touch-action: pan-y;
   cursor: grab;
+  display: block;
+  width: 100%;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  appearance: none;
   /* iOS flashes a grey box on tap and offers a long-press callout; neither
      belongs on a pile of photographs that answers with motion instead. */
   -webkit-tap-highlight-color: transparent;
@@ -197,6 +212,16 @@
 
 .hit:active {
   cursor: grabbing;
+}
+
+/* The pile's only focus stop, so the ring has to be findable. Drawn inside
+   the box: the surface reaches the window's edges, and an outline outside
+   them is half eaten by the zone's clip. `:focus-visible`, so a click that
+   opens a print does not leave a ring behind it. */
+.hit:focus-visible {
+  outline: 2px solid hsl(var(--brand));
+  outline-offset: -3px;
+  border-radius: 4px;
 }
 
 @media (min-width: 640px) {

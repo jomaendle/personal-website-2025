@@ -27,6 +27,54 @@ interface CodeBlockProps {
   collapsible?: boolean;
 }
 
+/**
+ * Token colours in the two Prism themes that miss WCAG AA on this site's
+ * paper, mapped to the same hue and saturation at a lightness that reaches
+ * it. The keys are the themes' own strings, which are HSL and not hex: an
+ * earlier version of this keyed on hex, matched nothing, and changed no
+ * colour at all while looking like it did.
+ *
+ * one-light and one-dark are drawn for #fafafa and #282c34. This site is
+ * cream and near-black. On cream seven of one-light's colours fall under
+ * 4.5:1, comments worst at 2.27:1; on the near-black three of one-dark's do.
+ * Only lightness moves, so the palette keeps its hues, and every replacement
+ * lands between 4.52:1 and 4.70:1 against the background that is actually
+ * behind the code rather than the one the themes assume.
+ *
+ * Applied to the theme object rather than in CSS because the highlighter
+ * writes each colour as an inline style and gives every span the same
+ * `token` class, so a stylesheet has nothing to target.
+ */
+const READABLE_TOKENS: Record<string, string> = {
+  // one-light, on cream
+  "hsl(119, 34%, 47%)": "hsl(119, 34%, 35%)", // strings
+  "hsl(198, 99%, 37%)": "hsl(198, 99%, 32%)", // operators
+  "hsl(221, 87%, 60%)": "hsl(221, 87%, 53%)", // keywords, functions
+  "hsl(230, 1%, 62%)": "hsl(230, 1%, 43%)", // punctuation
+  "hsl(230, 4%, 64%)": "hsl(230, 4%, 44%)", // comments
+  "hsl(35, 99%, 36%)": "hsl(35, 99%, 31%)", // numbers, constants
+  "hsl(5, 74%, 59%)": "hsl(5, 74%, 46%)", // tags, variables
+  // one-dark, on near-black
+  "hsl(220, 10%, 40%)": "hsl(220, 10%, 52%)", // comments
+  "hsl(220, 14%, 45%)": "hsl(220, 14%, 53%)", // punctuation
+  "hsl(5, 48%, 51%)": "hsl(5, 48%, 57%)", // deletions
+};
+
+/** The same theme with any under-contrast token colour swapped out. */
+function readable(
+  theme: Record<string, React.CSSProperties>,
+): Record<string, React.CSSProperties> {
+  const out: Record<string, React.CSSProperties> = {};
+  for (const [key, style] of Object.entries(theme)) {
+    const colour =
+      typeof style?.color === "string"
+        ? READABLE_TOKENS[style.color]
+        : undefined;
+    out[key] = colour ? { ...style, color: colour } : style;
+  }
+  return out;
+}
+
 export function CodeBlock({
   language,
   code,
@@ -50,12 +98,12 @@ export function CodeBlock({
         const { default: oneLight } = await import(
           "react-syntax-highlighter/dist/esm/styles/prism/one-light"
         );
-        setSyntaxTheme(oneLight);
+        setSyntaxTheme(readable(oneLight));
       } else {
         const { default: oneDark } = await import(
           "react-syntax-highlighter/dist/esm/styles/prism/one-dark"
         );
-        setSyntaxTheme(oneDark);
+        setSyntaxTheme(readable(oneDark));
       }
     };
 
@@ -102,6 +150,16 @@ export function CodeBlock({
       }}
       showLineNumbers={false}
       wrapLongLines={wrapLines}
+      // Long lines scroll sideways, and a region that scrolls has to be
+      // reachable by keyboard or the code past the right edge can only be
+      // read with a pointer. This lands on the `pre` this renders.
+      //
+      // Focusable only. A `role="region"` here named every block after its
+      // language, so a page with three TypeScript samples had three landmarks
+      // called "ts code" and the duplication was itself a violation. The
+      // barrier was that the box could not be scrolled from the keyboard,
+      // and a tabindex alone fixes that.
+      tabIndex={0}
     >
       {code.trim()}
     </SyntaxHighlighter>

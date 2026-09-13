@@ -65,15 +65,26 @@ export default function MdxLayout({
 
       <div className="relative z-20 mx-auto w-full 3xl:max-w-[1132px] max-w-3xl px-3 pt-6 pb-16 sm:px-6 sm:pt-16 xl:max-w-[1072px]">
         <div className="flex justify-center gap-16">
-          <aside
+          {/* A plain div, not an `aside`: `SidebarNavigation` renders its own
+              `aside`, and one complementary landmark inside another is
+              reported as a landmark nesting error. This element only does the
+              sticky column; the landmark belongs to the navigation itself.
+              Changing the inner one instead would break the
+              `.glass-container:not(aside)` rule in editorial-theme.css, which
+              deliberately spares the sidebar an `overflow: visible` meant for
+              page sheets. */}
+          <div
             className="sticky top-[100px] hidden 3xl:w-[300px] w-[240px] shrink-0 flex-col gap-6 self-start xl:flex"
             style={{ maxHeight: "calc(100svh - 200px)" }}
           >
-            <div className="mb-12">
+            {/* Its own landmark: this link used to sit inside the `aside`
+                that wrapped this column, and without one it belonged to no
+                region at all. */}
+            <nav aria-label="Back" className="mb-12">
               <BackLink />
-            </div>
+            </nav>
             <SidebarNavigation currentSlug={slug} />
-          </aside>
+          </div>
 
           <div
             className="glass-container min-w-0 flex-1 xl:max-w-3xl"

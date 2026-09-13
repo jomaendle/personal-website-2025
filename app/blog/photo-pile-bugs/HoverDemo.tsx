@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 
 /** The same row twice: one opening on a smooth falloff, one as a discrete
- * state. Move across both, or drag a finger along them. The falloff resizes
+ * state.
+ *
+ * No reduced-motion guard here, unlike `LeanDemo` next to it, which has one.
+ * Nothing animates on its own: every card sits exactly where the pointer
+ * puts it, with no easing, no momentum and nothing continuing after the
+ * pointer stops. That is direct manipulation rather than triggered motion,
+ * so there is no animation to reduce.
+ * Move across both, or drag a finger along them. The falloff resizes
  * three or four cards at once and shifts everything after them, so the row
  * never holds still; the discrete version only moves when the pointer reaches
  * a different card. */

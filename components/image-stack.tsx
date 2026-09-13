@@ -264,7 +264,7 @@ type Geometry = {
 export function ImageStack() {
   const stackRef = useRef<HTMLDivElement>(null);
   const zoneRef = useRef<HTMLDivElement>(null);
-  const hitRef = useRef<HTMLDivElement>(null);
+  const hitRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -575,7 +575,17 @@ export function ImageStack() {
       const velocity = s.reduced ? 0 : releaseVelocity(s.samples, event);
       // Where the coast would end decides where it settles; the spring then
       // starts at the finger's speed, so there is no seam at the release.
-      const landing = s.travel + project(velocity);
+      //
+      // Read from travelTarget, not travel. dragTo writes travelTarget on
+      // every pointermove, synchronously; travel only catches up to it once
+      // a frame of the render loop has run (see settleTravel). A gesture
+      // fast enough to press, drag and release before a single frame paints
+      // - measured happening in WebKit, both in a fast synthetic drag and
+      // plausibly a real quick flick - left travel pointing at wherever the
+      // pile was before the drag started, so the release computed its
+      // landing from a position the drag had already left. The pile either
+      // failed to move at all or snapped back most of the way it had come.
+      const landing = s.travelTarget + project(velocity);
       s.travelTarget = clamp(landing, 0, geometry.maxTravel);
       // A coast that would run past an end is caught there: the spring is
       // started with only as much speed as bounces it BOUNCE px past the
@@ -604,6 +614,39 @@ export function ImageStack() {
       if (next === undefined) return;
       lift(next);
       event.preventDefault();
+    };
+
+    /** Enter or Space opens a print, and closes it again.
+     *
+     * Without this the pile was a thing only a pointer could open: the arrow
+     * keys and Escape below already leafed and dismissed, but they answer
+     * only once `focused` is set, and the single way to set it was a click.
+     * A keyboard-only reader could reach the pile and then do nothing with
+     * it, while anyone with a mouse could hold a print at full size. The
+     * prints themselves stay out of the tab order; the pointer's surface
+     * carries the focus for all thirteen, which is why it has a label.
+     *
+     * This one is on the element rather than the window, because Enter and
+     * Space belong to whatever the reader is actually focused on. */
+    const handleOpenKey = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      if (s.focused >= 0) {
+        lift(-1);
+        return;
+      }
+      // The first print whose centre has reached the window: at rest that is
+      // the first print, and after travelling it is the one the reader can
+      // actually see rather than one off to the left.
+      const geometry = s.geometry ?? measure();
+      let first = 0;
+      for (let i = 0; i < PRINTS.length; i++) {
+        if ((geometry.centres[i] ?? 0) - s.travel >= 0) {
+          first = i;
+          break;
+        }
+      }
+      lift(first);
     };
 
     // A sideways wheel or trackpad swipe leafs through the pile directly.
@@ -683,6 +726,7 @@ export function ImageStack() {
     hit.addEventListener("pointercancel", handleCancel);
     hit.addEventListener("pointerleave", handleLeave);
     hit.addEventListener("wheel", handleWheel, { passive: false });
+    hit.addEventListener("keydown", handleOpenKey);
     window.addEventListener("keydown", handleKey);
 
     return () => {
@@ -696,6 +740,7 @@ export function ImageStack() {
       hit.removeEventListener("pointercancel", handleCancel);
       hit.removeEventListener("pointerleave", handleLeave);
       hit.removeEventListener("wheel", handleWheel);
+      hit.removeEventListener("keydown", handleOpenKey);
       if (s.frame !== null) cancelAnimationFrame(s.frame);
       s.frame = null;
     };
@@ -718,8 +763,19 @@ export function ImageStack() {
         {/* The pointer's surface: the window's box, grown (by `lift`, which
             writes its `top`) to cover a lifted print. The zone itself takes
             no pointer events, because its box reaches up over the paragraph
-            to give a lifted print room. */}
-        <div ref={hitRef} className={styles.hit} />
+            to give a lifted print room.
+
+            It is also the pile's one focus stop and its one accessible name.
+            The prints are decorative and the list is hidden, so nothing
+            inside is worth thirteen tab stops, but a reader who cannot use a
+            pointer should still be able to open one. The label says which
+            keys do that, since no shape on screen says it for them. */}
+        <button
+          ref={hitRef}
+          type="button"
+          className={styles.hit}
+          aria-label={`${PRINTS.length} photographs. Press Enter to enlarge one, then the arrow keys to move between them and Escape to put it back.`}
+        />
         {/* `--c0` is the first print's resting centre. The stylesheet needs
             it on the list to size the start padding, which is the room that
             print's rotated corner takes to its left. */}
