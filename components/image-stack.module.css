@@ -1,0 +1,159 @@
+/* A fanned pile of prints that opens under the pointer. The stylesheet owns
+   the resting pose and the look; the JS side writes `transform` and the shadow
+   layer's `opacity` straight onto the elements every frame. Nothing is driven
+   through custom properties at runtime: a property change on a print would
+   recalculate style for everything inside it, sixty times a second. */
+
+/* The window onto the strip, and the pointer's detection area. Clips
+   sideways only: the prints lift above and drop below their layout box, and
+   the vertical padding is the headroom that keeps them inside this box in
+   every state. The right padding is the fade, and the JS reads it. */
+.zone {
+  --print: 72px;
+  --fade: 72px;
+  position: relative;
+  max-width: 100%;
+  width: calc(var(--print) * 4.6 + var(--fade));
+  padding: 3rem var(--fade) 2rem 0;
+  overflow-x: clip;
+  overflow-y: visible;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Sideways drags are ours; vertical stays with the page. */
+  touch-action: pan-y;
+  cursor: grab;
+  /* Both ends dissolve rather than cut. Two mask layers, intersected: the
+     right one is fixed; the left one is a fade wider than the box that sits
+     one fade's width off-canvas at rest, so the first print lands crisp on
+     the text edge, and the JS slides it in as the pile travels. Two stops
+     each: most of the fade is a gentle roll-off, the last third to nothing. */
+  --edge: linear-gradient(
+    to right,
+    transparent,
+    rgb(0 0 0 / 0.55) calc(var(--fade) * 0.4),
+    black var(--fade),
+    black
+  );
+  --edge-end: linear-gradient(
+    to left,
+    transparent,
+    rgb(0 0 0 / 0.55) calc(var(--fade) * 0.4),
+    black var(--fade),
+    black
+  );
+  mask-image: var(--edge), var(--edge-end);
+  mask-size:
+    calc(100% + var(--fade)) 100%,
+    100% 100%;
+  mask-position:
+    calc(var(--fade) * -1) 0,
+    0 0;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+  -webkit-mask-image: var(--edge), var(--edge-end);
+  -webkit-mask-size:
+    calc(100% + var(--fade)) 100%,
+    100% 100%;
+  -webkit-mask-position:
+    calc(var(--fade) * -1) 0,
+    0 0;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in;
+}
+
+.zone:active {
+  cursor: grabbing;
+}
+
+@media (min-width: 640px) {
+  .zone {
+    --print: 120px;
+    --fade: 96px;
+    padding-top: 4.5rem;
+  }
+}
+
+.list {
+  /* Share of its own width each print tucks under the next one at rest. */
+  --tuck: 0.4;
+  /* Prints sit on a shared baseline and grow upward from it. The start
+     padding is the room the first print's rotated corner needs, so its
+     leftmost pixel lands on the text edge instead of the clipped window
+     edge. */
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: fit-content;
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: none;
+}
+
+.tile {
+  /* Resting pose, set inline per print: its lean and its drop on the arc. */
+  --lean: 0deg;
+  --drop: 0px;
+  /* Width as a share of the paper height; set by orientation below. */
+  --w: 0.8;
+  --shadow-ink: 0 0% 0%;
+  /* The paper. Prints have a border: white paper in dark mode, dark card in
+     light mode, which is what the ink colour already is in each. */
+  --frame: 3px;
+  position: relative;
+  flex: none;
+  height: var(--print);
+  width: calc(var(--print) * var(--w));
+  /* Pulls the next print over this one by a share of this print's width, so
+     a narrow portrait print is never swallowed by a wide neighbour. */
+  margin-right: calc(var(--print) * var(--w) * var(--tuck) * -1);
+  border-radius: 5px;
+  background: hsl(var(--foreground));
+  box-shadow:
+    0 0 0 1px hsl(var(--shadow-ink) / 0.06),
+    0 1px 2px hsl(var(--shadow-ink) / 0.1),
+    0 3px 10px -2px hsl(var(--shadow-ink) / 0.14);
+  transform-origin: 50% 100%;
+  transform: translateY(var(--drop)) rotate(var(--lean));
+  will-change: transform;
+  /* Rotated edges alias without this; a hidden backface makes the browser
+     rasterise the print on its own antialiased layer. */
+  backface-visibility: hidden;
+}
+
+.tile:last-child {
+  margin-right: 0;
+}
+
+.portrait {
+  --w: 0.8;
+}
+
+.landscape {
+  --w: 1.25;
+}
+
+:global(.light) .tile {
+  --shadow-ink: var(--foreground);
+}
+
+/* Elevation. A deeper shadow on its own compositor layer, faded in as the
+   print lifts. Cheaper than animating box-shadow, which repaints every frame. */
+.shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 6px 12px -4px hsl(var(--shadow-ink) / 0.18),
+    0 16px 32px -8px hsl(var(--shadow-ink) / 0.3);
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+/* The photograph, inset by the paper border. */
+.photo {
+  position: absolute;
+  inset: var(--frame);
+  overflow: hidden;
+  border-radius: calc(5px - var(--frame));
+}

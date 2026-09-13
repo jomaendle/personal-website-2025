@@ -1,6 +1,7 @@
 import { BlogPosts } from "@/components/blog-posts";
 import { CraftsContainer } from "@/components/crafts/CraftsContainer";
 import { Minimap } from "@/components/crafts/Minimap";
+import { ImageStack } from "@/components/image-stack";
 import { JobPositions } from "@/components/job-positions";
 import { NameHeading } from "@/components/name-heading";
 import { Footer } from "@/components/ui/footer";
@@ -32,6 +33,7 @@ export default function Home() {
                 somewhere new with a camera.
               </p>
             </div>
+            <ImageStack />
           </section>
 
           <section>
