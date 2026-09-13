@@ -196,7 +196,16 @@ type DragState = {
 /** Resting layout, measured once per pointer visit. All in px, relative to
  * the list's left edge. `overlap[k]` is how much print k+1 covers print k. */
 type Geometry = {
-  zoneLeft: number;
+  /** Screen X of the strip's own left edge — the origin `lefts`/`centres`
+   * (from `tile.offsetLeft`) are measured against, not the zone's. The two
+   * used to coincide, since the zone had no left padding of its own; now the
+   * zone reaches past its own clip boundary for the first print's rotated
+   * corner (see `--corner-room` in the stylesheet), and the strip sits that
+   * much inside the zone's own edge. Naming this after the zone once cost a
+   * frame of hit-testing: every hover and click landed on whichever print
+   * happened to sit `--corner-room` px from wherever the pointer actually
+   * was, the same wrong print regardless of where the pointer went. */
+  stripLeft: number;
   zoneTop: number;
   zoneWidth: number;
   /** The window the reader actually sees: the zone less its fade. */
@@ -406,7 +415,7 @@ export function ImageStack() {
       const opened = Math.max(...overlaps) + GAP + GROWTH * Math.max(...widths);
       const listRect = list.getBoundingClientRect();
       const geometry: Geometry = {
-        zoneLeft: zoneRect.left,
+        stripLeft: listRect.left,
         zoneTop: zoneRect.top,
         stripTop: listRect.top - zoneRect.top - (LIFT + FOCUS_LIFT),
         stripBottom: listRect.bottom - zoneRect.top,
@@ -492,7 +501,7 @@ export function ImageStack() {
       // while the strip slid underneath it: on release the wrong print stood
       // raised until the next move snapped it, one print dropping and
       // another rising for no reason the reader could see.
-      s.pointerX = event.clientX - geometry.zoneLeft;
+      s.pointerX = event.clientX - geometry.stripLeft;
       s.pointerY = event.clientY - geometry.zoneTop;
       if (s.drag) dragMove(event, geometry);
       else if (canHover && !s.reduced) hoverMove(geometry);
@@ -759,7 +768,18 @@ export function ImageStack() {
           falls on the page with no edge. Before the zone, so it is under
           every print. */}
       <div ref={backdropRef} className={styles.backdrop} />
-      <div ref={zoneRef} className={styles.zone}>
+      {/* `--c0` is the first print's resting centre. The stylesheet needs
+          it here, on the clipping box itself, to size the room its rotated
+          corner needs beyond the text edge (see `--corner-room` in the
+          stylesheet) — a box can only give that room to its own edges, not
+          to a descendant's, so this has to live where the clip does. */}
+      <div
+        ref={zoneRef}
+        className={styles.zone}
+        style={
+          { "--c0": (REST_CENTRES[0] ?? 0).toFixed(3) } as React.CSSProperties
+        }
+      >
         {/* The pointer's surface: the window's box, grown (by `lift`, which
             writes its `top`) to cover a lifted print. The zone itself takes
             no pointer events, because its box reaches up over the paragraph
@@ -776,17 +796,7 @@ export function ImageStack() {
           className={styles.hit}
           aria-label={`${PRINTS.length} photographs. Press Enter to enlarge one, then the arrow keys to move between them and Escape to put it back.`}
         />
-        {/* `--c0` is the first print's resting centre. The stylesheet needs
-            it on the list to size the start padding, which is the room that
-            print's rotated corner takes to its left. */}
-        <ul
-          ref={listRef}
-          aria-hidden="true"
-          className={styles.list}
-          style={
-            { "--c0": (REST_CENTRES[0] ?? 0).toFixed(3) } as React.CSSProperties
-          }
-        >
+        <ul ref={listRef} aria-hidden="true" className={styles.list}>
           {PRINTS.map((print, index) => {
             const landscape = isLandscape(print);
             return (

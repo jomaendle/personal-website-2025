@@ -39,6 +39,14 @@
      a pointer arrives from — the pile answered before the reader had reached
      it. The fade at the right edge already says there is more. */
   width: 100%;
+  /* A size container, so the prints can place themselves on the arc from
+     this box's width (see `--half` on `.zone`). Declared here rather than on
+     `.zone`, which used to hold it: `.zone` itself now grows past this box's
+     edge on the left (`--corner-room`, below), and a container measures its
+     own content, so if `.zone` were the container that growth would feed
+     back into the very number it is sized from. Nothing here depends on the
+     zone's box, so there is nothing to feed back. */
+  container-type: inline-size;
 }
 
 /* The window onto the strip. Not the pointer's surface — that is `.hit`
@@ -48,10 +56,54 @@
    every state. The right padding is the fade, and the JS reads it. A size
    container, so the prints can place themselves on the arc from its width. */
 .zone {
+  /* Half the visible window (the zone less its fade) and the arc's radius.
+     The prints' curve is drawn from them (see `.tile`), and every one of
+     them is inherited straight down into `.list` and `.tile` without being
+     redeclared: custom properties flow down a subtree on their own. */
+  --half: calc((100cqi - var(--fade)) / 2);
+  --r: max(var(--half), 260px);
+  /* The first print's lean, estimated the same way `.tile` computes every
+     print's: its angle as seen from the window's centre. Only ever used to
+     size `--corner-room` below, so an estimate a touch wide costs nothing —
+     see the note there. `--c0` is written by the JS beside this element. */
+  --corner-lean: clamp(
+    -10deg,
+    calc(atan2(calc(var(--c0) * var(--print) - var(--half)), var(--r)) * 0.2222),
+    10deg
+  );
+  /* How far this box has to reach past its own left edge for the first
+     print's rotated top corner to clear the clip below without the print
+     itself moving. A rotated print's corner and its visible body do not
+     travel together: the corner is the tip of a lean, the body is the bulk
+     a reader's eye actually reads as "where the row starts," and the two
+     can be many pixels apart. Sizing the list's own padding to protect the
+     corner — the first fix tried here — dragged the whole visible body that
+     same distance inside the text margin, which read as the pile starting
+     late rather than flush. Protecting the corner here instead, by giving
+     only the clip boundary room to spare, lets the list's own padding
+     shrink to plain breathing space (see `--pad`) while the corner still
+     never reaches the edge.
+     `max(0px, …)` because a lean either side of vertical only threatens the
+     edge on that side, and this box only ever gives room to the left; a
+     negative value here would shift the box the wrong way. The constant
+     past that is a safety margin, not a second copy of the same slack this
+     replaced: the corner's swing is now measured exactly, so this only has
+     to absorb whatever a rotated, separately-rasterised layer loses to
+     snapping to a whole device pixel — the failure this whole property
+     exists to prevent, and the amount that took a 2px iPhone border in an
+     earlier version of this fix. */
+  --corner-room: calc(
+    max(0px, var(--print) * -1 * sin(var(--corner-lean))) + var(--print) * 0.08
+  );
   position: relative;
-  width: 100%;
-  container-type: inline-size;
-  padding: calc(3rem + var(--lift-room)) var(--fade) 2rem 0;
+  /* Grown left by `--corner-room` and pulled back by the same amount, so the
+     clip boundary this box draws (`overflow-x: clip`, below) sits that much
+     further from the text than everything inside it does. The right edge is
+     untouched — the width grows by exactly what the margin gives back — so
+     the fade and the travel range it bounds don't move. */
+  width: calc(100% + var(--corner-room));
+  margin-left: calc(var(--corner-room) * -1);
+  padding: calc(3rem + var(--lift-room)) var(--fade) 2rem var(--corner-room);
   margin-top: calc(var(--lift-room) * -1);
   overflow-x: clip;
   overflow-y: visible;
@@ -235,74 +287,21 @@
   }
 }
 
-/* The start padding, registered so it has a value to fall back on. `--pad`
-   below is built from `atan2()` and `sin()` through two custom properties,
-   and an engine that cannot follow that would otherwise drop the padding to
-   zero and clip the first print's corner, which is the failure this whole
-   calculation exists to avoid. Registered, the same failure falls back to
-   this instead: the flat padding the pile used before, which merely starts
-   the pile a little inside the text. A gap is recoverable, a cut is not.
-   Engines without `@property` ignore this rule and are no worse off.
-
-   The initial value is 20px and not the 1.25rem it replaces, because a
-   registered property's initial value has to be computationally independent
-   and `rem` depends on the root font size. Written in `rem` the whole rule
-   was invalid and silently dropped, which cost nothing visibly and left the
-   fallback that appears to be here not actually present: an invalid `--pad`
-   still took the padding to zero. Checked by forcing the failure. */
-@property --pad {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 20px;
-}
-
 .list {
   /* Share of its own width each print tucks under the next one at rest. */
   --tuck: 0.4;
-  /* Half the window and the arc's radius. The prints' curve is drawn from
-     them (see `.tile`), and so is the start padding below; declared here
-     because `cqi` resolves against `.zone` from anywhere inside it, and a
-     container cannot query itself. */
-  --half: calc(100cqi / 2);
-  --r: max(var(--half), 260px);
   /* The paper border, inherited by `.tile`, which draws it. Measured as a
      share of the print rather than a fixed width: at 3px it was 2.5% of a
      desktop print's height but 4.2% of a phone's, so the same border read as
      half again as heavy on the smaller paper. */
   --frame: max(2px, calc(var(--print) * 0.025));
-  /* The start padding is the room the first print's rotated top corner needs
-     to its left, so the pile begins beside the text rather than inside it.
-
-     It cannot be a constant. That room is the print's height times the sine
-     of its lean, and the lean falls off on a narrow window: the radius is
-     held at 260px so a phone gets a gentler arc, which left the first print
-     leaning 3.5° there against a desktop's 8°. A flat 1.25rem was the room
-     the desktop needed, so on a phone the pile started 15px inside the
-     paragraph above it.
-
-     Slack on top, because the zone clips sideways and the corner must not
-     land on the clip line. Aimed exactly at it, the print was flush in
-     Chromium and cut in Safari: a rotated print is rasterised on its own
-     layer (see `backface-visibility` on `.tile`) and that layer is snapped
-     to whole device pixels, so a corner with no room loses its paper border
-     to the clip. One border's width of slack was still not enough on a 3x
-     iPhone, where the paper is 2px and the snap ate all of it. A part of
-     the print, like everything else here, so it grows with the paper: 5.8px
-     on a phone and 9.6px on a desktop, far past any rounding, and small
-     enough that the pile still reads as starting at the text.
-
-     `--c0` is the first print's resting centre, written by the server beside
-     each print's own `--c`. A property cannot refer to itself, so the lean
-     is estimated with no padding at all. That overestimates it, and more
-     lean means more room, so the estimate always errs wide: never a clip,
-     never more than a few px of slack. The curve itself uses the real
-     padding, so the stylesheet and the JS still measure the same pile. */
-  --lean0: clamp(
-    -10deg,
-    calc(atan2(calc(var(--c0) * var(--print) - var(--half)), var(--r)) * 0.2222),
-    10deg
-  );
-  --pad: calc(var(--print) * 0.08 + var(--print) * -1 * sin(var(--lean0)));
+  /* Plain breathing room between the text and the first print's visible
+     body — not a corner's clearance from the clip line, which is `.zone`'s
+     own concern now (`--corner-room`) and no longer this property's job. A
+     share of the border's own width, so it grows with the paper the way
+     everything else here does, and stays small enough that the pile still
+     reads as starting at the text rather than beside it. */
+  --pad: calc(var(--frame) * 2);
   /* Prints sit on a shared baseline and grow upward from it. */
   position: relative;
   display: flex;
@@ -325,7 +324,8 @@
      client frame at any width. */
   --c: 0;
   /* `--half` and `--r` (the circle's radius, never tighter than 260px so a
-     phone's narrow window gets a gentler arc) come from `.list`. */
+     phone's narrow window gets a gentler arc) come from `.zone`, inherited
+     straight down through `.list`. */
   --dx: calc(var(--c) * var(--print) + var(--pad) - var(--half));
   --angle: atan2(var(--dx), var(--r));
   --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
