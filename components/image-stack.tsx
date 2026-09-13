@@ -132,18 +132,6 @@ const PRESS = 0.04;
  * is a click, not a drag. */
 const CLICK_SLOP = 6;
 const CLICK_TIME = 500;
-/** Resting the pointer in the outer band of the window drifts the pile toward
- * that end: the band's share of the window's width, and the drift at the very
- * edge in px per second. It ramps quadratically, so the inner half of the
- * band barely moves it and the pointer never has to fight the pile. */
-const BAND = 0.22;
-const CREEP = 200;
-/** The drift's time constant, in seconds: it covers 63% of the way to full
- * speed in this long once the pointer has settled in a band, and dies away
- * as gently after it leaves.
- * A pointer that only sweeps through the band on its way somewhere else
- * moves the pile by next to nothing. */
-const DWELL = 0.35;
 /** A drag past either end follows the finger less and less: how far it can
  * go, in px, and how stiffly it resists. */
 const RUBBER_REACH = 96;
@@ -317,12 +305,11 @@ export function ImageStack() {
     pointerY: 0,
     hovering: false,
     /** Edge drift: -1 at the left edge, 1 at the right, 0 in the middle.
-     * `drive` is where the pointer is; `driving` follows it over DWELL and
-     * is what moves the pile. */
-    drive: 0,
-    driving: 0,
     /** An active drag: where it started, and recent samples for velocity. */
     drag: null as null | {
+      /** The finger that owns the gesture. Every later pointer event is
+       * matched against it; see `handleDown`. */
+      pointerId: number;
       originX: number;
       originTravel: number;
       at: number;
@@ -436,7 +423,12 @@ export function ImageStack() {
       if (event.button !== 0) return;
       // A second finger landing mid-drag would take the strip with it, since
       // the drag records where it began: the pile would jump to the new
-      // finger. The first one keeps the gesture.
+      // finger. The first one keeps the gesture. Blocking a second
+      // `pointerdown` is only half of it, though, because capture redirects
+      // one pointer and not the rest: the second finger still fires its own
+      // moves and ups at this element. So the gesture records whose it is
+      // and the other handlers check. Without that, a finger resting on the
+      // pile mid-drag threw the strip 78px sideways in a single frame.
       if (s.drag) return;
       if (!s.geometry) measure();
       // Capture keeps the drag alive outside the zone. It throws if the
@@ -447,9 +439,8 @@ export function ImageStack() {
       // Grab the strip where it is, mid-glide included: no jump on touch.
       s.travelTarget = s.travel;
       s.travelV = 0;
-      s.drive = 0;
-      s.driving = 0;
       s.drag = {
+        pointerId: event.pointerId,
         originX: event.clientX,
         originTravel: s.travel,
         at: event.timeStamp,
@@ -481,12 +472,11 @@ export function ImageStack() {
     const hoverMove = (geometry: Geometry) => {
       s.hovering = true;
       showCursor(hit, printUnder(s, geometry));
-      // No edge drift while a print is lifted: the pile holds still.
-      s.drive = s.focused >= 0 ? 0 : driveFor(s.pointerX, geometry);
-      reportHover(report.current, s.drive);
+      report.current("hover");
     };
 
     const handleMove = (event: PointerEvent) => {
+      if (s.drag && event.pointerId !== s.drag.pointerId) return;
       if (!s.geometry) measure();
       const geometry = s.geometry as Geometry;
       // Kept fresh whatever the pointer is doing. `step` re-aims every frame
@@ -552,8 +542,8 @@ export function ImageStack() {
      * that was only scrolling the page. Chromium happens to report the
      * cancelled pointer at x = 0, which the click's slop test rejects by
      * accident; this makes it deliberate. */
-    const handleCancel = () => {
-      if (!s.drag) return;
+    const handleCancel = (event: PointerEvent) => {
+      if (!s.drag || event.pointerId !== s.drag.pointerId) return;
       s.drag = null;
       s.pTarget.fill(0);
       s.samples.length = 0;
@@ -568,7 +558,7 @@ export function ImageStack() {
     };
 
     const handleUp = (event: PointerEvent) => {
-      if (!s.drag) return;
+      if (!s.drag || event.pointerId !== s.drag.pointerId) return;
       const drag = s.drag;
       s.drag = null;
       s.pTarget.fill(0);
@@ -595,7 +585,6 @@ export function ImageStack() {
 
     const handleLeave = (event: PointerEvent) => {
       s.hovering = false;
-      s.drive = 0;
       s.target.fill(0);
       if (event.pointerType === "mouse" && s.focused >= 0) lift(-1);
       start();
@@ -811,12 +800,6 @@ export function ImageStack() {
   );
 }
 
-/** Hovering counts once; resting in an edge band also counts as travel. */
-function reportHover(report: Report, drive: number) {
-  report("hover");
-  if (drive !== 0) report("travel");
-}
-
 /** Where a key sends the lifted print: -1 puts it back, a step leafs to the
  * neighbour, and undefined means the key was never ours to take. */
 function leafTo(key: string, focused: number): number | undefined {
@@ -920,11 +903,12 @@ const LANDED = 0.002;
  * the print rose made it pop into focus a beat after it had landed.
  *
  * Paper height × the orientation's width share × the lift's scale
- * (1 + GROWTH + FOCUS_GROWTH = 1.85), at both of the stylesheet's paper
+ * (1 + GROWTH + FOCUS_GROWTH = 2.13), at both of the stylesheet's paper
  * heights — 120px above 640px wide, 72px below (see `--print`) — then
- * rounded up to a round number: 177.6 and 277.5 become 192 and 288, 106.6
- * and 166.5 become 108 and 168. The rounding changes no variant; it only
- * spares the reader four awkward decimals. The query must stay in step with
+ * rounded up to a round number: 319.5 and 204.5 become 320 and 208 on a
+ * desktop, 191.7 and 122.7 become 192 and 128 on a phone. The rounding
+ * changes no variant; it only spares the reader four awkward decimals.
+ * Keep the numbers with GROWTH and FOCUS_GROWTH, and the query in step with
  * that breakpoint. A phone's print is two-fifths of a desktop's, so without
  * the narrow arm every phone would fetch a source four times the area it
  * can show. */
@@ -936,6 +920,7 @@ function sizesFor(landscape: boolean): string {
 
 type Drag = {
   drag: null | {
+    pointerId: number;
     originX: number;
     originTravel: number;
     at: number;
@@ -953,16 +938,6 @@ function dragTo(s: Drag, event: PointerEvent, geometry: Geometry) {
   s.travelTarget = rubberband(raw, geometry.maxTravel);
   s.samples.push({ x: event.clientX, t: event.timeStamp });
   if (s.samples.length > 6) s.samples.shift();
-}
-
-/** Edge drift for a pointer at `pointerX`: the visible window is the zone
- * less the fade, and only its outer bands drift the pile, toward that end. */
-function driveFor(pointerX: number, geometry: Geometry): number {
-  const { visible } = geometry;
-  const band = visible * BAND;
-  if (pointerX < band) return -(1 - pointerX / band);
-  if (pointerX > visible - band) return 1 - (visible - pointerX) / band;
-  return 0;
 }
 
 /** Past either end the strip follows the pointer less and less, up to
@@ -1062,9 +1037,8 @@ type Focus = {
 type Sim = Springs &
   Focus &
   Travel &
-  Drift &
   Edges &
-  Aim & { hovering: boolean; drag: unknown };
+  Aim & { hovering: boolean; drag: unknown; geometry: Geometry | null };
 
 /** Advance the lift, the uncover and the press by `dt` seconds. The lift is
  * never snapped for reduced motion — `riseOf` takes the travel out of it
@@ -1085,11 +1059,11 @@ function lifts(s: Focus, dt: number, putBack: boolean): boolean {
 /** Advance the whole simulation by `dt` seconds. Returns whether anything is
  * still moving. */
 function step(s: Sim, dt: number): boolean {
-  let moving = creep(s, dt);
+  let moving = false;
   // Putting a print back is the system answering, not the reader deciding,
   // so it goes quicker than the lift that raised it.
   const putBack = s.focused < 0;
-  // Re-aim every frame: the pile may be drifting under a still pointer. With
+  // Re-aim every frame: the pile may still be gliding under a still pointer. With
   // a print lifted the pile holds as it was at the click: nothing under the
   // print changes, so the print rises straight up from where it was.
   if (s.focused < 0 && s.hovering && s.geometry) aim(s, s.geometry);
@@ -1124,33 +1098,6 @@ function paint(
     raise(tiles[i], i, level);
   }
   return countInView(s, s.geometry, s.travel);
-}
-
-type Drift = {
-  drive: number;
-  driving: number;
-  travelTarget: number;
-  geometry: Geometry | null;
-};
-
-/** Drift the travel target while the pointer rests in an edge band. The
- * drift follows the pointer's position over DWELL, so it has to rest there
- * to move the pile, and lets go as gently. Returns whether anything moved. */
-function creep(s: Drift, dt: number): boolean {
-  if (!s.geometry) return false;
-  s.driving += (s.drive - s.driving) * (1 - Math.exp(-dt / DWELL));
-  if (Math.abs(s.driving) < 0.005) s.driving = 0;
-  if (s.driving === 0) return false;
-  const before = s.travelTarget;
-  s.travelTarget = clamp(
-    before + s.driving * Math.abs(s.driving) * CREEP * dt,
-    0,
-    s.geometry.maxTravel,
-  );
-  // Still moving while the target moves or the drift is still ramping; a
-  // pointer parked in a band with the pile already at that end lets the
-  // loop stop.
-  return s.travelTarget !== before || Math.abs(s.drive - s.driving) > 0.005;
 }
 
 type Springs = {
@@ -1433,16 +1380,23 @@ function markDots(
 
 /**
  * How many prints, counting from the first, have their left edge inside the
- * visible window (the zone less its fade) right now. Drives lazy loading: a
- * print gets its real image the first time it comes into view.
+ * zone right now. Drives lazy loading: a print gets its real image the first
+ * time it comes into view.
+ *
+ * The whole zone, fade included, not the visible window inside it. Prints
+ * under the fade are still painted, only dimmed, so counting them out left
+ * the one at the fade's edge showing its blur placeholder: a pale card at
+ * the end of the fan that only became a photograph once the reader dragged
+ * it out, or clicked it, which read as the picture loading late. The fade is
+ * about one print wide, so this is an image or two more up front.
  */
 function countInView(lifts: Lifts, geometry: Geometry, travel: number): number {
-  const { visible } = geometry;
+  const { zoneWidth } = geometry;
   let x = 0;
   let count = 0;
   for (let i = 0; i < lifts.g.length; i++) {
     if (i > 0) x += separation(lifts, geometry, i - 1);
-    if ((geometry.lefts[i] ?? 0) + x - travel < visible) count = i + 1;
+    if ((geometry.lefts[i] ?? 0) + x - travel < zoneWidth) count = i + 1;
   }
   return count;
 }

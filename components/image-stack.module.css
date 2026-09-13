@@ -34,11 +34,13 @@
      things a reader actually wants here. The pointer surface narrows this
      further to `pan-y`, since sideways drags are the pile's own. */
   touch-action: manipulation;
-  /* Full bleed to the right: the column is centred, so half the column plus
-     half the viewport reaches the viewport's edge. The left edge stays on
-     the text. The page clips sideways overflow (see editorial-theme.css). */
-  width: calc(50% + 50vw);
-  max-width: none;
+  /* The pile keeps the text column's width. It used to bleed to the
+     viewport's right edge, which put the drift band (see BAND in
+     image-stack.tsx, the outer fifth of the window where resting the pointer
+     slides the pile) out at the edge of the screen, where a pointer arrives
+     from: moving toward the pile set it off before the reader had touched
+     anything. The fade at the right edge already says there is more. */
+  width: 100%;
 }
 
 /* The window onto the strip. Not the pointer's surface — that is `.hit`
@@ -213,34 +215,41 @@
      container cannot query itself. */
   --half: calc(100cqi / 2);
   --r: max(var(--half), 260px);
+  /* The paper border, inherited by `.tile`, which draws it. Measured as a
+     share of the print rather than a fixed width: at 3px it was 2.5% of a
+     desktop print's height but 4.2% of a phone's, so the same border read as
+     half again as heavy on the smaller paper. */
+  --frame: max(2px, calc(var(--print) * 0.025));
   /* The start padding is the room the first print's rotated top corner needs
-     to its left, so the pile's leftmost pixel lands on the text edge rather
-     than inside it.
+     to its left, so the pile begins beside the text rather than inside it.
 
      It cannot be a constant. That room is the print's height times the sine
-     of its lean, less what the corner swings back as the print turns, and
-     the lean falls off on a narrow window: the radius is held at 260px so a
-     phone gets a gentler arc, which left the first print leaning 3.5° there
-     against a desktop's 8°. A flat 1.25rem was the room the desktop needed,
-     so on a phone the pile started 15px inside the paragraph above it.
+     of its lean, and the lean falls off on a narrow window: the radius is
+     held at 260px so a phone gets a gentler arc, which left the first print
+     leaning 3.5° there against a desktop's 8°. A flat 1.25rem was the room
+     the desktop needed, so on a phone the pile started 15px inside the
+     paragraph above it.
+
+     One frame's width of slack on top, because the zone clips sideways and
+     the corner must not land on the clip line. Aimed exactly at it, the
+     print was flush in Chromium and cut in Safari: a rotated print is
+     rasterised on its own layer (see `backface-visibility` on `.tile`) and
+     that layer is snapped to whole device pixels, so a corner with no room
+     loses its paper border to the clip. The slack is the border itself,
+     which is the thing that has to survive.
 
      `--c0` is the first print's resting centre, written by the server beside
-     each print's own `--c`. The lean is taken from the nominal padding this
-     replaces, since a property cannot refer to itself; one round lands
-     within a pixel of the fixed point, and the curve itself uses the real
+     each print's own `--c`. A property cannot refer to itself, so the lean
+     is estimated with no padding at all. That overestimates it, and more
+     lean means more room, so the estimate always errs wide: never a clip,
+     never more than a few px of slack. The curve itself uses the real
      padding, so the stylesheet and the JS still measure the same pile. */
   --lean0: clamp(
     -10deg,
-    calc(
-      atan2(calc(var(--c0) * var(--print) + 1.25rem - var(--half)), var(--r)) *
-        0.2222
-    ),
+    calc(atan2(calc(var(--c0) * var(--print) - var(--half)), var(--r)) * 0.2222),
     10deg
   );
-  --pad: calc(
-    var(--print) *
-      (-1 * sin(var(--lean0)) - var(--c0) * (1 - cos(var(--lean0))))
-  );
+  --pad: calc(var(--frame) + var(--print) * -1 * sin(var(--lean0)));
   /* Prints sit on a shared baseline and grow upward from it. */
   position: relative;
   display: flex;
@@ -288,10 +297,8 @@
      belongs to the print's own paint, so the paper and the hole in it round
      together and the frame stays even at any scale.
 
-     Measured as a share of the paper, not a fixed width: at 3px it was
-     2.5% of a desktop print's height but 4.2% of a phone's, so the same
-     border read as half again as heavy on the smaller paper. */
-  --frame: max(2px, calc(var(--print) * 0.025));
+     Its width, `--frame`, comes from `.list`, which also needs it: the
+     start padding keeps one frame of slack so this border is never clipped. */
   position: relative;
   flex: none;
   height: var(--print);
