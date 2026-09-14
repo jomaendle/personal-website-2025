@@ -690,10 +690,26 @@ export function ImageStack() {
     // would flicker enter/leave at every edge. The surface never moves and
     // contains every print in every state (it grows to cover a lifted one),
     // so it behaves like a fixed detection region.
-    // Paint once on mount so the resting marks match the real window, not
-    // the server's guess; the loop itself only runs when something moves.
+    // Paint once on mount, prints included, so the resting pile matches
+    // the real window and this engine's own arithmetic, not the server's
+    // guess. The loop itself only runs when something moves after this.
+    //
+    // Painting the prints here, not only the marks, is what makes that
+    // matter: the CSS resting pose and this paint both compute the same
+    // curve, but one runs in the browser's CSS engine and the other in its
+    // JavaScript engine, and nothing guarantees two independent
+    // implementations of atan2() and sin() agree to the last bit on every
+    // engine's every version. Left un-painted, a print's pose stood on the
+    // CSS engine's word alone until the first pointer event asked the JS
+    // engine for its own answer — invisible wherever the two already
+    // agreed, and on any print or engine where they quietly didn't, the
+    // reader's only warning was the pile resettling under their finger.
     const mounted = measure();
-    if (dotsRef.current) markDots(s, mounted, s.travel, dotsRef.current);
+    paint(s, tileRefs.current, {
+      zone: zoneRef.current,
+      backdrop: backdropRef.current,
+      dots: dotsRef.current,
+    });
     // A window wider than the server assumed shows more prints: give them
     // their images now rather than at the first movement.
     const inView = countInView(s, mounted, s.travel);
