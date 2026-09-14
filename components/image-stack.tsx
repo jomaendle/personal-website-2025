@@ -208,7 +208,18 @@ type Geometry = {
   stripLeft: number;
   zoneTop: number;
   zoneWidth: number;
-  /** The window the reader actually sees: the zone less its fade. */
+  /** The window the reader actually sees: from where the strip itself
+   * starts to where the fade begins. Not the zone's own width — the zone
+   * now reaches `--corner-room` past its own left edge on purpose (see the
+   * stylesheet), so a print's rotated corner has somewhere to go without
+   * being clipped. That extra width is real on screen but isn't part of
+   * what a reader reads as the window, and the CSS's own `--half` (the
+   * resting pose the server renders) was never written to include it
+   * either. Measuring from the zone instead of the strip here once
+   * inflated this by exactly `--corner-room`, and every print's lean
+   * quietly disagreed with the server's the instant this ran — which is
+   * only ever in response to a pointer, so the pile looked correct until
+   * the first touch and then visibly resettled. */
   visible: number;
   /** The strip's vertical band, in zone coordinates: where the prints stand
    * at rest, less the room the tallest lift needs above them. */
@@ -420,7 +431,7 @@ export function ImageStack() {
         stripTop: listRect.top - zoneRect.top - (LIFT + FOCUS_LIFT),
         stripBottom: listRect.bottom - zoneRect.top,
         zoneWidth: zoneRect.width,
-        visible: zoneRect.width - fade,
+        visible: zoneRect.right - fade - listRect.left,
         fade,
         height: tiles[0]?.offsetHeight ?? 0,
         lefts,
