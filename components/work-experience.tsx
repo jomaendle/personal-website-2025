@@ -22,7 +22,7 @@ export function WorkExperience() {
               </div>
               <span
                 aria-hidden="true"
-                className="mt-1 shrink-0 font-mono text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+                className="mt-1 shrink-0 font-mono text-muted-foreground transition-[transform,color] duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
               >
                 ↗
               </span>

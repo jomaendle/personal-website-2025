@@ -76,6 +76,10 @@ export default function NewsletterForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your.email@example.com"
+            // A placeholder is not an accessible name, and it is gone the
+            // moment anyone types. Without this the field announced as an
+            // unlabelled edit box.
+            aria-label="Email address"
             required
             disabled={isLoading}
             // Focus styling is left entirely to the base Input's brand

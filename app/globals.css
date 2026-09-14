@@ -393,7 +393,10 @@
   .prose a,
   .prose button,
   .prose [role="button"] {
-    transition: all 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   /* Focus states for accessibility */
@@ -501,7 +504,7 @@
   }
 
   ::view-transition-new(blog-card-*) {
-    animation: fade-scale-in 0.25s ease-in;
+    animation: fade-scale-in 0.25s ease-out;
   }
 
   /* Fade animations for blog post elements */
@@ -512,7 +515,7 @@
 
   ::view-transition-new(blog-title-*),
   ::view-transition-new(blog-date-*) {
-    animation: fade-in 0.2s ease-in 0.1s;
+    animation: fade-in 0.2s ease-out 0.1s;
   }
 
   @keyframes fade-scale-out {

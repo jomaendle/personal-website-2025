@@ -40,14 +40,16 @@ export const NameHeading = ({
       </div>
 
       <div className="flex items-center gap-5">
-        <Image
-          src={SITE.avatar}
-          alt={SITE.name}
-          width={96}
-          height={96}
-          priority
-          className="size-20 rounded-full bg-neutral-100 object-cover md:size-24 dark:bg-neutral-800"
-        />
+        {SITE.avatar ? (
+          <Image
+            src={SITE.avatar}
+            alt={SITE.name}
+            width={96}
+            height={96}
+            priority
+            className="size-20 rounded-full bg-neutral-100 object-cover md:size-24 dark:bg-neutral-800"
+          />
+        ) : null}
         <div className="flex flex-col gap-1.5">
           <H1>{SITE.name}</H1>
           {showJobTitle ? (

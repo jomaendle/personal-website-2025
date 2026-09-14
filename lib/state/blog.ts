@@ -33,6 +33,14 @@ export const CLAUDE_CODE_ESSENTIALS_FOUNDATIONS = {
   slug: "claude-code-essentials-foundations",
 };
 
+/** Unpublished. Kept out of `BLOG_POSTS` so it stays off the index, the
+ * homepage and the sitemap while the route itself keeps working. */
+export const PHOTO_PILE_BUGS = {
+  title: "Building a Photo Pile That Feels Right",
+  date: "Sep 13, 2026",
+  slug: "photo-pile-bugs",
+};
+
 export const BLOG_POSTS: {
   title: string;
   date: string;

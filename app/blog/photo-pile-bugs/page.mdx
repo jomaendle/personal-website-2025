@@ -1,0 +1,161 @@
+import MdxLayout from "../../../components/mdx-layout";
+import { CodeBlock } from "../../../components/code-block";
+import { ImageStack } from "../../../components/image-stack";
+import { LeanDemo } from "./LeanDemo";
+import { HoverDemo } from "./HoverDemo";
+import { PHOTO_PILE_BUGS } from "../../../lib/state/blog";
+
+export const metadata = {
+  title: PHOTO_PILE_BUGS.title,
+  date: PHOTO_PILE_BUGS.date,
+};
+
+export const dynamic = 'force-static'
+
+# {metadata.title}
+
+A pile of photos feels right when it behaves like paper. Prints tuck under each other. The one you reach for comes forward. The pile slides as one thing.
+
+There is one on my homepage. It took four decisions. I made each the obvious way first, and the obvious way was wrong every time.
+
+## 1. The lean belongs to the window
+
+Give print `n` a rotation of `n` degrees and the fan looks fine standing still. Then you drag it.
+
+<LeanDemo />
+
+With the lean fixed to the paper, the row slides as a rigid block. Paper rolls instead. A print stands upright as it passes in front of you and leans away on either side. So the angle has to come from where the print is in the window.
+
+<CodeBlock
+  language="ts"
+  code={`
+const angle = Math.atan2(dx, Math.max(half, RADIUS));
+const lean = clamp(angle * (180 / Math.PI) * (LEAN / 45), -LEAN, LEAN);
+const drop = print * Math.min(DROP, SAG * (1 - Math.cos(angle)));
+`}
+/>
+
+`dx` is the print's distance from the middle of the window. `half` is half the window's width. The `Math.max` is for phones. A narrow window means a tight circle, and at 390px the prints leaned into each other like a kink.
+
+The same curve runs in CSS, so the server renders the fan and it holds without JavaScript.
+
+<CodeBlock
+  language="css"
+  code={`
+--angle: atan2(var(--dx), var(--r));
+--lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
+`}
+/>
+
+## 2. Hover is a state, not a dial
+
+The obvious open is a falloff. The print under the pointer grows most, its neighbours a little less. Every pixel of movement resizes three or four prints and shifts everything after them.
+
+<HoverDemo />
+
+The left row never holds still. The right one changes only when the pointer crosses into a different print.
+
+<CodeBlock
+  language="ts"
+  code={`
+const over = printUnder(s, geometry);
+if (over < 0) return;          // over a gap: keep whatever is already up
+for (let i = 0; i < s.target.length; i++) {
+  s.target[i] = i === over ? 1 : 0;
+}
+`}
+/>
+
+The early return matters. There are gaps between prints. Without it, the pile closes every time the pointer crosses one.
+
+## 3. Promoting a layer moves it
+
+Thirteen prints, their shadows and their marks add up to forty elements with `will-change: transform`. That is forty compositor layers a phone holds for something nobody has scrolled to. So I gated it: promote on pointer down, release once the springs settle.
+
+That is the textbook advice, and it was the worst bug in the component.
+
+**An element that gets its own layer snaps to whole device pixels.** The prints sit on fractional ones. So the whole row jumped a pixel or two at the moment of promotion, and I had made that moment the one where your finger touches the screen.
+
+Add the class, change nothing else, diff the pixels:
+
+<CodeBlock
+  language="text"
+  code={`45,557 pixels changed by more than 2%`}
+/>
+
+Promote while the page is already moving instead. Then nothing shifts under your hand.
+
+<CodeBlock
+  language="ts"
+  code={`
+new IntersectionObserver(
+  (entries) => stack.classList.toggle(ARMED, entries.at(-1)?.isIntersecting ?? false),
+  { rootMargin: "200px 0px" },
+);
+`}
+/>
+
+No layers before you reach the pile. Forty while it is on screen. None once it is past.
+
+## 4. A frame and its hole are one element
+
+Each print has a paper border. All four sides were written as 2px. On a phone they measured like this:
+
+<CodeBlock
+  language="text"
+  code={`
+top     12 device px
+bottom   4
+left     8
+right    7
+`}
+/>
+
+An element that clips and rounds its own corners is drawn on its own layer, and that layer snaps to device pixels on its own. The border was on the outer box and the photo in an inset child, so the two snapped apart. A fraction of a pixel, until a lift of 2.13x on a 3x screen multiplies it.
+
+Evening out the border does not help. Two boxes still snap separately. They have to be one box.
+
+<CodeBlock
+  language="css"
+  code={`
+.photo {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--frame) solid hsl(var(--paper));
+  overflow: hidden;
+}
+`}
+/>
+
+The border is a share of the print's size now, not a fixed width. At a flat 3px it was 2.5% of a desktop print and 4.2% of a phone's, so the same border looked half again as heavy on the smaller paper.
+
+## The springs under it
+
+Everything above moves on springs I wrote by hand. One loop, semi-implicit Euler. That method is stable only while `k · h² + 2 · c · h < 4`. At my stiffness that means a frame shorter than 20.7ms, and I had let frames run to 32ms.
+
+Below about 48fps the spring blew up instead of settling. The transforms went to infinity, which is not valid CSS and is dropped without a word. Nothing looked broken. The loop just never stopped.
+
+Sub-steps of 8ms fix it. Check the bound against your worst frame, not your best one.
+
+## All of it together
+
+This is the pile as it ships. Lean from the window, hover as a state, layers promoted by scroll, one box per print, springs in 8ms steps. Drag it, hover it, click a print.
+
+<figure className="not-prose my-10">
+  <ImageStack />
+</figure>
+
+## Two things I would do differently
+
+Sample every frame, not just before and after. I deleted correct code because a snapshot showed 42 pixels of movement. Per frame it was 30 frames with no step over 7. That deletion caused the next bug.
+
+Get on a real phone early. Emulators found two of these bugs and missed the two that need real pixel density. The layer jump only became findable when someone tapped and said "it happens on tap".
+
+export default function Page({ children }) {
+  return (
+    <MdxLayout metadata={metadata} slug="photo-pile-bugs">
+      {children}
+    </MdxLayout>
+  );
+}

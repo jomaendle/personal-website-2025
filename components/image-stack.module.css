@@ -1,0 +1,461 @@
+/* A fanned pile of prints that opens under the pointer. The stylesheet owns
+   the resting pose and the look; the JS side writes straight onto the
+   elements — each print's `transform` and its shadow layer's `opacity` every
+   frame, and, as they change, the stacking order, the zone's mask position,
+   the pointer surface's height and cursor, and the backdrop's and dots'
+   styles. Nothing is driven through custom properties at runtime: a property
+   change on a print would recalculate style for everything inside it, sixty
+   times a second. */
+
+.stack {
+  --print: 72px;
+  --fade: 88px;
+  /* Room above the window for a print lifted by a click. Part of the zone's
+     box (so the mask covers it) but not of the layout (see the negative
+     margin) and not of the pointer's surface. */
+  --lift-room: 8.5rem;
+  /* The ink these are drawn with, and the prints' paper and hairline edge;
+     light mode overrides all three below. Declared here on the stack rather
+     than on the zone because the pool of shadow is a sibling of the zone,
+     not a child of it — on the zone the pool inherited nothing, every
+     `hsl(var(--shadow-ink) / …)` stop was invalid, and the browser dropped
+     its whole background: the pool never painted at all. */
+  --shadow-ink: 0 0% 0%;
+  --paper: var(--foreground);
+  --hairline: hsl(var(--shadow-ink) / 0.06);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* Tapping a print and tapping it again to put it back is, to Safari, a
+     double-tap — which zooms the page, moving and resizing everything under
+     the finger. Any touch-action but `auto` takes double-tap zoom off this
+     box; `manipulation` keeps panning and pinch-zoom, which are the two
+     things a reader actually wants here. The pointer surface narrows this
+     further to `pan-y`, since sideways drags are the pile's own. */
+  touch-action: manipulation;
+  /* The pile keeps the text column's width. It used to bleed to the
+     viewport's right edge, which put the pile's own sensitive area out where
+     a pointer arrives from — the pile answered before the reader had reached
+     it. The fade at the right edge already says there is more. */
+  width: 100%;
+  /* A size container, so the prints can place themselves on the arc from
+     this box's width (see `--half` on `.zone`). Declared here rather than on
+     `.zone`, which used to hold it: `.zone` itself now grows past this box's
+     edge on the left (`--corner-room`, below), and a container measures its
+     own content, so if `.zone` were the container that growth would feed
+     back into the very number it is sized from. Nothing here depends on the
+     zone's box, so there is nothing to feed back. */
+  container-type: inline-size;
+}
+
+/* The window onto the strip. Not the pointer's surface — that is `.hit`
+   below, since this box takes no pointer events at all. Clips
+   sideways only: the prints lift above and drop below their layout box, and
+   the vertical padding is the headroom that keeps them inside this box in
+   every state. The right padding is the fade, and the JS reads it. A size
+   container, so the prints can place themselves on the arc from its width. */
+.zone {
+  /* Half the visible window (the zone less its fade) and the arc's radius.
+     The prints' curve is drawn from them (see `.tile`), and every one of
+     them is inherited straight down into `.list` and `.tile` without being
+     redeclared: custom properties flow down a subtree on their own. */
+  --half: calc((100cqi - var(--fade)) / 2);
+  --r: max(var(--half), 260px);
+  /* The first print's lean, estimated the same way `.tile` computes every
+     print's: its angle as seen from the window's centre. Only ever used to
+     size `--corner-room` below, so an estimate a touch wide costs nothing —
+     see the note there. `--c0` is written by the JS beside this element. */
+  --corner-lean: clamp(
+    -10deg,
+    calc(atan2(calc(var(--c0) * var(--print) - var(--half)), var(--r)) * 0.2222),
+    10deg
+  );
+  /* How far this box has to reach past its own left edge for the first
+     print's rotated top corner to clear the clip below without the print
+     itself moving. A rotated print's corner and its visible body do not
+     travel together: the corner is the tip of a lean, the body is the bulk
+     a reader's eye actually reads as "where the row starts," and the two
+     can be many pixels apart. Sizing the list's own padding to protect the
+     corner — the first fix tried here — dragged the whole visible body that
+     same distance inside the text margin, which read as the pile starting
+     late rather than flush. Protecting the corner here instead, by giving
+     only the clip boundary room to spare, lets the list's own padding
+     shrink to plain breathing space (see `--pad`) while the corner still
+     never reaches the edge.
+     `max(0px, …)` because a lean either side of vertical only threatens the
+     edge on that side, and this box only ever gives room to the left; a
+     negative value here would shift the box the wrong way. The constant
+     past that is a safety margin, not a second copy of the same slack this
+     replaced: the corner's swing is now measured exactly, so this only has
+     to absorb whatever a rotated, separately-rasterised layer loses to
+     snapping to a whole device pixel — the failure this whole property
+     exists to prevent, and the amount that took a 2px iPhone border in an
+     earlier version of this fix. */
+  --corner-room: calc(
+    max(0px, var(--print) * -1 * sin(var(--corner-lean))) + var(--print) * 0.08
+  );
+  position: relative;
+  /* Grown left by `--corner-room` and pulled back by the same amount, so the
+     clip boundary this box draws (`overflow-x: clip`, below) sits that much
+     further from the text than everything inside it does. The right edge is
+     untouched — the width grows by exactly what the margin gives back — so
+     the fade and the travel range it bounds don't move. */
+  width: calc(100% + var(--corner-room));
+  margin-left: calc(var(--corner-room) * -1);
+  padding: calc(3rem + var(--lift-room)) var(--fade) 2rem var(--corner-room);
+  margin-top: calc(var(--lift-room) * -1);
+  overflow-x: clip;
+  overflow-y: visible;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Both ends dissolve rather than cut. Two mask layers, intersected: the
+     right one is fixed; the left one is a fade wider than the box that sits
+     one fade's width off-canvas at rest, so the first print lands crisp on
+     the text edge, and the JS slides it in as the pile travels. */
+  /* An eased ramp, not a straight one: prints thin out gradually and are
+     gone well before the edge, so the pile dissolves into the page. */
+  --edge: linear-gradient(
+    to right,
+    transparent,
+    rgb(0 0 0 / 0.18) calc(var(--fade) * 0.3),
+    rgb(0 0 0 / 0.6) calc(var(--fade) * 0.62),
+    rgb(0 0 0 / 0.92) calc(var(--fade) * 0.88),
+    black var(--fade),
+    black
+  );
+  --edge-end: linear-gradient(
+    to left,
+    transparent,
+    rgb(0 0 0 / 0.18) calc(var(--fade) * 0.3),
+    rgb(0 0 0 / 0.6) calc(var(--fade) * 0.62),
+    rgb(0 0 0 / 0.92) calc(var(--fade) * 0.88),
+    black var(--fade),
+    black
+  );
+  mask-image: var(--edge), var(--edge-end);
+  /* Both layers are a fade wider than the box, so either can be slid clean
+     off its edge. At rest the left one is parked off-canvas (the first print
+     lands crisp against the text) and the right one is in. The JS eases each
+     between those two places as there becomes, or stops being, more pile to
+     see in that direction. */
+  mask-size:
+    calc(100% + var(--fade)) 100%,
+    calc(100% + var(--fade)) 100%;
+  mask-position:
+    calc(var(--fade) * -1) 0,
+    calc(var(--fade) * -1) 0;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+  -webkit-mask-image: var(--edge), var(--edge-end);
+  -webkit-mask-size:
+    calc(100% + var(--fade)) 100%,
+    calc(100% + var(--fade)) 100%;
+  -webkit-mask-position:
+    calc(var(--fade) * -1) 0,
+    calc(var(--fade) * -1) 0;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in;
+}
+
+:global(.light) .stack {
+  --shadow-ink: var(--foreground);
+  /* On paper a print has white paper for a border, not ink: the dark frame
+     was the loudest thing in the section. The hairline is the design
+     system's decorative border, so the white print sits on the cream. */
+  --paper: 0 0% 100%;
+  /* Barely there. At full strength the hairline is an opaque grey ring, and
+     on a phone — where the paper border is 2px — that ring is a third of
+     the whole frame and reads as a heavy grey outline. The shadow beneath
+     already lifts the print off the page; this only has to stop white paper
+     dissolving into cream. */
+  --hairline: hsl(var(--border) / 0.45);
+}
+
+/* A pool of shadow under a lifted print, a few prints wide. The JS moves it
+   under the print and fades it in with the lift; only transform and opacity
+   ever change. It is a plain radial gradient, soft by its own stops, with
+   no `filter: blur()`: a blurred, composited layer this size renders as a
+   hard-edged rectangle in Safari. It lives on the stack, not in the zone,
+   so nothing clips or fades it; the stack's box starts one lift room below
+   the zone's, hence the top. Its left edge sits at the window's edge (the
+   stack's, the same) and the margin centres it on x = 0, so a translateX of
+   the print's centre puts it under the print. */
+.backdrop {
+  position: absolute;
+  top: calc(var(--lift-room) * -1 - 10%);
+  bottom: -10%;
+  left: 0;
+  /* Narrower than it looks, and spent well before its own edge. The pool
+     is centred on a print that can sit anywhere, so its box regularly
+     reaches past the viewport, where the page clips it. At the old stops it
+     was still at about 5% ink when it met that edge and cut there, a
+     straight vertical seam down the page. Now it is transparent by 68% of
+     its radius, which is inside the viewport wherever the print stands. */
+  /* One name for the width, and the margin derived from it. Written out
+     twice, the pair silently came apart: the width took `min()` of the two
+     arms and the margin took `min()` of their negatives, which is the other
+     arm, so the pool hung 262px to the left of the print it belonged under
+     at a 1440px window. Halving the width it actually has cannot drift. */
+  --pool: min(calc(var(--print) * 5), 78vw);
+  width: var(--pool);
+  margin-left: calc(var(--pool) / -2);
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 40%,
+    hsl(var(--shadow-ink) / 0.4) 0%,
+    hsl(var(--shadow-ink) / 0.26) 18%,
+    hsl(var(--shadow-ink) / 0.1) 38%,
+    hsl(var(--shadow-ink) / 0.02) 55%,
+    transparent 68%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Compositor layers cost GPU memory, and a phone has little of it: forty
+   permanently promoted elements (thirteen prints, their shadows, thirteen
+   marks and the pool of shadow) is a standing tax on a pile nobody has
+   scrolled to. The JS arms this class while the pile is on screen and drops
+   it when it leaves — never on a pointer event, because promoting snaps
+   every one of those elements to whole device pixels and the row visibly
+   jumps as it happens. */
+.armed .tile {
+  will-change: transform;
+}
+
+.armed .shadow,
+.armed .dot {
+  will-change: opacity;
+}
+
+.armed .backdrop {
+  will-change: transform, opacity;
+}
+
+/* The pointer's surface: the window's box below the lift room. Sideways
+   drags are ours; vertical stays with the page. */
+.hit {
+  /* A real `<button>`, not a div with `role="button"`: the pile needed a
+     keyboard entry point (see the comment on `handleOpenKey`), and an
+     element the platform already knows how to focus and activate is what
+     a linter and a screen reader both expect there. Everything below the
+     position/pointer rules undoes the browser's own idea of what a button
+     looks like, since this one is a full-bleed drag surface, not a chip. */
+  position: absolute;
+  inset: var(--lift-room) 0 0 0;
+  pointer-events: auto;
+  touch-action: pan-y;
+  cursor: grab;
+  display: block;
+  width: 100%;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  appearance: none;
+  /* iOS flashes a grey box on tap and offers a long-press callout; neither
+     belongs on a pile of photographs that answers with motion instead. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.hit:active {
+  cursor: grabbing;
+}
+
+/* The pile's only focus stop, so the ring has to be findable. Drawn inside
+   the box: the surface reaches the window's edges, and an outline outside
+   them is half eaten by the zone's clip. `:focus-visible`, so a click that
+   opens a print does not leave a ring behind it. */
+.hit:focus-visible {
+  outline: 2px solid hsl(var(--brand));
+  outline-offset: -3px;
+  border-radius: 4px;
+}
+
+@media (min-width: 640px) {
+  .stack {
+    --print: 120px;
+    --fade: 128px;
+  }
+
+  .zone {
+    padding-top: calc(4.5rem + var(--lift-room));
+  }
+}
+
+.list {
+  /* Share of its own width each print tucks under the next one at rest. */
+  --tuck: 0.4;
+  /* The paper border, inherited by `.tile`, which draws it. Measured as a
+     share of the print rather than a fixed width: at 3px it was 2.5% of a
+     desktop print's height but 4.2% of a phone's, so the same border read as
+     half again as heavy on the smaller paper. */
+  --frame: max(2px, calc(var(--print) * 0.025));
+  /* Plain breathing room between the text and the first print's visible
+     body — not a corner's clearance from the clip line, which is `.zone`'s
+     own concern now (`--corner-room`) and no longer this property's job. A
+     share of the border's own width, so it grows with the paper the way
+     everything else here does, and stays small enough that the pile still
+     reads as starting at the text rather than beside it. */
+  --pad: calc(var(--frame) * 2);
+  /* Prints sit on a shared baseline and grow upward from it. */
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: fit-content;
+  margin: 0;
+  padding: 0 0 0 var(--pad);
+  list-style: none;
+}
+
+.tile {
+  /* Resting pose. `--c`, set inline per print, is where its centre sits in
+     paper heights from the list's padding edge. The rest is the same curve
+     the JS draws (see `curve` in image-stack.tsx): the print's angle as
+     seen from the centre of a circle, 45° at the visible window's edge on
+     a desktop window, scaled to 10° of lean; and the arc's sag, capped, as
+     its drop.
+     The container's inline size is its content box, which is the window
+     less the fade. Computed here so the server's fan matches the first
+     client frame at any width. */
+  --c: 0;
+  /* `--half` and `--r` (the circle's radius, never tighter than 260px so a
+     phone's narrow window gets a gentler arc) come from `.zone`, inherited
+     straight down through `.list`. */
+  --dx: calc(var(--c) * var(--print) + var(--pad) - var(--half));
+  --angle: atan2(var(--dx), var(--r));
+  --lean: clamp(-10deg, calc(var(--angle) * 0.2222), 10deg);
+  /* Sag in print heights: 0.4 of one at most 14/120 of one (14px at the
+     desktop's 120px prints, 8.4px at a phone's 72px). */
+  --drop: min(
+    calc(var(--print) * 0.1167),
+    calc((1 - cos(var(--angle))) * var(--print) * 0.4)
+  );
+  /* Width as a share of the paper height; set by orientation below. */
+  --w: 0.8;
+  /* The paper. Prints have a border of paper: the ink colour in dark mode
+     (which is near-white there), white in light mode; both set on `.zone`,
+     edged with a hairline.
+
+     A real border, not an inset child. The photograph sits in its own
+     rasterised layer (it clips and rounds its corners), and a layer is
+     snapped to whole device pixels independently of its parent. Inset by
+     `top`/`left`, that snap landed the photograph up to a pixel off centre
+     inside the paper — which the lift's 1.85x scale then multiplied into a
+     frame twice as thick at the top as at the bottom on a 3x phone. A border
+     belongs to the print's own paint, so the paper and the hole in it round
+     together and the frame stays even at any scale.
+
+     Its width, `--frame`, comes from `.list`, which also needs it: the
+     start padding keeps one frame of slack so this border is never clipped. */
+  position: relative;
+  flex: none;
+  height: var(--print);
+  width: calc(var(--print) * var(--w));
+  /* Pulls the next print over this one by a share of this print's width, so
+     a narrow portrait print is never swallowed by a wide neighbour. */
+  margin-right: calc(var(--print) * var(--w) * var(--tuck) * -1);
+  border-radius: 5px;
+  background: hsl(var(--paper));
+  box-shadow:
+    0 0 0 1px var(--hairline),
+    0 1px 2px hsl(var(--shadow-ink) / 0.1),
+    0 3px 10px -2px hsl(var(--shadow-ink) / 0.14);
+  transform-origin: 50% 100%;
+  transform: translateY(var(--drop)) rotate(var(--lean));
+  /* Rotated edges alias without this; a hidden backface makes the browser
+     rasterise the print on its own antialiased layer. */
+  backface-visibility: hidden;
+}
+
+.tile:last-child {
+  margin-right: 0;
+}
+
+.portrait {
+  --w: 0.8;
+}
+
+.landscape {
+  --w: 1.25;
+}
+
+/* Elevation. A deeper shadow on its own compositor layer, faded in as the
+   print lifts. Cheaper than animating box-shadow, which repaints every frame. */
+.shadow {
+  position: absolute;
+  /* Out to the print's own edge, not the photograph's. `inset: 0` on a child
+     of a bordered box resolves to the padding box — inside the paper — so
+     this layer's shadow was cast across the white border itself and dulled
+     it, worst at the bottom where the shadow is offset: 187 against 252 at
+     the top, on a border that is the same 11 device px all round. Pulled out
+     by the border's width, the shadow begins where the paper ends. */
+  inset: calc(var(--frame) * -1);
+  border-radius: 5px;
+  box-shadow:
+    0 6px 12px -4px hsl(var(--shadow-ink) / 0.18),
+    0 16px 32px -8px hsl(var(--shadow-ink) / 0.3);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The photograph fading in over its own blur placeholder. Opacity only, so
+   it composites; 320ms is long enough to read as the picture resolving
+   rather than swapping, and short enough not to feel like a wait. Under
+   reduced motion it simply appears. */
+.reveal {
+  opacity: 0;
+  transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reveal[data-loaded="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Shorter, not absent. A cross-fade is the one thing reduced motion is
+     meant to keep; removing it restores the single-frame cut from blur to
+     sharp that this transition exists to prevent. */
+  .reveal {
+    transition: opacity 160ms linear;
+  }
+}
+
+/* The photograph, and the paper around it. The border belongs to this
+   element rather than to the print, because this element is separately
+   rasterised — it clips and rounds its own corners — and a layer is snapped
+   to whole device pixels independently of its parent. With the paper on the
+   print and the hole here, the two rounded apart: on a 3x phone the frame
+   measured 12 device px above the photograph and 4 below, though both were
+   authored as the same 2px. Owned by one element, the paper and the hole it
+   frames can only ever snap together. */
+.photo {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--frame) solid hsl(var(--paper));
+  overflow: hidden;
+  border-radius: 5px;
+}
+
+/* One mark per print, centred under the visible window (the zone less its
+   fade). Lit by the JS as prints enter and leave the window; unlit marks keep
+   a resting glow so the count reads. */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-right: var(--fade);
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(var(--foreground));
+  opacity: 0.28;
+}

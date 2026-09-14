@@ -19,7 +19,16 @@ const nextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // 224 is here for the homepage image stack. Its prints ask for the width
+    // they reach lifted by a click, which differs by viewport and orientation
+    // (see `sizesFor`): 320/208px above 640px wide, 192/128px below. At 1×
+    // those land on 384/224 and 224/128, at 2× on 640/640 and 384/256.
+    imageSizes: [16, 32, 48, 64, 96, 128, 224, 256, 384],
+    // The homepage image stack asks for 90: a print opened by a click is
+    // held at 2.13x and read as a photograph, not a thumbnail, and 80 was
+    // visibly soft there. 75 stays for everything else. Next 16 only serves
+    // qualities listed here.
+    qualities: [75, 90],
     minimumCacheTTL: 31536000, // 1 year
     dangerouslyAllowSVG: false,
     contentDispositionType: "attachment",
