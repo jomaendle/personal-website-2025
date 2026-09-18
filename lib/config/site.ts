@@ -23,6 +23,8 @@ export interface SiteConfig {
   role: string;
   /** Role only, for the article author row. */
   shortRole: string;
+  /** One-line self-description. Also the site `<meta name="description">`. */
+  description: string;
   /** Avatar served from `public/`. Left out while the masthead and the
    * article author row stand without a portrait; both drop it when absent. */
   avatar?: string;
@@ -34,6 +36,7 @@ export const SITE: SiteConfig = {
   name: "Jo Mändle",
   role: "Builder & Principal Solution Architect",
   shortRole: "Principal Solution Architect",
+  description: "I build things for the web and write about it here.",
   social: {
     linkedin: "https://www.linkedin.com/in/johannes-maendle/",
   },

@@ -182,7 +182,18 @@ export function InquiryForm({ lang }: { lang: Lang }) {
         {status === "error" ? errorMessage || t.genericError : ""}
       </p>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      {/* WebMCP: an in-browser agent can discover this form as a callable
+          tool. The description says what it is for and, deliberately, that it
+          needs the user's own details — an agent should not invent a sender. */}
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        // biome-ignore lint/suspicious/noUnknownAttribute: WebMCP (W3C draft) tool attributes; not yet in Biome's DOM attribute list
+        toolname="submit_project_inquiry"
+        // biome-ignore lint/suspicious/noUnknownAttribute: WebMCP (W3C draft) tool attributes; not yet in Biome's DOM attribute list
+        tooldescription="Send Jo Mändle a freelance project inquiry. Requires the user's own name and email, what they are building, the timeline and the engagement type. Only submit with the user's explicit confirmation of the message and their contact details."
+        className="flex flex-col gap-5"
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="inquiry-name" className={labelBase}>

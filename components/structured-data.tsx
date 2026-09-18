@@ -1,4 +1,15 @@
-import Script from "next/script";
+import {
+  ALTERNATE_NAMES,
+  AREA_SERVED,
+  BASE_URL,
+  CONTACT_POINTS,
+  ID,
+  KNOWS_ABOUT,
+  LEGAL_NAME,
+  OFFERS,
+  POSTAL_ADDRESS,
+  SAME_AS,
+} from "@/lib/config/identity";
 import { SITE } from "@/lib/config/site";
 import {
   AI_IMPACT_COPY,
@@ -8,31 +19,34 @@ import {
 
 const WHITESPACE = /\s+/;
 
-interface PersonStructuredData {
-  "@context": "https://schema.org";
-  "@type": "Person";
-  name: string;
-  alternateName?: string[];
-  jobTitle: string;
-  url: string;
-  sameAs: string[];
-  description: string;
-  worksFor?: {
-    "@type": "Organization";
-    name: string;
-  };
+/**
+ * A real `<script type="application/ld+json">` in the server HTML.
+ *
+ * This used to be `next/script`. With the default `afterInteractive` strategy
+ * the tag never reaches the server-rendered document — it only exists inside
+ * the RSC flight payload and is injected by the client runtime. Every crawler
+ * that reads HTML without executing JavaScript therefore saw a site with zero
+ * structured data, which is exactly the audience JSON-LD is written for. A
+ * plain `<script>` is server-rendered, costs nothing, and is what schema.org
+ * consumers expect.
+ */
+function JsonLd({ id, data }: { id: string; data: unknown }) {
+  return (
+    <script
+      id={id}
+      type="application/ld+json"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
 }
 
 interface BlogPostStructuredData {
-  "@context": "https://schema.org";
   "@type": "BlogPosting";
+  "@id": string;
   headline: string;
   description?: string | undefined;
-  author: {
-    "@type": "Person";
-    name: string;
-    url: string;
-  };
+  author: { "@id": string };
   datePublished: string;
   dateModified?: string;
   url: string;
@@ -40,65 +54,162 @@ interface BlogPostStructuredData {
   articleBody?: string | undefined;
   wordCount?: number | undefined;
   timeRequired?: string | undefined;
-  publisher: {
-    "@type": "Person";
-    name: string;
-    url: string;
-  };
+  publisher: { "@id": string };
+  isPartOf: { "@id": string };
+  mainEntityOfPage: string;
+  inLanguage: string;
 }
 
-interface WebsiteStructuredData {
-  "@context": "https://schema.org";
-  "@type": "WebSite";
-  name: string;
-  url: string;
-  description: string;
-  author: {
-    "@type": "Person";
-    name: string;
-    url: string;
-  };
-  potentialAction: {
-    "@type": "SearchAction";
-    target: {
-      "@type": "EntryPoint";
-      urlTemplate: string;
-    };
-    "query-input": string;
-  };
-}
-
-export function PersonStructuredData() {
-  const structuredData: PersonStructuredData = {
-    "@context": "https://schema.org",
+/**
+ * The site-wide identity graph: the person, the practice, and the site.
+ *
+ * One `@graph` rather than three scripts, so a consumer that reads only the
+ * first JSON-LD block still gets all of it, and so every node can refer to the
+ * others by `@id`. `contactPoint` and `address` are here because they are what
+ * an agent checks before it recommends a business to someone; `sameAs` is what
+ * lets it confirm the GitHub and LinkedIn profiles are the same person.
+ */
+export function SiteIdentityStructuredData() {
+  const person = {
     "@type": "Person",
-    name: "Johannes Mändle",
-    alternateName: [
-      "Jo Mändle",
-      "jo maendle",
-      "johannes maendle",
-      "Jo Maendle",
-      "Johannes Maendle",
-    ],
-    jobTitle: "Principal Solution Architect",
-    url: "https://www.jomaendle.com",
-    sameAs: [
-      "https://www.linkedin.com/in/johannes-maendle/",
-      "https://github.com/jomaendle",
-    ],
-    description: "I build things for the web and write about it here.",
+    "@id": ID.person,
+    name: LEGAL_NAME,
+    alternateName: ALTERNATE_NAMES,
+    jobTitle: SITE.shortRole,
+    description: SITE.description,
+    url: BASE_URL,
+    mainEntityOfPage: BASE_URL,
+    image: `${BASE_URL}/avatar.jpeg`,
+    email: `mailto:${SITE.contact.email}`,
+    address: POSTAL_ADDRESS,
+    sameAs: SAME_AS,
+    knowsAbout: KNOWS_ABOUT,
+    knowsLanguage: ["de", "en"],
+    worksFor: { "@type": "Organization", name: "E.ON Digital Technology" },
   };
 
-  return (
-    <Script
-      id="person-structured-data"
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
-      }}
-    />
-  );
+  const organization = {
+    "@type": "Organization",
+    "@id": ID.organization,
+    name: `${SITE.name} · Freelance Frontend & AI Engineering`,
+    legalName: LEGAL_NAME,
+    description:
+      "Independent frontend and AI engineering practice: embedded contract engineering with product teams, and audits of what AI changed in a delivery org.",
+    url: `${BASE_URL}/business/en`,
+    logo: `${BASE_URL}/avatar.jpeg`,
+    image: `${BASE_URL}/avatar.jpeg`,
+    email: `mailto:${SITE.contact.email}`,
+    address: POSTAL_ADDRESS,
+    areaServed: AREA_SERVED,
+    contactPoint: CONTACT_POINTS,
+    sameAs: SAME_AS,
+    knowsAbout: KNOWS_ABOUT,
+    founder: { "@id": ID.person },
+    // A one-person practice. Saying so is more useful to an agent sizing the
+    // seat than leaving it to be inferred from the prose.
+    numberOfEmployees: { "@type": "QuantitativeValue", value: 1 },
+  };
+
+  const website = {
+    "@type": "WebSite",
+    "@id": ID.website,
+    name: "Jo Mändle | Building for the Web",
+    url: BASE_URL,
+    description: SITE.description,
+    inLanguage: "en",
+    author: { "@id": ID.person },
+    publisher: { "@id": ID.person },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${BASE_URL}/blog?search={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [person, organization, website],
+  };
+
+  return <JsonLd id="site-identity-structured-data" data={structuredData} />;
+}
+
+/**
+ * Homepage-only nodes: what this page is, what is on offer, and which part of
+ * it a voice assistant should read out.
+ *
+ * The identity graph above is site-wide and says who Jo is. This one says what
+ * the homepage itself is (`ProfilePage`), names the two published offers as
+ * `Service` nodes pointing at their own pages, and marks the About section as
+ * `speakable`. The CSS selectors are the ones `app/page.tsx` renders, so a
+ * consumer reading them aloud gets the About paragraph and nothing else.
+ */
+export function HomepageStructuredData() {
+  const services = OFFERS.map((offer) => ({
+    "@type": "Service",
+    "@id": `${BASE_URL}${offer.path}#service`,
+    name: offer.name,
+    description: offer.description,
+    url: `${BASE_URL}${offer.path}`,
+    provider: { "@id": ID.organization },
+    areaServed: AREA_SERVED,
+    ...(offer.price === null
+      ? {}
+      : {
+          offers: {
+            "@type": "Offer",
+            price: offer.price,
+            priceCurrency: "EUR",
+            url: `${BASE_URL}${offer.path}`,
+          },
+        }),
+  }));
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "@id": `${BASE_URL}#webpage`,
+        url: BASE_URL,
+        name: SITE.name,
+        description: SITE.description,
+        inLanguage: "en",
+        isPartOf: { "@id": ID.website },
+        about: { "@id": ID.person },
+        mainEntity: { "@id": ID.person },
+        primaryImageOfPage: `${BASE_URL}/avatar.jpeg`,
+        speakable: {
+          "@type": "SpeakableSpecification",
+          cssSelector: ["#main-content h2", "#main-content section p"],
+        },
+        // The markdown twin, advertised where an agent that already parsed the
+        // JSON-LD will see it without a second discovery round.
+        encoding: {
+          "@type": "MediaObject",
+          encodingFormat: "text/markdown",
+          contentUrl: `${BASE_URL}/index.md`,
+        },
+      },
+      ...services,
+      {
+        "@type": "Blog",
+        "@id": `${BASE_URL}/blog#blog`,
+        url: `${BASE_URL}/blog`,
+        name: "Jo Mändle · Writing",
+        description:
+          "Notes on building for the web, lately with Claude Code and agent-facing infrastructure.",
+        inLanguage: "en",
+        author: { "@id": ID.person },
+        publisher: { "@id": ID.person },
+      },
+    ],
+  };
+
+  return <JsonLd id="homepage-structured-data" data={structuredData} />;
 }
 
 /**
@@ -129,16 +240,12 @@ export function BlogPostStructuredData({
   readTime?: string;
   content?: string;
 }) {
-  const structuredData: BlogPostStructuredData = {
-    "@context": "https://schema.org",
+  const article: BlogPostStructuredData = {
     "@type": "BlogPosting",
+    "@id": `${url}#article`,
     headline: title,
     description,
-    author: {
-      "@type": "Person",
-      name: "Johannes Mändle",
-      url: "https://www.jomaendle.com",
-    },
+    author: { "@id": ID.person },
     datePublished,
     dateModified: dateModified || datePublished,
     url,
@@ -146,23 +253,35 @@ export function BlogPostStructuredData({
     articleBody: content,
     wordCount: content ? content.split(WHITESPACE).length : undefined,
     timeRequired: readTime ? `PT${readTime}` : undefined,
-    publisher: {
-      "@type": "Person",
-      name: "Johannes Mändle",
-      url: "https://www.jomaendle.com",
-    },
+    publisher: { "@id": ID.person },
+    isPartOf: { "@id": `${BASE_URL}/blog#blog` },
+    mainEntityOfPage: url,
+    inLanguage: "en",
   };
 
-  return (
-    <Script
-      id="blog-post-structured-data"
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
-      }}
-    />
-  );
+  // Articles sit two levels down. Spelling that out costs a few bytes and
+  // saves an agent from inferring the hierarchy from the URL.
+  const breadcrumbs = {
+    "@type": "BreadcrumbList",
+    "@id": `${url}#breadcrumbs`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Writing",
+        item: `${BASE_URL}/blog`,
+      },
+      { "@type": "ListItem", position: 3, name: title, item: url },
+    ],
+  };
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [article, breadcrumbs],
+  };
+
+  return <JsonLd id="blog-post-structured-data" data={structuredData} />;
 }
 
 export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
@@ -190,59 +309,26 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     image: "https://www.jomaendle.com/avatar.jpeg",
     // No `priceRange`: the site publishes no rate, and the "€€" convention is a
     // restaurant-tier signal that would say something untrue about the seat.
-    areaServed: [
-      { "@type": "Country", name: "Germany" },
-      { "@type": "Country", name: "Austria" },
-      { "@type": "Country", name: "Switzerland" },
-      { "@type": "Place", name: "Remote / EU" },
-    ],
+    areaServed: AREA_SERVED,
+    // The person node is defined once, site-wide, in the identity graph. This
+    // page carries the same `@id` with only the role phrased for its language,
+    // so a consumer merges the two instead of seeing two people.
     provider: {
       "@type": "Person",
-      "@id": "https://www.jomaendle.com#person",
-      name: "Johannes Mändle",
-      alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
+      "@id": ID.person,
+      name: LEGAL_NAME,
+      alternateName: ALTERNATE_NAMES,
       jobTitle: isDe
         ? "Freelance Frontend- & AI-Engineer"
         : "Freelance Frontend & AI Engineer",
-      url: "https://www.jomaendle.com",
-      email: "mailto:business@jomaendle.com",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Im Hirschmorgen 12",
-        postalCode: "69181",
-        addressLocality: "Leimen",
-        addressCountry: "DE",
-      },
-      sameAs: [
-        "https://www.linkedin.com/in/johannes-maendle/",
-        "https://github.com/jomaendle",
-      ],
-      // Kept in step with the stack table in `lib/state/business-copy.ts`: if a
-      // technology is claimed there, it belongs here too.
-      knowsAbout: [
-        "Next.js",
-        "React",
-        "Angular",
-        "Vue.js",
-        "Astro",
-        "TypeScript",
-        "Node.js",
-        "NestJS",
-        "Frontend Architecture",
-        "Large Language Models",
-        "LLM Integration",
-        "Model Context Protocol",
-        "AI-native Software Development",
-        "Web Performance",
-        "Web Accessibility",
-        "WCAG",
-        "Automated Testing",
-        "Legacy Frontend Migration",
-        "GDPR",
-        "DSGVO",
-      ],
+      url: BASE_URL,
+      email: `mailto:${SITE.contact.email}`,
+      address: POSTAL_ADDRESS,
+      sameAs: SAME_AS,
+      knowsAbout: KNOWS_ABOUT,
       knowsLanguage: ["de", "en"],
     },
+    parentOrganization: { "@id": ID.organization },
     serviceType: isDe
       ? [
           "Embedded Contract Engineering",
@@ -269,12 +355,9 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
     },
   };
 
-  const scriptProps = {
-    id: `business-structured-data-${lang}`,
-    type: "application/ld+json",
-    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
-  };
-  return <Script {...scriptProps} />;
+  return (
+    <JsonLd id={`business-structured-data-${lang}`} data={structuredData} />
+  );
 }
 
 /**
@@ -329,12 +412,7 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
               "AI adoption in software delivery",
               "Measurement without per-developer analysis",
             ],
-        areaServed: [
-          { "@type": "Country", name: "Germany" },
-          { "@type": "Country", name: "Austria" },
-          { "@type": "Country", name: "Switzerland" },
-          { "@type": "Place", name: "Remote / EU" },
-        ],
+        areaServed: AREA_SERVED,
         audience: {
           "@type": "BusinessAudience",
           audienceType: isDe
@@ -343,16 +421,14 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
         },
         provider: {
           "@type": "Person",
-          "@id": "https://www.jomaendle.com#person",
-          name: "Johannes Mändle",
-          alternateName: ["Jo Mändle", "Jo Maendle", "Johannes Maendle"],
-          jobTitle: "Principal Solution Architect",
-          url: "https://www.jomaendle.com",
+          "@id": ID.person,
+          name: LEGAL_NAME,
+          alternateName: ALTERNATE_NAMES,
+          jobTitle: SITE.shortRole,
+          url: BASE_URL,
           email: `mailto:${SITE.contact.email}`,
-          sameAs: [
-            "https://www.linkedin.com/in/johannes-maendle/",
-            "https://github.com/jomaendle",
-          ],
+          address: POSTAL_ADDRESS,
+          sameAs: SAME_AS,
         },
         offers: {
           "@type": "Offer",
@@ -379,45 +455,96 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
     ],
   };
 
-  const scriptProps = {
-    id: `ai-impact-structured-data-${lang}`,
-    type: "application/ld+json",
-    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
-  };
-  return <Script {...scriptProps} />;
+  return (
+    <JsonLd id={`ai-impact-structured-data-${lang}`} data={structuredData} />
+  );
 }
 
-export function WebsiteStructuredData() {
-  const structuredData: WebsiteStructuredData = {
+/**
+ * `ContactPage` JSON-LD.
+ *
+ * A trust anchor as much as a description: an agent deciding whether to put a
+ * business in front of someone looks for a contact page with a real address and
+ * a named contact point, and this says where both live.
+ */
+export function ContactStructuredData({ url }: { url: string }) {
+  const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Jo Mändle | Building for the Web",
-    url: "https://www.jomaendle.com",
-    description: "I build things for the web and write about it here.",
-    author: {
-      "@type": "Person",
-      name: "Johannes Mändle",
-      url: "https://www.jomaendle.com",
-    },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate:
-          "https://www.jomaendle.com/blog?search={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
+    "@type": "ContactPage",
+    "@id": `${url}#contactpage`,
+    url,
+    name: `Contact · ${SITE.name}`,
+    description:
+      "Email, a booking link and a postal address — the three ways to reach Jo Mändle.",
+    inLanguage: "en",
+    isPartOf: { "@id": ID.website },
+    about: { "@id": ID.organization },
+    mainEntity: {
+      "@id": ID.organization,
+      contactPoint: CONTACT_POINTS,
+      address: POSTAL_ADDRESS,
     },
   };
 
-  return (
-    <Script
-      id="website-structured-data"
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
-      }}
-    />
-  );
+  return <JsonLd id="contact-structured-data" data={structuredData} />;
+}
+
+/**
+ * `Offer` JSON-LD for /pricing.
+ *
+ * Only the audit carries a `price`. The contract engineering seat gets an
+ * `Offer` with `availability` and a `url` and no number at all, because the
+ * site publishes no day rate — a made-up `priceRange` here would be the one
+ * kind of lie structured data is least forgiving of.
+ */
+export function PricingStructuredData() {
+  const url = `${BASE_URL}/pricing`;
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${url}#webpage`,
+        url,
+        name: `Pricing · ${SITE.name}`,
+        description:
+          "One published fixed price — the four-week AI impact audit — and what is quoted per engagement instead.",
+        inLanguage: "en",
+        isPartOf: { "@id": ID.website },
+        about: { "@id": ID.organization },
+      },
+      ...OFFERS.map((offer) => ({
+        "@type": "Offer",
+        "@id": `${url}#${offer.id}`,
+        name: offer.name,
+        description: offer.description,
+        url: `${BASE_URL}${offer.path}`,
+        priceCurrency: "EUR",
+        offeredBy: { "@id": ID.organization },
+        areaServed: AREA_SERVED,
+        ...(offer.price === null
+          ? {
+              priceSpecification: {
+                "@type": "PriceSpecification",
+                priceCurrency: "EUR",
+                valueAddedTaxIncluded: false,
+                description:
+                  "Quoted per engagement. Billed by the day, invoiced monthly.",
+              },
+            }
+          : {
+              price: offer.price,
+              priceSpecification: {
+                "@type": "PriceSpecification",
+                price: offer.price,
+                priceCurrency: "EUR",
+                valueAddedTaxIncluded: false,
+              },
+            }),
+      })),
+    ],
+  };
+
+  return <JsonLd id="pricing-structured-data" data={structuredData} />;
 }

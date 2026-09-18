@@ -27,3 +27,14 @@ declare module "react/jsx-runtime" {
     }
   }
 }
+
+// WebMCP (W3C draft): `toolname` / `tooldescription` on a form declare it as a
+// tool an in-browser agent may call. They are plain lowercase attributes, so
+// React forwards them into the server-rendered HTML where crawlers can read
+// them — but they are not in React's `FormHTMLAttributes`, hence this.
+declare module "react" {
+  interface FormHTMLAttributes<T> {
+    toolname?: string;
+    tooldescription?: string;
+  }
+}

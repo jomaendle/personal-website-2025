@@ -42,6 +42,27 @@ const nextConfig = {
     // /about folded into the homepage.
     return [{ source: "/about", destination: "/", permanent: true }];
   },
+  async rewrites() {
+    // The App Router will not route a directory whose name starts with a dot,
+    // so the `.well-known` discovery documents are served from route handlers
+    // under /api and mapped onto their canonical paths here.
+    //
+    // `ard.json` and `ai-catalog.json` intentionally resolve to the same
+    // handler: the Agentic Resource Discovery spec and the AI Catalog Standard
+    // each define their own discovery path and treat the other as an
+    // equivalent source, so one document satisfies both.
+    return [
+      { source: "/.well-known/ard.json", destination: "/api/well-known/ard" },
+      {
+        source: "/.well-known/ai-catalog.json",
+        destination: "/api/well-known/ard",
+      },
+      {
+        source: "/.well-known/agent-skills/index.json",
+        destination: "/api/well-known/agent-skills",
+      },
+    ];
+  },
   async headers() {
     // Content-Security-Policy. Kept deliberately explicit about the third
     // parties this site loads:
@@ -145,6 +166,19 @@ const nextConfig = {
           {
             key: "Cache-Control",
             value: "public, max-age=60, stale-while-revalidate=300",
+          },
+        ],
+      },
+      // The discovery documents are served through rewrites, so they inherit
+      // no content type from a file extension.
+      {
+        source: "/.well-known/:path*",
+        headers: [
+          { key: "Content-Type", value: "application/json; charset=utf-8" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
           },
         ],
       },

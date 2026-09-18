@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE } from "@/lib/config/site";
 import "./globals.css";
 import "./editorial-theme.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -6,10 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
 import { ViewTransitions } from "next-view-transitions";
-import {
-  PersonStructuredData,
-  WebsiteStructuredData,
-} from "@/components/structured-data";
+import { SiteIdentityStructuredData } from "@/components/structured-data";
 import { MotionProvider } from "./providers";
 
 const ogImageDescription = encodeURIComponent(
@@ -22,7 +20,13 @@ export const metadata: Metadata = {
     default: "Jo Mändle",
     template: "%s | Jo Mändle",
   },
-  description: "I build things for the web and write about it here.",
+  description: SITE.description,
+  alternates: {
+    // Relative, so each route canonicalises to itself against `metadataBase`.
+    // A literal "/" here would have told every crawler that the whole site is
+    // the homepage.
+    canonical: "./",
+  },
   keywords: ["Jo Mändle", "Johannes Mändle", "jo maendle", "johannes maendle"],
   authors: [{ name: "Johannes Mändle", url: "https://www.jomaendle.com" }],
   creator: "Johannes Mändle",
@@ -37,6 +41,10 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
+    type: "website",
+    siteName: SITE.name,
+    locale: "en_US",
+    url: "./",
     images: [
       {
         url: `/api/og-image?title=Jo+M%C3%A4ndle&description=${ogImageDescription}`,
@@ -106,8 +114,7 @@ export default function RootLayout({
                 {children}
               </PlausibleProvider>
               <SpeedInsights />
-              <PersonStructuredData />
-              <WebsiteStructuredData />
+              <SiteIdentityStructuredData />
             </ThemeProvider>
           </MotionProvider>
           <Analytics />

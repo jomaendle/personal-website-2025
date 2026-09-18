@@ -69,7 +69,17 @@ export default function NewsletterForm() {
           Get an email when I publish something new.
         </p>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:flex-row">
+      {/* WebMCP, as on the inquiry form. Subscribing someone to a mailing list
+          is not a step an agent should take on its own, so the description says
+          so rather than leaving it to be inferred. */}
+      <form
+        onSubmit={handleSubmit}
+        // biome-ignore lint/suspicious/noUnknownAttribute: WebMCP (W3C draft) tool attributes; not yet in Biome's DOM attribute list
+        toolname="subscribe_to_newsletter"
+        // biome-ignore lint/suspicious/noUnknownAttribute: WebMCP (W3C draft) tool attributes; not yet in Biome's DOM attribute list
+        tooldescription="Subscribe an email address to Jo Mändle's newsletter, which sends a note when a new article is published. Only submit with the address owner's explicit consent."
+        className="flex flex-col gap-3 md:flex-row"
+      >
         <div className="flex-1">
           <Input
             type="email"
@@ -81,6 +91,9 @@ export default function NewsletterForm() {
             // unlabelled edit box.
             aria-label="Email address"
             required
+            // `required` alone is not exposed to every assistive client, and a
+            // crawler reading the accessibility tree sees only ARIA. Both.
+            aria-required="true"
             disabled={isLoading}
             // Focus styling is left entirely to the base Input's brand
             // `focus-visible` ring — the old `focus:ring-primary/20` here fired

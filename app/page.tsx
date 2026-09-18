@@ -4,6 +4,7 @@ import { Minimap } from "@/components/crafts/Minimap";
 import { ImageStack } from "@/components/image-stack";
 import { JobPositions } from "@/components/job-positions";
 import { NameHeading } from "@/components/name-heading";
+import { HomepageStructuredData } from "@/components/structured-data";
 import { Footer } from "@/components/ui/footer";
 import { H2 } from "@/components/ui/heading";
 import { WorkExperience } from "@/components/work-experience";
@@ -61,6 +62,7 @@ export default function Home() {
 
         <Footer />
       </div>
+      <HomepageStructuredData />
     </div>
   );
 }

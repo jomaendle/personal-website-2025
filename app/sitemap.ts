@@ -110,6 +110,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     },
+    // Trust anchors. Both are pages an agent looks for before it puts a
+    // business in front of someone, so they belong in the sitemap even though
+    // neither is a destination a reader navigates to on purpose.
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/pricing`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
     {
       url: `${baseUrl}/impressum`,
       lastModified: now,
