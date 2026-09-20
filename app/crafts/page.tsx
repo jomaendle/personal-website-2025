@@ -49,6 +49,7 @@ export default function CraftsPage() {
                     title={craft.title}
                     blurb={craft.blurb}
                     credit={craft.credit}
+                    className={craft.height}
                   >
                     <Component />
                   </CraftsContainer>

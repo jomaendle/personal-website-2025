@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { Polaroid } from "@/components/crafts/Polaroid";
 import { Ruler } from "@/components/crafts/Ruler";
 
 /** An interactive craft. The first one is featured on the homepage. */
@@ -10,10 +11,21 @@ export interface Craft {
   blurb: string;
   /** Where the idea came from, when it came from somewhere. */
   credit?: string;
+  /** Tailwind height for the card, when the default 15rem is too short. */
+  height?: string;
   component: ComponentType;
 }
 
 export const CRAFTS: Craft[] = [
+  {
+    slug: "instant-print",
+    title: "Instant Print",
+    year: 2026,
+    blurb:
+      "Drag it back and forth to shake it and the picture comes up, shadows first, the way a real print does. Leave it alone and it develops anyway, slowly.",
+    height: "min-h-[22rem]",
+    component: Polaroid,
+  },
   {
     slug: "ruler",
     title: "Ruler",

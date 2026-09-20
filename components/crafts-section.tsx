@@ -20,6 +20,7 @@ export function Crafts() {
         title={featured.title}
         blurb={featured.blurb}
         credit={featured.credit}
+        className={featured.height}
       >
         <Featured />
       </CraftsContainer>
