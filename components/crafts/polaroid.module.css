@@ -134,13 +134,39 @@
   background: linear-gradient(160deg, #8e9187 0%, #9ea095 50%, #8a8d84 100%);
 }
 
+/*
+ * The photograph arrives in two layers, and this is the whole reason the
+ * print reads as developing rather than cross-fading.
+ *
+ * Development is silver density accumulating on paper, and density is
+ * subtractive: it darkens. So the first layer is the photograph pushed to
+ * blown highlights and composited `multiply`, where white is nothing and
+ * black is full density. Fading it in paints the shadows onto the emulsion
+ * and leaves the sky untouched, which is what a print in a developer does.
+ * The second layer is the plain photograph, arriving later, bringing back the
+ * midtones and the colour the first layer had to throw away.
+ */
+.shadows {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: multiply;
+  /* Highlights to pure white so multiply ignores them entirely; what is left
+     is the shadow structure and nothing else. */
+  filter: contrast(2.15) brightness(1.24) saturate(0.32) sepia(0.3);
+}
+
 /* z-index is explicit on every layer in this stack. Without it the emulsion,
    being positioned, paints over the static photo, except on frames where a
    `filter` happens to promote the photo into its own stacking context. That
    makes a half-developed print look right and a finished one look broken. */
 .photo {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: block;
   width: 100%;
   height: 100%;
@@ -150,7 +176,7 @@
 .lip {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   background: linear-gradient(
     150deg,
@@ -162,7 +188,7 @@
 .grain {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
   opacity: 0.22;
   mix-blend-mode: overlay;

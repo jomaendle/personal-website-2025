@@ -51,6 +51,13 @@ const SHAKE_SPEED = 260;
  * single flick does almost nothing, which is how the real thing behaves. */
 const SHAKE_IMPULSE = 0.34;
 const SHAKE_DECAY = 1.9;
+/** The print flexing while it is shaken: degrees and px at full energy, and
+ * the rate the oscillation runs at, in radians per second. Kept small. The
+ * wobble should be felt rather than watched; past a couple of degrees it
+ * stops reading as a held object and starts reading as an animation. */
+const WOBBLE_DEG = 1.5;
+const WOBBLE_PX = 2.2;
+const WOBBLE_RATE = 27;
 /** Development per second at full shake energy, and the rate it comes up at
  * on its own. The creep is what lets someone who never touches it still watch
  * a photograph arrive. */
@@ -107,6 +114,7 @@ export function Polaroid() {
   const hitRef = useRef<HTMLButtonElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const emulsionRef = useRef<HTMLDivElement>(null);
+  const shadowsRef = useRef<HTMLImageElement>(null);
   const photoRef = useRef<HTMLImageElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
 
@@ -125,6 +133,7 @@ export function Polaroid() {
     // Development, 0 to 1, and the shake energy driving it.
     dev: 1,
     shake: 0,
+    wobble: 0,
     elapsed: 0,
     // "admiring" is the pause after a print finishes, before the next is pulled.
     phase: "admiring" as "developing" | "admiring" | "ejecting",
@@ -154,25 +163,40 @@ export function Polaroid() {
     const s = sim.current;
     const print = printRef.current;
     if (print) {
-      print.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(
-        2,
-      )}px, 0) rotate(${s.rot.toFixed(2)}deg)`;
+      // The wobble is the print flexing in a hand that is shaking it. It is
+      // driven by the shake pool rather than by the pointer, so it keeps
+      // going for a moment after the hand stops, the way a sheet of film
+      // would. Without it, shaking moves the print but does not feel like
+      // shaking anything.
+      const wob = s.shake * WOBBLE_DEG;
+      const rot = s.rot + Math.sin(s.wobble) * wob;
+      const lift = Math.sin(s.wobble * 1.7) * s.shake * WOBBLE_PX;
+      print.style.transform = `translate3d(${s.x.toFixed(2)}px, ${(
+        s.y + lift
+      ).toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg)`;
     }
 
-    // Shadows first, highlights last. At low development the photograph is
-    // pale, warm and flat rather than merely faint, which is the difference
-    // between a print coming up and a cross-fade.
+    // Shadows first, highlights last, in two passes. The multiplied shadow
+    // layer comes up over the first half and paints density where the
+    // photograph is dark; the full photograph arrives over the second half
+    // and brings the midtones and colour back. The overlap between the two
+    // ramps is what stops it reading as two separate fades.
     const d = s.dev;
+    const shadows = shadowsRef.current;
+    if (shadows) shadows.style.opacity = smoothstep(0.02, 0.52, d).toFixed(3);
+
     const photo = photoRef.current;
     if (photo) {
-      photo.style.opacity = smoothstep(0.04, 0.86, d).toFixed(3);
+      photo.style.opacity = smoothstep(0.34, 0.97, d).toFixed(3);
+      // Still slightly warm and flat as it arrives, cooling and gaining
+      // contrast as the last of the development comes up.
       photo.style.filter =
-        `contrast(${(0.55 + 0.45 * d).toFixed(3)}) ` +
-        `brightness(${(1.28 - 0.28 * d).toFixed(3)}) ` +
-        `sepia(${(0.32 * (1 - d)).toFixed(3)})`;
+        `contrast(${(0.72 + 0.28 * d).toFixed(3)}) ` +
+        `brightness(${(1.16 - 0.16 * d).toFixed(3)}) ` +
+        `sepia(${(0.26 * (1 - d)).toFixed(3)})`;
     }
     const emulsion = emulsionRef.current;
-    if (emulsion) emulsion.style.opacity = (1 - 0.35 * d).toFixed(3);
+    if (emulsion) emulsion.style.opacity = (1 - 0.28 * d).toFixed(3);
 
     const time = timeRef.current;
     if (time) {
@@ -214,6 +238,12 @@ export function Polaroid() {
     // The shake pool drains continuously, so only sustained shaking develops.
     s.shake *= Math.exp(-dt * SHAKE_DECAY);
     if (s.shake < 0.002) s.shake = 0;
+    // The wobble runs at a fixed rate whenever there is energy to show, so it
+    // never stutters with the pointer's sample rate.
+    // Reduced motion keeps the developing, which is the content arriving, and
+    // drops the wobble, which is decoration.
+    if (s.shake > 0 && !s.reduced) s.wobble += dt * WOBBLE_RATE;
+    else s.wobble = 0;
 
     if (s.phase === "developing") {
       s.elapsed += dt;
@@ -469,6 +499,21 @@ export function Polaroid() {
               the element whose filter the loop has to write; and the Netlify
               preview's /_next/image optimizer 400s, which would leave the
               craft empty there. The source is already an optimised webp. */}
+          {/* The shadow pass. Multiplied onto the emulsion, so it paints
+              density where the photograph is dark and nothing where it is
+              bright. Decorative: the caption lives on the layer below. */}
+          {/** biome-ignore lint/performance/noImgElement: see above */}
+          <img
+            ref={shadowsRef}
+            className={styles.shadows}
+            src={print.src.src}
+            alt=""
+            aria-hidden="true"
+            width={188}
+            height={182}
+            decoding="async"
+            loading="lazy"
+          />
           {/** biome-ignore lint/performance/noImgElement: see above */}
           <img
             ref={photoRef}
