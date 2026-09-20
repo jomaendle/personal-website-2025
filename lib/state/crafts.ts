@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Polaroid } from "@/components/crafts/Polaroid";
 import { Ruler } from "@/components/crafts/Ruler";
+import { Tonearm } from "@/components/crafts/Tonearm";
 
 /** An interactive craft. The first one is featured on the homepage. */
 export interface Craft {
@@ -17,6 +18,17 @@ export interface Craft {
 }
 
 export const CRAFTS: Craft[] = [
+  {
+    slug: "tonearm",
+    title: "Tonearm",
+    year: 2026,
+    blurb:
+      "Drag the arm across the record to scrub. The arm is the playhead, the way it is on a real deck, so there is no scrubber to find. It plays my band.",
+    credit:
+      "Songs from Car Kids, whose full catalogue is at radio.jomaendle.com.",
+    height: "min-h-[24rem]",
+    component: Tonearm,
+  },
   {
     slug: "instant-print",
     title: "Instant Print",

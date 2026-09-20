@@ -1,0 +1,423 @@
+/*
+ * A record under a tonearm.
+ *
+ * Light is fixed upper-left, about 315deg in conic terms. Every surface agrees
+ * with that, every shadow falls down-right.
+ *
+ * The one thing carrying this render is not a gradient. The groove pattern is
+ * drawn twice: once faintly under everything, and once on top in `overlay`
+ * with its mask intersected against a conic that matches the light. So the
+ * grooves cut the sheen into fine concentric lines only where light falls, and
+ * vanish in the unlit quadrants. Drawn unmasked the disc reads as a gear:
+ * uniform detail is what makes a CSS object look diagrammed.
+ * See docs/solutions/frontend-design/css-objects-that-read-as-photographed.
+ */
+
+.craft {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.deck {
+  position: relative;
+  width: 264px;
+  height: 264px;
+}
+
+/* The platter the record sits on: matte, so it reads as a different material
+   from the gloss above it. */
+.platter {
+  position: absolute;
+  inset: -13px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, #40403d 0%, #2b2b29 52%, #1e1e1c 100%);
+  box-shadow:
+    0 1px 2px rgb(20 16 10 / 45%),
+    0 14px 26px -8px rgb(20 16 10 / 38%),
+    0 40px 74px -26px rgb(20 16 10 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 9%);
+}
+
+.record {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Vinyl is never pure black: a slight warm tint keeps it from reading dead. */
+  background:
+    radial-gradient(circle at 50% 50%, #17161a 0%, #121114 62%, #0c0b0e 100%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 55%),
+    0 8px 16px -6px rgb(0 0 0 / 40%),
+    inset 0 0 0 1px rgb(255 255 255 / 4%);
+  /* Rotation is written by the loop. */
+  transform: rotate(0deg);
+}
+
+/* Pass one: the grooves themselves, faint, everywhere. */
+.grooveBase {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.17;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgb(255 255 255 / 0%) 0px,
+    rgb(255 255 255 / 0%) 1.1px,
+    rgb(255 255 255 / 34%) 1.1px,
+    rgb(255 255 255 / 34%) 2.2px
+  );
+}
+
+/* The broad specular sweep: a glossy disc reflects a wide soft source as an
+   arc, brightest toward the light, with a weaker return sheen opposite. */
+.sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 315deg at 50% 50%,
+    rgb(255 255 255 / 15%) 0deg,
+    rgb(255 255 255 / 4%) 46deg,
+    rgb(255 255 255 / 0%) 104deg,
+    rgb(255 255 255 / 0%) 196deg,
+    rgb(255 255 255 / 6%) 232deg,
+    rgb(255 255 255 / 1%) 292deg,
+    rgb(255 255 255 / 15%) 360deg
+  );
+}
+
+/* Pass two: the same grooves, but only inside the lit arc, cutting the sheen
+   into lines. This is the layer that makes it read as vinyl. */
+.grooveLit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  mix-blend-mode: overlay;
+  opacity: 0.85;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgb(0 0 0 / 0%) 0px,
+    rgb(0 0 0 / 0%) 1.1px,
+    rgb(255 255 255 / 85%) 1.1px,
+    rgb(255 255 255 / 85%) 2.2px
+  );
+  mask-image:
+    conic-gradient(
+      from 315deg at 50% 50%,
+      #000 0deg,
+      rgb(0 0 0 / 35%) 54deg,
+      transparent 110deg,
+      transparent 200deg,
+      rgb(0 0 0 / 30%) 240deg,
+      transparent 300deg,
+      #000 360deg
+    ),
+    radial-gradient(circle at 50% 50%, transparent 27%, #000 31%, #000 96%, transparent 99%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* A glossy surface reflects the shape of the light source, not just a
+   falloff. Two soft blobs read as a window. */
+.reflection {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+.reflection::before,
+.reflection::after {
+  content: "";
+  position: absolute;
+  border-radius: 46%;
+  background: rgb(150 162 178 / 34%);
+  filter: blur(11px);
+}
+.reflection::before {
+  top: 9%;
+  left: 15%;
+  width: 34%;
+  height: 20%;
+  transform: rotate(-24deg);
+}
+.reflection::after {
+  top: 26%;
+  left: 12%;
+  width: 20%;
+  height: 12%;
+  opacity: 0.6;
+  transform: rotate(-24deg);
+}
+
+/* The lead-in band at the outer edge is smoother than the recorded area. */
+.leadIn {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 0%,
+    transparent 92%,
+    rgb(255 255 255 / 5%) 94%,
+    transparent 100%
+  );
+}
+
+/* The label: matte paper against the gloss, which is half of why the gloss
+   reads as gloss. */
+.label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  background: hsl(var(--brand));
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 22%),
+    0 0 0 1px rgb(0 0 0 / 30%);
+}
+.labelArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.86;
+}
+/* Paper, not plastic: kill the specular the vinyl has. */
+.labelPaper {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    146deg,
+    rgb(255 255 255 / 12%) 0%,
+    rgb(0 0 0 / 0%) 38%,
+    rgb(0 0 0 / 16%) 100%
+  );
+}
+.spindle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: hsl(var(--background));
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 60%);
+}
+
+/* ---- the arm ---------------------------------------------------------- */
+
+/* The arm as a whole. Its pivot sits at PIVOT_X from the left, and the
+   counterweight hangs behind it, which is what makes it read as a
+   counterweighted lever rather than a stick. */
+.arm {
+  --pivot-x: 168px;
+  position: absolute;
+  top: 12px;
+  right: -46px;
+  width: 210px;
+  height: 14px;
+  transform-origin: var(--pivot-x) 50%;
+  /* Written by the loop. */
+  transform: rotate(0deg);
+}
+
+/* Slim. A real tonearm tube is a few millimetres across, and the single
+   biggest thing separating a drawn arm from a photographed one is that the
+   drawn one is always too fat. */
+.tube {
+  position: absolute;
+  top: 5.5px;
+  left: 14px;
+  width: calc(var(--pivot-x) - 14px);
+  height: 3.5px;
+  border-radius: 2px;
+  background:
+    linear-gradient(94deg, #63676d 0%, #c2c7cd 26%, #8e939a 58%, #55595f 100%),
+    linear-gradient(87deg, #8a8f95 0%, #adb2b8 46%, #6b6f75 100%);
+  background-blend-mode: overlay, normal;
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 70%),
+    inset 0 -0.5px 0 rgb(0 0 0 / 55%);
+}
+
+.pivot {
+  position: absolute;
+  top: -3px;
+  left: calc(var(--pivot-x) - 10px);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #c3c8ce 0%, #82878e 46%, #4b5056 100%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 50%),
+    0 5px 9px -3px rgb(0 0 0 / 38%),
+    inset 0 1px 0 rgb(255 255 255 / 50%);
+}
+/* Concentric machined rings on the pivot housing. */
+.pivot::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(
+      circle at 42% 38%,
+      rgb(255 255 255 / 16%) 0px,
+      rgb(255 255 255 / 16%) 0.6px,
+      rgb(0 0 0 / 12%) 0.6px,
+      rgb(0 0 0 / 12%) 1.4px
+    ),
+    radial-gradient(circle at 42% 38%, #d6dbe1 0%, #686d73 100%);
+}
+
+/* The counterweight, behind the pivot. */
+.weight {
+  position: absolute;
+  top: 0.5px;
+  left: calc(var(--pivot-x) + 20px);
+  width: 22px;
+  height: 13px;
+  border-radius: 4px / 6px;
+  background:
+    linear-gradient(95deg, #3f4349 0%, #7c8188 30%, #52565c 62%, #33373c 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 32%),
+    inset 0 -1px 0 rgb(0 0 0 / 55%),
+    0 1px 2px rgb(0 0 0 / 40%);
+}
+/* The stub connecting weight to pivot. */
+.weight::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: -7px;
+  width: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(#a9aeb4, #5f6369);
+}
+
+/* The headshell at the business end, angled the way a real one is. */
+.headshell {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 19px;
+  height: 11px;
+  border-radius: 2px 1px 1px 3px;
+  background: linear-gradient(122deg, #d5dae0 0%, #9ba1a7 54%, #676c72 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 60%),
+    inset 0 -1px 0 rgb(0 0 0 / 45%),
+    0 1px 2px rgb(0 0 0 / 45%);
+  transform: rotate(-21deg);
+}
+.cartridge {
+  position: absolute;
+  right: 1px;
+  bottom: -6px;
+  width: 9px;
+  height: 7px;
+  border-radius: 1px;
+  background: linear-gradient(150deg, #6a4840 0%, #36211c 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+/* The stylus itself. */
+.cartridge::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: -3.5px;
+  width: 1.2px;
+  height: 4px;
+  background: linear-gradient(#e2e6ea, #8d9298);
+}
+
+/* The arm's shadow on the record. Two densities, because a single shadow
+   reads as a grey copy of the object: a soft ambient and a tighter core. */
+.armShadow,
+.armCore {
+  position: absolute;
+  top: 5.5px;
+  left: 14px;
+  width: calc(var(--pivot-x) - 14px);
+  height: 3.5px;
+  border-radius: 2px;
+}
+.armShadow {
+  background: rgb(0 0 0 / 34%);
+  filter: blur(6px);
+  transform: translate(5px, 11px);
+}
+.armCore {
+  background: rgb(0 0 0 / 46%);
+  filter: blur(2px);
+  transform: translate(2px, 6px);
+}
+
+/* ---- chrome ----------------------------------------------------------- */
+
+.readout {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.readout b {
+  font-weight: 400;
+  color: hsl(var(--brand));
+}
+.elapsed {
+  font-variant-numeric: tabular-nums;
+}
+
+.hit {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: grab;
+}
+.hit:active {
+  cursor: grabbing;
+}
+.hit:focus-visible {
+  outline: none;
+}
+
+.armed .record,
+.armed .arm {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record,
+  .arm {
+    transition: none;
+  }
+}
