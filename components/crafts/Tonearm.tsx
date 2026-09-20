@@ -96,6 +96,7 @@ export function Tonearm() {
 
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const sim = useRef({
     /** Arm angle, its velocity, and where it is headed. */
@@ -117,6 +118,8 @@ export function Tonearm() {
     },
     /** The last position asked for, so a drag does not re-seek every frame. */
     seekedTo: -1,
+    /** Set once the source has proved unplayable, so the stylus stays up. */
+    failed: false,
     /** Mirrors of React state so the loop never reads from a render. */
     shownPlaying: false,
     index: 0,
@@ -179,7 +182,10 @@ export function Tonearm() {
     }
 
     const wasDown = s.down;
-    s.down = s.arm >= ARM_DOWN && s.arm < ARM_RUN_OUT + 1;
+    // A failed source keeps the stylus up. Otherwise `down` would stay true
+    // over a track that cannot play, the settle test would never pass, and the
+    // loop would run at 60Hz for as long as the craft is on screen.
+    s.down = !s.failed && s.arm >= ARM_DOWN && s.arm < ARM_RUN_OUT + 1;
 
     // The platter runs up and down rather than snapping, which is most of the
     // character of a deck starting.
@@ -244,6 +250,23 @@ export function Tonearm() {
     if (sim.current.visible) loop.wake();
   }, [loop]);
 
+  /**
+   * The source will not play: blocked, missing, or an unsupported codec.
+   *
+   * This exists because a silent failure here is invisible twice over. The
+   * deck looks alive, so nobody reports it. And with `duration` stuck at NaN
+   * the arm never advances, so `down` stays true, so the loop's settle test
+   * never passes and it runs at 60Hz forever over a track that is not
+   * playing. Lifting the arm both says so and lets the loop stop.
+   */
+  const onAudioFailed = useCallback(() => {
+    const s = sim.current;
+    s.failed = true;
+    s.armTarget = ARM_REST;
+    setFailed(true);
+    wake();
+  }, [wake]);
+
   /** Lift the arm home and drop the next track on the platter. */
   const nextTrack = useCallback(() => {
     const s = sim.current;
@@ -254,7 +277,12 @@ export function Tonearm() {
     }
     s.index = (s.index + 1) % CAR_KIDS_SIDE_A.length;
     s.armTarget = ARM_REST;
+    // A new source deserves its own chance: one unplayable file should not
+    // condemn the rest of the side.
+    s.failed = false;
+    s.seekedTo = -1;
     setIndex(s.index);
+    setFailed(false);
     wake();
   }, [wake]);
 
@@ -383,14 +411,22 @@ export function Tonearm() {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing && sim.current.armedByGesture) {
-      audio.play().catch(() => {
-        // Autoplay refused, or the track was swapped mid-play. The deck keeps
-        // turning; it simply does so in silence.
+      audio.play().catch((error: DOMException) => {
+        // A refused autoplay and an unplayable file are different problems and
+        // must not be swallowed together. Refusal is expected and harmless:
+        // the gesture simply was not enough for this browser, and the next one
+        // will be. Anything else means the deck cannot play, and saying so is
+        // better than a platter that spins in silence.
+        if (error?.name === "NotAllowedError" || error?.name === "AbortError") {
+          return;
+        }
+        console.error("[tonearm] playback failed", error);
+        onAudioFailed();
       });
     } else {
       audio.pause();
     }
-  }, [playing]);
+  }, [playing, onAudioFailed]);
 
   useReducedMotion((reduced) => {
     sim.current.reduced = reduced;
@@ -460,19 +496,30 @@ export function Tonearm() {
 
       <p className={styles.readout} aria-hidden="true">
         <b>{track.title}</b>
-        <span>{track.release}</span>
+        <span>{failed ? "Will not play" : track.release}</span>
         <span ref={elapsedRef} className={styles.elapsed}>
           --:--
         </span>
       </p>
+      {/* Announced, not just drawn: a reader who cannot see the readout still
+          needs to know the deck is not going to play. */}
+      <p role="status" className="sr-only">
+        {failed
+          ? `${track.title} will not play. Press the down arrow for the next track.`
+          : ""}
+      </p>
 
-      {/* Nothing is fetched until the stylus first comes down. */}
+      {/* Nothing is fetched until the stylus first comes down. `onError` is
+          not optional: a source blocked by CSP, or a stream that dies
+          mid-track, fires `error` without ever rejecting `play()`, so the
+          promise's catch never sees those at all. */}
       {/* biome-ignore lint/a11y/useMediaCaption: instrumental band recordings */}
       <audio
         ref={audioRef}
         src={track.url}
         preload="none"
         onEnded={nextTrack}
+        onError={onAudioFailed}
       />
 
       <button

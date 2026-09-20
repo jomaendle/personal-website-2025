@@ -72,6 +72,15 @@ export function useAnimationLoop(options: AnimationLoopOptions): AnimationLoop {
   const tick = useCallback((now: number) => {
     const s = state.current;
     const o = opts.current;
+
+    // The handle we were called for is spent the moment we are called. Leaving
+    // it set means a throw below would strand a stale, already-fired id in
+    // `frame`, and `wake` begins by returning early when `frame` is set — so
+    // every later pointer, key and resize would be a silent no-op and the
+    // craft would be frozen for good. Clearing it first makes the loop
+    // restartable whatever happens next.
+    s.frame = 0;
+
     const maxFrame = o.maxFrame ?? 0.032;
     const maxStep = o.maxStep ?? maxFrame;
 
@@ -86,16 +95,27 @@ export function useAnimationLoop(options: AnimationLoopOptions): AnimationLoop {
     // one's answer would stop a frame early whenever a spring settles mid-frame
     // while another is still travelling.
     let moving = false;
-    for (let i = 0; i < count; i++) moving = o.step(dt, now) || moving;
+    try {
+      for (let i = 0; i < count; i++) moving = o.step(dt, now) || moving;
 
-    // Once per frame, never per sub-step: the DOM does not care about the
-    // intermediate poses, and writing them would cost as much as the physics.
-    o.paint(now);
+      // Once per frame, never per sub-step: the DOM does not care about the
+      // intermediate poses, and writing them would cost as much as the physics.
+      o.paint(now);
+    } catch (error) {
+      // Stop deliberately and loudly rather than rescheduling into a thrower
+      // sixty times a second. The craft stays where it is and stays wakeable.
+      s.last = 0;
+      console.error("[motion] animation loop stopped", error);
+      return;
+    }
 
+    // `frame` was cleared on entry, so a `wake` triggered from inside step or
+    // paint — a setState there can reach an effect that wakes us — will have
+    // scheduled one already. Honour it rather than queueing a second loop and
+    // running the simulation twice per frame.
     if (moving) {
-      s.frame = requestAnimationFrame(tick);
-    } else {
-      s.frame = 0;
+      if (!s.frame) s.frame = requestAnimationFrame(tick);
+    } else if (!s.frame) {
       s.last = 0;
       o.onSettle?.();
     }

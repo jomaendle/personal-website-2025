@@ -158,6 +158,13 @@ exactly as intended, but the centre is flat to within 1% only out to
 r = 0.3 needs `b ≈ 0.47`, which drops `f(1)` to 0.86 and kills the rim in-pull
 that is the entire point. Keep the constants; quote the real figure.
 
+The figure is a property of the magnification, not of the lens in general, so
+it must be recomputed whenever `M` changes. Solve `1 + (b/a)·r⁴ = 1.01` while
+holding `a + b = 1.15`. A gentler lens has a wider flat centre: the craft as
+shipped runs at `M = 1.7`, where it reaches **r ≈ 0.32**. Quoting 0.266 there
+would understate it. This is the kind of constant that rots quietly, because
+it stays plausible after the number it was derived from has moved.
+
 ## Smaller things that carried real weight
 
 - **A dedicated tight contact shadow** at the object's actual footprint (blur

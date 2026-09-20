@@ -58,8 +58,11 @@ const GLASS_R = (LOUPE - WELL * 2) / 2;
  * pixels. Without the in-pull this is a zoomed circle, not a lens.
  *
  * The exponent is 4, not 2, so the centre stays flat. Distortion that begins
- * at r = 0 reads as a fisheye photo filter rather than as glass. Measured, the
- * centre holds to within 1% out to r ≈ 0.266.
+ * at r = 0 reads as a fisheye photo filter rather than as glass. The sampled
+ * radius stays within 1% of a pure scale out to r ≈ 0.32, from
+ * `1 + (B/A)·r⁴ = 1.01`. The published 0.266 figure is the same calculation at
+ * M = 2.6, which is what the renderer spike ran at; a gentler lens has a wider
+ * flat centre, so lowering M improved this rather than costing anything.
  *
  * M is 1.7 rather than a real loupe's 8x on purpose. At high magnification the
  * glass fills with one frame and reads as a porthole; at 1.7 the rebate and
