@@ -206,8 +206,107 @@ function nearestFrame(x: number, y: number) {
 }
 
 const REST = frameCentre(REST_INDEX);
-const REST_RECT = frameRect(REST_INDEX);
-const REST_FRAME = FRAMES[REST_INDEX] as Frame;
+
+/** A grease-pencil mark, or nothing. Split out of `Strips` so that function
+ *  stays under the project's complexity bar. */
+function Mark({ index }: { index: number }) {
+  if (SELECTED.has(index)) {
+    return (
+      <span className={styles.mark} aria-hidden="true">
+        <svg viewBox="0 0 112 75">
+          <title>Circled</title>
+          <ellipse
+            cx="56"
+            cy="37"
+            rx="50"
+            ry="31"
+            transform="rotate(-4 56 37)"
+          />
+        </svg>
+      </span>
+    );
+  }
+  if (REJECTED.has(index)) {
+    return (
+      <span className={styles.mark} aria-hidden="true">
+        <svg viewBox="0 0 112 75">
+          <title>Rejected</title>
+          <path d="M12 10 L100 66 M100 10 L12 66" />
+        </svg>
+      </span>
+    );
+  }
+  return null;
+}
+
+/** One frame in a strip. */
+function FrameCell({
+  index,
+  decorative,
+}: {
+  index: number;
+  decorative?: boolean;
+}) {
+  const f = FRAMES[index];
+  if (!f) return null;
+  return (
+    <div className={styles.frame}>
+      {/** biome-ignore lint/performance/noImgElement: the lens reads these pixels from a canvas built from the same file, so an optimizer round trip would desynchronise the two */}
+      <img
+        src={f.src.src}
+        alt={decorative ? "" : f.caption}
+        aria-hidden={decorative || undefined}
+        width={FRAME_W}
+        height={FRAME_H}
+        loading="lazy"
+        decoding="async"
+      />
+      {decorative ? null : (
+        <span className={styles.number} aria-hidden="true">
+          {f.no}
+        </span>
+      )}
+      <Mark index={index} />
+    </div>
+  );
+}
+
+/**
+ * The fifteen frames, laid out as three strips.
+ *
+ * Rendered twice: once as the sheet itself, and once inside the loupe as the
+ * tier-3 fallback. The second copy is `aria-hidden` and its images are the
+ * same files, so they come from cache.
+ */
+function Strips({ decorative }: { decorative?: boolean }) {
+  return (
+    <>
+      {Array.from({ length: ROWS }, (_, row) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length grid
+        <div key={row} className={styles.strip}>
+          {Array.from({ length: COLS }, (_, col) => (
+            <FrameCell
+              key={FRAMES[row * COLS + col]?.no ?? col}
+              index={row * COLS + col}
+              decorative={decorative}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** The fallback's transform: scale the sheet about its origin, then slide the
+ *  point under the glass to the glass's centre. */
+/** The offscreen sheet failing is not fatal: the tier-3 fallback is already
+ *  on screen and keeps working. Say so rather than dropping it silently. */
+function reportLensFailure(error: unknown) {
+  console.error("[loupe] could not build the offscreen sheet", error);
+}
+
+const flatTransform = (x: number, y: number) =>
+  `translate(${(GLASS_R - x * M).toFixed(2)}px, ${(GLASS_R - y * M).toFixed(2)}px) scale(${M})`;
 
 /**
  * A contact sheet with a loupe you drag across it.
@@ -234,6 +333,7 @@ export function ContactSheet() {
   const hitRef = useRef<HTMLButtonElement>(null);
   const loupeRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flatSheetRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLParagraphElement>(null);
 
   const [over, setOver] = useState(REST_INDEX);
@@ -381,6 +481,13 @@ export function ContactSheet() {
       ).toFixed(2)}px, 0)`;
     }
 
+    // The fallback tracks the glass too. It used to be pinned to the frame
+    // the loupe started on, so for the second or so it takes to build the
+    // offscreen sheet, dragging showed a still of the wrong photograph that
+    // did not move. That is what "the loupe doesn't work" looked like.
+    const flatSheet = flatSheetRef.current;
+    if (flatSheet) flatSheet.style.transform = flatTransform(s.x, s.y);
+
     const canvas = canvasRef.current;
     const src = s.source;
     const lut = s.lut;
@@ -401,6 +508,7 @@ export function ContactSheet() {
     const base = cy * s.sourceW + cx;
     const max = src32.length - 1;
     for (let i = 0; i < dst32.length; i++) {
+      // biome-ignore lint/style/noNonNullAssertion: both reads are total — `i` is bounded by the loop and the clamp keeps the source index inside the buffer — but noUncheckedIndexedAccess widens typed-array reads regardless. A `?? 0` here would paint transparent pixels if the geometry ever drifted, hiding the bug behind a plausible-looking hole; an assertion fails loudly instead.
       dst32[i] = src32[clamp(base + lut[i]!, 0, max)]!;
     }
     ctx.putImageData(out, 0, 0);
@@ -441,7 +549,7 @@ export function ContactSheet() {
     }
 
     return (
-      !!s.drag ||
+      s.drag !== null ||
       Math.abs(s.vx) > 0.4 ||
       Math.abs(s.vy) > 0.4 ||
       Math.abs(s.tx - s.x) > 0.3 ||
@@ -504,7 +612,7 @@ export function ContactSheet() {
       } catch {
         // Synthetic or already-released pointer; the drag still works.
       }
-      void ensureLens();
+      ensureLens().catch(reportLensFailure);
       s.drag = {
         pointerId: event.pointerId,
         grabX: s.x,
@@ -586,7 +694,7 @@ export function ContactSheet() {
           return;
       }
       event.preventDefault();
-      void ensureLens();
+      ensureLens().catch(reportLensFailure);
       const c = frameCentre(next);
       s.mode = "key";
       s.tx = c.x;
@@ -636,6 +744,9 @@ export function ContactSheet() {
       const root = rootRef.current;
       if (root) root.classList.toggle(styles.armed ?? "armed", onScreen);
       if (onScreen) {
+        // Built on arrival rather than on the first press. Waiting for a
+        // gesture meant the first second of every drag ran on the fallback.
+        ensureLens().catch(reportLensFailure);
         wake();
       } else {
         loop.stop();
@@ -660,57 +771,7 @@ export function ContactSheet() {
         className={styles.sheet}
         style={{ width: SHEET_W, height: SHEET_H }}
       >
-        {Array.from({ length: ROWS }, (_, row) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length grid
-            key={row}
-            className={styles.strip}
-          >
-            {Array.from({ length: COLS }, (_, col) => {
-              const i = row * COLS + col;
-              const f = FRAMES[i];
-              if (!f) return null;
-              return (
-                <div key={f.no} className={styles.frame}>
-                  {/** biome-ignore lint/performance/noImgElement: the lens reads these pixels from a canvas built from the same file, so an optimizer round trip would desynchronise the two */}
-                  <img
-                    src={f.src.src}
-                    alt={f.caption}
-                    width={FRAME_W}
-                    height={FRAME_H}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <span className={styles.number} aria-hidden="true">
-                    {f.no}
-                  </span>
-                  {SELECTED.has(i) ? (
-                    <span className={styles.mark} aria-hidden="true">
-                      <svg viewBox="0 0 112 75">
-                        <title>Circled</title>
-                        <ellipse
-                          cx="56"
-                          cy="37"
-                          rx="50"
-                          ry="31"
-                          transform="rotate(-4 56 37)"
-                        />
-                      </svg>
-                    </span>
-                  ) : null}
-                  {REJECTED.has(i) ? (
-                    <span className={styles.mark} aria-hidden="true">
-                      <svg viewBox="0 0 112 75">
-                        <title>Rejected</title>
-                        <path d="M12 10 L100 66 M100 10 L12 66" />
-                      </svg>
-                    </span>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+        <Strips />
 
         {/* The resting transform is inline, so the server puts the loupe on a
             frame rather than parking it in the sheet's top-left corner. The
@@ -734,18 +795,17 @@ export function ContactSheet() {
                 it is server-rendered markup rather than something the loop has
                 to arrive to produce. Hidden once the canvas has painted. */}
             <div className={styles.flat} data-lens={lensReady ? "on" : "off"}>
-              {/** biome-ignore lint/performance/noImgElement: same file the canvas samples */}
-              <img
-                src={REST_FRAME.src.src}
-                alt=""
-                aria-hidden="true"
-                width={Math.round(FRAME_W * M)}
-                height={Math.round(FRAME_H * M)}
+              <div
+                ref={flatSheetRef}
+                className={styles.flatSheet}
                 style={{
-                  left: `${GLASS_R - (REST.x - REST_RECT.x) * M}px`,
-                  top: `${GLASS_R - (REST.y - REST_RECT.y) * M}px`,
+                  width: SHEET_W,
+                  height: SHEET_H,
+                  transform: flatTransform(REST.x, REST.y),
                 }}
-              />
+              >
+                <Strips decorative />
+              </div>
             </div>
             <canvas
               ref={canvasRef}

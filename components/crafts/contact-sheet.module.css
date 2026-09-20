@@ -223,9 +223,19 @@
   inset: 0;
   overflow: hidden;
 }
-.flat img {
+/* A scaled copy of the whole sheet, slid so that whatever the glass is over
+   lands at its centre. Scaling the sheet rather than one frame is what lets
+   the fallback follow the loupe instead of being pinned where it started. */
+.flatSheet {
   position: absolute;
+  top: 0;
+  left: 0;
+  padding: 14px 10px;
   transform-origin: 0 0;
+  background: hsl(40 30% 92%);
+}
+:root:not(.light) .flatSheet {
+  background: hsl(36 10% 13%);
 }
 .flat[data-lens="on"] {
   opacity: 0;
