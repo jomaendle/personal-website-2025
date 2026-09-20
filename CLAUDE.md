@@ -1,127 +1,225 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) when working in this repository.
 
-## Development Commands
+This is the single source for how this project works. Conventions live here
+rather than in a separate skill, because a second file drifts: the old
+`project-conventions` skill still described Inter and a blue link colour months
+after the editorial redesign, and was quietly instructing every session to use
+them.
+
+## What this site is for
+
+Jo Mändle's personal site. It exists, in order:
+
+1. **To win freelance work.** A client or a recruiter lands here and decides
+   whether to get in touch. That decision is the point.
+2. **To earn respect from other engineers.** Depth and technical honesty over
+   polish that does not survive a second look.
+3. **To be standing proof he can build.** The site is the portfolio. Nothing on
+   it should need an argument in words for why it is good.
+
+What follows from that, and what to weigh when a decision is not obvious:
+
+- **Legibility beats novelty.** A visitor gives this page seconds. Something
+  obscure that only a specialist recognises is worth less than something they
+  understand instantly and find impressive. Rarity is not a proxy for quality;
+  if nobody is doing a thing, that is as likely to be a reason as an opening.
+- **Restraint is the house style, but the work inside it need not be.** The
+  page stays quiet. The things on the page can be loud.
+- **Nothing ships that only works when it works.** Server-rendered content,
+  honest fallbacks, real accessibility. A craft that breaks with JS off is a
+  liability on a site whose job is to prove competence.
+
+## Development commands
 
 The package manager is pnpm (`pnpm-lock.yaml` is the lockfile).
 
-- `pnpm dev` - Start the development server (http://localhost:3000)
-- `pnpm build` - Build the application for production
-- `pnpm start` - Start the production server
-- `pnpm lint` - Run Biome to check for code issues (lint + format + import order)
-- `pnpm lint:fix` - Apply Biome's safe fixes
-- `pnpm format` - Format with Biome
+- `pnpm dev` — dev server. **It runs on http://localhost:3001**; port 3000 is
+  another project on this machine
+- `pnpm build` — production build
+- `pnpm start` — production server (`PORT=… pnpm start` to move it)
+- `pnpm lint` — Biome: lint, format and import order
+- `pnpm lint:fix` — Biome's safe fixes
+- `pnpm format` — format only
 
-## Architecture Overview
+There is **no test suite**. See *Verification* below for what to do instead.
 
-This is a Next.js 15 personal website built with the App Router, featuring a blog with MDX content, dynamic components, and modern web technologies.
+## Architecture
 
-### Core Technologies
+Next.js 15, App Router.
 
-- **Framework**: Next.js 15 with App Router
-- **Styling**: Tailwind CSS 4 (CSS-first config in `app/globals.css` via `@theme`/`@plugin`; no tailwind.config file) with custom design system using CSS variables
-- **Linting/Formatting**: Biome (`biome.json`) — strict a11y/complexity/correctness/security rules; CSS files are excluded (Tailwind syntax), plain `.css` is owned by Tailwind/PostCSS
-- **Content**: MDX for blog posts with custom components
-- **Database**: Supabase for view counters and data persistence
-- **Email**: Resend for contact form submissions
-- **Analytics**: Plausible Analytics and Vercel Speed Insights
-- **Animations**: Framer Motion and tailwindcss-motion
-- **Code Demos**: Sandpack for interactive code examples
+- **Styling**: Tailwind CSS 4, CSS-first config in `app/globals.css` via
+  `@theme`/`@plugin`. **There is no `tailwind.config` file**
+- **Linting**: Biome (`biome.json`), strict a11y/complexity/correctness/security.
+  CSS files are excluded because Tailwind's syntax trips the parser
+- **Content**: MDX blog posts
+- **Data**: Supabase (view counters), Resend (contact email)
+- **Analytics**: Plausible and Vercel Speed Insights
+- **Animation**: `lib/motion/` for crafts; Framer Motion for site chrome only,
+  lazy-loaded through `<LazyMotion strict>`, so **only `m.*` components work**
 
-### Project Structure
+### Layout
 
-#### App Router Structure
+- `app/` — routes and layouts. `blog/[slug]/page.mdx` for posts,
+  `crafts/` for the craft index
+- `pages/api/` — API routes deliberately on the **Pages** Router (contact,
+  newsletter, view tracking, OG images)
+- `components/ui/` — generic reusable UI · `components/blog/` — blog-specific ·
+  `components/crafts/` — interactive crafts · `components/` — feature components
+- `lib/motion/` — the shared animation engine
+- `lib/state/` — content as data (projects, blog, crafts, copy)
+- `lib/config/` — site and navigation config
+- `docs/solutions/` — write-ups of past problems, with YAML frontmatter
+  (`module`, `tags`, `problem_type`). Check here before debugging something
+  that smells familiar
 
-- `app/` - Next.js App Router pages and layouts
-  - `blog/[slug]/` - Blog post routes with MDX content
-  - `page.tsx` - Homepage with sections for work, crafts, articles, experience
-  - `layout.tsx` - Root layout with theme provider, analytics, and global metadata
+## Design system
 
-#### Components Architecture
+An editorial system: cream paper in light mode, near-black in dark, one
+vermilion accent.
 
-- `components/ui/` - Reusable UI components (Button, Card, Heading, etc.)
-- `components/blog/` - Blog-specific components
-- `components/crafts/` - Interactive demo components
-- `components/` - Feature components (contact form, newsletter, etc.)
+- Tokens are HSL CSS variables in `app/editorial-theme.css`. `app/globals.css`
+  holds the Tailwind `@theme`, fonts and base styles
+- Use tokens (`--brand`, `--background`, `--foreground`, `--card`, `--border`,
+  `--muted-foreground`), not hardcoded colours. The accent is `--brand`; there
+  is no blue link colour anywhere
+- Type: **Newsreader** (serif) for titles, **Geist** for body, **Geist Mono**
+  for eyebrows, dates and labels. Geist is self-hosted from `app/fonts`; see
+  `app/layout.tsx`
+- The mono eyebrow idiom is
+  `font-mono text-brand text-xs uppercase tracking-wider`
+- Lists are hairline ledger rows (`.ledger-row`), brand rule and tint on hover
+- **Dark is the default.** The theme is a **class on the root** (`.light` vs
+  `:root:not(.light)`), not a media query. Canvas and SVG cannot read CSS
+  variables, so code that needs a token must resolve it with `getComputedStyle`
+  and re-resolve on a `MutationObserver` watching `documentElement`
+- Both themes must work. Dark mode is rarely an inversion: a contact sheet
+  becomes a light table, paper stays paper rather than going white-on-black
 
-#### Content Management
+### Objects sit in the palette; they are not made of it
 
-- Blog posts are MDX files located in `app/blog/[slug]/page.mdx`
-- Each blog post directory can contain supporting files (components, styles, assets)
-- Custom MDX components defined in `mdx-components.tsx`
-- Interactive code examples use Sandpack component
+The page is restrained. A craft object is not. Real material belongs on the
+object: leather, chrome, vinyl, turned wood, white plastic. Tinting an object
+to the design tokens is what turns it into a diagram of itself.
 
-#### API Routes
+What separates an object from a diagram, concretely:
 
-- `pages/api/` - API routes using Pages Router (contact, newsletter, view tracking, OG images)
-- Contact form uses Resend for email delivery
-- View counter uses Supabase for persistence
+- One light source, upper-left, consistent across every surface
+- Shadows always stack: a tight contact shadow that glues it to the page, a
+  form shadow for thickness, a wide soft ambient pool. A single `box-shadow`
+  reads as a sticker
+- No flat fills. Every surface is a gradient
+- A bevel is two lines, a light one on the top-left lip and a dark one on the
+  bottom-right, via `inset` shadows. A 1px border is neither. A recess inverts
+  this
+- Surface grain via a low-opacity `feTurbulence` data URI
+- The object fills most of its card. Small in a big empty box reads as a
+  placeholder
 
-#### Documented Solutions
+## Crafts and motion
 
-- `docs/solutions/` - documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`)
+Crafts (`components/crafts/`, plus `components/image-stack.tsx`) share one
+architecture. Use `lib/motion/` rather than hand-rolling it again.
 
-### Design System
+- `useAnimationLoop` — one rAF loop with wake/settle and sub-stepping
+- `useReducedMotion` — live `matchMedia`, not a read at mount
+- `useOnScreen` — IntersectionObserver, optionally tab-visibility aware
+- `spring.ts` — the integrator, plus `maxStableStep` and `assertStable`
 
-An editorial system: cream paper in light mode, near-black in dark, one vermilion accent (`--brand`).
+Rules:
 
-- Tokens are HSL CSS variables in `app/editorial-theme.css`; `app/globals.css` holds the Tailwind `@theme`, fonts and base styles
-- Type: Newsreader (serif) for titles, Geist for body, Geist Mono for eyebrows, dates and labels. Geist is self-hosted from `app/fonts`; see `app/layout.tsx` for how each is loaded
-- Lists are hairline "ledger" rows (`.ledger-row`), with a brand rule and tint on hover
-- Content is server-rendered; motion is an enhancement and never the only way content becomes visible
-- Voice rules for all copy live in `.claude/skills/writing-voice`
+- **All mutable simulation state in one `useRef` object**, so handlers never go
+  stale
+- Write `transform`/`opacity` **directly to element refs** in the loop. Call
+  `setState` only when a *semantic* value changes (an `aria-valuenow`, a phase
+  label, a reveal count)
+- Springs are hand-rolled semi-implicit Euler. Past `k·h² + 2c·h < 4` they
+  diverge to `NaN`, which the browser silently drops, so the element simply
+  vanishes on slow frames with nothing in the console. Sub-step long frames and
+  call `assertStable()` beside each tuning block
+- Keep tuning constants at module scope **next to the prose comment that
+  justifies them**. Never collect them into a shared presets file
+- `prefers-reduced-motion` is honoured **live**. Reduced motion means gentler,
+  not absent: keep cross-fades, press feedback and anything that is content
+  arriving; drop travel, coasting and decorative wobble
+- Capture pointer events on a **static hit surface** and hit-test geometrically.
+  Never attach them to moving elements. Use **native listeners in a `useEffect`**,
+  the way `image-stack.tsx` does, not React props
+- Take `pointerId` ownership so a second finger cannot steal a gesture, and
+  handle `pointercancel`
+- Grant `will-change` via `IntersectionObserver`, **never on a pointer event**
+- Server-render the resting pose. Motion is an enhancement and never the only
+  way content becomes visible
 
-### Key Features
+Note when debugging: several craft stylesheets are CSS modules with a `.hit`
+class, so a selector like `[class*="__hit"]` matches more than one craft. Scope
+queries to the craft's own root.
 
-#### Interactive Blog Components
+## Content and copy
 
-- Custom Sandpack integration for live code examples
-- Component preview system for showcasing UI components
-- Blog image optimization and responsive handling
-- View counter tracking with Supabase
+- **Before writing or editing any user-visible text**, load the `writing-voice`
+  skill and follow it. That includes page copy, metadata, alt text and form
+  labels
+- Most copy is **data, not JSX**: look in `lib/state/` and `lib/config/` before
+  editing a component
+- `app/llms.txt/route.ts` and `lib/business-markdown.ts` generate public
+  markdown mirrors from the same data, so changing copy changes those too
 
-#### Content Structure
+### Blog posts
 
-- Blog posts support embedded React components
-- Each post can have its own stylesheet (`Styles.module.css`)
-- Public assets organized by blog post in `public/[post-slug]/`
+- **Always use `<CodeBlock>`** for code samples in MDX, never triple-backtick
+  fences: `<CodeBlock language="typescript">…</CodeBlock>`
+- Metadata (title, date, slug) lives in `lib/state/blog.ts` as named exports,
+  **not** in MDX frontmatter
+- Each post's `page.tsx` imports its metadata and wraps content in `<MdxLayout>`
+- Assets go in `public/[slug]/`, referenced as `/[slug]/filename.ext`
+- Component styles co-locate as `Styles.module.css`
+- Use `export const dynamic = "force-static"`
 
-#### Performance & SEO
+## Code conventions
 
-- Automatic OG image generation via API route
-- Sitemap and robots.txt generation
-- View transitions using `next-view-transitions`
-- Speed insights and analytics integration
+- `cn()` from `@/lib/utils` for conditional Tailwind classes, never string
+  concatenation
+- Supabase client from `@/lib/supabaseClient`; Resend from `@/lib/resend`.
+  Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `noUncheckedIndexedAccess` is on: indexing an array yields `T | undefined`
+- Prefer `next/image`, with two exceptions where a plain `<img>` is correct: a
+  ref must reach the actual element (a static import renders a placeholder
+  wrapper), or the Netlify preview's `/_next/image` optimizer would 400 on it
+- Don't add new animation libraries
 
-## Development Patterns
+## Verification
 
-### Adding New Blog Posts
+There is no test runner, so verification is instrumented browser work, on a
+**production build** (`pnpm build && pnpm start`). The dev overlay pollutes
+layout and timing numbers, which this repo has already been bitten by.
 
-1. Create directory in `app/blog/[slug]/`
-2. Add `page.mdx` file with frontmatter
-3. Include supporting components and styles in the same directory
-4. Assets go in `public/[slug]/`
+- **Confirm the server under test is the one you think it is.** `pkill -f "next
+  start"` does not match the `next-server` process, so a restart can silently
+  fail on `EADDRINUSE` while a stale server keeps serving. The tell is 400s on
+  `_next/static/chunks/*`: HTML cached in the old process pointing at chunk
+  names a newer build overwrote. Kill by port (`lsof -ti:PORT | xargs kill -9`),
+  delete `.next`, rebuild, and check exactly one server is listening
+- For a motion change, assert the **loop stops at rest**: a `MutationObserver`
+  counting `style` writes must reach zero after settling
+- For sub-stepping, jam the main thread so frames exceed the stability bound,
+  then check for `NaN` transforms and that the loop still terminates
+- Check reduced motion by toggling it **at runtime without a reload**
+  (Playwright's `emulateMedia`), not just by loading with it on
+- Compare the **largest single-frame delta** and the **frame count to settle**,
+  not the endpoints
+- Test in Chromium, WebKit and Firefox. Each has found defects the others did not
+- `docs/solutions/frontend-animation/` holds the accumulated pitfalls
 
-### Custom Components in MDX
+## Working together
 
-- Components can be imported and used directly in MDX files
-- Use the Sandpack component for interactive code examples
-- Follow the existing pattern of co-locating styles with components
-
-### Styling Conventions
-
-- Use Tailwind CSS classes following the existing design system
-- Dark mode is the default theme
-- Leverage CSS variables for consistent spacing and colors
-- Module CSS for component-specific styles when needed
-
-### API Integration
-
-- Supabase client is configured in `lib/supabaseClient.ts`
-- Environment variables required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Resend client in `lib/resend.ts` for email functionality
-- always use the codeblock component when showing code in the articles
+- **Show a rendered image early.** For anything visual, put a screenshot in
+  front of Jo before writing production code. Describing a design in prose
+  hides whether it is actually any good, and a wrong direction can survive a
+  long time that way
+- Report what was measured, not what was expected. If a number came from a
+  run that turned out to be invalid, say so and re-run it
 
 <!-- BEGIN:nextjs-agent-rules -->
 
