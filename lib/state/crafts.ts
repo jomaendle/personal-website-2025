@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { ContactSheet } from "@/components/crafts/ContactSheet";
 import { Polaroid } from "@/components/crafts/Polaroid";
 import { Ruler } from "@/components/crafts/Ruler";
 import { Tonearm } from "@/components/crafts/Tonearm";
@@ -28,6 +29,15 @@ export const CRAFTS: Craft[] = [
       "Songs from Car Kids, whose full catalogue is at radio.jomaendle.com.",
     height: "min-h-[24rem]",
     component: Tonearm,
+  },
+  {
+    slug: "contact-sheet",
+    title: "Loupe",
+    year: 2026,
+    blurb:
+      "Drag the glass over the sheet. The rim pulls in what sits just outside it, the way real glass does, so the frames bow as they pass under the edge.",
+    height: "min-h-[26rem]",
+    component: ContactSheet,
   },
   {
     slug: "instant-print",
