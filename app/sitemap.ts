@@ -111,6 +111,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/crafts`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/impressum`,
       lastModified: now,
       changeFrequency: "yearly" as const,

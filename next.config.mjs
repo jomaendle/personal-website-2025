@@ -61,6 +61,12 @@ const nextConfig = {
       "manifest-src 'self'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
+      // The Tonearm craft streams Car Kids tracks from the Vercel Blob store
+      // that radio.jomaendle.com uploads to. Without an explicit media-src,
+      // this falls back to default-src 'self' and the browser rejects the
+      // source outright: the <audio> element reports MEDIA_ERR_SRC_NOT_SUPPORTED
+      // and the deck spins in silence with nothing obviously wrong.
+      "media-src 'self' https://*.public.blob.vercel-storage.com",
       "style-src 'self' 'unsafe-inline' https://giscus.app",
       // va.vercel-scripts.com serves both @vercel/analytics and
       // @vercel/speed-insights. Both are mounted in app/layout.tsx but were

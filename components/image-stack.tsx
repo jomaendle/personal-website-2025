@@ -4,6 +4,7 @@ import { track } from "@vercel/analytics";
 import Image, { type StaticImageData } from "next/image";
 import { usePlausible } from "next-plausible";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { assertStable, useAnimationLoop, useReducedMotion } from "@/lib/motion";
 import dsc00465 from "@/public/assets/DSC00465.webp";
 import dsc00483 from "@/public/assets/DSC00483-web.webp";
 import dsc00535 from "@/public/assets/DSC00535.webp";
@@ -172,8 +173,17 @@ const EDGE_EASE = 0.16;
 /** Below this a spring counts as settled and the loop can stop. */
 const EPSILON = 0.0005;
 /** The longest step the springs are integrated over, in seconds. A frame
- * longer than this is split into several (see `runFrame`). */
+ * longer than this is split into several by the animation loop. */
 const MAX_STEP = 0.008;
+
+// Every spring above, checked against the bound MAX_STEP has to respect. These
+// are dev-only and compile away; they exist because the failure they catch is
+// silent, and the stiffest of these (k=1600) diverges at just 20.7ms.
+assertStable("prominence", STIFFNESS, DAMPING, MAX_STEP);
+assertStable("focus", FOCUS_STIFFNESS, FOCUS_DAMPING, MAX_STEP);
+assertStable("putback", PUTBACK_STIFFNESS, PUTBACK_DAMPING, MAX_STEP);
+assertStable("wheel", WHEEL_STIFFNESS, WHEEL_DAMPING, MAX_STEP);
+assertStable("travel", TRAVEL_STIFFNESS, TRAVEL_DAMPING, MAX_STEP);
 /** The class that promotes the pile's compositor layers while it is in use
  * (see the stylesheet). Read once: a CSS module's members are typed as
  * possibly absent, and `classList` will not take `undefined`. */
@@ -270,7 +280,7 @@ type Geometry = {
  *
  * One requestAnimationFrame loop runs the springs and writes `transform` and
  * the shadow layer's `opacity` straight to the elements, the way
- * `crafts/Minimap` does; React re-renders only when a new print comes into
+ * `crafts/Ruler` does; React re-renders only when a new print comes into
  * view. The pointer is tracked on a static zone rather than on the moving
  * prints, geometry is measured once on entry, and the loop stops itself once
  * everything has settled, so an untouched pile costs nothing.
@@ -347,49 +357,38 @@ export function ImageStack() {
     samples: [] as { x: number; t: number }[],
     reduced: false,
     revealed: INITIAL_WINDOW,
-    last: 0,
-    frame: null as number | null,
     geometry: null as Geometry | null,
   });
 
-  const runFrame = useCallback((now: number) => {
-    const s = state.current;
-    const elapsed = Math.min(32, now - (s.last || now)) / 1000;
-    s.last = now;
+  // Advanced in fixed sub-steps, never in one jump. The prominence spring is
+  // integrated by semi-implicit Euler, which is only stable while
+  // k·h² + 2·c·h < 4 — at k = 1600 and c = 80 that is h < 20.7ms. One frame
+  // longer than that (a 30Hz display, a laden or backgrounded tab) and the
+  // spring diverges instead of settling: the transforms go to Infinity,
+  // which is not valid CSS and is silently dropped, and the loop never sees
+  // it settle, so it runs for ever. Sub-stepping keeps every spring inside
+  // its bound whatever the frame rate, and is more accurate besides.
+  const loop = useAnimationLoop({
+    step: useCallback((dt: number) => step(state.current, dt), []),
+    paint: useCallback(() => {
+      const s = state.current;
+      let inView = paint(s, tileRefs.current, {
+        zone: zoneRef.current,
+        backdrop: backdropRef.current,
+        dots: dotsRef.current,
+      });
+      // A print lifted by key from beyond the window needs its image too.
+      if (s.focused >= 0) inView = Math.max(inView, s.focused + 1);
+      if (inView > s.revealed) {
+        s.revealed = inView;
+        setRevealed(inView);
+      }
+    }, []),
+    maxFrame: 0.032,
+    maxStep: MAX_STEP,
+  });
 
-    // Advanced in fixed sub-steps, never in one jump. The prominence spring is
-    // integrated by semi-implicit Euler, which is only stable while
-    // k·h² + 2·c·h < 4 — at k = 1600 and c = 80 that is h < 20.7ms. One frame
-    // longer than that (a 30Hz display, a laden or backgrounded tab) and the
-    // spring diverges instead of settling: the transforms go to Infinity,
-    // which is not valid CSS and is silently dropped, and the loop never sees
-    // it settle, so it runs for ever. Sub-stepping keeps every spring inside
-    // its bound whatever the frame rate, and is more accurate besides.
-    let moving = false;
-    const substeps = Math.max(1, Math.ceil(elapsed / MAX_STEP));
-    const dt = elapsed / substeps;
-    for (let i = 0; i < substeps; i++) moving = step(s, dt) || moving;
-    let inView = paint(s, tileRefs.current, {
-      zone: zoneRef.current,
-      backdrop: backdropRef.current,
-      dots: dotsRef.current,
-    });
-    // A print lifted by key from beyond the window needs its image too.
-    if (s.focused >= 0) inView = Math.max(inView, s.focused + 1);
-    if (inView > s.revealed) {
-      s.revealed = inView;
-      setRevealed(inView);
-    }
-
-    s.frame = moving ? requestAnimationFrame(runFrame) : null;
-    if (!moving) {
-      s.last = 0;
-    }
-  }, []);
-
-  const start = useCallback(() => {
-    state.current.frame ??= requestAnimationFrame(runFrame);
-  }, [runFrame]);
+  const { wake: start } = loop;
 
   useEffect(() => {
     const zone = zoneRef.current;
@@ -403,7 +402,6 @@ export function ImageStack() {
     const canHover = window.matchMedia(
       "(hover: hover) and (pointer: fine)",
     ).matches;
-    s.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Measured once per visit of the pointer, and handed back so a caller can
     // use it without a null check. offsetLeft/offsetWidth ignore transforms,
@@ -777,10 +775,15 @@ export function ImageStack() {
       hit.removeEventListener("pointerleave", handleLeave);
       hit.removeEventListener("wheel", handleWheel);
       hit.removeEventListener("keydown", handleOpenKey);
-      if (s.frame !== null) cancelAnimationFrame(s.frame);
-      s.frame = null;
     };
   }, [start]);
+
+  // Read live, not once at mount. Someone who turns reduced motion on because
+  // the pile is making them ill should not have to reload the page to be heard.
+  useReducedMotion((reduced) => {
+    state.current.reduced = reduced;
+    start();
+  });
 
   return (
     // The zone is the window onto the strip; `.hit` inside it is the
