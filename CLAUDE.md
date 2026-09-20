@@ -113,9 +113,20 @@ What separates an object from a diagram, concretely:
 - A bevel is two lines, a light one on the top-left lip and a dark one on the
   bottom-right, via `inset` shadows. A 1px border is neither. A recess inverts
   this
-- Surface grain via a low-opacity `feTurbulence` data URI
+- Surface grain via a low-opacity `feTurbulence` data URI, **not** stacked
+  `repeating-linear-gradient`s, which beat into visible ribs at 2x
+- **Mask every texture pass by the light.** Texture that shows evenly across a
+  surface is the signature of a diagram; a real surface shows its grain where
+  light rakes across it and hides it elsewhere. Uniform detail is the single
+  most common reason a CSS object reads as fake
 - The object fills most of its card. Small in a big empty box reads as a
   placeholder
+
+`docs/solutions/frontend-design/css-objects-that-read-as-photographed-2026-09-20.md`
+has the long version: blend modes over flat gradients, two densities per
+shadow, simulating a physical process by raising a ceiling rather than fading a
+layer, and the ink-squeeze filter chain that produces outlined type unless you
+blur the rim inward.
 
 ## Crafts and motion
 
