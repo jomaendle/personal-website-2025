@@ -215,8 +215,9 @@
   width: 100%;
   height: 100%;
 }
-/* Tier 3: the resting pose the server renders and reduced motion keeps. A
-   plain clipped scale, no curvature. Replaced by the canvas once it paints. */
+/* Tier 3: what the server renders, and what stays if the canvas never paints.
+   A plain clipped scale, no curvature and no rim in-pull, but it magnifies.
+   Hidden the moment the canvas has a frame of its own. */
 .flat {
   position: absolute;
   inset: 0;
@@ -225,6 +226,14 @@
 .flat img {
   position: absolute;
   transform-origin: 0 0;
+}
+.flat[data-lens="on"] {
+  opacity: 0;
+}
+/* Until the canvas paints it is an empty transparent square; showing it would
+   punch a hole through the fallback underneath. */
+.lens[data-lens="off"] {
+  opacity: 0;
 }
 
 /* Glass: a curved specular in the upper left, a weaker bounce lower right,

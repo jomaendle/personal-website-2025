@@ -65,21 +65,32 @@ const GLASS_R = (LOUPE - WELL * 2) / 2;
  * flat centre, so lowering M improved this rather than costing anything.
  *
  * M is 1.7 rather than a real loupe's 8x on purpose. At high magnification the
- * glass fills with one frame and reads as a porthole; at 1.7 the rebate and
- * sprocket holes go big inside the glass while the frames around it stay
- * small, which is what identifies the object as a loupe at all.
+ * glass fills with one frame and reads as a porthole; at 1.7 the rebate stays
+ * in view and goes big inside the glass while the frames around it stay small,
+ * which is what identifies the object as a loupe at all.
+ *
+ * Note the offscreen sheet carries the paper, the rebate and the photographs,
+ * but not the sprocket holes, frame numbers or grease-pencil marks: those are
+ * CSS on the visible sheet. So the glass magnifies the picture and the rebate
+ * and nothing else. Drawing the rest into the canvas would be the next real
+ * improvement here.
  */
 const M = 1.7;
 const LENS_A = 1 / M;
 const LENS_B = 1.15 - LENS_A;
 const lensF = (r: number) => r * (LENS_A + LENS_B * r * r * r * r);
 
-/** How much finer than CSS pixels the offscreen sheet is rendered. It has to
- * beat the magnification or the lens shows interpolation rather than detail.
- * Above the magnification there is nothing left to win, only memory. */
-const SUPERSAMPLE = 2.6;
-/** Margin around the offscreen sheet, so the rim can sample past the paper's
- * edge without any bounds check in the inner loop. */
+/** How much finer than CSS pixels the offscreen sheet is rendered.
+ *
+ * It has to beat the magnification, or the lens enlarges interpolation rather
+ * than detail. M is 1.7 at the centre, but the LUT point-samples, so the
+ * headroom above 1.7 is what keeps the compressed rim from aliasing, where
+ * four source pixels land on one destination pixel. 2.2 is measurably better
+ * than 2.0 at the rim; past that it is only memory, and this buffer is already
+ * the craft's largest cost. */
+const SUPERSAMPLE = 2.2;
+/** Margin around the offscreen sheet, so the rim samples paper rather than
+ * running off the buffer entirely. */
 const PAD = Math.ceil(GLASS_R * 1.2 * SUPERSAMPLE);
 
 /** Spring carrying the loupe to the pointer. A little lag is the glass's
@@ -87,10 +98,14 @@ const PAD = Math.ceil(GLASS_R * 1.2 * SUPERSAMPLE);
 const CHASE_STIFFNESS = 3900;
 const CHASE_DAMPING = 125;
 /** Magnetic snap to a frame's centre. The one deliberately underdamped spring
- * here: about six per cent overshoot is the clunk of a magnet catching, and
- * critically damped it reads as merely drifting to a stop. */
+ * here: the overshoot is the clunk of a magnet catching, and without it the
+ * glass reads as merely drifting to a stop.
+ *
+ * ζ = c / (2√k) = 35 / (2√700) = 0.661, so peak overshoot is
+ * exp(−πζ/√(1−ζ²)) ≈ 6%. It was 44, which is ζ = 0.83 and only 0.9% — a
+ * number small enough that the comment describing it was simply untrue. */
 const SNAP_STIFFNESS = 700;
-const SNAP_DAMPING = 44;
+const SNAP_DAMPING = 35;
 /** Keyboard steps land inside the ~300ms a gesture gets, and must not
  * overshoot, because held arrow-repeat compounds overshoot into a wobble. */
 const KEY_STIFFNESS = 1200;
@@ -155,6 +170,10 @@ const FRAMES: Frame[] = SOURCES.map((src, i) => ({
   no: `${String(Math.floor(i / COLS) + 1)}${String.fromCharCode(65 + (i % COLS))}`,
 }));
 
+/** Where the loupe rests before anyone touches it. Used by the server render
+ * and by the tier-3 fallback, so both agree with the loop's first frame. */
+const REST_INDEX = 7;
+
 /** A frame's rect on the sheet, in sheet-local CSS px. */
 function frameRect(i: number) {
   const col = i % COLS;
@@ -170,8 +189,8 @@ function frameCentre(i: number) {
   const r = frameRect(i);
   return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
 }
-/** Which frame a point is nearest. The sheet is a grid, so this is arithmetic
- * rather than a hit test against thirteen moving rectangles. */
+/** Which frame a point is nearest. The sheet is a static grid, so this is
+ * arithmetic over fifteen known centres rather than a DOM hit test. */
 function nearestFrame(x: number, y: number) {
   let best = 0;
   let bestD = Infinity;
@@ -186,13 +205,17 @@ function nearestFrame(x: number, y: number) {
   return best;
 }
 
+const REST = frameCentre(REST_INDEX);
+const REST_RECT = frameRect(REST_INDEX);
+const REST_FRAME = FRAMES[REST_INDEX] as Frame;
+
 /**
  * A contact sheet with a loupe you drag across it.
  *
  * The magnification is a canvas lookup-table remap, not a CSS scale and not an
  * SVG displacement filter. A LUT is built once per glass size, mapping every
- * destination pixel to a source offset; each frame is then one integer add and
- * one array read per pixel, about 2.6ms at four times CPU throttle. The filter
+ * destination pixel to a source offset; each frame is then an add, a clamp and
+ * an array read per pixel, about 2.6ms at four times CPU throttle. The filter
  * route was measured and rejected: in WebKit it does not degrade, it erases
  * the element, silently and with no console error in any engine.
  *
@@ -213,16 +236,19 @@ export function ContactSheet() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const liveRef = useRef<HTMLParagraphElement>(null);
 
-  const [over, setOver] = useState(7);
+  const [over, setOver] = useState(REST_INDEX);
+  /** False until the canvas has painted at least once, which is what hides
+   *  the tier-3 layer underneath it. */
+  const [lensReady, setLensReady] = useState(false);
 
   const sim = useRef({
     /** Loupe centre, in sheet-local CSS px. */
-    x: frameCentre(7).x,
-    y: frameCentre(7).y,
+    x: REST.x,
+    y: REST.y,
     vx: 0,
     vy: 0,
-    tx: frameCentre(7).x,
-    ty: frameCentre(7).y,
+    tx: REST.x,
+    ty: REST.y,
     mode: "snap" as "drag" | "snap" | "key",
     drag: null as null | {
       pointerId: number;
@@ -233,7 +259,7 @@ export function ContactSheet() {
       at: number;
       moved: boolean;
     },
-    over: 7,
+    over: REST_INDEX,
     reduced: false,
     visible: true,
     dpr: 1,
@@ -241,6 +267,7 @@ export function ContactSheet() {
      *  when the craft scrolls away. */
     source: null as ImageData | null,
     sourceW: 0,
+    painted: false,
     lut: null as Int32Array | null,
     lutSize: 0,
     out: null as ImageData | null,
@@ -362,8 +389,11 @@ export function ContactSheet() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // One integer add and one 32-bit read per pixel. The whole reason the LUT
+    // An add, a clamp and a 32-bit read per pixel. The whole reason the LUT
     // exists: no trigonometry, no allocation, no getImageData in the loop.
+    // The clamp is belt and braces over PAD, which should already guarantee
+    // the rim lands on paper; it costs two comparisons and removes a class of
+    // crash if the geometry constants here ever drift from the stylesheet.
     const src32 = new Uint32Array(src.data.buffer);
     const dst32 = new Uint32Array(out.data.buffer);
     const cx = Math.round(PAD + s.x * SUPERSAMPLE);
@@ -374,6 +404,10 @@ export function ContactSheet() {
       dst32[i] = src32[clamp(base + lut[i]!, 0, max)]!;
     }
     ctx.putImageData(out, 0, 0);
+    if (!s.painted) {
+      s.painted = true;
+      setLensReady(true);
+    }
   }, []);
 
   const step = useCallback((dt: number) => {
@@ -610,6 +644,8 @@ export function ContactSheet() {
         s.source = null;
         s.lut = null;
         s.out = null;
+        s.painted = false;
+        setLensReady(false);
       }
     },
     { pauseWhenTabHidden: true },
@@ -676,12 +712,46 @@ export function ContactSheet() {
           </div>
         ))}
 
-        <div ref={loupeRef} className={styles.loupe}>
+        {/* The resting transform is inline, so the server puts the loupe on a
+            frame rather than parking it in the sheet's top-left corner. The
+            loop overwrites this from the first frame it paints. */}
+        <div
+          ref={loupeRef}
+          className={styles.loupe}
+          style={{
+            transform: `translate3d(${REST.x - LOUPE / 2}px, ${
+              REST.y - LOUPE / 2
+            }px, 0)`,
+          }}
+        >
           <div className={styles.ambient} />
           <div className={styles.contact} />
           <div className={styles.barrel} />
           <div className={styles.well}>
-            <canvas ref={canvasRef} className={styles.lens} />
+            {/* Tier 3, and the reason the doc comment above can claim a no-JS
+                fallback honestly: a plain clipped scale of the frame the loupe
+                rests on. No curvature, no rim in-pull, but it magnifies, and
+                it is server-rendered markup rather than something the loop has
+                to arrive to produce. Hidden once the canvas has painted. */}
+            <div className={styles.flat} data-lens={lensReady ? "on" : "off"}>
+              {/** biome-ignore lint/performance/noImgElement: same file the canvas samples */}
+              <img
+                src={REST_FRAME.src.src}
+                alt=""
+                aria-hidden="true"
+                width={Math.round(FRAME_W * M)}
+                height={Math.round(FRAME_H * M)}
+                style={{
+                  left: `${GLASS_R - (REST.x - REST_RECT.x) * M}px`,
+                  top: `${GLASS_R - (REST.y - REST_RECT.y) * M}px`,
+                }}
+              />
+            </div>
+            <canvas
+              ref={canvasRef}
+              className={styles.lens}
+              data-lens={lensReady ? "on" : "off"}
+            />
           </div>
           <div className={styles.glass} />
         </div>

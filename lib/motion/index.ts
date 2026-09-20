@@ -1,12 +1,4 @@
-export type { Spring, SpringArrays, SpringConfig } from "./spring";
-export {
-  assertStable,
-  criticalDamping,
-  maxStableStep,
-  stepSpring,
-  stepSprings,
-  subSteps,
-} from "./spring";
+export { assertStable, maxStableStep, subSteps } from "./spring";
 export type { AnimationLoop, AnimationLoopOptions } from "./use-animation-loop";
 export { useAnimationLoop } from "./use-animation-loop";
 export type { OnScreenOptions } from "./use-on-screen";
