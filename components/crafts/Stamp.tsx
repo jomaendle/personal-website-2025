@@ -9,10 +9,18 @@ import {
 } from "@/lib/motion";
 import styles from "./stamp.module.css";
 
-/** What the die says. Fixed rather than today's date: a date computed at
- * render disagrees between server and client the moment they straddle
- * midnight, and the craft is about ink, not about the calendar. */
-const LEGEND = "20 SEP 2026";
+/** What the die says, over two lines.
+ *
+ * Fixed rather than today's date: a date computed at render disagrees between
+ * server and client the moment they straddle midnight, and the craft is about
+ * ink, not the calendar.
+ *
+ * Two lines rather than one because the legend has to fit the die. At 50px —
+ * the floor below which the ink squeeze goes sub-pixel — a single line of
+ * "20 SEP 2026" is about 380px wide, three times the width of the rubber
+ * supposedly making it. A stamp that prints wider than itself is the kind of
+ * thing nobody can name but everybody notices. */
+const LEGEND = ["20 SEP", "2026"];
 
 /** Spring carrying the stamp to the pointer. Heavier than the loupe's: this
  * is a fist-sized lump of wood, not a disc of glass. */
@@ -33,7 +41,17 @@ const RUBBER_SQUASH = 0.34;
  * arriving all at once on contact. */
 const INK_RATE = 2.1;
 const INK_MAX = 1;
-/** Below this an impression is too faint to be worth leaving on the page. */
+/** What transfers the instant the rubber meets the paper, before any of the
+ * press has had time to accumulate.
+ *
+ * Without it a quick dab left literally nothing: the press spring needs about
+ * 0.16s to reach the paper at all, so a 260ms tap at low pressure gathered
+ * 0.04 and fell under the floor. Pressing something and having nothing happen
+ * is the worst answer available, and it is not what a stamp does either —
+ * contact alone transfers ink. */
+const INK_ON_CONTACT = 0.26;
+/** Below this an impression is too faint to be worth leaving on the page.
+ * Now only reachable by a press cancelled before it landed. */
 const INK_FLOOR = 0.16;
 
 /** Pointers that report no pressure at all — every mouse — land here. Chosen
@@ -41,6 +59,18 @@ const INK_FLOOR = 0.16;
  * the pressure-sensitive devices still have somewhere to go in both
  * directions. */
 const DEFAULT_PRESSURE = 0.52;
+
+/** The sheet, and the impression the die leaves, in px. The die's width in
+ * the stylesheet is IMPRESSION_W: the rubber and its mark are the same size,
+ * because on a real stamp they are the same object. */
+const SHEET_W = 560;
+const SHEET_H = 300;
+const IMPRESSION_W = 224;
+const IMPRESSION_H = 128;
+/** The stamp's own box, and how far its die's face sits from the box's top.
+ * Mirrors the stylesheet: height 172 with the die 4px off the bottom. */
+const STAMP_W = 224;
+const DIE_BOTTOM = 168;
 
 /** How many impressions stay on the sheet. Old ones are dropped rather than
  * faded: a stamped page does not gradually forget. */
@@ -116,6 +146,8 @@ export function Stamp() {
     pressV: 0,
     pressTarget: 0,
     ink: 0,
+    /** True once the rubber has met the paper during this press. */
+    landed: false,
     /** The pointer's reported force while it is down. */
     pressure: DEFAULT_PRESSURE,
     down: false,
@@ -131,8 +163,10 @@ export function Stamp() {
       // Rotation leans with lateral speed, so a stamp thrown across the page
       // arrives tilted the way a held one would.
       const lean = clamp(s.vx * 0.006, -7, 7);
-      stamp.style.transform = `translate3d(${(s.x - 66).toFixed(2)}px, ${(
-        s.y - 150 + s.press * PRESS_TRAVEL
+      // The stamp is anchored by its die, not its box: the rubber has to land
+      // where the pointer is, and the handle hangs above wherever that puts it.
+      stamp.style.transform = `translate3d(${(s.x - STAMP_W / 2).toFixed(2)}px, ${(
+        s.y - DIE_BOTTOM + s.press * PRESS_TRAVEL
       ).toFixed(2)}px, 0) rotate(${lean.toFixed(2)}deg)`;
     }
     // Only the rubber squashes. Wood does not.
@@ -168,9 +202,13 @@ export function Stamp() {
       s.press += s.pressV * dt;
     }
 
-    // Ink gathers only once the rubber has actually met the paper, and then
-    // at a rate set by how hard the pointer says it is being pressed.
+    // Contact deposits ink at once; the rest gathers at a rate set by how
+    // hard the pointer says it is being pressed.
     if (s.down && s.press > 0.75) {
+      if (!s.landed) {
+        s.landed = true;
+        s.ink = INK_ON_CONTACT * (0.6 + s.pressure * 0.4);
+      }
       s.ink = clamp(s.ink + s.pressure * INK_RATE * dt, 0, INK_MAX);
     }
 
@@ -220,13 +258,16 @@ export function Stamp() {
     s.down = false;
     s.pointerId = -1;
     s.pressTarget = 0;
+    s.landed = false;
 
     if (s.ink >= INK_FLOOR) {
       const id = nextId.current++;
       const impression: Impression = {
         id,
-        x: s.x,
-        y: s.y,
+        // Clamped so an impression never hangs off the paper: the stamp can
+        // be carried to the edge, but the mark it leaves lands on the sheet.
+        x: clamp(s.x, IMPRESSION_W / 2 + 8, SHEET_W - IMPRESSION_W / 2 - 8),
+        y: clamp(s.y, IMPRESSION_H / 2 + 8, SHEET_H - IMPRESSION_H / 2 - 8),
         // Per-impression variation is what makes a second press worth making.
         rot: (Math.random() - 0.5) * 5,
         ink: s.ink,
@@ -256,6 +297,7 @@ export function Stamp() {
       s.pointerId = event.pointerId;
       s.pressTarget = 1;
       s.ink = 0;
+      s.landed = false;
       // A mouse reports 0.5, or 0 on some engines; treat both as "no opinion".
       s.pressure =
         event.pressure > 0 && event.pressure !== 0.5
@@ -302,6 +344,7 @@ export function Stamp() {
       s.pointerId = -1;
       s.pressTarget = 0;
       s.ink = 0;
+      s.landed = false;
       wake();
     },
     [wake],
@@ -320,21 +363,22 @@ export function Stamp() {
           s.down = true;
           s.pressTarget = 1;
           s.ink = 0;
+          s.landed = false;
           wake();
           window.setTimeout(lift, 260);
           return;
         }
         case "ArrowLeft":
-          s.tx = clamp(s.tx - STEP, 40, 520);
+          s.tx = clamp(s.tx - STEP, 40, SHEET_W - 40);
           break;
         case "ArrowRight":
-          s.tx = clamp(s.tx + STEP, 40, 520);
+          s.tx = clamp(s.tx + STEP, 40, SHEET_W - 40);
           break;
         case "ArrowUp":
-          s.ty = clamp(s.ty - STEP, 60, 280);
+          s.ty = clamp(s.ty - STEP, 60, SHEET_H - 30);
           break;
         case "ArrowDown":
-          s.ty = clamp(s.ty + STEP, 60, 280);
+          s.ty = clamp(s.ty + STEP, 60, SHEET_H - 30);
           break;
         case "Escape":
           event.preventDefault();
@@ -386,6 +430,7 @@ export function Stamp() {
         s.pointerId = -1;
         s.pressTarget = 0;
         s.ink = 0;
+        s.landed = false;
         loop.stop();
       }
     },
@@ -497,11 +542,16 @@ export function Stamp() {
                 top: `${im.y}px`,
                 // Sub-pixel offset and a degree or two of rotation per press.
                 transform: `translate(-50%, -50%) rotate(${im.rot}deg)`,
-                opacity: 0.55 + im.ink * 0.45,
+                // Wide enough that a dab and a firm press are plainly different.
+                opacity: 0.28 + im.ink * 0.72,
                 filter: `url(#${filterId}-${im.seed})`,
               }}
             >
-              <span>{LEGEND}</span>
+              <span>
+                {LEGEND.map((line) => (
+                  <em key={line}>{line}</em>
+                ))}
+              </span>
             </p>
           ))}
         </div>

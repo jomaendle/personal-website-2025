@@ -81,11 +81,23 @@
   /* A stamp presses the sheet as well as inking it. */
   filter: drop-shadow(0 0.45px 0.45px rgb(60 40 20 / 22%));
 }
+/* The box is the die's footprint, so the mark is exactly the size of the
+   rubber that made it. */
 .impression span {
-  display: block;
-  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 224px;
+  height: 128px;
+  padding: 8px 12px;
   border: 4px solid currentcolor;
   border-radius: 3px;
+}
+.impression em {
+  font-style: normal;
 }
 
 /* ---- the stamp -------------------------------------------------------- */
@@ -94,7 +106,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 132px;
+  width: 224px;
   height: 172px;
   pointer-events: none;
   /* Written by the loop. */
@@ -105,9 +117,9 @@
    is what puts the stamp on the paper; the pool only gives it a room. */
 .contact {
   position: absolute;
-  right: 12px;
+  right: 4px;
   bottom: 2px;
-  left: 12px;
+  left: 4px;
   height: 10px;
   border-radius: 50%;
   background: rgb(38 24 10 / 52%);
@@ -181,7 +193,7 @@
   position: absolute;
   bottom: 30px;
   left: 50%;
-  width: 118px;
+  width: 206px;
   height: 20px;
   border-radius: 2px;
   transform: translateX(-50%);
@@ -194,7 +206,7 @@
   position: absolute;
   bottom: 22px;
   left: 50%;
-  width: 124px;
+  width: 214px;
   height: 9px;
   transform: translateX(-50%);
   background: linear-gradient(94deg, #6d6a64 0%, #a6a29a 42%, #57544f 100%);
@@ -206,7 +218,7 @@
   position: absolute;
   bottom: 4px;
   left: 50%;
-  width: 128px;
+  width: 224px;
   height: 20px;
   border-radius: 0 0 3px 3px;
   transform: translateX(-50%);

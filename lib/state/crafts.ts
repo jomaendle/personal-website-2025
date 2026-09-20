@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { ContactSheet } from "@/components/crafts/ContactSheet";
 import { Polaroid } from "@/components/crafts/Polaroid";
 import { Ruler } from "@/components/crafts/Ruler";
+import { Stamp } from "@/components/crafts/Stamp";
 import { Tonearm } from "@/components/crafts/Tonearm";
 
 /** An interactive craft. The first one is featured on the homepage. */
@@ -38,6 +39,15 @@ export const CRAFTS: Craft[] = [
       "Drag the glass over the sheet. The rim pulls in what sits just outside it, the way real glass does, so the frames bow as they pass under the edge.",
     height: "min-h-[26rem]",
     component: ContactSheet,
+  },
+  {
+    slug: "stamp",
+    title: "The Stamp",
+    year: 2026,
+    blurb:
+      "Press and hold anywhere on the sheet. How hard you press sets how much ink it leaves, so a quick dab is a ghost and a firm press is a solid mark. They stay on the page.",
+    height: "min-h-[24rem]",
+    component: Stamp,
   },
   {
     slug: "instant-print",
