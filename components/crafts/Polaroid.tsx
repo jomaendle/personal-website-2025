@@ -393,6 +393,27 @@ export function Polaroid() {
     [addShake, wake],
   );
 
+  /**
+   * `pointercancel` is not a release.
+   *
+   * On touch the browser fires it when it takes the gesture over to scroll the
+   * page, and it arrives with no movement and well inside the click window —
+   * so treating it as a tap means flicking past the craft on a phone ejects
+   * the print you were looking at. The drag simply ends and the print goes
+   * home.
+   */
+  const cancelDrag = useCallback(
+    (event: PointerEvent) => {
+      const s = sim.current;
+      if (!s.drag || s.drag.pointerId !== event.pointerId) return;
+      s.drag = null;
+      s.tx = 0;
+      s.ty = 0;
+      wake();
+    },
+    [wake],
+  );
+
   const endDrag = useCallback(
     (event: PointerEvent) => {
       const s = sim.current;
@@ -442,16 +463,16 @@ export function Polaroid() {
     hit.addEventListener("pointerdown", onPointerDown);
     hit.addEventListener("pointermove", onPointerMove);
     hit.addEventListener("pointerup", endDrag);
-    hit.addEventListener("pointercancel", endDrag);
+    hit.addEventListener("pointercancel", cancelDrag);
     hit.addEventListener("keydown", onKeyDown);
     return () => {
       hit.removeEventListener("pointerdown", onPointerDown);
       hit.removeEventListener("pointermove", onPointerMove);
       hit.removeEventListener("pointerup", endDrag);
-      hit.removeEventListener("pointercancel", endDrag);
+      hit.removeEventListener("pointercancel", cancelDrag);
       hit.removeEventListener("keydown", onKeyDown);
     };
-  }, [onPointerDown, onPointerMove, endDrag, onKeyDown]);
+  }, [onPointerDown, onPointerMove, endDrag, cancelDrag, onKeyDown]);
 
   useReducedMotion((reduced) => {
     const s = sim.current;

@@ -120,6 +120,9 @@ export function Tonearm() {
     seekedTo: -1,
     /** Set once the source has proved unplayable, so the stylus stays up. */
     failed: false,
+    /** Set while the arm has been asked to return to the post, so the
+     *  auto-track line cannot drag it back onto the record. */
+    homing: false,
     /** Mirrors of React state so the loop never reads from a render. */
     shownPlaying: false,
     index: 0,
@@ -214,11 +217,20 @@ export function Tonearm() {
       }
     }
 
-    // While playing, the arm tracks the playhead inward on its own.
-    if (audio && !s.drag && s.down && s.armedByGesture) {
+    // While playing, the arm tracks the playhead inward on its own — unless it
+    // has been asked to go home.
+    //
+    // `down` is derived from the arm's position, so it is still true on the
+    // frame after something sets armTarget to the post: the arm has not
+    // physically moved yet. Without the `homing` guard this line would rewrite
+    // that target back to the playhead on the very next step, and Escape, the
+    // next-track lift and the off-screen stop would all silently do nothing.
+    if (audio && !s.drag && s.down && s.armedByGesture && !s.homing) {
       const total = Number.isFinite(audio.duration) ? audio.duration : 0;
       if (total) s.armTarget = progressToAngle(audio.currentTime / total);
     }
+    // Homing ends when the arm has actually arrived, not when it was asked.
+    if (s.homing && s.arm <= ARM_DOWN) s.homing = false;
 
     if (s.down !== wasDown && s.shownPlaying !== s.down) {
       s.shownPlaying = s.down;
@@ -263,6 +275,7 @@ export function Tonearm() {
     const s = sim.current;
     s.failed = true;
     s.armTarget = ARM_REST;
+    s.homing = true;
     setFailed(true);
     wake();
   }, [wake]);
@@ -277,6 +290,7 @@ export function Tonearm() {
     }
     s.index = (s.index + 1) % CAR_KIDS_SIDE_A.length;
     s.armTarget = ARM_REST;
+    s.homing = true;
     // A new source deserves its own chance: one unplayable file should not
     // condemn the rest of the side.
     s.failed = false;
@@ -298,6 +312,7 @@ export function Tonearm() {
         // Synthetic or already-released pointer; the drag still works.
       }
       s.armedByGesture = true;
+      s.homing = false;
       s.drag = {
         pointerId: event.pointerId,
         originX: event.clientX,
@@ -332,6 +347,19 @@ export function Tonearm() {
     [angleAt, wake],
   );
 
+  /** A cancelled gesture is the browser taking over to scroll, not a tap. It
+   *  must not drop or lift the stylus; the arm just stops being dragged. */
+  const cancelDrag = useCallback(
+    (event: PointerEvent) => {
+      const s = sim.current;
+      if (!s.drag || s.drag.pointerId !== event.pointerId) return;
+      s.drag = null;
+      s.armTarget = s.arm;
+      wake();
+    },
+    [wake],
+  );
+
   const endDrag = useCallback(
     (event: PointerEvent) => {
       const s = sim.current;
@@ -363,9 +391,12 @@ export function Tonearm() {
       s.armedByGesture = true;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        s.armTarget = s.arm >= ARM_DOWN ? ARM_REST : ARM_LEAD_IN;
+        const lifting = s.arm >= ARM_DOWN;
+        s.homing = lifting;
+        s.armTarget = lifting ? ARM_REST : ARM_LEAD_IN;
       } else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
         event.preventDefault();
+        s.homing = false;
         const dir = event.key === "ArrowRight" ? 1 : -1;
         if (audio && Number.isFinite(audio.duration)) {
           audio.currentTime = clamp(
@@ -380,6 +411,7 @@ export function Tonearm() {
         nextTrack();
       } else if (event.key === "Escape") {
         event.preventDefault();
+        s.homing = true;
         s.armTarget = ARM_REST;
       } else {
         return;
@@ -395,16 +427,16 @@ export function Tonearm() {
     hit.addEventListener("pointerdown", onPointerDown);
     hit.addEventListener("pointermove", onPointerMove);
     hit.addEventListener("pointerup", endDrag);
-    hit.addEventListener("pointercancel", endDrag);
+    hit.addEventListener("pointercancel", cancelDrag);
     hit.addEventListener("keydown", onKeyDown);
     return () => {
       hit.removeEventListener("pointerdown", onPointerDown);
       hit.removeEventListener("pointermove", onPointerMove);
       hit.removeEventListener("pointerup", endDrag);
-      hit.removeEventListener("pointercancel", endDrag);
+      hit.removeEventListener("pointercancel", cancelDrag);
       hit.removeEventListener("keydown", onKeyDown);
     };
-  }, [onPointerDown, onPointerMove, endDrag, onKeyDown]);
+  }, [onPointerDown, onPointerMove, endDrag, cancelDrag, onKeyDown]);
 
   // Play and pause follow the stylus, and only after a real gesture.
   useEffect(() => {
@@ -445,8 +477,17 @@ export function Tonearm() {
       } else {
         // Scrolling away stops the music as well as the loop. A deck playing
         // to nobody, three screens up, is not a feature.
+        //
+        // `playing` is retired through React rather than by pausing the
+        // element directly. `loop.stop()` freezes the simulation before `down`
+        // can flip, so if the state were left set the play/pause effect would
+        // never re-run and the deck would come back spinning, labelled
+        // playing, and permanently silent.
         s.armTarget = ARM_REST;
-        audioRef.current?.pause();
+        s.homing = true;
+        s.down = false;
+        s.shownPlaying = false;
+        setPlaying(false);
         loop.stop();
       }
     },
