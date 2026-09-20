@@ -23,17 +23,35 @@ When working in this codebase, always apply the following conventions without be
 
 ## Design conventions
 
-- Dark mode is the **default** theme — never assume light as the baseline when writing styles
-- CSS variables from `app/globals.css` are the source of truth for colors and spacing — prefer these over hardcoded values
-- Link colors: `#2997ff` default, `#0070f3` hover
-- Typography uses the Inter font; prose styling is defined in `globals.css`
+The site runs an **editorial** design system: cream paper in light mode, near-black in dark, one vermilion accent.
+
+- Design tokens are HSL CSS variables in `app/editorial-theme.css`; `app/globals.css` holds the Tailwind 4 `@theme` block, fonts and base styles. There is **no `tailwind.config` file**
+- Use the tokens (`--brand`, `--background`, `--foreground`, `--card`, `--border`, `--muted-foreground`) rather than hardcoded colours. The accent is `--brand`; there is no blue link colour
+- Typography: **Newsreader** (serif) for titles, **Geist** for body, **Geist Mono** for eyebrows, dates and labels. Geist is self-hosted from `app/fonts`; see `app/layout.tsx` for how each is loaded
+- The mono eyebrow idiom is `font-mono text-brand text-xs uppercase tracking-wider`
+- Lists are hairline "ledger" rows (`.ledger-row`), with a brand rule and tint on hover
+- Both themes must work. Dark mode is selected by a **class on the root** (`.light` vs `:root:not(.light)`), not a media query, so canvas and SVG code that needs a token must resolve it with `getComputedStyle` and re-resolve on a `MutationObserver` watching `documentElement`
 - Follow shadcn/ui patterns for new UI components
+
+## Craft and animation conventions
+
+Interactive crafts (`components/crafts/`, plus `components/image-stack.tsx`) all follow one architecture. Reuse `lib/motion/` rather than hand-rolling it again.
+
+- `lib/motion/` provides `useAnimationLoop` (one rAF loop with wake/settle and sub-stepping), `useReducedMotion` (live `matchMedia`), `useOnScreen`, and `spring.ts` (integrator plus the stability bound)
+- Keep **all mutable simulation state in one `useRef` object**, so handlers never go stale
+- Write `transform`/`opacity` **directly to element refs** in the loop. Call `setState` only when a *semantic* value changes (an `aria-valuenow`, a reveal count)
+- Springs are hand-rolled semi-implicit Euler. Past `k·h² + 2c·h < 4` they diverge silently into `NaN`, so sub-step long frames and call `assertStable()` beside each tuning block
+- Keep tuning constants at module scope **next to the prose comment that justifies them**. Do not collect them into a shared presets file
+- `prefers-reduced-motion` must be honoured **live**, not read once at mount. Reduced motion means gentler, not absent: keep cross-fades and press feedback, drop travel and coasting
+- Capture pointer events on a **static hit surface** and hit-test geometrically. Never attach them to moving elements
+- Grant `will-change` via `IntersectionObserver`, never on a pointer event
+- Content is server-rendered; motion is an enhancement and never the only way content becomes visible
 
 ## Performance conventions
 
 - Use `export const dynamic = "force-static"` on blog post pages
 - Images should use Next.js `<Image>` component for optimization
-- Prefer `tailwindcss-motion` and Framer Motion (`motion` package) for animations — don't add new animation libraries
+- Prefer `tailwindcss-motion` and Framer Motion for animations — don't add new animation libraries. Framer Motion is lazy-loaded through `<LazyMotion strict>`, so only `m.*` components work; crafts use `lib/motion/` instead
 
 ## Content conventions
 
