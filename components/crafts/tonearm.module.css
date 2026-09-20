@@ -21,6 +21,15 @@
   height: 100%;
   overflow: hidden;
   touch-action: pan-y;
+  /* The page must still scroll past this craft on a phone, so the surface
+     under it keeps `pan-y`. The draggable object itself takes `touch-action:
+     none` instead, so a gesture that starts on the object is a drag in both
+     axes and one that starts anywhere else is a scroll. Putting `none` on the
+     whole craft would trap the page; leaving `pan-y` on the object let the
+     browser steal every vertical drag, which is the axis the drag needs most.
+     `overscroll-behavior` stops a drag that runs past an edge chaining into
+     the scroll container behind it. */
+  overscroll-behavior: contain;
 }
 
 .deck {
@@ -224,6 +233,12 @@
    counterweight hangs behind it, which is what makes it read as a
    counterweighted lever rather than a stick. */
 .arm {
+  /* Above the hit surface, so a gesture that starts on the object reaches
+     the object's own listener and its `touch-action: none` applies. */
+  z-index: 6;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
   --pivot-x: 168px;
   position: absolute;
   top: 12px;

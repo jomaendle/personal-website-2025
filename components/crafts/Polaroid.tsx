@@ -465,12 +465,23 @@ export function Polaroid() {
     hit.addEventListener("pointerup", endDrag);
     hit.addEventListener("pointercancel", cancelDrag);
     hit.addEventListener("keydown", onKeyDown);
+    // The object carries the same handlers. It is the only element with
+    // `touch-action: none`, so a gesture that starts on it is a drag in both
+    // axes, while one that starts on the card scrolls the page as usual.
+    printRef.current?.addEventListener("pointerdown", onPointerDown);
+    printRef.current?.addEventListener("pointermove", onPointerMove);
+    printRef.current?.addEventListener("pointerup", endDrag);
+    printRef.current?.addEventListener("pointercancel", cancelDrag);
     return () => {
       hit.removeEventListener("pointerdown", onPointerDown);
       hit.removeEventListener("pointermove", onPointerMove);
       hit.removeEventListener("pointerup", endDrag);
       hit.removeEventListener("pointercancel", cancelDrag);
       hit.removeEventListener("keydown", onKeyDown);
+      printRef.current?.removeEventListener("pointerdown", onPointerDown);
+      printRef.current?.removeEventListener("pointermove", onPointerMove);
+      printRef.current?.removeEventListener("pointerup", endDrag);
+      printRef.current?.removeEventListener("pointercancel", cancelDrag);
     };
   }, [onPointerDown, onPointerMove, endDrag, cancelDrag, onKeyDown]);
 

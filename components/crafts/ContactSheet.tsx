@@ -722,12 +722,23 @@ export function ContactSheet() {
     hit.addEventListener("pointerup", endDrag);
     hit.addEventListener("pointercancel", endDrag);
     hit.addEventListener("keydown", onKeyDown);
+    // The object carries the same handlers. It is the only element with
+    // `touch-action: none`, so a gesture that starts on it is a drag in both
+    // axes, while one that starts on the card scrolls the page as usual.
+    loupeRef.current?.addEventListener("pointerdown", onPointerDown);
+    loupeRef.current?.addEventListener("pointermove", onPointerMove);
+    loupeRef.current?.addEventListener("pointerup", endDrag);
+    loupeRef.current?.addEventListener("pointercancel", endDrag);
     return () => {
       hit.removeEventListener("pointerdown", onPointerDown);
       hit.removeEventListener("pointermove", onPointerMove);
       hit.removeEventListener("pointerup", endDrag);
       hit.removeEventListener("pointercancel", endDrag);
       hit.removeEventListener("keydown", onKeyDown);
+      loupeRef.current?.removeEventListener("pointerdown", onPointerDown);
+      loupeRef.current?.removeEventListener("pointermove", onPointerMove);
+      loupeRef.current?.removeEventListener("pointerup", endDrag);
+      loupeRef.current?.removeEventListener("pointercancel", endDrag);
     };
   }, [onPointerDown, onPointerMove, endDrag, onKeyDown]);
 

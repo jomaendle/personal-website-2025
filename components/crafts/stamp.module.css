@@ -23,6 +23,10 @@
   height: 100%;
   overflow: hidden;
   touch-action: pan-y;
+  /* The stamp is pressed in place rather than dragged across, so a swipe here
+     should scroll the page as usual. This only stops a gesture that runs past
+     an edge chaining into the container behind. */
+  overscroll-behavior: contain;
 }
 
 .sheet {

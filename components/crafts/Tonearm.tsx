@@ -429,12 +429,23 @@ export function Tonearm() {
     hit.addEventListener("pointerup", endDrag);
     hit.addEventListener("pointercancel", cancelDrag);
     hit.addEventListener("keydown", onKeyDown);
+    // The object carries the same handlers. It is the only element with
+    // `touch-action: none`, so a gesture that starts on it is a drag in both
+    // axes, while one that starts on the card scrolls the page as usual.
+    armRef.current?.addEventListener("pointerdown", onPointerDown);
+    armRef.current?.addEventListener("pointermove", onPointerMove);
+    armRef.current?.addEventListener("pointerup", endDrag);
+    armRef.current?.addEventListener("pointercancel", cancelDrag);
     return () => {
       hit.removeEventListener("pointerdown", onPointerDown);
       hit.removeEventListener("pointermove", onPointerMove);
       hit.removeEventListener("pointerup", endDrag);
       hit.removeEventListener("pointercancel", cancelDrag);
       hit.removeEventListener("keydown", onKeyDown);
+      armRef.current?.removeEventListener("pointerdown", onPointerDown);
+      armRef.current?.removeEventListener("pointermove", onPointerMove);
+      armRef.current?.removeEventListener("pointerup", endDrag);
+      armRef.current?.removeEventListener("pointercancel", cancelDrag);
     };
   }, [onPointerDown, onPointerMove, endDrag, cancelDrag, onKeyDown]);
 

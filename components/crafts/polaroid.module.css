@@ -24,6 +24,15 @@
   /* The print is dragged around this box; nothing may escape the card. */
   overflow: hidden;
   touch-action: pan-y;
+  /* The page must still scroll past this craft on a phone, so the surface
+     under it keeps `pan-y`. The draggable object itself takes `touch-action:
+     none` instead, so a gesture that starts on the object is a drag in both
+     axes and one that starts anywhere else is a scroll. Putting `none` on the
+     whole craft would trap the page; leaving `pan-y` on the object let the
+     browser steal every vertical drag, which is the axis the drag needs most.
+     `overscroll-behavior` stops a drag that runs past an edge chaining into
+     the scroll container behind it. */
+  overscroll-behavior: contain;
 }
 
 /* The pointer's surface. Static, so hit-testing never chases a moving print. */
@@ -45,6 +54,12 @@
 }
 
 .print {
+  /* Above the hit surface, so a gesture that starts on the object reaches
+     the object's own listener and its `touch-action: none` applies. */
+  z-index: 6;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
   position: relative;
   width: 210px;
   padding: 11px 11px 46px;
