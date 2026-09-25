@@ -187,7 +187,7 @@ Most user-visible strings are data, not JSX. Before editing a component, check:
 
 - `lib/state/business-copy.ts` (bilingual `/business` copy)
 - `lib/state/business-projects.ts` (bilingual client work)
-- `lib/state/principles.ts`, `lib/state/projects.ts`
+- `lib/state/projects.ts`
 - `lib/config/site.ts`, `lib/config/navigation.ts`
 - `app/layout.tsx` and per-route `metadata` exports
 - `components/structured-data.tsx` (schema.org descriptions)
@@ -208,5 +208,5 @@ Only JSX needs the entity.
 5. Read it aloud. If it sounds like a pitch deck, cut a third of the words.
    For page copy, hold it next to Emil's two sentences. If yours has more
    adjectives or more clauses, it is not done.
-6. `npm run lint && npm run build` still pass, and the `/business.md`, `/business/en.md`
+6. `pnpm lint && pnpm build` still pass, and the `/business.md`, `/business/en.md`
    and `/llms.txt` mirrors still render with their interpolations intact.

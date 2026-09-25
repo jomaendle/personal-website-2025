@@ -28,6 +28,7 @@ All posts use a single `page.mdx` file — there is no separate `page.tsx`. Use 
 
 ```mdx
 import { MY_POST_CONSTANT } from "../../../lib/state/blog";
+import { CodeBlock } from "../../../components/code-block";
 import MdxLayout from "../../../components/mdx-layout";
 
 export const metadata = {

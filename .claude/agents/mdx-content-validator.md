@@ -13,7 +13,7 @@ Given a blog post slug or path, inspect the following:
 ### 1. `lib/state/blog.ts` entry
 
 - Does a named export exist for this post? (e.g. `export const MY_POST = { title, date, slug }`)
-- Is it added to the `BLOG_POSTS` array at the bottom of the file?
+- Is it added to the `BLOG_POSTS` array at the bottom of the file? A constant kept out of the array on purpose is an unpublished draft: its doc comment says so, and it stays off the index and the sitemap. Report that as a note, not a failure.
 - Does the `slug` value exactly match the directory name in `app/blog/`?
 
 ### 2. `app/blog/[slug]/page.mdx`
