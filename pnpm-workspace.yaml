@@ -3,3 +3,7 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   es5-ext: false
+# Patched transitive versions, capped at the same major.
+overrides:
+  fflate: '^0.7.5'
+  yaml: '^2.8.3'
