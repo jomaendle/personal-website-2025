@@ -1,6 +1,5 @@
 import { BlogPosts } from "@/components/blog-posts";
-import { CraftsContainer } from "@/components/crafts/CraftsContainer";
-import { Minimap } from "@/components/crafts/Minimap";
+import { Crafts } from "@/components/crafts-section";
 import { ImageStack } from "@/components/image-stack";
 import { JobPositions } from "@/components/job-positions";
 import { NameHeading } from "@/components/name-heading";
@@ -43,9 +42,7 @@ export default function Home() {
 
           <section>
             <H2>Craft</H2>
-            <CraftsContainer title="Minimap">
-              <Minimap />
-            </CraftsContainer>
+            <Crafts />
           </section>
 
           <section>

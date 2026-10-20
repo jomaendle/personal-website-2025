@@ -24,6 +24,16 @@ tags:
 
 # Making a Next.js Blog Agent-Ready: Subagents, Skills, Hooks, and MCP
 
+> **Partly superseded, 2026-09-20.** The `project-conventions` skill described
+> here has been removed and folded into `CLAUDE.md`. The split turned out to be
+> the problem it was meant to solve: the skill went on describing the
+> pre-editorial design system (Inter, a blue link colour) for months after the
+> redesign, and because skills load automatically it was instructing every
+> session to use them. One always-loaded file cannot drift from itself. The
+> reasoning below about *what* conventions an agent cannot infer still holds;
+> only the decision to put them in a separate skill does not. `writing-voice`
+> stays a skill: it is long, and only needed when writing copy.
+
 ## Context
 
 This Next.js 15 personal blog has structural conventions that diverge from framework defaults in ways an AI agent cannot discover from training data alone:

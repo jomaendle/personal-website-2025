@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  assertStable,
+  useAnimationLoop,
+  useOnScreen,
+  useReducedMotion,
+} from "@/lib/motion";
 
 const MARKER_COUNT = 41;
 const LAST = MARKER_COUNT - 1;
@@ -31,6 +37,10 @@ const BOUNCE = 0.45;
 /** Below this speed the needle stops coasting and settles onto a tick. */
 const COAST_STOP = 2.5;
 
+// The loop integrates in single 32ms steps. k=170 stays stable out to 78ms, so
+// there is plenty of headroom; this catches anyone who raises the stiffness.
+assertStable("ruler needle", STIFFNESS, DAMPING, 0.032);
+
 const clamp = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
 
@@ -47,8 +57,12 @@ const clamp = (v: number, lo: number, hi: number) =>
  *
  * Server render puts the needle on the centre tick, so the ruler reads as a
  * ruler before hydration and with scripts disabled.
+ *
+ * Inspired by Rauno Freiberg's minimap experiments at rauno.me — the idea of
+ * a measuring instrument as a thing worth touching is his. The physics are
+ * this one's own.
  */
-export function Minimap() {
+export function Ruler() {
   const rootRef = useRef<HTMLDivElement>(null);
   const needleRef = useRef<HTMLDivElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
@@ -85,8 +99,6 @@ export function Minimap() {
     visible: true,
     idle: false,
     idleTimer: 0 as ReturnType<typeof setTimeout> | 0,
-    frame: 0,
-    last: 0,
     reduced: false,
     shown: CENTER,
   });
@@ -297,15 +309,10 @@ export function Minimap() {
   );
 
   const step = useCallback(
-    (now: number) => {
+    (dt: number, now: number) => {
       const s = sim.current;
-      const dt = Math.min(32, now - (s.last || now)) / 1000;
-      s.last = now;
-
       integrate(now, dt);
       s.waves = s.waves.filter((wave) => now - wave.at < WAVE_LIFE * 1000);
-
-      paint();
 
       const moving =
         s.free ||
@@ -314,27 +321,36 @@ export function Minimap() {
         Math.abs(s.strengthTarget - s.strength) > 0.002 ||
         s.pulse > 0 ||
         s.waves.length > 0;
-      if (s.idle || moving) {
-        s.frame = requestAnimationFrame(step);
-      } else {
-        s.pos = s.target;
-        s.vel = 0;
-        s.strength = s.strengthTarget;
-        paint();
-        s.frame = 0;
-        s.last = 0;
-      }
+      // Drifting counts as moving even when every spring has settled, because
+      // the drift is what keeps the ruler breathing at rest.
+      return s.idle || moving;
     },
-    [paint, integrate],
+    [integrate],
   );
 
-  const wake = useCallback(() => {
+  /** Land exactly on the target and paint one last, honest frame. */
+  const settle = useCallback(() => {
     const s = sim.current;
-    if (!s.frame && s.visible) {
-      s.last = 0;
-      s.frame = requestAnimationFrame(step);
-    }
-  }, [step]);
+    s.pos = s.target;
+    s.vel = 0;
+    s.strength = s.strengthTarget;
+    paint();
+  }, [paint]);
+
+  // maxStep equal to maxFrame, so a long frame integrates once rather than in
+  // sub-steps. At k=170 the spring stays stable out to 78ms, far past the 32ms
+  // clamp, so there is nothing here to sub-step for.
+  const loop = useAnimationLoop({
+    step,
+    paint,
+    maxFrame: 0.032,
+    maxStep: 0.032,
+    onSettle: settle,
+  });
+
+  const wake = useCallback(() => {
+    if (sim.current.visible) loop.wake();
+  }, [loop]);
 
   /** Stop drifting, and schedule the drift to come back after a pause. */
   const interrupt = useCallback(() => {
@@ -515,69 +531,51 @@ export function Minimap() {
     [setTarget, toggleMark],
   );
 
-  useEffect(() => {
+  useReducedMotion((reduced) => {
     const s = sim.current;
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const root = rootRef.current;
-    const apply = () => {
-      s.reduced = media.matches;
-      if (s.reduced) {
-        s.idle = false;
-        if (s.idleTimer) clearTimeout(s.idleTimer);
-        s.idleTimer = 0;
-        wake();
-      } else {
-        // Motion is allowed again: drift comes back after the usual pause.
-        interrupt();
-      }
-    };
-    apply();
-    media.addEventListener("change", apply);
+    s.reduced = reduced;
+    if (reduced) {
+      s.idle = false;
+      if (s.idleTimer) clearTimeout(s.idleTimer);
+      s.idleTimer = 0;
+      wake();
+    } else {
+      // Motion is allowed again: drift comes back after the usual pause.
+      interrupt();
+    }
+  });
 
-    // Start drifting straight away; the pointer will interrupt it.
-    if (!s.reduced) s.idle = true;
-    wake();
-
-    // The loop only runs while the ruler is on screen and the tab is visible.
-    const setVisible = (visible: boolean) => {
-      if (s.visible === visible) return;
-      s.visible = visible;
+  // The loop only runs while the ruler is on screen and the tab is visible.
+  useOnScreen(
+    rootRef,
+    (onScreen) => {
+      const s = sim.current;
+      s.visible = onScreen;
       geoRef.current = null;
       // The ticks are the only things the loop moves, so they hold their
       // compositor layers exactly as long as it runs.
       for (const tick of tickRefs.current) {
-        if (tick) tick.style.willChange = visible ? "transform" : "";
+        if (tick) tick.style.willChange = onScreen ? "transform" : "";
       }
-      if (visible) {
-        s.last = 0;
+      if (onScreen) {
         if (!(s.reduced || s.hovering || s.focused)) s.idle = true;
         wake();
       } else {
         s.idle = false;
-        if (s.frame) cancelAnimationFrame(s.frame);
-        s.frame = 0;
+        loop.stop();
         if (s.idleTimer) clearTimeout(s.idleTimer);
         s.idleTimer = 0;
       }
-    };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries.at(-1);
-        if (entry) setVisible(entry.isIntersecting && !document.hidden);
-      },
-      { threshold: 0 },
-    );
-    if (root) observer.observe(root);
-    const onVisibility = () => {
-      if (document.hidden) setVisible(false);
-      else if (root) {
-        // Re-observing an element already observed is a no-op, so drop and
-        // re-add it to get a fresh intersection callback.
-        observer.unobserve(root);
-        observer.observe(root);
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
+    },
+    { pauseWhenTabHidden: true },
+  );
+
+  useEffect(() => {
+    const s = sim.current;
+
+    // Start drifting straight away; the pointer will interrupt it.
+    if (!s.reduced) s.idle = true;
+    wake();
 
     const onResize = () => {
       geoRef.current = null;
@@ -586,15 +584,10 @@ export function Minimap() {
     window.addEventListener("resize", onResize);
 
     return () => {
-      media.removeEventListener("change", apply);
-      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", onResize);
-      observer.disconnect();
-      if (s.frame) cancelAnimationFrame(s.frame);
       if (s.idleTimer) clearTimeout(s.idleTimer);
-      s.frame = 0;
     };
-  }, [wake, interrupt]);
+  }, [wake]);
 
   return (
     <div
