@@ -253,3 +253,30 @@ export const SafariToolbarGlyphs = () => (
     </svg>
   </>
 );
+
+export const Reload = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 20 20"
+    strokeWidth="1.9"
+    {...base}
+    {...props}
+  >
+    <path d="M16 10 a6 6 0 1 1 -1.76 -4.24 M16 3.5 V6.5 H13" />
+  </svg>
+);
+
+export const Compose = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <path d="M20 13 V18.5 A2.5 2.5 0 0 1 17.5 21 H5.5 A2.5 2.5 0 0 1 3 18.5 V6.5 A2.5 2.5 0 0 1 5.5 4 H11" />
+    <path d="M18.4 3.6 a1.9 1.9 0 0 1 2.7 2.7 L12.5 14.9 L9 16 L10.1 12.5 Z" />
+  </svg>
+);

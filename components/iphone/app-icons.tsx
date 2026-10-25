@@ -82,16 +82,19 @@ const ART: Record<
   (id: string, calendar: CalendarFace | null) => React.ReactNode
 > = {
   photos: () => (
-    <g style={{ mixBlendMode: "screen" }}>
+    // Capsule petals, as iOS draws them, overlapping at partial opacity so
+    // each neighbour tints the next.
+    <g>
       {PETALS.map((color, i) => (
-        <ellipse
+        <rect
           key={color}
-          cx="30"
-          cy="18.5"
-          rx="6.6"
-          ry="11.5"
+          x="25"
+          y="7"
+          width="10"
+          height="22"
+          rx="5"
           fill={color}
-          opacity="0.92"
+          opacity="0.86"
           transform={`rotate(${i * 45} 30 30)`}
         />
       ))}
@@ -160,17 +163,17 @@ const ART: Record<
     <>
       <defs>
         <linearGradient id={`${id}a`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#29a7ff" />
-          <stop offset="1" stopColor="#1268ff" />
+          <stop offset="0" stopColor="#3fb2ff" />
+          <stop offset="1" stopColor="#0f6bff" />
         </linearGradient>
       </defs>
-      <rect x="10" y="17" width="40" height="27" rx="3" fill={`url(#${id}a)`} />
+      <rect x="7" y="15" width="46" height="31" rx="4" fill={`url(#${id}a)`} />
       <path
-        d="M11 18.5 L30 33 L49 18.5"
+        d="M8.5 16.5 L30 34 L51.5 16.5"
         fill="none"
-        stroke="#0b3f9e"
-        strokeOpacity="0.55"
-        strokeWidth="1.6"
+        stroke="#0a3d99"
+        strokeOpacity="0.6"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
     </>
@@ -179,23 +182,23 @@ const ART: Record<
     <>
       <text
         x="30"
-        y="18"
+        y="16.5"
         textAnchor="middle"
         fill="#ff453a"
-        fontSize="9"
+        fontSize="8.5"
         fontWeight="600"
         fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-        letterSpacing="0.3"
       >
         {face?.weekday.toUpperCase()}
       </text>
       <text
         x="30"
-        y="46"
+        y="47"
         textAnchor="middle"
         fill="#fff"
-        fontSize="29"
+        fontSize="33"
         fontWeight="300"
+        letterSpacing="-1"
         fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
       >
         {face?.day}
@@ -212,29 +215,48 @@ const ART: Record<
       ))}
     </>
   ),
-  settings: () => (
-    <g fill="none" stroke="#98989d">
-      <circle
-        cx="30"
-        cy="30"
-        r="17"
-        strokeWidth="6"
-        strokeDasharray="4.45 4.45"
-      />
-      <circle cx="30" cy="30" r="13.5" strokeWidth="4" />
-      <circle cx="30" cy="30" r="5" strokeWidth="2.2" />
-      {[0, 60, 120].map((deg) => (
-        <line
-          key={deg}
-          x1="30"
-          y1="17"
-          x2="30"
-          y2="43"
-          strokeWidth="2.2"
-          transform={`rotate(${deg} 30 30)`}
+  settings: (id) => (
+    // Two meshed gears in brushed grey: a fine-toothed outer ring and a
+    // smaller spoked gear at the hub.
+    <>
+      <defs>
+        <linearGradient id={`${id}a`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#c7c7cc" />
+          <stop offset="1" stopColor="#6e6e73" />
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke={`url(#${id}a)`}>
+        <circle
+          cx="30"
+          cy="30"
+          r="21"
+          strokeWidth="3.6"
+          strokeDasharray="1.83 1.83"
         />
-      ))}
-    </g>
+        <circle cx="30" cy="30" r="18.2" strokeWidth="2.6" />
+        <circle
+          cx="30"
+          cy="30"
+          r="10.6"
+          strokeWidth="2.6"
+          strokeDasharray="1.66 1.11"
+        />
+        <circle cx="30" cy="30" r="8.6" strokeWidth="1.8" />
+        {[0, 30, 60, 90, 120, 150].map((deg) => (
+          <line
+            key={deg}
+            x1="30"
+            y1="11.8"
+            x2="30"
+            y2="48.2"
+            strokeWidth="1.6"
+            strokeDasharray="7.4 21.6 7.4"
+            transform={`rotate(${deg} 30 30)`}
+          />
+        ))}
+        <circle cx="30" cy="30" r="3.2" strokeWidth="2.2" />
+      </g>
+    </>
   ),
   music: (id) => (
     <>

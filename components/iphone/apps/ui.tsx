@@ -38,11 +38,14 @@ export function Group({
   footer,
   children,
   large,
+  iconInset,
 }: {
   header?: string;
   footer?: ReactNode;
   children: ReactNode;
   large?: boolean;
+  /** Rows lead with 29pt icons, so separators start at the text. */
+  iconInset?: boolean;
 }) {
   return (
     <section>
@@ -58,7 +61,9 @@ export function Group({
       ) : (
         <div className={styles.groupSpacer} />
       )}
-      <div className={styles.group}>{children}</div>
+      <div className={cn(styles.group, iconInset && styles.groupIconInset)}>
+        {children}
+      </div>
       {footer ? <p className={styles.groupFooter}>{footer}</p> : null}
     </section>
   );
@@ -74,6 +79,8 @@ interface RowProps {
   href?: string;
   chevron?: boolean;
   titleClassName?: string;
+  /** A 29pt tile or app icon before the title, as in Settings. */
+  icon?: ReactNode;
 }
 
 export function Row({
@@ -84,9 +91,11 @@ export function Row({
   href,
   chevron = Boolean(href),
   titleClassName,
+  icon,
 }: RowProps) {
   const content = (
     <>
+      {icon}
       <span className={styles.rowMain}>
         <span
           className={cn(

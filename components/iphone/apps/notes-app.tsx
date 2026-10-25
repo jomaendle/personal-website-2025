@@ -5,7 +5,7 @@ import { BLOG_POSTS } from "@/lib/state/blog";
 import { categoryFor } from "@/lib/state/writing-categories";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { Magnifier } from "../glyphs";
+import { Compose, Magnifier } from "../glyphs";
 import styles from "../iphone.module.css";
 import { Group, NavBar, Row } from "./ui";
 
@@ -59,6 +59,7 @@ export default function NotesApp(_: AppProps) {
 
       <div className={styles.toolbar}>
         {posts.length} {posts.length === 1 ? "Note" : "Notes"}
+        <Compose className={styles.toolbarTrailing} />
       </div>
     </div>
   );

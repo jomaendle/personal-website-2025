@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { Padlock, SafariToolbarGlyphs } from "../glyphs";
+import { Reload, SafariToolbarGlyphs } from "../glyphs";
 import styles from "../iphone.module.css";
 
 /** Tile colours for Favourites, picked per project rather than by hash so
@@ -70,8 +70,11 @@ export default function SafariApp(_: AppProps) {
 
       <div className={styles.addressBar}>
         <Link href="/" className={styles.addressField}>
-          <Padlock className={styles.addressLock} />
-          jomaendle.com
+          <span className={styles.addressAa} aria-hidden>
+            <small>a</small>A
+          </span>
+          <span>jomaendle.com</span>
+          <Reload className={styles.addressReload} />
         </Link>
         <div className={styles.safariToolbar} aria-hidden>
           <SafariToolbarGlyphs />

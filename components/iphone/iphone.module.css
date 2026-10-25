@@ -314,9 +314,9 @@
 
 .lockTime {
   margin-top: -6px;
-  font-family: var(--ios-rounded);
+  font-family: var(--ios-font);
   font-size: 104px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -402,7 +402,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: var(--material);
+  background: rgb(0 0 0 / 0.32);
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
   color: #fff;
@@ -513,7 +513,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0;
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
 }
@@ -631,9 +631,12 @@
   max-width: 420px;
   padding: 16px 10px;
   border-radius: 36px;
-  background: rgb(60 60 60 / 0.42);
-  backdrop-filter: blur(30px) saturate(1.8);
-  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  /* iOS 18's dock glass: a light frosted plate, plainly visible over a dark
+     wallpaper, with a hairline edge catching the light. */
+  background: rgb(150 150 150 / 0.28);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
 }
 
 /* ---- App icons ------------------------------------------------------- */
@@ -861,6 +864,43 @@
   background: var(--grouped);
 }
 
+.groupIconInset {
+  --separator-inset: 58px;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  color: #fff;
+}
+
+.rowAppIcon {
+  --icon: 29px;
+}
+
+.profileMonogram {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 60px;
+  height: 60px;
+  margin: -2px 2px -2px 0;
+  border-radius: 50%;
+  background: linear-gradient(#a5a5aa, #6e6e73);
+  font-family: var(--ios-rounded);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.profileName {
+  font-size: 20px;
+  font-weight: 600;
+}
+
 .groupSpacer {
   height: 24px;
 }
@@ -928,7 +968,12 @@ button.row:active {
 }
 
 .rowValue {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--label-2);
 }
 
@@ -970,6 +1015,13 @@ button.row:active {
   color: var(--label-2);
 }
 
+.toolbarTrailing {
+  position: absolute;
+  right: 16px;
+  top: 8px;
+  color: var(--tint, var(--ios-blue));
+}
+
 .empty {
   padding: 40px 16px;
   text-align: center;
@@ -991,6 +1043,36 @@ button.row:active {
   padding: calc(var(--top-inset) + 4px) 16px 28px;
   background: linear-gradient(rgb(0 0 0 / 0.7), rgb(0 0 0 / 0));
   pointer-events: none;
+}
+
+.photosHeaderInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.photosButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pill {
+  display: grid;
+  place-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgb(120 120 128 / 0.36);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pill:has(svg) {
+  width: 32px;
+  padding: 0;
 }
 
 .photosTitle {
@@ -1178,10 +1260,10 @@ button.row:active {
 }
 
 .addressField {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-items: center;
   height: 46px;
   border-radius: 14px;
   background: var(--grouped-2);
@@ -1191,10 +1273,19 @@ button.row:active {
   font-size: 17px;
 }
 
-.addressLock {
-  width: 10px;
-  height: 13px;
-  color: var(--label-2);
+.addressAa {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.addressAa small {
+  font-size: 11px;
+}
+
+.addressReload {
+  width: 17px;
+  height: 17px;
 }
 
 .safariToolbar {

@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import { PHOTOS } from "@/lib/state/photos";
+import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { BackChevron } from "../glyphs";
+import { BackChevron, Magnifier } from "../glyphs";
 import styles from "../iphone.module.css";
 
 /**
@@ -34,9 +35,17 @@ export default function PhotosApp(_: AppProps) {
   return (
     <>
       <div className={styles.scroll}>
-        <header className={styles.photosHeader}>
-          <h1 className={styles.photosTitle}>Library</h1>
-          <p className={styles.photosCount}>{PHOTOS.length} Items</p>
+        <header className={cn(styles.photosHeader, styles.photosHeaderInner)}>
+          <div>
+            <h1 className={styles.photosTitle}>Library</h1>
+            <p className={styles.photosCount}>{PHOTOS.length} Items</p>
+          </div>
+          <div className={styles.photosButtons} aria-hidden>
+            <span className={styles.pill}>Select</span>
+            <span className={styles.pill}>
+              <Magnifier />
+            </span>
+          </div>
         </header>
 
         <ul className={styles.photoGrid} aria-label="Photos">
