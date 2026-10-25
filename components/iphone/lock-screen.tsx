@@ -22,6 +22,9 @@ interface LockScreenProps {
   unlock: MotionValue<number>;
   lockY: MotionValue<number>;
   lockFade: MotionValue<number>;
+  /** Only below 1 under reduced motion, where the lock screen fades out
+   * whole instead of sliding. */
+  lockOpacity: MotionValue<number>;
   /** Screen height in screen pixels, and how much the frame is scaled. */
   measure: () => { h: number; scale: number };
   onSettle: (to: 0 | 1, velocity?: number) => void;
@@ -39,6 +42,7 @@ export function LockScreen({
   unlock,
   lockY,
   lockFade,
+  lockOpacity,
   measure,
   onSettle,
   onOpenApp,
@@ -50,21 +54,31 @@ export function LockScreen({
     startY: number;
     h: number;
     active: boolean;
+    /** Where unlock stood when the finger landed, so a swipe that catches
+     * a spring-back carries on from there instead of jumping. */
+    base: number;
   } | null>(null);
   const velocity = useRef(new VelocityTracker());
   /** Set when a swipe ends on a button, so its click doesn't also fire. */
   const swallowClick = useRef(false);
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!locked || event.button !== 0) {
+    // A swipe that ends past the slop gets no click on touch, so a flag left
+    // over from it must not swallow the next real tap.
+    swallowClick.current = false;
+    // One finger at a time: a second one landing must not take the drag over.
+    if (!locked || event.button !== 0 || drag.current) {
       return;
     }
     const { h, scale } = measure();
+    // Catch a spring-back in flight; set() alone doesn't stop it.
+    unlock.stop();
     drag.current = {
       id: event.pointerId,
       startY: event.clientY,
       h: h * scale,
       active: false,
+      base: Math.max(0, unlock.get()),
     };
     velocity.current.reset();
     velocity.current.add(event.clientY, event.timeStamp);
@@ -89,13 +103,16 @@ export function LockScreen({
     // Dragging down rubber-bands instead of moving freely, as on iOS.
     const progress =
       travel >= 0 ? travel / current.h : -Math.sqrt(-travel) / current.h;
-    unlock.set(clamp(progress, -0.04, 1));
+    unlock.set(clamp(current.base + progress, -0.04, 1));
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
     const current = drag.current;
+    if (current?.id !== event.pointerId) {
+      return;
+    }
     drag.current = null;
-    if (!current?.active || current.id !== event.pointerId) {
+    if (!current.active) {
       return;
     }
     swallowClick.current = true;
@@ -126,7 +143,7 @@ export function LockScreen({
     // only way through.
     <m.div
       className={styles.lock}
-      style={{ y: lockY }}
+      style={{ y: lockY, opacity: lockOpacity }}
       inert={!locked}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

@@ -61,12 +61,13 @@ export function HomeScreen({
   );
 
   return (
-    // Only `transform` here: an opacity below 1 on an ancestor would cut the
-    // dock's backdrop blur off from the wallpaper behind it.
+    // The zoom is on the grid, not here: scaling the dock would make it
+    // re-blur its backdrop on every frame of every unlock and app launch.
+    // Nor any opacity here, which would cut the dock's blur off from the
+    // wallpaper behind it.
     <m.div
       ref={homeRef}
       className={styles.home}
-      style={{ scale }}
       inert={inert}
       tabIndex={-1}
       aria-label="Home Screen"
@@ -74,7 +75,7 @@ export function HomeScreen({
     >
       <m.nav
         className={styles.homeGrid}
-        style={{ opacity: gridOpacity }}
+        style={{ opacity: gridOpacity, scale }}
         aria-label="Apps"
       >
         <button

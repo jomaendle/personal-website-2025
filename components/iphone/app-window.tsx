@@ -53,6 +53,10 @@ export function AppWindow({
     h: number;
     scale: number;
     moved: boolean;
+    /** The card's pose when the finger landed, if it was still springing
+     * back from an earlier drag: the new drag carries on from there. */
+    baseRise: number;
+    baseX: number;
   } | null>(null);
   const velocity = useRef(new VelocityTracker());
 
@@ -61,11 +65,16 @@ export function AppWindow({
   }, []);
 
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0) {
+    // One finger at a time: a second one must not take the drag over.
+    if (event.button !== 0 || drag.current) {
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
     const { h, scale } = measure();
+    // set() doesn't stop a running spring, so stop it to take hold.
+    pull.stop();
+    dragX.stop();
+    dragY.stop();
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -73,6 +82,8 @@ export function AppWindow({
       h,
       scale,
       moved: false,
+      baseRise: pull.get() * h * 0.5,
+      baseX: dragX.get(),
     };
     velocity.current.reset();
     velocity.current.add(event.clientY / scale, event.timeStamp);
@@ -90,9 +101,9 @@ export function AppWindow({
     }
     current.moved = true;
     velocity.current.add(event.clientY / current.scale, event.timeStamp);
-    const rise = Math.max(0, up);
+    const rise = Math.max(0, current.baseRise + up);
     pull.set(clamp(rise / (current.h * 0.5), 0, 1));
-    dragX.set(dx);
+    dragX.set(current.baseX + dx);
     // Rising a little slower than the finger keeps the card's bottom edge
     // under it while the card shrinks.
     dragY.set(-rise * 0.55);
@@ -100,10 +111,10 @@ export function AppWindow({
 
   const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
     const current = drag.current;
-    drag.current = null;
-    if (!current || current.id !== event.pointerId) {
+    if (current?.id !== event.pointerId) {
       return;
     }
+    drag.current = null;
     if (!current.moved) {
       onClose();
       return;

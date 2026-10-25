@@ -68,6 +68,8 @@ export function Iphone({ latestPosts }: IphoneProps) {
     origin: { x: 170, y: 406, size: 62, radius: 14 },
   });
   const closing = useRef(false);
+  /** What opened the current app (an icon, a widget), to focus on close. */
+  const opener = useRef<HTMLElement | null>(null);
 
   const reduced = useReducedMotion() ?? false;
   const reducedRef = useRef(reduced);
@@ -103,6 +105,9 @@ export function Iphone({ latestPosts }: IphoneProps) {
   );
   const lockFade = useTransform(unlock, (u) =>
     reducedRef.current ? 1 - u : clamp(1 - u * 1.6, 0, 1),
+  );
+  const lockOpacity = useTransform(unlock, (u) =>
+    reducedRef.current ? clamp(1 - u, 0, 1) : 1,
   );
   const statusTimeOpacity = useTransform(unlock, [0.4, 1], [0, 1]);
   const wallpaperDim = useTransform(unlock, [0, 1], [0, 0.14]);
@@ -239,10 +244,13 @@ export function Iphone({ latestPosts }: IphoneProps) {
       APPS[id].load();
       measure();
       geometry.current.origin = rectWithin(icon, screen);
-      pull.set(0);
-      dragX.set(0);
-      dragY.set(0);
-      open.set(instant ? 1 : 0);
+      opener.current = icon.closest("button");
+      // jump(), not set(): it also stops a spring still running from the
+      // last app, which set() would leave fighting this one.
+      pull.jump(0);
+      dragX.jump(0);
+      dragY.jump(0);
+      open.jump(instant ? 1 : 0);
       closing.current = false;
       store.set(APP_KEY, id);
       setApp(id);
@@ -271,8 +279,13 @@ export function Iphone({ latestPosts }: IphoneProps) {
       closing.current = false;
       setApp(null);
       requestAnimationFrame(() => {
-        const icon = icons.current.get(id);
-        const target = icon?.closest("button") ?? homeRef.current ?? undefined;
+        // Back to whatever opened it: the widget, the icon, or for an app
+        // opened from the lock screen, its icon on the home screen.
+        const target =
+          opener.current?.isConnected &&
+          homeRef.current?.contains(opener.current)
+            ? opener.current
+            : (icons.current.get(id)?.closest("button") ?? homeRef.current);
         target?.focus({ preventScroll: true });
       });
     });
@@ -357,7 +370,12 @@ export function Iphone({ latestPosts }: IphoneProps) {
           onClick={() => {
             if (appRef.current) {
               closing.current = false;
-              open.set(0);
+              // jump() stops an opening spring; set() would let it finish,
+              // leaving the dim layer over the lock screen.
+              open.jump(0);
+              pull.jump(0);
+              dragX.jump(0);
+              dragY.jump(0);
               setApp(null);
               store.set(APP_KEY, null);
             }
@@ -410,6 +428,7 @@ export function Iphone({ latestPosts }: IphoneProps) {
             unlock={unlock}
             lockY={lockY}
             lockFade={lockFade}
+            lockOpacity={lockOpacity}
             measure={measure}
             onSettle={settleLock}
             onOpenApp={openFromLock}

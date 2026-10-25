@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { Reload, SafariToolbarGlyphs } from "../glyphs";
+import { BackChevron, Ellipsis, Reload } from "../glyphs";
 import styles from "../iphone.module.css";
 
 /** Tile colours for Favourites, picked per project rather than by hash so
@@ -68,17 +68,28 @@ export default function SafariApp(_: AppProps) {
         ))}
       </div>
 
-      <div className={styles.addressBar}>
-        <Link href="/" className={styles.addressField}>
+      {/* iOS 26's compact tab bar: one floating glass pill for the address,
+          between back and the page menu. */}
+      <div className={styles.floatingBar}>
+        <span
+          className={cn(styles.glassButton, styles.glassButtonLarge)}
+          aria-hidden
+        >
+          <BackChevron width={11} height={18} />
+        </span>
+        <Link href="/" className={cn(styles.glassField, styles.addressPill)}>
           <span className={styles.addressAa} aria-hidden>
             <small>a</small>A
           </span>
           <span>jomaendle.com</span>
           <Reload className={styles.addressReload} />
         </Link>
-        <div className={styles.safariToolbar} aria-hidden>
-          <SafariToolbarGlyphs />
-        </div>
+        <span
+          className={cn(styles.glassButton, styles.glassButtonLarge)}
+          aria-hidden
+        >
+          <Ellipsis />
+        </span>
       </div>
     </div>
   );

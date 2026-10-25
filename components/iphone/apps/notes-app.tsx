@@ -25,18 +25,9 @@ export default function NotesApp(_: AppProps) {
     <div className={styles.notes}>
       <div className={cn(styles.scroll, styles.scrollWithBar)}>
         <NavBar title="Writing" />
-        <label className={styles.searchField}>
-          <Magnifier />
-          <span className="sr-only">Search articles</span>
-          <input
-            type="search"
-            placeholder="Search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            autoComplete="off"
-            enterKeyHint="search"
-          />
-        </label>
+        <p className={styles.subtitle}>
+          {posts.length} {posts.length === 1 ? "Note" : "Notes"}
+        </p>
 
         {years.map((y) => (
           <Group key={y} header={String(y)} large>
@@ -57,9 +48,30 @@ export default function NotesApp(_: AppProps) {
         {posts.length === 0 && <p className={styles.empty}>No Results</p>}
       </div>
 
-      <div className={styles.toolbar}>
-        {posts.length} {posts.length === 1 ? "Note" : "Notes"}
-        <Compose className={styles.toolbarTrailing} />
+      {/* iOS 26 moved search to the bottom, in a floating glass field. */}
+      <div className={styles.floatingBar}>
+        <label className={styles.glassField}>
+          <Magnifier />
+          <span className="sr-only">Search articles</span>
+          <input
+            type="search"
+            placeholder="Search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            autoComplete="off"
+            enterKeyHint="search"
+          />
+        </label>
+        <span
+          className={cn(
+            styles.glassButton,
+            styles.glassButtonLarge,
+            styles.tinted,
+          )}
+          aria-hidden
+        >
+          <Compose />
+        </span>
       </div>
     </div>
   );

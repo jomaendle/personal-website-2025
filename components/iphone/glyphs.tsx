@@ -236,22 +236,19 @@ export const Close = (props: GlyphProps) => (
   </svg>
 );
 
-/** Back, forward, share, bookmarks, tabs: Safari's bottom toolbar. */
-export const SafariToolbarGlyphs = () => (
-  <>
-    <BackChevron />
-    <BackChevron style={{ transform: "scaleX(-1)" }} />
-    <svg aria-hidden="true" viewBox="0 0 24 24" strokeWidth="1.8" {...base}>
-      <path d="M8 9 H6.5 a1.5 1.5 0 0 0 -1.5 1.5 v9 A1.5 1.5 0 0 0 6.5 21 h11 a1.5 1.5 0 0 0 1.5 -1.5 v-9 A1.5 1.5 0 0 0 17.5 9 H16 M12 14 V2.5 M8.5 6 L12 2.5 L15.5 6" />
-    </svg>
-    <svg aria-hidden="true" viewBox="0 0 24 24" strokeWidth="1.8" {...base}>
-      <path d="M12 6.5 C10 4.5 6.5 4 3 4.5 v14 c3.5 -.5 7 0 9 2 c2 -2 5.5 -2.5 9 -2 v-14 c-3.5 -.5 -7 0 -9 2 Z M12 6.5 v14" />
-    </svg>
-    <svg aria-hidden="true" viewBox="0 0 24 24" strokeWidth="1.8" {...base}>
-      <rect x="3" y="7" width="14" height="14" rx="2.5" />
-      <path d="M7 3.5 h11.5 a2.5 2.5 0 0 1 2.5 2.5 v11.5" />
-    </svg>
-  </>
+export const Ellipsis = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="currentColor"
+    {...props}
+  >
+    <circle cx="5.5" cy="12" r="2" />
+    <circle cx="12" cy="12" r="2" />
+    <circle cx="18.5" cy="12" r="2" />
+  </svg>
 );
 
 export const Reload = (props: GlyphProps) => (

@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { SITE } from "@/lib/config/site";
 import { IPHONE_COPY, MAIL_ALERTS } from "@/lib/state/iphone-copy";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { ArrowUp, Compose } from "../glyphs";
+import { ArrowUp, Close, Compose } from "../glyphs";
 import styles from "../iphone.module.css";
 import { IosAlert } from "./alert";
 
@@ -30,6 +31,27 @@ interface SentMessage {
   body: string;
 }
 
+/** The first thing stopping the send, in the order of the form. */
+function findProblem(name: string, email: string, topic: string): Alert | null {
+  if (name.trim().length < MIN_NAME) {
+    return { ...MAIL_ALERTS.noName, focus: "name" };
+  }
+  if (!email.trim()) {
+    return { ...MAIL_ALERTS.noEmail, focus: "email" };
+  }
+  if (!EMAIL.test(email.trim())) {
+    return {
+      title: MAIL_ALERTS.badEmail.title,
+      message: MAIL_ALERTS.badEmail.message(email.trim()),
+      focus: "email",
+    };
+  }
+  if (topic.length < MIN_MESSAGE) {
+    return { ...MAIL_ALERTS.shortMessage, focus: "body" };
+  }
+  return null;
+}
+
 /**
  * Apple Mail's compose flow, wired to the same `/api/contact` endpoint as the
  * contact form (CSRF check, rate limit, sanitising), so this really writes to
@@ -51,6 +73,8 @@ export default function MailApp({ close }: AppProps) {
   const [emailTouched, setEmailTouched] = useState(false);
   const [sent, setSent] = useState<SentMessage[]>([]);
 
+  const sendRef = useRef<HTMLButtonElement>(null);
+  const keyboard = useKeyboardInset();
   const fields = {
     name: useRef<HTMLInputElement>(null),
     email: useRef<HTMLInputElement>(null),
@@ -66,33 +90,12 @@ export default function MailApp({ close }: AppProps) {
     ? `${subject.trim()}\n\n${body.trim()}`
     : body.trim();
 
-  /** The first thing stopping the send, in the order of the form. */
-  const problem = (): Alert | null => {
-    if (name.trim().length < MIN_NAME) {
-      return { ...MAIL_ALERTS.noName, focus: "name" };
-    }
-    if (!email.trim()) {
-      return { ...MAIL_ALERTS.noEmail, focus: "email" };
-    }
-    if (!EMAIL.test(email.trim())) {
-      return {
-        title: MAIL_ALERTS.badEmail.title,
-        message: MAIL_ALERTS.badEmail.message(email.trim()),
-        focus: "email",
-      };
-    }
-    if (topic.length < MIN_MESSAGE) {
-      return { ...MAIL_ALERTS.shortMessage, focus: "body" };
-    }
-    return null;
-  };
-
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     if (phase !== "composing") {
       return;
     }
-    const blocker = problem();
+    const blocker = findProblem(name, email, topic);
     if (blocker) {
       setAlert(blocker);
       return;
@@ -144,81 +147,44 @@ export default function MailApp({ close }: AppProps) {
     <div className={styles.mail}>
       {/* The mailbox behind the sheet. It shrinks back while a message is
           being written, the way iOS presents a sheet over its parent. */}
-      <div
-        className={cn(styles.mailbox, composing && styles.mailboxBehind)}
-        inert={composing}
-      >
-        <div className={styles.scroll}>
-          <div style={{ height: "calc(var(--top-inset) + 44px)" }} />
-          <h1 className={styles.largeTitle}>Sent</h1>
-          {sent.length === 0 && phase !== "sending" ? (
-            <p className={styles.empty}>No Mail</p>
-          ) : (
-            <ul className={styles.mailList}>
-              {phase === "sending" ? (
-                <MailRow
-                  subject={subject.trim()}
-                  body={body.trim()}
-                  time="Sending"
-                  pending
-                />
-              ) : null}
-              {sent.map((message) => (
-                <MailRow
-                  key={message.id}
-                  subject={message.subject}
-                  body={message.body}
-                  time="Now"
-                />
-              ))}
-            </ul>
-          )}
-          {phase === "sent" ? (
-            <p className={styles.groupFooter} style={{ paddingLeft: 16 }}>
-              {IPHONE_COPY.mailReplyNote}
-            </p>
-          ) : null}
-        </div>
-
-        <div className={styles.toolbar}>
-          <span className={styles.mailStatus} role="status">
-            {phase === "sending" ? (
-              <>
-                Sending…
-                <span className={styles.sendProgress} />
-              </>
-            ) : null}
-            {phase === "sent" ? "Sent Just Now" : null}
-          </span>
-          <button
-            type="button"
-            className={cn(styles.toolbarTrailing, styles.toolbarButton)}
-            onClick={() => {
-              setPhase("composing");
-              requestAnimationFrame(() => focus("subject"));
-            }}
-            aria-label="New Message"
-            disabled={phase === "sending"}
-          >
-            <Compose />
-          </button>
-        </div>
-      </div>
+      <SentMailbox
+        phase={phase}
+        sent={sent}
+        outgoing={{ subject: subject.trim(), body: body.trim() }}
+        onCompose={() => {
+          // Focus inside the tap, or iOS won't raise the keyboard; flush
+          // first so the sheet is no longer inert.
+          flushSync(() => setPhase("composing"));
+          focus("subject");
+        }}
+      />
 
       <form
         className={cn(styles.sheet, !composing && styles.sheetAway)}
+        style={keyboard ? { bottom: keyboard } : undefined}
         onSubmit={send}
         noValidate
-        inert={!composing}
+        // Behind an alert the sheet is inert too, so focus stays in the alert.
+        inert={!composing || alert !== null}
       >
         <div className={styles.sheetHead}>
-          <button type="button" className={styles.textButton} onClick={close}>
-            Cancel
+          <button
+            type="button"
+            className={styles.glassButton}
+            onClick={close}
+            aria-label="Cancel"
+          >
+            <Close />
           </button>
           <h1 className={styles.sheetTitle}>
             {subject.trim() || "New Message"}
           </h1>
-          <button type="submit" className={styles.sendButton} aria-label="Send">
+          <button
+            ref={sendRef}
+            type="submit"
+            className={styles.sendButton}
+            aria-label="Send"
+          >
             <ArrowUp />
           </button>
         </div>
@@ -290,9 +256,13 @@ export default function MailApp({ close }: AppProps) {
           message={alert.message}
           onDismiss={() => {
             const target = alert.focus;
-            setAlert(null);
+            // Synchronously, inside the tap on OK, so iOS raises the keyboard
+            // for the field; flushed so the sheet has stopped being inert.
+            flushSync(() => setAlert(null));
             if (target) {
-              requestAnimationFrame(() => focus(target));
+              focus(target);
+            } else {
+              sendRef.current?.focus({ preventScroll: true });
             }
           }}
         />
@@ -325,5 +295,120 @@ function MailRow({
       </div>
       <div className={styles.mailRowPreview}>{body}</div>
     </li>
+  );
+}
+
+/**
+ * How much of the screen the on-screen keyboard covers. The phone is
+ * position: fixed, so iOS Safari slides the keyboard over it rather than
+ * resizing anything; lifting the sheet's bottom by this keeps the message
+ * field and the Send button above the keys.
+ */
+function useKeyboardInset() {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+    const update = () =>
+      setInset(
+        Math.max(
+          0,
+          Math.round(window.innerHeight - viewport.height - viewport.offsetTop),
+        ),
+      );
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+    };
+  }, []);
+  return inset;
+}
+
+/** Mail's Sent mailbox: the outgoing message while it sends, everything
+ * sent this visit, and the toolbar's progress and compose button. */
+function SentMailbox({
+  phase,
+  sent,
+  outgoing,
+  onCompose,
+}: {
+  phase: Phase;
+  sent: SentMessage[];
+  outgoing: Omit<SentMessage, "id">;
+  onCompose: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        styles.mailbox,
+        phase === "composing" && styles.mailboxBehind,
+      )}
+      inert={phase === "composing"}
+    >
+      <div className={styles.scroll}>
+        <div style={{ height: "calc(var(--top-inset) + 44px)" }} />
+        <h1 className={styles.largeTitle}>Sent</h1>
+        {sent.length === 0 && phase !== "sending" ? (
+          <p className={styles.empty}>No Mail</p>
+        ) : (
+          <ul className={styles.mailList}>
+            {phase === "sending" ? (
+              <MailRow
+                subject={outgoing.subject}
+                body={outgoing.body}
+                time="Sending"
+                pending
+              />
+            ) : null}
+            {sent.map((message) => (
+              <MailRow
+                key={message.id}
+                subject={message.subject}
+                body={message.body}
+                time="Now"
+              />
+            ))}
+          </ul>
+        )}
+        {phase === "sent" ? (
+          <p className={styles.groupFooter} style={{ paddingLeft: 16 }}>
+            {IPHONE_COPY.mailReplyNote}
+          </p>
+        ) : null}
+      </div>
+
+      <div className={styles.floatingBar}>
+        <span
+          className={cn(styles.glassField, styles.mailStatusPill)}
+          role="status"
+        >
+          {phase === "sending" ? (
+            <>
+              Sending…
+              <span className={styles.sendProgress} />
+            </>
+          ) : null}
+          {phase === "sent" ? "Sent Just Now" : null}
+          {phase === "composing" ? "Updated Just Now" : null}
+        </span>
+        <button
+          type="button"
+          className={cn(
+            styles.glassButton,
+            styles.glassButtonLarge,
+            styles.tinted,
+          )}
+          onClick={onCompose}
+          aria-label="New Message"
+          disabled={phase === "sending"}
+        >
+          <Compose />
+        </button>
+      </div>
+    </div>
   );
 }
