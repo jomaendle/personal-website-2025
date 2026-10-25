@@ -1376,7 +1376,227 @@ button.row:active {
 /* ---- Mail ------------------------------------------------------------ */
 
 .mail {
+  position: absolute;
+  inset: 0;
   background: #000;
+}
+
+/* iOS's sheet curve: a fast start that settles without overshoot. */
+.mailbox,
+.sheet {
+  transition:
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    border-radius 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.5s ease;
+}
+
+.mailbox {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  transform-origin: 50% 0;
+}
+
+/* Presented under a sheet, the parent steps back: smaller, dimmer, with
+   rounded top corners showing above the sheet. */
+.mailboxBehind {
+  transform: translateY(calc(var(--top-inset) - 8px)) scale(0.92);
+  border-radius: 12px;
+  background: #111;
+  filter: brightness(0.6);
+}
+
+.sheetAway {
+  transform: translateY(105%);
+}
+
+.mailList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mailRow {
+  position: relative;
+  padding: 10px 16px 12px 32px;
+}
+
+.mailRow::after {
+  content: "";
+  position: absolute;
+  left: 32px;
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.mailRowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mailRowFrom {
+  font-weight: 600;
+}
+
+.mailRowTime,
+.mailRowPreview,
+.mailRowMuted {
+  color: var(--label-2);
+}
+
+.mailRowTime {
+  font-size: 15px;
+}
+
+.mailRowSubject {
+  font-size: 15px;
+}
+
+.mailRowPreview {
+  font-size: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mailStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 26px;
+  color: var(--label);
+  font-size: 12px;
+}
+
+/* Mail's indeterminate send bar. */
+.sendProgress {
+  position: relative;
+  width: 120px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--fill);
+}
+
+.sendProgress::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--ios-blue);
+  animation: send-progress 1.1s ease-in-out infinite;
+}
+
+@keyframes send-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.toolbarButton {
+  display: grid;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.toolbarButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.mailRowPending {
+  opacity: 0.55;
+}
+
+/* iOS text fields show the caret and nothing else. */
+.field input:focus-visible,
+.body:focus-visible {
+  outline: none;
+}
+
+.fieldInvalid {
+  color: var(--ios-red) !important;
+}
+
+/* ---- Alert ----------------------------------------------------------- */
+
+.alertBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+  animation: alert-fade 0.2s ease-out both;
+}
+
+.alert {
+  width: 270px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgb(44 44 46 / 0.86);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  text-align: center;
+  animation: alert-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+.alertBody {
+  padding: 19px 16px 18px;
+}
+
+.alertTitle {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.alertMessage {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.alertButton {
+  display: block;
+  width: 100%;
+  height: 44px;
+  border-top: 0.5px solid var(--separator) !important;
+  background: none;
+  color: var(--ios-blue);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alertButton:active {
+  background: rgb(255 255 255 / 0.08);
+}
+
+@keyframes alert-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes alert-pop {
+  from {
+    opacity: 0;
+    transform: scale(1.15);
+  }
 }
 
 .sheet {

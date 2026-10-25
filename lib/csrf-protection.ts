@@ -17,8 +17,15 @@ if (process.env.NODE_ENV === "development") {
 // this the form-backed routes 403 on the very deployment that exists to review
 // them. Gated on VERCEL_ENV === "preview" specifically: production also sets
 // VERCEL_URL, and allowing it there would weaken the check where it matters.
-if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
-  ALLOWED_ORIGINS.push(`https://${process.env.VERCEL_URL}`);
+// VERCEL_URL is the per-deployment hostname; reviewers mostly open the
+// branch alias (…-git-<branch>-…), which Vercel exposes as VERCEL_BRANCH_URL.
+// Without it, every form on the shared preview link 403s.
+if (process.env.VERCEL_ENV === "preview") {
+  for (const host of [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]) {
+    if (host) {
+      ALLOWED_ORIGINS.push(`https://${host}`);
+    }
+  }
 }
 
 /**
