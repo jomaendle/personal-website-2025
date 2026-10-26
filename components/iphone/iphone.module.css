@@ -889,7 +889,6 @@
   inset: 0;
   background: rgb(0 0 0 / 0.44);
   pointer-events: none;
-  transition: opacity 0.2s ease-out;
 }
 
 .spotlightSettled {
@@ -2770,6 +2769,10 @@ ol.noteList {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
+  /* Tiles below the fold skip layout and paint until scrolled to; their
+     width gives their height, so the grid's size is known regardless. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100%;
   background: var(--grouped);
   cursor: zoom-in;
 }

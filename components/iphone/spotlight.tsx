@@ -124,11 +124,16 @@ export function Spotlight({
   // Opened by a swipe, nothing has focus (the home screen went inert under
   // it): take it on the dialog itself, without raising the keyboard, once
   // the pull has let go.
+  // A frame later: focusing in the commit itself forces the dialog's first
+  // layout before its animation can start.
   useEffect(() => {
-    const root = rootRef.current;
-    if (root && !pulling && !root.contains(document.activeElement)) {
-      root.focus({ preventScroll: true });
-    }
+    const frame = requestAnimationFrame(() => {
+      const root = rootRef.current;
+      if (root && !pulling && !root.contains(document.activeElement)) {
+        root.focus({ preventScroll: true });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
   }, [pulling]);
 
   const { apps, clips, noteHits, songHits, contactHit, nothing } = search(
@@ -151,12 +156,16 @@ export function Spotlight({
   }, [pull]);
 
   const onAnimationEnd = (event: React.AnimationEvent<HTMLElement>) => {
-    if (event.target !== event.currentTarget) {
+    if (event.target === event.currentTarget) {
+      if (leaving) {
+        onLeft();
+      }
       return;
     }
-    if (leaving) {
-      onLeft();
-    } else {
+    // The frosting goes on once the last thing has stopped moving: the
+    // results, which arrive a little after the dialog itself. Blurring
+    // under motion would redraw the whole blur every frame.
+    if (event.target === resultsRef.current && !leaving) {
       setEntered(true);
     }
   };

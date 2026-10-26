@@ -119,8 +119,13 @@ export function NoteView({
   // Reading the note counts as reading the article, as on the blog.
   const { views } = useViewCount(slug, true);
 
+  // Focus moves to the title once the first frame is up. Focusing in the
+  // commit itself forces the new view's layout before the push can start.
   useEffect(() => {
-    titleRef.current?.focus({ preventScroll: true });
+    const frame = requestAnimationFrame(() => {
+      titleRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const share = () =>

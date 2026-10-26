@@ -7,7 +7,14 @@ import {
   useTransform,
 } from "framer-motion";
 import Image, { getImageProps } from "next/image";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
@@ -228,6 +235,8 @@ export default function PhotosApp(_: AppProps) {
   const reduced = useReducedMotion() ?? false;
   const [viewing, setViewing] = useState<number | null>(null);
   const [current, setCurrent] = useState(0);
+  /** The strip's width, measured on its first scroll of a viewing. */
+  const stripWidth = useRef(0);
   const [chrome, setChrome] = useState(true);
   const [closing, setClosing] = useState(false);
   const { photoBytes } = useIphoneData();
@@ -540,6 +549,7 @@ export default function PhotosApp(_: AppProps) {
     const done = () => {
       setViewing(null);
       setClosing(false);
+      stripWidth.current = 0;
       requestAnimationFrame(() =>
         thumbs.current[current]?.focus({ preventScroll: true }),
       );
@@ -817,13 +827,10 @@ export default function PhotosApp(_: AppProps) {
                 onClick={() => open(index)}
                 aria-label={`Photo ${index + 1} of ${PHOTOS.length}`}
               >
-                <Image
-                  src={photo}
-                  alt=""
-                  fill
-                  sizes={THUMB_SIZES}
-                  placeholder="blur"
-                />
+                {/* No blur placeholder: three dozen of them, each a filtered
+                    image to decode, were most of the launch's first frame.
+                    The tile's own grey stands in for the moment it takes. */}
+                <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
               </button>
             </li>
           ))}
@@ -895,13 +902,22 @@ export default function PhotosApp(_: AppProps) {
             aria-label="Photos. Use the arrow keys to move between them."
             onScroll={(event) => {
               const strip = event.currentTarget;
-              setCurrent(
-                clamp(
-                  Math.round(strip.scrollLeft / strip.clientWidth),
-                  0,
-                  PHOTOS.length - 1,
-                ),
+              // Measured once per viewing: reading clientWidth on every
+              // scroll event would force a layout each time.
+              if (!stripWidth.current) {
+                stripWidth.current = strip.clientWidth;
+              }
+              const index = clamp(
+                Math.round(strip.scrollLeft / stripWidth.current),
+                0,
+                PHOTOS.length - 1,
               );
+              if (index === current) {
+                return;
+              }
+              // Mounting the next slides and thumbnails can wait a frame:
+              // the strip is scrolling, and that stays smooth.
+              startTransition(() => setCurrent(index));
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
