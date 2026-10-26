@@ -206,8 +206,8 @@ export default function MusicApp({ launch }: AppProps) {
 // ---- Artist page --------------------------------------------------------------
 
 function ArtistPage({ onOpenAlbum }: { onOpenAlbum: (album: Album) => void }) {
-  const { play } = useMusicControls();
-  const { track } = useMusic();
+  const { play, toggle } = useMusicControls();
+  const { track, playing } = useMusic();
   const eps = ALBUMS.filter((album) => album.tracks.length > 1);
 
   return (
@@ -234,10 +234,18 @@ function ArtistPage({ onOpenAlbum }: { onOpenAlbum: (album: Album) => void }) {
         <button
           type="button"
           className={styles.artistPlay}
-          onClick={() => play(TRACKS, 0)}
-          aria-label={`Play ${CAR_KIDS.name}`}
+          // Everything here is the band's, so with a song going the button
+          // pauses and resumes it, as Music's artist button does.
+          onClick={() => (track ? toggle() : play(TRACKS, 0))}
+          aria-label={
+            playing ? `Pause ${CAR_KIDS.name}` : `Play ${CAR_KIDS.name}`
+          }
         >
-          <PlayGlyph width={22} height={22} />
+          {playing ? (
+            <PauseGlyph width={22} height={22} />
+          ) : (
+            <PlayGlyph width={22} height={22} />
+          )}
         </button>
       </header>
 
