@@ -11,6 +11,7 @@ import {
 } from "react";
 import { ALBUMS, CAR_KIDS, type Track, trackById } from "@/lib/state/car-kids";
 import { store } from "../persist";
+import { useLatest } from "../use-latest";
 
 /** What was playing, so a reload comes back to it paused, as iOS does. */
 const PLAYER_KEY = "iphone:music";
@@ -86,8 +87,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [state, setState] = useState<PlayerState>(EMPTY);
   const [time, setTime] = useState<PlayerTime>({ time: 0, duration: 0 });
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const stateRef = useLatest(state);
 
   const controls = useMemo<PlayerControls>(() => {
     const load = (queue: Track[], index: number, autoplay: boolean) => {

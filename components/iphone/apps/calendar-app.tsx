@@ -15,6 +15,7 @@ import type { AppProps } from "../apps";
 import { BackChevron, PlusGlyph } from "../glyphs";
 import styles from "../iphone.module.css";
 import { useMinute } from "../use-clock";
+import { useLatest } from "../use-latest";
 
 // ---- Dates ----------------------------------------------------------------------
 
@@ -132,8 +133,7 @@ export default function CalendarApp(_: AppProps) {
     out: boolean;
   } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef(view);
-  viewRef.current = view;
+  const viewRef = useLatest(view);
 
   const go = (next: View, from: HTMLElement | null, out: boolean) => {
     const root = rootRef.current;

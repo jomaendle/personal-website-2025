@@ -33,6 +33,7 @@ import {
 import styles from "../iphone.module.css";
 import { FADE, rubberband, SPRING_PUSH, useVelocityTracker } from "../motion";
 import { useMusic, useMusicControls, useMusicTime } from "../music/player";
+import { useLatest } from "../use-latest";
 import { useSwipeBack } from "../use-swipe-back";
 
 const YEARS = ALBUMS.map((album) => album.year);
@@ -85,8 +86,7 @@ export default function MusicApp({ launch }: AppProps) {
   const [album, setAlbum] = useState<Album | null>(null);
   const [nowPlaying, setNowPlaying] = useState(Boolean(launch?.nowPlaying));
   const popping = useRef(false);
-  const sheetRef = useRef({ nowPlaying, album });
-  sheetRef.current = { nowPlaying, album };
+  const sheetRef = useLatest({ nowPlaying, album });
 
   const nav = useMotionValue(0);
   const rootX = useTransform(nav, (n) => (reduced ? "0%" : `${-30 * n}%`));
@@ -138,10 +138,8 @@ export default function MusicApp({ launch }: AppProps) {
       }
     });
   };
-  const popRef = useRef(pop);
-  popRef.current = pop;
-  const closeSheetRef = useRef(closeSheet);
-  closeSheetRef.current = closeSheet;
+  const popRef = useLatest(pop);
+  const closeSheetRef = useLatest(closeSheet);
 
   // Escape closes Now Playing, then the album, then (the phone's own
   // handler) the app.

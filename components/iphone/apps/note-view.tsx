@@ -111,7 +111,8 @@ export function NoteView({
   onOpenNote,
 }: NoteViewProps) {
   const { note, failed } = useNote(slug);
-  const arrivedLoaded = useRef(loaded.has(slug));
+  // Whether the body was already loaded when the note opened, fixed then.
+  const [arrivedLoaded] = useState(() => loaded.has(slug));
   const titleRef = useRef<HTMLHeadingElement>(null);
   const { share: shareLink, hud } = useShare();
   const swipeBack = useSwipeBack(nav, onBack);
@@ -143,7 +144,7 @@ export function NoteView({
           {note ? (
             // A body that arrives after the note opened fades up into place;
             // one already loaded is simply there.
-            <div className={cn(!arrivedLoaded.current && styles.noteArrive)}>
+            <div className={cn(!arrivedLoaded && styles.noteArrive)}>
               <Blocks
                 blocks={note.blocks}
                 slug={slug}

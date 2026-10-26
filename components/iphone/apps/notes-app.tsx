@@ -18,6 +18,7 @@ import styles from "../iphone.module.css";
 import { FADE, SPRING_PUSH } from "../motion";
 import { store } from "../persist";
 import { useKeyboardInset } from "../use-keyboard-inset";
+import { useLatest } from "../use-latest";
 import { NoteView, prefetchNote } from "./note-view";
 import { Group, NavBar } from "./ui";
 
@@ -54,8 +55,6 @@ export default function NotesApp({ launch }: AppProps) {
   const popping = useRef(false);
   /** Going back: the list takes taps again before the slide fully settles. */
   const [leaving, setLeaving] = useState(false);
-  /** The latest pop, for the Escape listener below. */
-  const popRef = useRef<() => void>(() => undefined);
 
   /** 0 shows the list, 1 the note. */
   const nav = useMotionValue(open ? 1 : 0);
@@ -113,7 +112,8 @@ export default function NotesApp({ launch }: AppProps) {
     });
   };
 
-  popRef.current = () => pop();
+  /** The latest pop, for the Escape listener below. */
+  const popRef = useLatest(() => pop());
 
   // Escape steps back out of a note first, as the back button does; the next
   // Escape closes the app. A capture listener on the window, so it runs

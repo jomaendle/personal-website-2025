@@ -49,6 +49,7 @@ import { APP_KEY, SEEN_KEY, store, UNLOCKED_KEY } from "./persist";
 import { Spotlight } from "./spotlight";
 import { useBattery } from "./use-battery";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
+import { useLatest } from "./use-latest";
 
 /** An app icon (on the home screen, or a Spotlight app result), as opposed
  * to a widget, a song's cover or a contact's monogram, which cross-fade. */
@@ -134,12 +135,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const source = useRef<HTMLElement | null>(null);
 
   const reduced = useReducedMotion() ?? false;
-  const reducedRef = useRef(reduced);
-  reducedRef.current = reduced;
+  const reducedRef = useLatest(reduced);
 
   const [locked, setLocked] = useState(true);
-  const lockedRef = useRef(locked);
-  lockedRef.current = locked;
+  const lockedRef = useLatest(locked);
   const [app, setApp] = useState<IphoneAppId | null>(null);
   /** The app is on its way home: the home screen already takes taps. */
   const [closingApp, setClosingApp] = useState(false);
@@ -153,8 +152,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** Whether this Spotlight came in by a pull (its opacity is the pull's
    * motion value, not the CSS entrance). */
   const [pulled, setPulled] = useState(false);
-  const spotlightLeavingRef = useRef(spotlightLeaving);
-  spotlightLeavingRef.current = spotlightLeaving;
+  const spotlightLeavingRef = useLatest(spotlightLeaving);
   /** The side button: the display goes dark for a moment while the phone
    * locks under it, as iOS turns the screen off rather than sliding. */
   const [screenOff, setScreenOff] = useState(false);
@@ -165,8 +163,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** A fresh Spotlight each time, even reopened mid-fade: a new query and
    * its own focus, not the fading one's. */
   const [spotlightKey, setSpotlightKey] = useState(0);
-  const spotlightRef = useRef(spotlight);
-  spotlightRef.current = spotlight;
+  const spotlightRef = useLatest(spotlight);
   const spotlightInput = useRef<HTMLInputElement>(null);
   const searchButton = useRef<HTMLButtonElement>(null);
   /** Notifications already opened this visit, which the lock screen drops. */
@@ -178,8 +175,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       store.set(SEEN_KEY, JSON.stringify(seen));
     }
   }, [seen]);
-  const appRef = useRef(app);
-  appRef.current = app;
+  const appRef = useLatest(app);
 
   // Stable, so a clock tick doesn't re-render every app reading it.
   const data = useMemo(() => ({ notes, photoBytes }), [notes, photoBytes]);
