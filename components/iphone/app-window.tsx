@@ -169,6 +169,10 @@ export function AppWindow({
     (el: HTMLDivElement | null) => scene.register("icon", el),
     [scene],
   );
+  const splashEl = useCallback(
+    (el: HTMLDivElement | null) => scene.register("splash", el),
+    [scene],
+  );
   const widgetEl = useCallback(
     (el: HTMLDivElement | null) => {
       snapshot.current = el;
@@ -290,6 +294,9 @@ export function AppWindow({
             {content}
             <Rendered onRendered={onRendered} />
           </Suspense>
+          <div ref={splashEl} className={styles.appSplash} aria-hidden>
+            <AppIcon art={APPS[id].art} calendar={calendar} />
+          </div>
           <div ref={iconEl} className={styles.appIconOverlay}>
             <AppIcon art={APPS[id].art} calendar={calendar} />
           </div>

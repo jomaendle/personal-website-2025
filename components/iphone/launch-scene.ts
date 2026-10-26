@@ -207,6 +207,11 @@ export interface SceneElements {
   icon: HTMLElement | null;
   /** A widget's snapshot, for a launch out of a widget. */
   widget: HTMLElement | null;
+  /** The launch screen: the app's background with its icon, small, in the
+   * middle, under the icon art. Shows only while the cover holds (the app
+   * still loading), once the art has handed over, as iOS shows an app's
+   * launch image between its icon and its first frame. */
+  splash: HTMLElement | null;
   /** The home screen grid, which leans in as the app opens over it. */
   homeZoom: HTMLElement | null;
   /** The black over the home screen behind the app. */
@@ -267,8 +272,9 @@ export function pose(
     return {
       window: { transform: "none", opacity: ac, borderRadius: `${radius}px` },
       content: { transform: "none" },
-      icon: { opacity: g.fromIcon ? state.c : 0 },
-      widget: { opacity: g.fromWidget ? state.c : 0 },
+      icon: { opacity: 0 },
+      widget: { opacity: 0 },
+      splash: { opacity: clamp(state.c, 0, 1) },
       homeZoom: { transform: "none" },
       dim: { opacity: 0.5 * ac },
     };
@@ -289,19 +295,25 @@ export function pose(
     },
     content: { transform: `scale(1, ${1 / squash})` },
     icon: {
-      // Hands over to the app early in the zoom, or once the app is there.
-      opacity: g.fromIcon ? Math.max(fadeOut(state.a, 0.04, 0.26), state.c) : 0,
+      // Hands over early in the zoom: to the app, or to the launch screen.
+      opacity: g.fromIcon ? fadeOut(state.a, 0.04, 0.26) : 0,
       // The art covers what the window shows of itself, as iOS scales the
       // icon's snapshot with the window.
       transform: `translateY(-50%) scale(${shown / w})`,
     },
     widget: {
-      opacity: g.fromWidget
-        ? Math.max(fadeOut(state.a, 0.03, 0.22), state.c)
-        : 0,
+      opacity: g.fromWidget ? fadeOut(state.a, 0.03, 0.22) : 0,
       // Stretched to fill the window, as iOS stretches the snapshot; it has
       // faded by the time the stretch would show.
       transform: `scale(${w / origin.size}, ${shown / origin.height})`,
+    },
+    splash: {
+      opacity:
+        clamp(state.c, 0, 1) *
+        (1 -
+          (g.fromWidget
+            ? fadeOut(state.a, 0.03, 0.22)
+            : fadeOut(state.a, 0.04, 0.26))),
     },
     homeZoom: { transform: `scale(${1 + 0.08 * ac * (1 - p)})` },
     dim: { opacity: 0.5 * ac * (1 - p) },
@@ -369,6 +381,7 @@ export class LaunchScene {
     content: null,
     icon: null,
     widget: null,
+    splash: null,
     homeZoom: null,
     dim: null,
   };

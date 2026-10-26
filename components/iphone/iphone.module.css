@@ -2025,6 +2025,19 @@
   display: none;
 }
 
+/* The launch screen under the icon art: the app's background with its icon
+   in the middle, as an app's launch image, for as long as its code is still
+   on its way. */
+.appSplash {
+  --icon: 96px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  pointer-events: none;
+}
+
 /* A widget's copy, centred in the window at the widget's own size and
    scaled up to fill what the window shows of itself. Its corners are the
    window's clip, and its lit edge would be drawn at the wrong scale. */
