@@ -12,7 +12,7 @@ import { WALLPAPER } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import { AppIcon } from "./app-icons";
 import { APPS, type AppLaunch } from "./apps";
-import { current, halt } from "./compositor-spring";
+import { halt, motionNow } from "./compositor-spring";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
 import { rubberband, useVelocityTracker } from "./motion";
@@ -146,7 +146,7 @@ export function LockScreen({
 
   const onWheel = (event: React.WheelEvent) => {
     // A trackpad or wheel scrolling "up the page" is the desktop swipe.
-    if (locked && event.deltaY > 12 && current(unlock).value === 0) {
+    if (locked && event.deltaY > 12 && motionNow(unlock).value === 0) {
       onSettle(1);
     }
   };

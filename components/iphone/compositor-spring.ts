@@ -13,7 +13,7 @@ import { lerp } from "./motion";
  * main thread gets. The value itself jumps to where it's headed straight
  * away, so its own style bindings write the final style once, hidden under
  * the animation, and nothing flashes when the animation is dropped at the
- * end. Read where it actually is mid-flight with `current`, and catch it
+ * end. Read where it actually is mid-flight with `motionNow`, and catch it
  * with `halt`, which commits the animated style at that instant.
  */
 
@@ -51,7 +51,7 @@ function sampleAt(run: Run, now: number) {
 }
 
 /** Where the value is right now, and how fast it's moving (per second). */
-export function current(mv: MotionValue<number>) {
+export function motionNow(mv: MotionValue<number>) {
   const run = runs.get(mv);
   if (!run) {
     return { value: mv.get(), velocity: mv.getVelocity() };
@@ -72,7 +72,7 @@ export function halt(mv: MotionValue<number>) {
     mv.stop();
     return mv.get();
   }
-  const { value } = current(mv);
+  const { value } = motionNow(mv);
   runs.delete(mv);
   for (const animation of run.animations) {
     try {
@@ -107,7 +107,7 @@ export function springTo(
     velocity?: number;
   },
 ): Promise<boolean> {
-  const start = current(mv);
+  const start = motionNow(mv);
   const previous = runs.get(mv);
   const options = transition as SceneTransition & { ease?: unknown };
   let samples: number[];

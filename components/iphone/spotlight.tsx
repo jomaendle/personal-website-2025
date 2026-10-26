@@ -17,6 +17,7 @@ import type { IphoneAppId } from "@/lib/state/iphone-copy";
 import { cn } from "@/lib/utils";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
+import { bindTo } from "./compositor-spring";
 import { useIphoneData } from "./data";
 import { Close, Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
@@ -41,6 +42,8 @@ interface SpotlightProps {
   /** For a Spotlight brought in by a pull: its opacity, following the
    * finger, in place of the CSS entrance. */
   pull?: MotionValue<number>;
+  /** That pull's spring has landed. */
+  pullLanded: boolean;
   /** The fade-out finished. */
   onLeft: () => void;
   calendar: CalendarFace | null;
@@ -102,6 +105,7 @@ export function Spotlight({
   leaving,
   pulling,
   pull,
+  pullLanded,
   onLeft,
   calendar,
   inputRef,
@@ -135,19 +139,16 @@ export function Spotlight({
   // The frosting goes on once Spotlight is at rest: blurring the backdrop
   // under a changing opacity redraws the whole blur every frame. In motion
   // it's a darker tint instead, which reads the same at a glance.
-  const [settled, setSettled] = useState(false);
+  const [entered, setEntered] = useState(false);
+  const settled = pull ? pullLanded && !pulling : entered;
+  // Brought in by a pull, the pull's spring fades it in on the compositor.
   useEffect(() => {
-    if (!pull || pulling) {
-      return;
+    if (pull) {
+      bindTo(pull, () => [
+        { el: rootRef.current, style: (v) => ({ opacity: v }) },
+      ]);
     }
-    const settle = (v: number) => {
-      if (v >= 0.999) {
-        setSettled(true);
-      }
-    };
-    settle(pull.get());
-    return pull.on("change", settle);
-  }, [pull, pulling]);
+  }, [pull]);
 
   const onAnimationEnd = (event: React.AnimationEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) {
@@ -156,7 +157,7 @@ export function Spotlight({
     if (leaving) {
       onLeft();
     } else {
-      setSettled(true);
+      setEntered(true);
     }
   };
 

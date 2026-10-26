@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  animate,
   m,
   useMotionValue,
   useReducedMotion,
@@ -115,6 +114,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** Whether this Spotlight came in by a pull (its opacity is the pull's
    * motion value, not the CSS entrance). */
   const [pulled, setPulled] = useState(false);
+  /** A pulled-in Spotlight has come to rest, and takes its frosting. */
+  const [pullLanded, setPullLanded] = useState(false);
   const spotlightLeavingRef = useLatest(spotlightLeaving);
   /** The side button: the display goes dark for a moment while the phone
    * locks under it, as iOS turns the screen off rather than sliding. */
@@ -548,7 +549,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const onSearchPull = useCallback(
     (phase: "start" | "end", velocity = 0) => {
       if (phase === "start") {
+        halt(searchPull);
         searchPull.jump(0);
+        setPullLanded(false);
         setSpotlightKey((key) => key + 1);
         setSpotlightLeaving(false);
         setPulled(true);
@@ -557,20 +560,22 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       }
       // Far enough, or flicked down: it comes in; otherwise back out.
       const commit = searchPull.get() > 0.35 || velocity > 0.3;
-      const spring = {
-        type: "spring" as const,
-        visualDuration: 0.35,
-        bounce: 0,
-        velocity: (velocity * 1000) / 140,
-      };
+      const transition = reducedRef.current
+        ? FADE
+        : { type: "spring" as const, visualDuration: 0.35, bounce: 0 };
+      const speed = (velocity * 1000) / 140;
       if (commit) {
         setSearchPulling(false);
         setSpotlight(true);
-        animate(searchPull, 1, reducedRef.current ? FADE : spring);
+        springTo(searchPull, { to: 1, transition, velocity: speed }).then(
+          (completed) => setPullLanded(completed),
+        );
       } else {
-        animate(searchPull, 0, reducedRef.current ? FADE : spring).then(() => {
-          setSearchPulling(false);
-        });
+        springTo(searchPull, { to: 0, transition, velocity: speed }).then(
+          () => {
+            setSearchPulling(false);
+          },
+        );
       }
     },
     [searchPull],
@@ -777,6 +782,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   leaving={!(spotlight || searchPulling)}
                   pulling={searchPulling}
                   pull={pulled ? searchPull : undefined}
+                  pullLanded={pullLanded}
                   onLeft={() => setSpotlightLeaving(false)}
                   calendar={calendar}
                   inputRef={spotlightInput}

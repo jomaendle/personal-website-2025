@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  animate,
   m,
   useMotionValue,
   useReducedMotion,
@@ -12,6 +11,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
+import { bindTo, halt, motionNow, springTo } from "../compositor-spring";
 import { useIphoneData } from "../data";
 import {
   BackChevron,
@@ -37,6 +37,7 @@ import {
   springProgress,
   useVelocityTracker,
 } from "../motion";
+import { useLatest } from "../use-latest";
 import { useShare } from "../use-share";
 import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
@@ -241,6 +242,27 @@ export default function PhotosApp(_: AppProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLElement>(null);
   const scrubberRef = useRef<HTMLDivElement>(null);
+  const reducedRef = useLatest(reduced);
+  // The same styles as stripY, panelY and panelOpacity, for the spring
+  // once a finger lets go, which runs on the compositor.
+  useState(() =>
+    bindTo(progress, () => {
+      const still = reducedRef.current;
+      return [
+        {
+          el: stripRef.current,
+          style: (p) => ({ transform: `translateY(${-p * shift.current}px)` }),
+        },
+        {
+          el: panelRef.current,
+          style: (p) => ({
+            transform: `translateY(${still ? 0 : (1 - p) * 100}%)`,
+            opacity: still ? p : clamp(p / 0.25, 0, 1),
+          }),
+        },
+      ];
+    }),
+  );
   const thumbs = useRef<(HTMLButtonElement | null)[]>([]);
   const frames = useRef<(HTMLDivElement | null)[]>([]);
   const drag = useRef<{
@@ -383,6 +405,7 @@ export default function PhotosApp(_: AppProps) {
   const open = (index: number) => {
     setCurrent(index);
     setChrome(true);
+    halt(progress);
     progress.jump(0);
     setInfo(false);
     setPanel(false);
@@ -415,7 +438,7 @@ export default function PhotosApp(_: AppProps) {
 
   /** Bring the panel on screen, measured for the photo, before it moves. */
   const preparePanel = () => {
-    if (progress.get() === 0) {
+    if (motionNow(progress).value === 0) {
       shift.current = measureShift(current);
     }
     setPanel(true);
@@ -429,20 +452,22 @@ export default function PhotosApp(_: AppProps) {
     }
     setInfo(show);
     const { h, k } = viewerSize();
-    animate(
-      progress,
-      show ? 1 : 0,
-      reduced
-        ? FADE
-        : {
-            ...SPRING_PUSH,
-            velocity: (velocity * 1000) / (h * sheetFor(current) * k),
-          },
-    ).then(() => {
-      if (progress.get() === 0) {
-        setPanel(false);
-      }
-    });
+    const run = () =>
+      springTo(progress, {
+        to: show ? 1 : 0,
+        transition: reduced ? FADE : SPRING_PUSH,
+        velocity: (velocity * 1000) / (h * sheetFor(current) * k),
+      }).then((completed) => {
+        if (completed && progress.get() === 0) {
+          setPanel(false);
+        }
+      });
+    // A panel just asked for is drawn next frame: slide it from there.
+    if (show && !panelRef.current) {
+      requestAnimationFrame(run);
+    } else {
+      run();
+    }
   };
 
   const share = () => {
@@ -464,7 +489,7 @@ export default function PhotosApp(_: AppProps) {
   /** Out of the info: drop the panel and carry the slid-up offset over onto
    * the photo itself, so it flies home from where it is. */
   const lowerOnto = (frame: HTMLElement | null | undefined) => {
-    const lifted = stripY.get();
+    const lifted = -halt(progress) * shift.current;
     if (!lifted) {
       return;
     }
@@ -573,8 +598,7 @@ export default function PhotosApp(_: AppProps) {
       setChrome(false);
     }
     if (d.mode === "info") {
-      progress.stop();
-      d.base = progress.get();
+      d.base = halt(progress);
       preparePanel();
     }
   };
