@@ -1,5 +1,6 @@
 "use client";
 
+import { type MotionValue, m } from "framer-motion";
 import Image from "next/image";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/config/site";
@@ -34,6 +35,12 @@ const SUGGESTED: IphoneAppId[] = ["notes", "photos", "mail", "safari"];
 interface SpotlightProps {
   /** Fading out: drawn, but inert. */
   leaving: boolean;
+  /** Being pulled in by a swipe still under the finger: drawn, not yet
+   * taking input. */
+  pulling: boolean;
+  /** For a Spotlight brought in by a pull: its opacity, following the
+   * finger, in place of the CSS entrance. */
+  pull?: MotionValue<number>;
   /** The fade-out finished. */
   onLeft: () => void;
   calendar: CalendarFace | null;
@@ -93,6 +100,8 @@ function search(q: string, notes: NoteSummary[]) {
  */
 export function Spotlight({
   leaving,
+  pulling,
+  pull,
   onLeft,
   calendar,
   inputRef,
@@ -108,13 +117,14 @@ export function Spotlight({
   const resultsRef = useRef<HTMLDivElement>(null);
 
   // Opened by a swipe, nothing has focus (the home screen went inert under
-  // it): take it on the dialog itself, without raising the keyboard.
+  // it): take it on the dialog itself, without raising the keyboard, once
+  // the pull has let go.
   useEffect(() => {
     const root = rootRef.current;
-    if (root && !root.contains(document.activeElement)) {
+    if (root && !pulling && !root.contains(document.activeElement)) {
       root.focus({ preventScroll: true });
     }
-  }, []);
+  }, [pulling]);
 
   const { apps, clips, noteHits, songHits, contactHit, nothing } = search(
     q,
@@ -155,15 +165,20 @@ export function Spotlight({
   );
 
   return (
-    <div
+    <m.div
       ref={rootRef}
       tabIndex={-1}
-      className={cn(styles.spotlight, leaving && styles.spotlightLeaving)}
+      className={cn(
+        styles.spotlight,
+        pull && styles.spotlightPulled,
+        leaving && styles.spotlightLeaving,
+      )}
+      style={pull ? { opacity: pull } : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Search"
-      inert={leaving}
-      aria-hidden={leaving || undefined}
+      inert={leaving || pulling}
+      aria-hidden={leaving || pulling || undefined}
       onAnimationEnd={onAnimationEnd}
     >
       {/* Tapping the blur outside the results dismisses, as on iOS. */}
@@ -341,7 +356,7 @@ export function Spotlight({
           <Close />
         </button>
       </div>
-    </div>
+    </m.div>
   );
 }
 

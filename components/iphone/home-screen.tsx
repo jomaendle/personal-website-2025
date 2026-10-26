@@ -10,6 +10,7 @@ import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
+import { VelocityTracker } from "./motion";
 
 const GRID_APPS: IphoneAppId[] = ["calendar", "contacts", "settings", "music"];
 const DOCK_APPS: IphoneAppId[] = ["notes", "safari", "photos", "mail"];
@@ -31,6 +32,11 @@ interface HomeScreenProps {
   searchRef: React.RefObject<HTMLButtonElement | null>;
   /** Open Spotlight; `focus` raises the keyboard (a tap can, a swipe can't). */
   onSearch: (focus: boolean) => void;
+  /** The swipe down into Spotlight, which follows the finger: how far, 0 to
+   * 1, is written here while it's dragged. */
+  searchPull: MotionValue<number>;
+  /** The swipe took hold, or let go (with its downward speed, px/ms). */
+  onSearchPull: (phase: "start" | "end", velocity?: number) => void;
 }
 
 export function HomeScreen({
@@ -46,11 +52,20 @@ export function HomeScreen({
   bottomOpacity,
   searchRef,
   onSearch,
+  searchPull,
+  onSearchPull,
 }: HomeScreenProps) {
   // A swipe down anywhere on the home screen opens Spotlight, as on iOS,
   // even when it starts on an icon: that icon's tap is then swallowed.
-  const pull = useRef<{ id: number; x: number; y: number } | null>(null);
+  const pull = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    /** Past the slop and following the finger. */
+    active: boolean;
+  } | null>(null);
   const swallowClick = useRef(false);
+  const velocity = useRef(new VelocityTracker());
   const onPointerDown = (event: React.PointerEvent) => {
     swallowClick.current = false;
     if (event.button === 0) {
@@ -58,7 +73,10 @@ export function HomeScreen({
         id: event.pointerId,
         x: event.clientX,
         y: event.clientY,
+        active: false,
       };
+      velocity.current.reset();
+      velocity.current.add(event.clientY, event.timeStamp);
     }
   };
   const onPointerMove = (event: React.PointerEvent) => {
@@ -67,10 +85,30 @@ export function HomeScreen({
       return;
     }
     const dy = event.clientY - start.y;
-    if (dy > 24 && dy > Math.abs(event.clientX - start.x) * 1.5) {
-      pull.current = null;
+    if (!start.active) {
+      if (Math.abs(dy) < 10 || dy < Math.abs(event.clientX - start.x) * 1.5) {
+        if (Math.abs(event.clientX - start.x) > 10) {
+          pull.current = null;
+        }
+        return;
+      }
+      // From here it follows the finger, without jumping by the slop.
+      start.active = true;
+      start.y = event.clientY;
       swallowClick.current = true;
-      onSearch(false);
+      event.currentTarget.setPointerCapture(event.pointerId);
+      onSearchPull("start");
+      return;
+    }
+    velocity.current.add(event.clientY, event.timeStamp);
+    searchPull.set(Math.max(0, Math.min(1, dy / 140)));
+  };
+  const endPull = () => {
+    const start = pull.current;
+    pull.current = null;
+    if (start?.active) {
+      // The tracker reports upward as positive.
+      onSearchPull("end", -velocity.current.velocity());
     }
   };
   const notesWidget = useRef<HTMLDivElement>(null);
@@ -118,12 +156,8 @@ export function HomeScreen({
       role="region"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={() => {
-        pull.current = null;
-      }}
-      onPointerCancel={() => {
-        pull.current = null;
-      }}
+      onPointerUp={endPull}
+      onPointerCancel={endPull}
       onClickCapture={(event) => {
         if (swallowClick.current) {
           swallowClick.current = false;

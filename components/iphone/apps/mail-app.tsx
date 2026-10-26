@@ -89,6 +89,8 @@ export default function MailApp({ close }: AppProps) {
   const [outgoingId, setOutgoingId] = useState(0);
   const [phase, setPhase] = useState<Phase>("composing");
   const [alert, setAlert] = useState<Alert | null>(null);
+  /** The alert just dismissed, fading out. */
+  const [fading, setFading] = useState<Alert | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
   const [sent, setSent] = useState<SentMessage[]>([]);
 
@@ -290,13 +292,26 @@ export default function MailApp({ close }: AppProps) {
             const target = alert.focus;
             // Synchronously, inside the tap on OK, so iOS raises the keyboard
             // for the field; flushed so the sheet has stopped being inert.
-            flushSync(() => setAlert(null));
+            flushSync(() => {
+              setAlert(null);
+              setFading(alert);
+            });
             if (target) {
               focus(target);
             } else {
               sendRef.current?.focus({ preventScroll: true });
             }
           }}
+        />
+      ) : null}
+      {/* What was just dismissed fades out over the form: the real alert is
+          already gone, so the tap could put the cursor in a field. */}
+      {fading && !alert ? (
+        <IosAlert
+          leaving
+          title={fading.title}
+          message={fading.message}
+          onDismiss={() => setFading(null)}
         />
       ) : null}
     </div>

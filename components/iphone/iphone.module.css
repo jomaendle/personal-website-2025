@@ -816,6 +816,11 @@
   }
 }
 
+/* Pulled in by a swipe, the finger sets its opacity, not the entrance. */
+.spotlightPulled {
+  animation: none;
+}
+
 /* Out faster than in, as an exit should be. */
 .spotlightLeaving {
   pointer-events: none;
@@ -3612,6 +3617,22 @@ ol.noteList {
 .alertButton:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
+}
+
+/* Out quicker than in, and without the scale, as UIKit's alert leaves. */
+.alertLeaving {
+  pointer-events: none;
+}
+
+.alertLeaving,
+.alertLeaving .alert {
+  animation: alert-out 0.15s ease-out both;
+}
+
+@keyframes alert-out {
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes alert-fade {

@@ -138,6 +138,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const [spotlight, setSpotlight] = useState(false);
   /** Spotlight fading out: still drawn, no longer taking input. */
   const [spotlightLeaving, setSpotlightLeaving] = useState(false);
+  /** The swipe down into Spotlight: drawn while the finger pulls it in,
+   * its opacity following the pull, before it's committed. */
+  const [searchPulling, setSearchPulling] = useState(false);
+  /** Whether this Spotlight came in by a pull (its opacity is the pull's
+   * motion value, not the CSS entrance). */
+  const [pulled, setPulled] = useState(false);
   const spotlightLeavingRef = useRef(spotlightLeaving);
   spotlightLeavingRef.current = spotlightLeaving;
   /** The side button: the display goes dark for a moment while the phone
@@ -579,6 +585,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       // than start a fresh one from nothing.
       if (!spotlightLeavingRef.current) {
         setSpotlightKey((key) => key + 1);
+        setPulled(false);
       }
       setSpotlightLeaving(false);
       setSpotlight(true);
@@ -587,6 +594,38 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       spotlightInput.current?.focus({ preventScroll: true });
     }
   }, []);
+
+  const searchPull = useMotionValue(0);
+  const onSearchPull = useCallback(
+    (phase: "start" | "end", velocity = 0) => {
+      if (phase === "start") {
+        searchPull.jump(0);
+        setSpotlightKey((key) => key + 1);
+        setSpotlightLeaving(false);
+        setPulled(true);
+        setSearchPulling(true);
+        return;
+      }
+      // Far enough, or flicked down: it comes in; otherwise back out.
+      const commit = searchPull.get() > 0.35 || velocity > 0.3;
+      const spring = {
+        type: "spring" as const,
+        visualDuration: 0.35,
+        bounce: 0,
+        velocity: (velocity * 1000) / 140,
+      };
+      if (commit) {
+        setSearchPulling(false);
+        setSpotlight(true);
+        animate(searchPull, 1, reducedRef.current ? FADE : spring);
+      } else {
+        animate(searchPull, 0, reducedRef.current ? FADE : spring).then(() => {
+          setSearchPulling(false);
+        });
+      }
+    },
+    [searchPull],
+  );
 
   const closeSpotlight = useCallback(() => {
     flushSync(() => {
@@ -765,6 +804,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 inert={locked || (app !== null && !closingApp) || spotlight}
                 searchRef={searchButton}
                 onSearch={openSpotlight}
+                searchPull={searchPull}
+                onSearchPull={onSearchPull}
                 calendar={calendar}
                 notes={notes.slice(0, 2)}
                 homeRef={homeRef}
@@ -776,10 +817,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 bottomOpacity={bottomOpacity}
               />
 
-              {spotlight || spotlightLeaving ? (
+              {spotlight || spotlightLeaving || searchPulling ? (
                 <Spotlight
                   key={spotlightKey}
-                  leaving={!spotlight}
+                  leaving={!(spotlight || searchPulling)}
+                  pulling={searchPulling}
+                  pull={pulled ? searchPull : undefined}
                   onLeft={() => setSpotlightLeaving(false)}
                   calendar={calendar}
                   inputRef={spotlightInput}
