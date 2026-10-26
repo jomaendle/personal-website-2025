@@ -36,6 +36,10 @@ const THUMB_SIZES = "(min-width: 640px) and (min-height: 640px) 134px, 34vw";
 const FULL_SIZES = "(min-width: 640px) and (min-height: 640px) 402px, 100vw";
 /** iOS's photo zoom: quick out of the gate, long soft landing. */
 const ZOOM = { duration: 420, easing: "cubic-bezier(0.2, 0.9, 0.25, 1)" };
+/** Where the library was scrolled to, kept while the page is open so the
+ * app reopens in place. */
+let libraryScroll = 0;
+
 /** The scrubber's geometry, matching .scrubberThumb in the stylesheet. */
 const SCRUB_THUMB = 28;
 const SCRUB_GAP = 2;
@@ -225,11 +229,12 @@ export default function PhotosApp(_: AppProps) {
     }
   }, [viewing]);
 
-  // Open at the newest photos, at the bottom of the library.
+  // Reopened, the library is where it was left, as Photos keeps it; the
+  // first time, it starts at the top.
   useLayoutEffect(() => {
     const grid = gridRef.current;
     if (grid) {
-      grid.scrollTop = grid.scrollHeight;
+      grid.scrollTop = libraryScroll;
     }
   }, []);
 
@@ -606,7 +611,13 @@ export default function PhotosApp(_: AppProps) {
 
   return (
     <>
-      <div ref={gridRef} className={cn(styles.scroll, styles.photos)}>
+      <div
+        ref={gridRef}
+        className={cn(styles.scroll, styles.photos)}
+        onScroll={(event) => {
+          libraryScroll = event.currentTarget.scrollTop;
+        }}
+      >
         <header className={styles.photosHeader}>
           <div>
             <h1 className={styles.photosTitle}>Library</h1>

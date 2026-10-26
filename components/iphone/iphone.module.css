@@ -2368,13 +2368,8 @@ ol.noteList {
 
 /* ---- Photos ---------------------------------------------------------- */
 
-/* The library fills from the bottom up, newest last, and opens scrolled to
-   the end, as Photos does: a short library sits on the toolbar, not under
-   the title with a black gap below it. */
 .photos {
   --ph-header: calc(var(--top-inset) + 64px);
-  display: flex;
-  flex-direction: column;
 }
 
 /* The title floats over the library under a progressive blur: strongest at
@@ -2429,7 +2424,7 @@ ol.noteList {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2px;
-  margin: auto 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
