@@ -4554,7 +4554,10 @@ ol.noteList {
 
 .cellLabelButton {
   background: none;
-  font: inherit;
+  /* The family and line height only: the `font` shorthand here would also
+     reset the label's 12px size to the widget's. */
+  font-family: inherit;
+  line-height: inherit;
   cursor: pointer;
 }
 
