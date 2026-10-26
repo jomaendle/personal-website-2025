@@ -78,6 +78,19 @@ Interpolating the outer and inner transforms independently would distort
 the content mid-way, because the product of two lerps isn't a lerp. Sample
 both per frame from the same progress instead.
 
+## A cold start needs a launch screen
+
+On a first open the app's code is still downloading when the zoom's
+hand-over from icon art to app comes due. Holding the art over the window
+instead fills the screen with a giant icon; letting it fade shows a black
+window. iOS shows the app's launch image: the scene keeps a cover value,
+`c`, and under the art a launch screen (the app's background with a small
+centred icon) is visible while `c` holds. A marker inside the window's
+Suspense boundary reports the app's first commit, and `c` tweens to 0;
+when the code was already there, the cover drops in the same commit and
+nothing shows. Test it by holding every non-initial chunk until the tap
+(e2e/cover.cjs): the idle warming otherwise makes the cold case rare.
+
 ## Guardrails
 
 - Never drive a large element's motion frame by frame from script unless a
