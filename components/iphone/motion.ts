@@ -9,6 +9,10 @@ export const SPRING_OPEN: Transition = {
   type: "spring",
   visualDuration: 0.5,
   bounce: 0.06,
+  // Done once it has visibly landed, so the window's glass gets its blur
+  // back then, not after a long invisible tail.
+  restDelta: 0.002,
+  restSpeed: 0.05,
 };
 
 export const SPRING_CLOSE: Transition = {

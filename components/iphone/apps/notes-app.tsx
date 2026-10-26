@@ -201,16 +201,21 @@ export default function NotesApp({ launch }: AppProps) {
               enterKeyHint="search"
             />
           </label>
-          <span
+          {/* My notes are the articles: there's nothing for a visitor to
+              write, so New Note is drawn dimmed, as iOS shows an action
+              that isn't available. */}
+          <button
+            type="button"
             className={cn(
               styles.glassButton,
               styles.glassButtonLarge,
               styles.tinted,
             )}
-            aria-hidden
+            disabled
+            aria-label="New Note (not available)"
           >
             <Compose />
-          </span>
+          </button>
         </div>
         <m.div
           className={styles.navDim}

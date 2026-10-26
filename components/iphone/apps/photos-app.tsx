@@ -28,6 +28,7 @@ import {
 } from "../glyphs";
 import styles from "../iphone.module.css";
 import { clamp, FADE, SPRING_PUSH, VelocityTracker } from "../motion";
+import { useShare } from "../use-share";
 import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
 /** Grid thumbnails ask for this; the viewer asks for the same, underneath the
@@ -121,7 +122,9 @@ export default function PhotosApp(_: AppProps) {
     () => new Set(),
   );
   const [captions, setCaptions] = useState<Record<number, string>>({});
-  const [toast, setToast] = useState<string | null>(null);
+  /** The filter button: the library narrowed to the hearted photos. */
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const { share: shareLink, hud } = useShare();
   const panelId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   /** 0 is the photo alone, 1 the photo slid up over its info. */
@@ -175,9 +178,20 @@ export default function PhotosApp(_: AppProps) {
     const t = thumb.getBoundingClientRect();
     // The device frame may be scaled to fit the window.
     const k = v.width / viewer.offsetWidth || 1;
-    const scroller = gridRef.current?.getBoundingClientRect();
-    if (scroller && (t.bottom < scroller.top || t.top > scroller.bottom)) {
-      return null;
+    // Only a thumbnail at least half in the clear: not one hidden under the
+    // header's blur or the floating tab bar, which the photo would fly into
+    // and vanish behind.
+    const grid = gridRef.current;
+    if (grid) {
+      const box = grid.getBoundingClientRect();
+      const css = getComputedStyle(grid);
+      const top = box.top + (Number.parseFloat(css.scrollPaddingTop) || 0) * k;
+      const bottom =
+        box.bottom - (Number.parseFloat(css.scrollPaddingBottom) || 0) * k;
+      const shown = Math.min(t.bottom, bottom) - Math.max(t.top, top);
+      if (shown < t.height / 2) {
+        return null;
+      }
     }
     const W = viewer.offsetWidth;
     const H = viewer.offsetHeight;
@@ -226,6 +240,16 @@ export default function PhotosApp(_: AppProps) {
     });
     if (frame && from) {
       frame.animate([from, restPose(viewing)], ZOOM);
+    } else if (frame) {
+      // No thumbnail to come out of: settle in from a touch small, rather
+      // than appear at full size in one frame.
+      frame.animate(
+        [
+          { opacity: 0, transform: reduced ? REST_TRANSFORM : "scale(0.96)" },
+          { opacity: 1, transform: REST_TRANSFORM },
+        ],
+        { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+      );
     }
   }, [viewing]);
 
@@ -257,14 +281,6 @@ export default function PhotosApp(_: AppProps) {
       });
     }
   }, [current, viewing, reduced]);
-
-  useEffect(() => {
-    if (!toast) {
-      return;
-    }
-    const timer = setTimeout(() => setToast(null), 1400);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const open = (index: number) => {
     setCurrent(index);
@@ -331,25 +347,10 @@ export default function PhotosApp(_: AppProps) {
     });
   };
 
-  const share = async () => {
+  const share = () => {
     const photo = PHOTOS[current];
-    if (!photo) {
-      return;
-    }
-    const url = new URL(photo.src, window.location.href).href;
-    if (navigator.share) {
-      try {
-        await navigator.share({ url });
-      } catch {
-        // Dismissed: nothing to do.
-      }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setToast("Link Copied");
-    } catch {
-      setToast("Couldn’t Copy Link");
+    if (photo) {
+      shareLink(new URL(photo.src, window.location.href).href);
     }
   };
 
@@ -529,8 +530,9 @@ export default function PhotosApp(_: AppProps) {
   const endDismiss = (dy: number) => {
     // Downward flick speed: the tracker reports upward as positive.
     const v = -velocity.current.velocity();
-    if (dy > 90 || v > 0.5) {
-      flicked.current = v > 0.5;
+    // Far enough, or a flick downwards: a light one will do.
+    if (dy > 90 || (v > 0.15 && dy > 24)) {
+      flicked.current = v > 0.4;
       close();
     } else {
       settleBack();
@@ -621,19 +623,43 @@ export default function PhotosApp(_: AppProps) {
         <header className={styles.photosHeader}>
           <div>
             <h1 className={styles.photosTitle}>Library</h1>
-            <p className={styles.photosCount}>{PHOTOS.length} Items</p>
+            <p className={styles.photosCount}>
+              {onlyFavorites
+                ? `${favorites.size} ${favorites.size === 1 ? "Favorite" : "Favorites"}`
+                : `${PHOTOS.length} Items`}
+            </p>
           </div>
-          <div className={styles.photosButtons} aria-hidden>
-            <span className={styles.pill}>
+          <div className={styles.photosButtons}>
+            <button
+              type="button"
+              className={cn(styles.pill, onlyFavorites && styles.pillOn)}
+              onClick={() => setOnlyFavorites((on) => !on)}
+              aria-label="Show Favorites only"
+              aria-pressed={onlyFavorites}
+            >
               <FilterGlyph />
-            </span>
-            <span className={styles.pill}>Select</span>
+            </button>
+            <button
+              type="button"
+              className={styles.pill}
+              disabled
+              aria-label="Select (not available)"
+            >
+              Select
+            </button>
           </div>
         </header>
 
+        {onlyFavorites && favorites.size === 0 ? (
+          <p className={styles.photosEmpty}>
+            No Favorites Yet
+            <span>Tap ♥ on a photo to add it here.</span>
+          </p>
+        ) : null}
+
         <ul className={styles.photoGrid} aria-label="Photos">
           {PHOTOS.map((photo, index) => (
-            <li key={photo.src}>
+            <li key={photo.src} hidden={onlyFavorites && !favorites.has(index)}>
               <button
                 ref={(el) => {
                   thumbs.current[index] = el;
@@ -660,24 +686,32 @@ export default function PhotosApp(_: AppProps) {
             </li>
           ))}
         </ul>
-        <p className={styles.photosFooter}>{PHOTOS.length} Photos</p>
+        {onlyFavorites ? null : (
+          <p className={styles.photosFooter}>{PHOTOS.length} Photos</p>
+        )}
       </div>
 
       {/* iOS 26 Photos: a floating glass tab bar, Library and Collections,
           with search in its own circle beside it. Library is the only tab
-          here, so the bar is drawn, not driven. */}
+          here: Collections and search are drawn dimmed, unavailable. */}
       <div className={cn(styles.floatingBar, styles.photosTabs)} aria-hidden>
         <div className={styles.tabBar}>
           <span className={styles.tabActive}>
             <LibraryGlyph />
             Library
           </span>
-          <span>
+          <span className={styles.unavailable}>
             <CollectionsGlyph />
             Collections
           </span>
         </div>
-        <span className={cn(styles.glassButton, styles.tabSearch)}>
+        <span
+          className={cn(
+            styles.glassButton,
+            styles.tabSearch,
+            styles.unavailable,
+          )}
+        >
           <Magnifier />
         </span>
       </div>
@@ -687,6 +721,7 @@ export default function PhotosApp(_: AppProps) {
         <div
           ref={viewerRef}
           className={styles.viewer}
+          data-closing={closing || undefined}
           role="dialog"
           aria-label="Photo viewer"
           onKeyDown={(event) => {
@@ -823,11 +858,7 @@ export default function PhotosApp(_: AppProps) {
             onInfo={() => showInfo(!info)}
           />
 
-          {toast ? (
-            <div className={styles.hud} role="status">
-              {toast}
-            </div>
-          ) : null}
+          {hud}
         </div>
       )}
     </>
@@ -866,7 +897,14 @@ function ViewerBar({
           {place ? `${day} ${timeOf(date)}` : timeOf(date)}
         </span>
       </div>
-      <span className={cn(styles.glassButton, styles.viewerMore)} aria-hidden>
+      <span
+        className={cn(
+          styles.glassButton,
+          styles.viewerMore,
+          styles.unavailable,
+        )}
+        aria-hidden
+      >
         <Ellipsis />
       </span>
       <span className="sr-only" aria-live="polite">
@@ -878,7 +916,7 @@ function ViewerBar({
 
 /** iOS 26's photo toolbar: Share, then Favorite, Info and Edit in one glass
  * capsule, then Delete. Edit and Delete belong to the library's owner, not a
- * visitor, so they are drawn and do nothing. */
+ * visitor, so they are drawn dimmed, as unavailable actions are. */
 function ViewerTools({
   hidden,
   favorite,
@@ -925,12 +963,16 @@ function ViewerTools({
         >
           <InfoGlyph filled={info} />
         </button>
-        <span aria-hidden>
+        <span className={styles.unavailable} aria-hidden>
           <Sliders />
         </span>
       </div>
       <span
-        className={cn(styles.glassButton, styles.glassButtonLarge)}
+        className={cn(
+          styles.glassButton,
+          styles.glassButtonLarge,
+          styles.unavailable,
+        )}
         aria-hidden
       >
         <Trash />

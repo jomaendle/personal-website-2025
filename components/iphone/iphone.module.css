@@ -1731,23 +1731,28 @@
   outline: none;
 }
 
-/* Glass inside a moving window drops its blur for the motion. Named, not
-   `*`: a universal selector restyles every node in the app on the first
-   frame of the zoom and again when it settles. The blur fades back in at
-   rest rather than popping. */
+/* Glass inside a moving window drops its blur for the motion (re-blurring
+   every frame of a zoom is the costliest thing on the page), with an opaque
+   tint standing in so nothing reads through it. The bottom search field and
+   its scroll-edge strip keep their real blur: a small static strip, cheap,
+   and where a tint still let a year heading show through the field. At
+   rest the blur fades back with its clear tint instead of popping. Named,
+   not `*`: a universal selector restyles every node in the app twice. */
 .app[data-moving]
-  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule, .tabBar, .hud, .alert, .noteBar > *),
-.app[data-moving] .navBar::before,
-.app[data-moving] .noteBar::before,
-.app[data-moving] .photosHeader::before,
-.app[data-moving] .floatingBar::before {
+  :is(.glassButton, .pill, .toolCapsule, .viewerCapsule, .tabBar, .hud, .alert, .noteBar > *) {
   backdrop-filter: none !important;
+  background-color: rgb(44 44 46 / 0.94) !important;
+}
+
+.app[data-moving] :is(.navBar, .noteBar, .photosHeader)::before {
+  backdrop-filter: none !important;
+  background: linear-gradient(#000, rgb(0 0 0 / 0.85) 60%, transparent);
 }
 
 .app:not([data-moving])
-  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule, .noteBar > *) {
-  transition-property: backdrop-filter, scale, opacity;
-  transition-duration: 0.2s;
+  :is(.glassButton, .pill, .toolCapsule, .viewerCapsule, .tabBar, .noteBar > *) {
+  transition-property: backdrop-filter, background-color, scale, opacity;
+  transition-duration: 0.25s;
   transition-timing-function: ease-out;
 }
 
@@ -2351,6 +2356,17 @@ ol.noteList {
   pointer-events: none;
 }
 
+@keyframes hud-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  80% {
+    opacity: 1;
+  }
+}
+
 @keyframes hud {
   0% {
     opacity: 0;
@@ -2453,6 +2469,10 @@ ol.noteList {
 /* The footer clears the floating tab bar. */
 .photos {
   padding-bottom: calc(max(var(--bottom-inset), 28px) + 84px);
+  /* What the header and the tab bar cover: scrollIntoView and the hero
+     zoom treat only the clear area between them as visible. */
+  scroll-padding-top: var(--ph-header);
+  scroll-padding-bottom: calc(max(var(--bottom-inset), 28px) + 84px);
 }
 
 .photosTabs {
@@ -2862,6 +2882,11 @@ ol.noteList {
   pointer-events: none;
 }
 
+/* Closing, the bars get out of the way at once, before the photo is home. */
+.viewer[data-closing] .chromeHidden {
+  transition-duration: 0.1s;
+}
+
 /* The viewer's bars fade in as the photo zooms out of its thumbnail rather
    than arriving at full strength over it. */
 @starting-style {
@@ -2960,9 +2985,38 @@ ol.noteList {
   color: var(--tint, var(--ios-blue));
 }
 
-.glassButton:disabled {
-  opacity: 0.4;
+/* Unavailable here: dimmed, no press feedback, as iOS draws an action that
+   can't be taken. */
+.glassButton:disabled,
+.pill:disabled,
+.unavailable {
+  opacity: 0.35;
   cursor: default;
+  pointer-events: none;
+}
+
+.pill.pillOn {
+  background-color: var(--label);
+  color: #000;
+}
+
+.photosEmpty {
+  display: grid;
+  gap: 4px;
+  padding: 72px 24px 24px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.photosEmpty span {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--label-2);
+}
+
+.photoGrid li[hidden] {
+  display: none;
 }
 
 /* Bars float above content in iOS 26, clear of the home indicator. */
@@ -3966,6 +4020,12 @@ ol.noteList {
 @media (prefers-reduced-motion: reduce) {
   .unlockHint {
     animation: none;
+  }
+
+  /* The global rule would jump the HUD to its last keyframe (invisible):
+     fade it in and out, without the scale. */
+  .hud {
+    animation: hud-fade 1.4s ease-out both !important;
   }
 
   /* Reduced motion is gentler, not a cut: the global rule zeroes durations

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useViewCount } from "@/lib/views";
 import { BackChevron, Share } from "../glyphs";
 import styles from "../iphone.module.css";
+import { useShare } from "../use-share";
 import { useSwipeBack } from "../use-swipe-back";
 
 // ---- Fetching ---------------------------------------------------------------
@@ -103,7 +104,7 @@ export function NoteView({
 }: NoteViewProps) {
   const { note, failed } = useNote(slug);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const { share: shareLink, hud } = useShare();
   const swipeBack = useSwipeBack(nav, onBack);
   // Reading the note counts as reading the article, as on the blog.
   const { views } = useViewCount(slug, true);
@@ -112,31 +113,8 @@ export function NoteView({
     titleRef.current?.focus({ preventScroll: true });
   }, []);
 
-  useEffect(() => {
-    if (!toast) {
-      return;
-    }
-    const timer = setTimeout(() => setToast(null), 1400);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const share = async () => {
-    const url = `${window.location.origin}/blog/${slug}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url });
-      } catch {
-        // Dismissed: nothing to do.
-      }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setToast("Link Copied");
-    } catch {
-      setToast("Couldn’t Copy Link");
-    }
-  };
+  const share = () =>
+    shareLink(`${window.location.origin}/blog/${slug}`, title);
 
   return (
     <div className={styles.noteView}>
@@ -184,11 +162,7 @@ export function NoteView({
         </button>
       </div>
 
-      {toast ? (
-        <div className={styles.hud} role="status">
-          {toast}
-        </div>
-      ) : null}
+      {hud}
     </div>
   );
 }

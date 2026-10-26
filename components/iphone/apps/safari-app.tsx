@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { BackChevron, Ellipsis, Reload } from "../glyphs";
+import { BackChevron, Reload, Share } from "../glyphs";
 import styles from "../iphone.module.css";
+import { useShare } from "../use-share";
 
 /** Tile colours for Favorites, picked per project rather than by hash so
  * they never collide. */
@@ -15,6 +18,7 @@ const host = (url: string) => new URL(url).host.replace(WWW, "");
 /** Safari's start page: my projects as Favorites, then as cards with what
  * each one is. The address bar leads back to the regular site. */
 export default function SafariApp(_: AppProps) {
+  const { share, hud } = useShare();
   return (
     <div className={styles.safari}>
       <div className={cn(styles.scroll, styles.scrollWithBar)}>
@@ -71,8 +75,14 @@ export default function SafariApp(_: AppProps) {
       {/* iOS 26's compact tab bar: one floating glass pill for the address,
           between back and the page menu. */}
       <div className={styles.floatingBar}>
+        {/* Nothing to go back to on the start page: dimmed, as Safari
+            draws Back with no history. */}
         <span
-          className={cn(styles.glassButton, styles.glassButtonLarge)}
+          className={cn(
+            styles.glassButton,
+            styles.glassButtonLarge,
+            styles.unavailable,
+          )}
           aria-hidden
         >
           <BackChevron width={11} height={18} />
@@ -84,13 +94,16 @@ export default function SafariApp(_: AppProps) {
           <span>jomaendle.com</span>
           <Reload className={styles.addressReload} />
         </Link>
-        <span
+        <button
+          type="button"
           className={cn(styles.glassButton, styles.glassButtonLarge)}
-          aria-hidden
+          onClick={() => share("https://www.jomaendle.com", "Jo Mändle")}
+          aria-label="Share jomaendle.com"
         >
-          <Ellipsis />
-        </span>
+          <Share />
+        </button>
       </div>
+      {hud}
     </div>
   );
 }
