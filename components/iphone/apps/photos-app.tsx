@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  m,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
+import { m, useMotionValue, useReducedMotion } from "framer-motion";
 import Image, { getImageProps } from "next/image";
 import {
   startTransition,
@@ -18,7 +13,7 @@ import {
 import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { bindTo, halt, motionNow, springTo } from "../compositor-spring";
+import { halt, motionNow, springTo, useDrive } from "../compositor-spring";
 import { useIphoneData } from "../data";
 import {
   BackChevron,
@@ -256,15 +251,6 @@ export default function PhotosApp(_: AppProps) {
   const progress = useMotionValue(0);
   /** How far the photo slides up to sit on the panel, in pixels. */
   const shift = useRef(0);
-  const stripY = useTransform(progress, (p) => -p * shift.current);
-  // An opaque panel slides; it only fades in its first stretch, to soften
-  // the edge, or entirely in place of the slide with reduced motion.
-  const panelOpacity = useTransform(progress, (p) =>
-    reduced ? p : clamp(p / 0.25, 0, 1),
-  );
-  const panelY = useTransform(progress, (p) =>
-    reduced ? "0%" : `${(1 - p) * 100}%`,
-  );
 
   const gridRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -272,26 +258,26 @@ export default function PhotosApp(_: AppProps) {
   const stripRef = useRef<HTMLElement>(null);
   const scrubberRef = useRef<HTMLDivElement>(null);
   const reducedRef = useLatest(reduced);
-  // The same styles as stripY, panelY and panelOpacity, for the spring
-  // once a finger lets go, which runs on the compositor.
-  useState(() =>
-    bindTo(progress, () => {
-      const still = reducedRef.current;
-      return [
-        {
-          el: stripRef.current,
-          style: (p) => ({ transform: `translateY(${-p * shift.current}px)` }),
-        },
-        {
-          el: panelRef.current,
-          style: (p) => ({
-            transform: `translateY(${still ? 0 : (1 - p) * 100}%)`,
-            opacity: still ? p : clamp(p / 0.25, 0, 1),
-          }),
-        },
-      ];
-    }),
-  );
+  // The photo slides up by `shift`; the opaque panel slides in under it,
+  // fading only in its first stretch to soften the edge, or entirely in
+  // place of the slide with reduced motion. One style each for a finger and
+  // for the compositor's spring (useDrive).
+  const [stripStyle, panelStyle] = useDrive(progress, () => {
+    const still = reducedRef.current;
+    return [
+      {
+        el: stripRef.current,
+        style: (p) => ({ transform: `translateY(${-p * shift.current}px)` }),
+      },
+      {
+        el: panelRef.current,
+        style: (p) => ({
+          transform: `translateY(${still ? 0 : (1 - p) * 100}%)`,
+          opacity: still ? p : clamp(p / 0.25, 0, 1),
+        }),
+      },
+    ];
+  });
   const thumbs = useRef<(HTMLButtonElement | null)[]>([]);
   const frames = useRef<(HTMLDivElement | null)[]>([]);
   const drag = useRef<{
@@ -895,7 +881,7 @@ export default function PhotosApp(_: AppProps) {
               styles.viewerStrip,
               panel && styles.viewerStripLocked,
             )}
-            style={{ y: stripY }}
+            style={stripStyle}
             // A scrollable region has to take focus for the arrow keys to
             // scroll it.
             tabIndex={0}
@@ -970,8 +956,7 @@ export default function PhotosApp(_: AppProps) {
                 setCaptions((all) => ({ ...all, [current]: caption }))
               }
               open={info}
-              progress={panelOpacity}
-              y={panelY}
+              panelStyle={panelStyle}
               height={`${sheetFor(current) * 100}%`}
               panelRef={panelRef}
               id={panelId}

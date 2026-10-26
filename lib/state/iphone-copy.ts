@@ -1,3 +1,4 @@
+import { ageText, isRecent } from "./now-format";
 /**
  * Copy for the /iphone page: an iOS-style way into the site. Everything the
  * apps list (articles, projects, photos, roles) is read from the same
@@ -80,52 +81,10 @@ export const MAIL_ALERTS = {
   },
 } as const;
 
-const WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: "long" });
-const DAY_MONTH = new Intl.DateTimeFormat(undefined, {
-  day: "numeric",
-  month: "short",
-});
-const DAY_MONTH_YEAR = new Intl.DateTimeFormat(undefined, {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-/** How long ago, the way a lock-screen notification says it: "now", "5m
- * ago", "2h ago", then "Yesterday", the weekday within a week, then the
- * date. Empty before the visitor's clock is known (on the server). */
+/** How long ago, the way a lock-screen notification says it (see
+ * `ageText`). Empty before the visitor's clock is known (on the server). */
 export function notificationAge(date: string, now: Date | null): string {
-  if (!now) {
-    return "";
-  }
-  const then = new Date(date);
-  if (Number.isNaN(then.getTime())) {
-    return "";
-  }
-  const minutes = Math.round((now.getTime() - then.getTime()) / 60_000);
-  if (minutes < 1) {
-    return "now";
-  }
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
-  if (minutes < 24 * 60 && now.getDate() === then.getDate()) {
-    return `${Math.floor(minutes / 60)}h ago`;
-  }
-  const days = Math.round(
-    (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() -
-      new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime()) /
-      86_400_000,
-  );
-  if (days === 1) {
-    return "Yesterday";
-  }
-  if (days < 7) {
-    return WEEKDAY.format(then);
-  }
-  return (
-    then.getFullYear() === now.getFullYear() ? DAY_MONTH : DAY_MONTH_YEAR
-  ).format(then);
+  return now ? ageText(date, now) : "";
 }
 
 /** Notifications waiting on the lock screen. Tapping one opens its app. */
@@ -142,9 +101,7 @@ export function lockNotifications(
             note: latestPost.slug,
             // "New" only while it is: an older post is the latest one.
             title:
-              now &&
-              now.getTime() - new Date(latestPost.date).getTime() >
-                14 * 86_400_000
+              now && !isRecent(latestPost.date, now)
                 ? ARTICLE_TITLES.latest
                 : ARTICLE_TITLES.new,
             body: latestPost.title,

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  m,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
+import { m, useMotionValue, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -27,7 +22,7 @@ import { PHOTOS } from "@/lib/state/photos";
 import { AppWindow } from "./app-window";
 import { APPS, type AppLaunch, preloadAllApps } from "./apps";
 import { BannerHost } from "./banner";
-import { type Binding, halt, springTo } from "./compositor-spring";
+import { type Binding, halt, springTo, useDrive } from "./compositor-spring";
 import { IphoneDataProvider } from "./data";
 import { Battery, Signal, Wifi } from "./glyphs";
 import { HomeScreen } from "./home-screen";
@@ -164,32 +159,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       ),
   );
 
-  const lockY = useTransform(unlock, (u) =>
-    reducedRef.current ? 0 : -u * geometry.current.h,
-  );
-  const lockFade = useTransform(unlock, (u) =>
-    reducedRef.current ? 1 - u : clamp(1 - u * 1.6, 0, 1),
-  );
-  const lockOpacity = useTransform(unlock, (u) =>
-    reducedRef.current ? clamp(1 - u, 0, 1) : 1,
-  );
-  const statusTimeOpacity = useTransform(unlock, [0.4, 1], [0, 1]);
-  const wallpaperDim = useTransform(unlock, [0, 1], [0, 0.14]);
-  // Home zooms in from slightly large as the lock screen lifts. (Its lean
-  // toward the reader as an app opens is the scene's, on a wrapper.)
-  const homeScale = useTransform(unlock, (u) =>
-    reducedRef.current ? 1 : 1 + 0.16 * (1 - u),
-  );
-  const gridOpacity = useTransform(unlock, (u) => clamp(u * 1.4 - 0.2, 0, 1));
-  // The dock and Search pill come in with the icons, rising a little as
-  // the grid settles from its zoom, not sliding up from below the screen.
-  const bottomY = useTransform(unlock, (u) =>
-    reducedRef.current ? 0 : (1 - u) * 60,
-  );
-  const bottomOpacity = useTransform(unlock, (u) =>
-    reducedRef.current ? u : clamp(u * 1.4 - 0.2, 0, 1),
-  );
-
   // ---- Geometry ----------------------------------------------------------
 
   const measure = useCallback(() => {
@@ -218,8 +187,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
   // ---- Lock and unlock --------------------------------------------------
 
-  // What the unlock moves once a finger lets go, on the compositor: the
-  // same styles the motion values above give each element, value by value.
+  // What the unlock moves: one style per element, written as a finger drags
+  // and handed to the compositor once it lets go (useDrive). Home zooms in
+  // from slightly large as the lock screen lifts (its lean toward the reader
+  // as an app opens is the scene's, on a wrapper); the dock and Search pill
+  // come in with the icons, rising a little, not sliding up from below.
   const lockRoot = useRef<HTMLDivElement>(null);
   const lockFace = useRef<HTMLDivElement>(null);
   const homeGrid = useRef<HTMLElement>(null);
@@ -266,6 +238,14 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       },
     ];
   }, []);
+  const [
+    lockStyle,
+    lockFaceStyle,
+    gridStyle,
+    bottomStyle,
+    statusTimeStyle,
+    wallDimStyle,
+  ] = useDrive(unlock, unlockBindings);
 
   const settleLock = useCallback(
     (to: 0 | 1, velocity = 0, fromKeyboard = false) => {
@@ -768,7 +748,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               <m.div
                 ref={wallDim}
                 className={styles.dim}
-                style={{ opacity: wallpaperDim }}
+                style={wallDimStyle}
                 aria-hidden
               />
 
@@ -783,13 +763,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 homeRef={homeRef}
                 registerIcon={registerIcon}
                 onOpen={openApp}
-                scale={homeScale}
                 zoomRef={(el) => scene.register("homeZoom", el)}
                 gridRef={homeGrid}
                 bottomRef={homeBottom}
-                gridOpacity={gridOpacity}
-                bottomY={bottomY}
-                bottomOpacity={bottomOpacity}
+                gridStyle={gridStyle}
+                bottomStyle={bottomStyle}
               />
 
               {spotlight || spotlightLeaving || searchPulling ? (
@@ -816,9 +794,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   now,
                 ).filter((notification) => !seen.includes(notification.app))}
                 unlock={unlock}
-                lockY={lockY}
-                lockFade={lockFade}
-                lockOpacity={lockOpacity}
+                rootStyle={lockStyle}
+                faceStyle={lockFaceStyle}
                 measure={measure}
                 onSettle={settleLock}
                 onOpenApp={openFromLock}
@@ -869,7 +846,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 <m.span
                   ref={statusTime}
                   className={styles.statusTime}
-                  style={{ opacity: statusTimeOpacity }}
+                  style={statusTimeStyle}
                 >
                   <span data-now="clock" suppressHydrationWarning>
                     {formatClock(now)}

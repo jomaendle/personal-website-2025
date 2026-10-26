@@ -111,14 +111,14 @@ export default function SettingsApp(_: AppProps) {
       <m.div
         ref={stack.backRef}
         className={styles.navLayer}
-        style={{ x: stack.backX }}
+        style={stack.backStyle}
         inert={page !== null}
       >
         <SettingsRoot onWallpaper={push} />
         <m.div
           ref={stack.dimRef}
           className={styles.navDim}
-          style={{ opacity: stack.dim }}
+          style={stack.dimStyle}
           aria-hidden
         />
       </m.div>
@@ -127,7 +127,7 @@ export default function SettingsApp(_: AppProps) {
         <m.div
           ref={stack.frontRef}
           className={cn(styles.navLayer, styles.navTop)}
-          style={{ x: stack.frontX, opacity: stack.frontOpacity }}
+          style={stack.frontStyle}
         >
           <WallpaperPage nav={nav} onBack={pop} />
         </m.div>

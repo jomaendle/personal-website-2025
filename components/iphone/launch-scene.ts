@@ -449,7 +449,7 @@ export class LaunchScene {
     const now = performance.now();
     const state = { ...this.get(), ...values };
     const stillMoving = KEYS.some(
-      (key) => !keys.includes(key) && !valueAt(this.motions[key], now).done,
+      (key) => !(keys.includes(key) || valueAt(this.motions[key], now).done),
     );
     this.stop(keys);
     for (const key of KEYS) {

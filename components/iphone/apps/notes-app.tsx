@@ -157,7 +157,7 @@ export default function NotesApp({ launch }: AppProps) {
       <m.div
         className={styles.navLayer}
         ref={stack.backRef}
-        style={{ x: stack.backX }}
+        style={stack.backStyle}
         inert={open !== null && !leaving}
       >
         <div className={cn(styles.scroll, styles.scrollWithBar)}>
@@ -233,7 +233,7 @@ export default function NotesApp({ launch }: AppProps) {
         <m.div
           ref={stack.dimRef}
           className={styles.navDim}
-          style={{ opacity: stack.dim }}
+          style={stack.dimStyle}
           aria-hidden
         />
       </m.div>
@@ -242,7 +242,7 @@ export default function NotesApp({ launch }: AppProps) {
         <m.div
           ref={stack.frontRef}
           className={cn(styles.navLayer, styles.navTop)}
-          style={{ x: stack.frontX, opacity: stack.frontOpacity }}
+          style={stack.frontStyle}
         >
           <NoteView
             key={open}

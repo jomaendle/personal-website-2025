@@ -25,11 +25,10 @@ interface LockScreenProps {
   notifications: LockNotification[];
   /** 0 locked, 1 unlocked. The lock screen follows it 1:1 with the finger. */
   unlock: MotionValue<number>;
-  lockY: MotionValue<number>;
-  lockFade: MotionValue<number>;
-  /** Only below 1 under reduced motion, where the lock screen fades out
-   * whole instead of sliding. */
-  lockOpacity: MotionValue<number>;
+  /** The unlock's styles for the sheet (sliding up, or under reduced motion
+   * fading whole) and for its clock and date (useDrive). */
+  rootStyle?: React.CSSProperties;
+  faceStyle?: React.CSSProperties;
   /** Screen height in screen pixels, and how much the frame is scaled. */
   measure: () => { h: number; scale: number };
   onSettle: (to: 0 | 1, velocity?: number) => void;
@@ -56,9 +55,8 @@ export function LockScreen({
   now,
   notifications,
   unlock,
-  lockY,
-  lockFade,
-  lockOpacity,
+  rootStyle,
+  faceStyle,
   measure,
   onSettle,
   onOpenApp,
@@ -165,7 +163,7 @@ export function LockScreen({
     <m.div
       ref={rootRef}
       className={styles.lock}
-      style={{ y: lockY, opacity: lockOpacity }}
+      style={rootStyle}
       inert={!locked}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -176,7 +174,7 @@ export function LockScreen({
     >
       <m.div
         ref={faceRef}
-        style={{ opacity: lockFade }}
+        style={faceStyle}
         className="flex flex-col items-center"
       >
         <Padlock className={styles.lockGlyph} open={!locked} />

@@ -172,14 +172,14 @@ export default function MusicApp({ launch }: AppProps) {
       <m.div
         ref={stack.backRef}
         className={styles.navLayer}
-        style={{ x: stack.backX }}
+        style={stack.backStyle}
         inert={album !== null || nowPlaying}
       >
         <ArtistPage onOpenAlbum={push} />
         <m.div
           ref={stack.dimRef}
           className={styles.navDim}
-          style={{ opacity: stack.dim }}
+          style={stack.dimStyle}
           aria-hidden
         />
       </m.div>
@@ -188,7 +188,7 @@ export default function MusicApp({ launch }: AppProps) {
         <m.div
           ref={stack.frontRef}
           className={cn(styles.navLayer, styles.navTop)}
-          style={{ x: stack.frontX, opacity: stack.frontOpacity }}
+          style={stack.frontStyle}
           inert={nowPlaying}
         >
           <AlbumPage album={album} nav={nav} onBack={pop} />

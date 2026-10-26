@@ -1,4 +1,11 @@
 import { ARTICLE_TITLES } from "@/lib/state/iphone-copy";
+import {
+  ageText,
+  clockText,
+  isRecent,
+  lockDateText,
+  weekdayText,
+} from "@/lib/state/now-format";
 
 /**
  * Runs as soon as the phone's HTML is parsed, before first paint: writes the
@@ -9,30 +16,20 @@ import { ARTICLE_TITLES } from "@/lib/state/iphone-copy";
  * `window.__iphoneMinute`, which the clocks hydrate from (use-clock.ts), so
  * React finds the text already right and doesn't write it again.
  *
- * Each `[data-now]` element says what goes in it, formatted exactly as
- * `formatClock`, `formatLockDate` and `formatWeekday` (use-clock.ts),
- * `notificationAge` and `lockNotifications` (iphone-copy.ts) do. A plain
- * string, like PREPAINT_SCRIPT, so the page can inline it.
+ * Each `[data-now]` element says what goes in it. The formatting is the
+ * page's own (lib/state/now-format.ts), inlined from source, so the two
+ * can't disagree. A plain string, like PREPAINT_SCRIPT, so the page can
+ * inline it.
  */
+const inline = (fn: (...args: never[]) => unknown) => `(${fn.toString()})`;
+
 export const NOW_SCRIPT = `try{(function(){
-var M=Math.floor(Date.now()/6e4),n=new Date(M*6e4),D=864e5;
-function F(o){return new Intl.DateTimeFormat(void 0,o)}
-function day(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()}
-function age(s){var t=new Date(s);if(isNaN(t))return"";var m=Math.round((n-t)/6e4);
-if(m<1)return"now";if(m<60)return m+"m ago";
-if(m<1440&&n.getDate()===t.getDate())return Math.floor(m/60)+"h ago";
-var d=Math.round((day(n)-day(t))/D);if(d===1)return"Yesterday";
-if(d<7)return F({weekday:"long"}).format(t);
-var o={day:"numeric",month:"short"};if(t.getFullYear()!==n.getFullYear())o.year="numeric";
-return F(o).format(t)}
-var text={
-clock:F({hour:"numeric",minute:"2-digit"}).formatToParts(n).filter(function(p){return p.type!=="dayPeriod"}).map(function(p){return p.value}).join("").trim(),
-date:F({weekday:"long",month:"long",day:"numeric"}).format(n),
-weekday:F({weekday:"short"}).format(n).toUpperCase(),
-day:String(n.getDate())};
+var M=Math.floor(Date.now()/6e4),n=new Date(M*6e4);
+var clock=${inline(clockText)},date=${inline(lockDateText)},weekday=${inline(weekdayText)},age=${inline(ageText)},recent=${inline(isRecent)};
+var text={clock:clock(n),date:date(n),weekday:weekday(n).toUpperCase(),day:String(n.getDate())};
 document.querySelectorAll("[data-now]").forEach(function(e){
 var k=e.getAttribute("data-now"),s=e.getAttribute("data-since");
-e.textContent=k==="age"?age(s):k==="article"?(n-new Date(s)>14*D?${JSON.stringify(ARTICLE_TITLES.latest)}:${JSON.stringify(ARTICLE_TITLES.new)}):text[k];
+e.textContent=k==="age"?age(s,n):k==="article"?(recent(s,n)?${JSON.stringify(ARTICLE_TITLES.new)}:${JSON.stringify(ARTICLE_TITLES.latest)}):text[k];
 if(e.tagName==="TIME")e.setAttribute("datetime",n.toISOString())});
 window.__iphoneMinute=M
 })()}catch(e){}`;

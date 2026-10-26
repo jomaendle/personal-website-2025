@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { clockText, lockDateText, weekdayText } from "@/lib/state/now-format";
 
 /**
  * The current minute, shared by every clock on the page (lock screen, status
@@ -69,42 +70,17 @@ export function useMinute(): Date | null {
   return minute === null ? null : new Date(minute * 60_000);
 }
 
-let timeFormat: Intl.DateTimeFormat | undefined;
-let dateFormat: Intl.DateTimeFormat | undefined;
-let weekdayFormat: Intl.DateTimeFormat | undefined;
-
-/** "8:42" or "20:42", by the reader's locale. iOS never shows AM/PM on the
- * lock screen or in the status bar. */
+/** "8:42" or "20:42", by the reader's locale; Apple's 9:41 before the
+ * reader's clock is known. */
 export function formatClock(date: Date | null): string {
-  if (!date) {
-    return "9:41";
-  }
-  timeFormat ??= new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return timeFormat
-    .formatToParts(date)
-    .filter((part) => part.type !== "dayPeriod")
-    .map((part) => part.value)
-    .join("")
-    .trim();
+  return date ? clockText(date) : "9:41";
 }
 
 /** "Sunday, October 25", by the reader's locale. */
 export function formatLockDate(date: Date | null): string {
-  if (!date) {
-    return "";
-  }
-  dateFormat ??= new Intl.DateTimeFormat(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  return dateFormat.format(date);
+  return date ? lockDateText(date) : "";
 }
 
 export function formatWeekday(date: Date): string {
-  weekdayFormat ??= new Intl.DateTimeFormat(undefined, { weekday: "short" });
-  return weekdayFormat.format(date);
+  return weekdayText(date);
 }

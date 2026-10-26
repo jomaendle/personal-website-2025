@@ -1,4 +1,5 @@
 import type { MotionValue, Transition } from "framer-motion";
+import { type CSSProperties, useLayoutEffect, useState } from "react";
 import {
   easeOut,
   type SceneTransition,
@@ -44,6 +45,58 @@ const registry = new WeakMap<MotionValue<number>, () => Binding[]>();
 /** Say what `mv` drives; read afresh each time it's sprung. */
 export function bindTo(mv: MotionValue<number>, bindings: () => Binding[]) {
   registry.set(mv, bindings);
+}
+
+/** An identity transform written as `none`, as framer-motion writes it: any
+ * other transform, even one that moves nothing, makes the element a
+ * containing block for fixed children and a stacking context. */
+const IDENTITY = /^(translate[XY]?\(0(px|%)?\)|scale\(1\))$/;
+const atRest = (style: Keyframe): Keyframe =>
+  typeof style.transform === "string" && IDENTITY.test(style.transform)
+    ? { ...style, transform: "none" }
+    : style;
+
+const writeAll = (bindings: Binding[], value: number) => {
+  for (const { el, style } of bindings) {
+    if (el instanceof HTMLElement) {
+      Object.assign(el.style, atRest(style(value)));
+    }
+  }
+};
+
+/**
+ * Drive elements from `mv` with one style function each, for both ways the
+ * value moves: written straight to the element as it changes (a finger, a
+ * jump), and handed to the compositor when it springs (`bindTo`). Two copies
+ * of a mapping, one for each path, would show a jump wherever they differed.
+ *
+ * Returns each binding's style at the value's starting point, for the first
+ * render and the server's HTML. React keeps that object; the element's style
+ * is written directly after that, and again after every commit, so an
+ * element mounted later (a pushed page) starts from where the value is.
+ */
+export function useDrive(
+  mv: MotionValue<number>,
+  bindings: () => Binding[],
+): CSSProperties[] {
+  const [initial] = useState(() => {
+    bindTo(mv, bindings);
+    const value = mv.get();
+    return bindings().map(({ style }) => atRest(style(value)) as CSSProperties);
+  });
+  // Every render: the latest bindings (refs, reduced motion) for the
+  // spring, and the current style for anything just mounted. Mid-spring the
+  // value already holds its target, the style under the animation.
+  useLayoutEffect(() => {
+    bindTo(mv, bindings);
+    writeAll(bindings(), mv.get());
+  });
+  useLayoutEffect(
+    () =>
+      mv.on("change", (value) => writeAll(registry.get(mv)?.() ?? [], value)),
+    [mv],
+  );
+  return initial;
 }
 
 function sampleAt(run: Run, now: number) {

@@ -120,6 +120,12 @@ long task from 394ms to none.
 - When a motion value jumps to its target at the start, anything that
   reads it mid-flight sees the target. Use `motionNow()` for the real
   position, and wait for the spring's promise before treating it as landed.
+- Give each element one style function for both paths, the finger's and
+  the compositor's (`useDrive` in compositor-spring.ts). Two hand-kept
+  copies of a mapping show a jump wherever they differ, the moment a
+  spring is caught or lands. Write an identity transform as `none`, as
+  framer-motion does: any transform makes a containing block for fixed
+  children.
 - Keep transform and opacity in an animation of their own. One property
   the compositor can't run in the same animation takes the whole animation
   off it: the window's `border-radius` sat beside its transform, and

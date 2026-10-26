@@ -1,6 +1,6 @@
 "use client";
 
-import { type MotionValue, m } from "framer-motion";
+import { m } from "framer-motion";
 import Image from "next/image";
 import type { LibraryPhoto, PhotoAbout, PhotoExif } from "@/lib/state/photos";
 import { PHOTOS_ADDED } from "@/lib/state/photos";
@@ -91,9 +91,8 @@ interface PhotoInfoProps {
   caption: string;
   onCaption: (caption: string) => void;
   open: boolean;
-  /** 0 hidden, 1 fully up. */
-  progress: MotionValue<number>;
-  y: MotionValue<string>;
+  /** Its slide and fade, first; the sheet's spring writes them after. */
+  panelStyle?: React.CSSProperties;
   /** The share of the viewer it covers when up. */
   height: string;
   panelRef: React.RefObject<HTMLDivElement | null>;
@@ -115,8 +114,7 @@ export function PhotoInfo({
   caption,
   onCaption,
   open,
-  progress,
-  y,
+  panelStyle,
   height,
   panelRef,
   id,
@@ -139,7 +137,7 @@ export function PhotoInfo({
       ref={panelRef}
       id={id}
       className={styles.photoInfo}
-      style={{ y, opacity: progress, height }}
+      style={{ ...panelStyle, height }}
       inert={!open}
       role="region"
       aria-label="Info"

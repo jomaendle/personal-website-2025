@@ -25,7 +25,6 @@ interface HomeScreenProps {
     id: IphoneAppId,
     options?: { from?: HTMLElement; launch?: AppLaunch },
   ) => void;
-  scale: MotionValue<number>;
   /** The grid's wrapper, which leans in as an app opens over it (moved by
    * the launch scene, apart from the unlock's zoom on the grid itself). */
   zoomRef: (el: HTMLDivElement | null) => void;
@@ -33,9 +32,10 @@ interface HomeScreenProps {
    * compositor (compositor-spring). */
   gridRef: React.RefObject<HTMLElement | null>;
   bottomRef: React.RefObject<HTMLDivElement | null>;
-  gridOpacity: MotionValue<number>;
-  bottomY: MotionValue<number>;
-  bottomOpacity: MotionValue<number>;
+  /** The unlock's styles for the grid and for the dock and Search pill
+   * (useDrive): their first, after which the unlock writes them itself. */
+  gridStyle?: React.CSSProperties;
+  bottomStyle?: React.CSSProperties;
   searchRef: React.RefObject<HTMLButtonElement | null>;
   /** Open Spotlight; `focus` raises the keyboard (a tap can, a swipe can't). */
   onSearch: (focus: boolean) => void;
@@ -53,13 +53,11 @@ export function HomeScreen({
   homeRef,
   registerIcon,
   onOpen,
-  scale,
   zoomRef,
   gridRef,
   bottomRef,
-  gridOpacity,
-  bottomY,
-  bottomOpacity,
+  gridStyle,
+  bottomStyle,
   searchRef,
   onSearch,
   searchPull,
@@ -180,7 +178,7 @@ export function HomeScreen({
         <m.nav
           ref={gridRef}
           className={styles.homeGrid}
-          style={{ opacity: gridOpacity, scale }}
+          style={gridStyle}
           aria-label="Apps"
         >
           <button
@@ -270,11 +268,7 @@ export function HomeScreen({
         </m.nav>
       </div>
 
-      <m.div
-        ref={bottomRef}
-        className={styles.homeBottom}
-        style={{ y: bottomY, opacity: bottomOpacity }}
-      >
+      <m.div ref={bottomRef} className={styles.homeBottom} style={bottomStyle}>
         <button
           ref={searchRef}
           type="button"
