@@ -507,8 +507,6 @@ export const PHOTOS_ADDED = "2026-09-13T10:22:02+02:00";
 /** The /iphone Photos widget: a surfer against the sunset. */
 export const FEATURED_PHOTO = dsc00535;
 
-/** The /iphone wallpaper: palms in silhouette against a dusk sky over San
- * Diego. Portrait, with open sky where the clock sits and dark ground under
- * the icons and notifications, so white text reads everywhere; the warm sky
- * carries the site's accent. */
-export const WALLPAPER = earthPalmsAtDusk;
+/** The /iphone wallpaper: cherry blossom against a blue spring sky, in
+ * Böblingen. Portrait, with sky where the clock sits. */
+export const WALLPAPER = earthLookingUp;

@@ -2,12 +2,14 @@ import Image from "next/image";
 import { Link } from "next-view-transitions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { H1 } from "@/components/ui/heading";
+import { VersionSwitch } from "@/components/version-switch";
 import { PRIMARY_NAV } from "@/lib/config/navigation";
 import { SITE } from "@/lib/config/site";
 
 /**
- * Homepage masthead: nav and theme toggle, then avatar, name and role.
- * The nav stays inline at every width; two links and a toggle fit at 320px.
+ * Homepage masthead: nav, the switch to the iPhone version and the theme
+ * toggle, then avatar, name and role. The nav stays inline at every width;
+ * two links, the switch and a toggle fit at 320px.
  */
 
 export const NameHeading = ({
@@ -36,6 +38,7 @@ export const NameHeading = ({
             </Link>
           ))}
         </nav>
+        <VersionSwitch />
         <ThemeToggle />
       </div>
 
