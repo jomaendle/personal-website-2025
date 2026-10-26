@@ -26,6 +26,9 @@ interface HomeScreenProps {
     options?: { from?: HTMLElement; launch?: AppLaunch },
   ) => void;
   scale: MotionValue<number>;
+  /** The grid's wrapper, which leans in as an app opens over it (moved by
+   * the launch scene, apart from the unlock's zoom on the grid itself). */
+  zoomRef: (el: HTMLDivElement | null) => void;
   gridOpacity: MotionValue<number>;
   bottomY: MotionValue<number>;
   bottomOpacity: MotionValue<number>;
@@ -47,6 +50,7 @@ export function HomeScreen({
   registerIcon,
   onOpen,
   scale,
+  zoomRef,
   gridOpacity,
   bottomY,
   bottomOpacity,
@@ -166,96 +170,98 @@ export function HomeScreen({
         }
       }}
     >
-      <m.nav
-        className={styles.homeGrid}
-        style={{ opacity: gridOpacity, scale }}
-        aria-label="Apps"
-      >
-        <button
-          type="button"
-          className={cn(styles.cell, styles.widgetCell)}
-          onClick={(event) =>
-            onOpen("photos", {
-              from: event.currentTarget.firstElementChild as HTMLElement,
-            })
-          }
-          onPointerDown={() => APPS.photos.load()}
+      <div ref={zoomRef} className={styles.homeZoom}>
+        <m.nav
+          className={styles.homeGrid}
+          style={{ opacity: gridOpacity, scale }}
+          aria-label="Apps"
         >
-          <span className={styles.widget}>
-            <Image
-              src={FEATURED_PHOTO}
-              alt=""
-              fill
-              sizes="180px"
-              placeholder="blur"
-              className={styles.widgetPhoto}
-            />
-            <span className={styles.widgetCaption}>Featured</span>
-          </span>
-          <span className={styles.cellLabel}>Photos</span>
-        </button>
-
-        {/* Like the real Notes widget, each note is its own tap target and
-            opens straight into that note; the header opens the list. All of
-            them zoom the app out of the widget. */}
-        <div
-          className={cn(styles.cell, styles.widgetCell)}
-          onPointerDown={() => APPS.notes.load()}
-        >
-          <div
-            ref={notesWidget}
-            className={cn(styles.widget, styles.widgetNotes)}
-          >
-            <button
-              type="button"
-              className={styles.widgetNotesHead}
-              onClick={() => openNotes()}
-            >
-              Writing
-              <span aria-hidden>›</span>
-            </button>
-            {notes.map((note) => (
-              <button
-                key={note.slug}
-                type="button"
-                className={styles.widgetNote}
-                onClick={() => openNotes(note.slug)}
-              >
-                <span className={styles.widgetNoteTitle}>{note.title}</span>
-                <span className={styles.widgetNoteDate}>{note.date}</span>
-              </button>
-            ))}
-          </div>
-          {/* The label opens Notes too, as the Photos widget's does. The
-              header is the keyboard's and screen reader's way in, so this
-              stays out of both. */}
           <button
             type="button"
-            className={cn(styles.cellLabel, styles.cellLabelButton)}
-            onClick={() => openNotes()}
-            tabIndex={-1}
-            aria-hidden
+            className={cn(styles.cell, styles.widgetCell)}
+            onClick={(event) =>
+              onOpen("photos", {
+                from: event.currentTarget.firstElementChild as HTMLElement,
+              })
+            }
+            onPointerDown={() => APPS.photos.load()}
           >
-            Notes
+            <span className={styles.widget}>
+              <Image
+                src={FEATURED_PHOTO}
+                alt=""
+                fill
+                sizes="180px"
+                placeholder="blur"
+                className={styles.widgetPhoto}
+              />
+              <span className={styles.widgetCaption}>Featured</span>
+            </span>
+            <span className={styles.cellLabel}>Photos</span>
           </button>
-        </div>
 
-        {GRID_APPS.map((id) => appButton(id, true))}
-
-        {WEB_CLIPS.map((clip) => (
-          <a
-            key={clip.name}
-            href={clip.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.cell}
+          {/* Like the real Notes widget, each note is its own tap target and
+            opens straight into that note; the header opens the list. All of
+            them zoom the app out of the widget. */}
+          <div
+            className={cn(styles.cell, styles.widgetCell)}
+            onPointerDown={() => APPS.notes.load()}
           >
-            <AppIcon art={clip.art} />
-            <span className={styles.cellLabel}>{clip.name}</span>
-            <span className="sr-only"> (opens in new tab)</span>
-          </a>
-        ))}
-      </m.nav>
+            <div
+              ref={notesWidget}
+              className={cn(styles.widget, styles.widgetNotes)}
+            >
+              <button
+                type="button"
+                className={styles.widgetNotesHead}
+                onClick={() => openNotes()}
+              >
+                Writing
+                <span aria-hidden>›</span>
+              </button>
+              {notes.map((note) => (
+                <button
+                  key={note.slug}
+                  type="button"
+                  className={styles.widgetNote}
+                  onClick={() => openNotes(note.slug)}
+                >
+                  <span className={styles.widgetNoteTitle}>{note.title}</span>
+                  <span className={styles.widgetNoteDate}>{note.date}</span>
+                </button>
+              ))}
+            </div>
+            {/* The label opens Notes too, as the Photos widget's does. The
+              header is the keyboard's and screen reader's way in, so this
+              stays out of both. */}
+            <button
+              type="button"
+              className={cn(styles.cellLabel, styles.cellLabelButton)}
+              onClick={() => openNotes()}
+              tabIndex={-1}
+              aria-hidden
+            >
+              Notes
+            </button>
+          </div>
+
+          {GRID_APPS.map((id) => appButton(id, true))}
+
+          {WEB_CLIPS.map((clip) => (
+            <a
+              key={clip.name}
+              href={clip.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.cell}
+            >
+              <AppIcon art={clip.art} />
+              <span className={styles.cellLabel}>{clip.name}</span>
+              <span className="sr-only"> (opens in new tab)</span>
+            </a>
+          ))}
+        </m.nav>
+      </div>
 
       <m.div
         className={styles.homeBottom}

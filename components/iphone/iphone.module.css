@@ -91,6 +91,12 @@
   outline-offset: 2px;
 }
 
+/* The app window takes focus when it opens, for the keyboard: a ring round
+   the whole screen would say nothing, and would grow with the zoom. */
+.root .app:focus-visible {
+  outline: none;
+}
+
 /* ---- Desktop staging ------------------------------------------------- */
 
 .ambient,
@@ -640,6 +646,14 @@
   /* Vertical drags are the Spotlight swipe, not a page scroll or a pull to
      refresh; pinch zoom stays available. */
   touch-action: pan-x pinch-zoom;
+  transform-origin: 50% 45%;
+}
+
+/* Leans in as an app opens over the home screen, about the same point the
+   grid zooms around on unlock. */
+.homeZoom {
+  position: absolute;
+  inset: 0;
   transform-origin: 50% 45%;
 }
 
@@ -1941,8 +1955,17 @@
   overflow: hidden;
   background: var(--bg);
   transform-origin: 50% 50%;
-  will-change: transform, clip-path;
+  will-change: transform;
   outline: none;
+}
+
+/* The app inside the window, stretched back by however much the window is
+   squashed into its icon's shape, so it only ever scales evenly. */
+.appContent {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 /* Glass inside a moving window drops its blur for the motion (re-blurring
@@ -1976,7 +1999,6 @@
   right: 0;
   top: 50%;
   aspect-ratio: 1;
-  translate: 0 -50%;
   pointer-events: none;
 }
 

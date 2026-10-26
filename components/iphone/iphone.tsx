@@ -32,12 +32,11 @@ import { IphoneDataProvider } from "./data";
 import { Battery, Signal, Wifi } from "./glyphs";
 import { HomeScreen } from "./home-screen";
 import styles from "./iphone.module.css";
+import { type Geometry, LaunchScene, originAt } from "./launch-scene";
 import { LockScreen } from "./lock-screen";
 import {
   clamp,
   FADE,
-  lerp,
-  type Rect,
   rectWithin,
   SPRING_CLOSE,
   SPRING_OPEN,
@@ -57,43 +56,6 @@ const isAppIcon = (el: HTMLElement) => el.classList.contains(styles.icon ?? "");
 /** A home-screen widget, which lifts off and grows with the window. */
 const isWidget = (el: HTMLElement) =>
   el.classList.contains(styles.widget ?? "");
-
-interface Geometry {
-  w: number;
-  h: number;
-  scale: number;
-  /** The screen's corner radius: 55 in the device frame, 0 full-screen. */
-  radius: number;
-  /** The icon (or widget) the current app came out of, or is going home
-   * to. */
-  origin: Rect;
-  /** Where it was headed before a retarget, blended into `origin` by the
-   * `homing` motion value so a changed destination doesn't jump. */
-  previous: Rect;
-  /** Whether that was an app icon, whose art covers the window early on. A
-   * widget instead cross-fades straight into the app. */
-  fromIcon: boolean;
-  /** Whether it was a widget, whose snapshot grows with the window and
-   * hands over to the app, rather than fading the app in over it. */
-  fromWidget: boolean;
-}
-
-/** The destination now: the origin, or partway to it from a previous one
- * while a retargeted close blends over (`t` from 0 to 1). */
-function originAt(g: Geometry, t: number): Rect {
-  const { origin, previous } = g;
-  const k = clamp(t, 0, 1);
-  if (k === 1) {
-    return origin;
-  }
-  return {
-    x: lerp(previous.x, origin.x, k),
-    y: lerp(previous.y, origin.y, k),
-    size: lerp(previous.size, origin.size, k),
-    height: lerp(previous.height, origin.height, k),
-    radius: lerp(previous.radius, origin.radius, k),
-  };
-}
 
 interface IphoneProps {
   /** The articles as Notes, newest first, parsed on the server. */
@@ -186,19 +148,18 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     : null;
 
   // ---- The motion graph ------------------------------------------------
-  // Gestures write these directly; nothing below re-renders React while a
-  // finger is down. Everything they drive is transform, opacity or clip-path.
+  // The unlock follows the finger through motion values. The app launch,
+  // close and card drag run in the scene, on the compositor (launch-scene).
 
   /** 0 locked → 1 home screen. */
   const unlock = useMotionValue(0);
-  /** 0 at the icon → 1 full screen. */
-  const open = useMotionValue(0);
-  /** The home-indicator drag: how far pulled into a card, and its offset. */
-  const pull = useMotionValue(0);
-  const dragX = useMotionValue(0);
-  const dragY = useMotionValue(0);
-  /** 0 at the old destination of a retargeted close, 1 at the new one. */
-  const homing = useMotionValue(1);
+  const [scene] = useState(
+    () =>
+      new LaunchScene(
+        () => geometry.current,
+        () => reducedRef.current,
+      ),
+  );
 
   const lockY = useTransform(unlock, (u) =>
     reducedRef.current ? 0 : -u * geometry.current.h,
@@ -211,15 +172,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   );
   const statusTimeOpacity = useTransform(unlock, [0.4, 1], [0, 1]);
   const wallpaperDim = useTransform(unlock, [0, 1], [0, 0.14]);
-  // Home zooms in from slightly large as the lock screen lifts, and leans
-  // toward the reader while an app opens over it.
-  // Pulling the app into a card settles the home screen back as it goes.
-  const homeScale = useTransform(
-    [unlock, open, pull],
-    ([u = 0, a = 0, p = 0]: number[]) =>
-      reducedRef.current
-        ? 1
-        : (1 + 0.16 * (1 - u)) * (1 + 0.08 * clamp(a, 0, 1) * (1 - p)),
+  // Home zooms in from slightly large as the lock screen lifts. (Its lean
+  // toward the reader as an app opens is the scene's, on a wrapper.)
+  const homeScale = useTransform(unlock, (u) =>
+    reducedRef.current ? 1 : 1 + 0.16 * (1 - u),
   );
   const gridOpacity = useTransform(unlock, (u) => clamp(u * 1.4 - 0.2, 0, 1));
   // The dock and Search pill come in with the icons, rising a little as
@@ -230,113 +186,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const bottomOpacity = useTransform(unlock, (u) =>
     reducedRef.current ? u : clamp(u * 1.4 - 0.2, 0, 1),
   );
-  const appDim = useTransform(
-    [open, pull],
-    ([a = 0, p = 0]: number[]) => 0.5 * clamp(a, 0, 1) * (1 - p),
-  );
-
-  /**
-   * The zoom out of the icon. At 0 the app is scaled to the icon's width,
-   * centred on it, and clipped to a square with the icon's corner radius;
-   * at 1 it fills the screen. The card drag shrinks it on top of that and
-   * rounds its corners. One uniform scale throughout, so text never
-   * stretches.
-   */
-  const appTransform = useTransform(
-    [open, pull, dragX, dragY, homing],
-    ([a = 0, p = 0, dx = 0, dy = 0]: number[]) => {
-      if (reducedRef.current) {
-        return "none";
-      }
-      const { w, h } = geometry.current;
-      const origin = originAt(geometry.current, homing.get());
-      const s0 = origin.size / w;
-      const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
-      const cx = lerp(origin.x + origin.size / 2, w / 2, a) + dx;
-      const cy = lerp(origin.y + origin.height / 2, h / 2, a) + dy;
-      return `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale})`;
-    },
-  );
-  const appClip = useTransform(
-    [open, pull, homing],
-    ([a = 0, p = 0]: number[]) => {
-      if (reducedRef.current) {
-        return "none";
-      }
-      const { w, radius } = geometry.current;
-      const origin = originAt(geometry.current, homing.get());
-      const s0 = origin.size / w;
-      const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
-      // The spring's bounce past the icon squishes the scale only: clamped,
-      // the clip keeps the icon's shape instead of flattening at the end.
-      const ac = clamp(a, 0, 1);
-      const inset = startInset() * (1 - ac);
-      // Radii are in the app's own pixels, so divide out the scale to land on
-      // the icon's radius at 0 and a card's ~40pt while dragging.
-      const r = Math.max(
-        lerp(origin.radius / s0, radius, ac),
-        (Math.min(1, p * 5) * 40) / scale,
-      );
-      return `inset(${inset}px 0px round ${r}px)`;
-    },
-  );
-  const appOpacity = useTransform(open, (a) => {
-    if (reducedRef.current) {
-      return a;
-    }
-    // Out of anything else (a song's cover, a lock-screen banner) the app
-    // fades in over it as it grows, and back out onto it on the way home.
-    const { fromIcon, fromWidget } = geometry.current;
-    return fromIcon || fromWidget ? 1 : clamp(a / 0.3, 0, 1);
-  });
-  /** Out of a widget: the widget itself grows with the window, stretched
-   * to fill it as iOS stretches its snapshot, and fades into the app over
-   * the first quarter, before the stretch shows. Back home, the reverse
-   * lands it exactly on the widget, which then takes over. */
-  const widgetOpacity = useTransform(open, (a) => {
-    if (reducedRef.current || !geometry.current.fromWidget) {
-      return 0;
-    }
-    const t = clamp((a - 0.03) / 0.22, 0, 1);
-    return 1 - t * t * (3 - 2 * t);
-  });
-  const widgetTransform = useTransform([open, homing], ([a = 0]: number[]) => {
-    const { w, h } = geometry.current;
-    const origin = originAt(geometry.current, homing.get());
-    const visible = h - 2 * startInset() * (1 - clamp(a, 0, 1));
-    return `scale(${w / origin.size}, ${visible / origin.height})`;
-  });
-  /** The icon art covers the window as it grows, as iOS scales the icon's
-   * snapshot with the window, rather than sitting as a square in its middle. */
-  const iconScale = useTransform([open, homing], ([a = 0]: number[]) => {
-    const { w, h } = geometry.current;
-    const start = h - 2 * startInset();
-    return (start + (h - start) * a) / w;
-  });
-  /** True while the app window zooms or is dragged as a card. */
-  const appMoving = useTransform(
-    [open, pull],
-    ([a = 0, p = 0]: number[]) => a < 0.999 || p > 0.001,
-  );
-  // The icon hands over to the app early, eased so it doesn't dip linearly.
-  const iconOpacity = useTransform(open, (a) => {
-    if (reducedRef.current || !geometry.current.fromIcon) {
-      return 0;
-    }
-    const t = clamp((a - 0.04) / 0.26, 0, 1);
-    return 1 - t * t * (3 - 2 * t);
-  });
 
   // ---- Geometry ----------------------------------------------------------
-
-  /** How far the clip is inset top and bottom at the start of the zoom, in
-   * the app's own pixels: what makes the full-screen window icon-shaped. */
-  function startInset() {
-    const { w, h } = geometry.current;
-    const origin = originAt(geometry.current, homing.get());
-    const s0 = origin.size / w;
-    return Math.max(0, (h - origin.height / s0) / 2);
-  }
 
   const measure = useCallback(() => {
     const screen = screenRef.current;
@@ -445,25 +296,24 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         lockedRef.current ||
         (from?.isConnected && home?.contains(from))
       ) {
-        return;
+        return false;
       }
       const icon = icons.current.get(id);
       if (!icon) {
-        return;
+        return false;
       }
       // Blend from where it was headed, over the close, rather than jump:
-      // the transform weights the destination by how closed the app is.
-      geometry.current.previous = originAt(geometry.current, homing.get());
+      // the pose weights the destination by `k`, which the close moves.
+      geometry.current.previous = originAt(geometry.current, scene.get().k);
       geometry.current.origin = rectWithin(icon, screen);
       geometry.current.fromIcon = isAppIcon(icon);
       geometry.current.fromWidget = false;
       originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
-      homing.jump(0);
-      animate(homing, 1, reducedRef.current ? FADE : SPRING_CLOSE);
+      return true;
     },
-    [hideSource, homing],
+    [hideSource, scene],
   );
 
   const openApp = useCallback(
@@ -478,35 +328,30 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       measure();
       geometry.current.origin = rectWithin(icon, screen);
       geometry.current.previous = geometry.current.origin;
-      homing.jump(1);
       geometry.current.fromIcon = isAppIcon(icon);
       geometry.current.fromWidget = isWidget(icon);
       originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
-      // jump(), not set(): it also stops a spring still running from the
-      // last app, which set() would leave fighting this one.
-      pull.jump(0);
-      dragX.jump(0);
-      dragY.jump(0);
-      open.jump(instant ? 1 : 0);
+      // Also stops whatever was still running from the last app.
+      scene.jump({ a: instant ? 1 : 0, p: 0, dx: 0, dy: 0, k: 1 });
       closing.current = false;
       setClosingApp(false);
       store.set(APP_KEY, id);
       setLaunch(launch);
       setApp(id);
       if (!instant) {
-        // Start on the next frame, after React has mounted the app: started
-        // now, the spring's clock would run through the mount, and on a slow
-        // phone the first frame drawn would already be a third of the way open.
+        // Once React has mounted the app (its window is in the scene by
+        // then): the whole launch is handed to the compositor at once, so
+        // it runs at full rate however busy the page is from here on.
         requestAnimationFrame(() => {
           if (appRef.current === id && !closing.current) {
-            animate(open, 1, reducedRef.current ? FADE : SPRING_OPEN);
+            scene.animate({ a: { to: 1, transition: SPRING_OPEN } });
           }
         });
       }
     },
-    [measure, open, pull, dragX, dragY, hideSource, homing],
+    [measure, hideSource, scene],
   );
 
   /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
@@ -523,57 +368,54 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       closing.current = true;
       setClosingApp(true);
       store.set(APP_KEY, null);
-      retarget(id);
-      const reduced = reducedRef.current;
-      const transition = reduced ? FADE : SPRING_CLOSE;
+      const retargeted = retarget(id);
       const { h } = geometry.current;
       // The flick's speed goes on what the finger was driving: the pull into a
-      // card and its rise. Put on `open`, it would also swing the card toward
+      // card and its rise. Put on `a`, it would also swing the card toward
       // the icon, and the card would turn back down the moment it's let go.
-      animate(
-        pull,
-        0,
-        reduced ? FADE : { ...SPRING_CLOSE, velocity: (v * 1000) / (h * 0.5) },
-      );
-      // A sideways throw carries on into the way home.
-      animate(
-        dragX,
-        0,
-        reduced ? FADE : { ...SPRING_CLOSE, velocity: vx * 1000 },
-      );
-      // The card keeps rising a touch with the flick, then goes home.
-      animate(
-        dragY,
-        0,
-        reduced ? FADE : { ...SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
-      );
-      animate(open, 0, transition).then(() => {
-        if (!closing.current) {
-          return;
-        }
-        closing.current = false;
-        setClosingApp(false);
-        setApp(null);
-        hideSource(null);
-        requestAnimationFrame(() => {
-          // Still locked (closed mid-launch from the lock screen): the
-          // lock screen's unlock button, not the inert home screen.
-          if (lockedRef.current) {
-            unlockButtonRef.current?.focus({ preventScroll: true });
+      scene
+        .animate({
+          a: { to: 0, transition: SPRING_CLOSE },
+          p: {
+            to: 0,
+            transition: SPRING_CLOSE,
+            velocity: (v * 1000) / (h * 0.5),
+          },
+          // A sideways throw carries on into the way home.
+          dx: { to: 0, transition: SPRING_CLOSE, velocity: vx * 1000 },
+          // The card keeps rising a touch with the flick, then goes home.
+          dy: { to: 0, transition: SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
+          ...(retargeted
+            ? { k: { from: 0, to: 1, transition: SPRING_CLOSE } }
+            : {}),
+        })
+        .then((completed) => {
+          if (!(completed && closing.current)) {
             return;
           }
-          // Back to whatever opened it: the widget, the icon, or for an app
-          // opened from the lock screen, its icon on the home screen.
-          const target =
-            opener.current?.isConnected &&
-            homeRef.current?.contains(opener.current)
-              ? opener.current
-              : (icons.current.get(id)?.closest("button") ?? homeRef.current);
-          target?.focus({ preventScroll: true });
+          closing.current = false;
+          setClosingApp(false);
+          setApp(null);
+          hideSource(null);
+          requestAnimationFrame(() => {
+            // Still locked (closed mid-launch from the lock screen): the
+            // lock screen's unlock button, not the inert home screen.
+            if (lockedRef.current) {
+              unlockButtonRef.current?.focus({ preventScroll: true });
+              return;
+            }
+            // Back to whatever opened it: the widget, the icon, or for an app
+            // opened from the lock screen, its icon on the home screen.
+            const target =
+              opener.current?.isConnected &&
+              homeRef.current?.contains(opener.current)
+                ? opener.current
+                : (icons.current.get(id)?.closest("button") ?? homeRef.current);
+            target?.focus({ preventScroll: true });
+          });
         });
-      });
     },
-    [open, pull, dragX, dragY, retarget, hideSource],
+    [scene, retarget, hideSource],
   );
 
   /** Back to full screen, carrying the release speed (down is negative;
@@ -581,16 +423,23 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const cancelDrag = useCallback(
     (velocity = 0, velocityX = 0) => {
       const { h } = geometry.current;
-      animate(pull, 0, {
-        ...SPRING_OPEN,
-        velocity: (velocity * 1000) / (h * 0.5),
+      scene.animate({
+        p: {
+          to: 0,
+          transition: SPRING_OPEN,
+          velocity: (velocity * 1000) / (h * 0.5),
+        },
+        dx: { to: 0, transition: SPRING_OPEN, velocity: velocityX * 1000 },
+        dy: {
+          to: 0,
+          transition: SPRING_OPEN,
+          velocity: -velocity * 1000 * 0.55,
+        },
+        // A drag that caught a launch mid-way finishes the launch.
+        a: { to: 1, transition: SPRING_OPEN },
       });
-      animate(dragX, 0, { ...SPRING_OPEN, velocity: velocityX * 1000 });
-      animate(dragY, 0, { ...SPRING_OPEN, velocity: -velocity * 1000 * 0.55 });
-      // A drag that caught a launch mid-way finishes the launch.
-      animate(open, 1, SPRING_OPEN);
     },
-    [pull, dragX, dragY, open],
+    [scene],
   );
 
   /**
@@ -605,12 +454,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       openApp(id, { launch, from });
       // Until the app has landed, however long that takes (a drag can hold
       // a launch), or it has gone.
-      const done = open.on("change", (a) => {
+      const done = scene.onSettle((state) => {
         if (appRef.current !== id || closing.current) {
           done();
           return;
         }
-        if (a < 0.999) {
+        if (state.a < 0.999) {
           return;
         }
         done();
@@ -621,7 +470,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         setSeen((list) => (list.includes(id) ? list : [...list, id]));
       });
     },
-    [openApp, open, unlock],
+    [openApp, scene, unlock],
   );
 
   // ---- Spotlight ------------------------------------------------------------
@@ -724,14 +573,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     // (the grid stayed zoomed, the clock hidden). Once they're listening,
     // nudge each value so every transform derived from it re-applies.
     const frame = requestAnimationFrame(() => {
-      for (const value of [unlock, open]) {
-        const settled = value.get();
-        value.jump(settled - 0.001);
-        value.jump(settled);
-      }
+      const settled = unlock.get();
+      unlock.jump(settled - 0.001);
+      unlock.jump(settled);
     });
     return () => cancelAnimationFrame(frame);
-  }, [unlock, open, openApp, measure]);
+  }, [unlock, openApp, measure]);
 
   useEffect(
     () => () => document.documentElement.removeAttribute("data-iphone"),
@@ -798,12 +645,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                     lockTimer.current = undefined;
                     if (appRef.current) {
                       closing.current = false;
-                      // jump() stops an opening spring; set() would let it finish,
-                      // leaving the dim layer over the lock screen.
-                      open.jump(0);
-                      pull.jump(0);
-                      dragX.jump(0);
-                      dragY.jump(0);
+                      // Stops an opening spring, which would otherwise finish
+                      // and leave the dim layer over the lock screen.
+                      scene.jump({ a: 0, p: 0, dx: 0, dy: 0, k: 1 });
                       setApp(null);
                       setClosingApp(false);
                       hideSource(null);
@@ -864,6 +708,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 registerIcon={registerIcon}
                 onOpen={openApp}
                 scale={homeScale}
+                zoomRef={(el) => scene.register("homeZoom", el)}
                 gridOpacity={gridOpacity}
                 bottomY={bottomY}
                 bottomOpacity={bottomOpacity}
@@ -901,9 +746,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 unlockButtonRef={unlockButtonRef}
               />
 
-              <m.div
+              <div
+                ref={(el) => scene.register("dim", el)}
                 className={styles.dim}
-                style={{ opacity: appDim, zIndex: 25 }}
+                style={{ zIndex: 25 }}
                 aria-hidden
               />
 
@@ -914,21 +760,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   launch={launch}
                   id={app}
                   calendar={calendar}
-                  transform={appTransform}
-                  clipPath={appClip}
-                  opacity={appOpacity}
-                  moving={appMoving}
-                  iconOpacity={iconOpacity}
-                  iconScale={iconScale}
+                  scene={scene}
                   widget={geometry.current.fromWidget ? originEl.current : null}
-                  widgetOpacity={widgetOpacity}
-                  widgetTransform={widgetTransform}
-                  pull={pull}
-                  dragX={dragX}
-                  dragY={dragY}
                   measure={measure}
                   screen={screenRef.current}
-                  onDragStart={() => open.stop()}
                   onClose={closeApp}
                   onCancelDrag={cancelDrag}
                 />

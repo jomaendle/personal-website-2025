@@ -1,6 +1,5 @@
 "use client";
 
-import { type MotionValue, m } from "framer-motion";
 import {
   Suspense,
   useCallback,
@@ -14,6 +13,7 @@ import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
+import type { LaunchScene } from "./launch-scene";
 import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
@@ -23,27 +23,15 @@ interface AppWindowProps {
   leaving: boolean;
   launch?: AppLaunch;
   calendar: CalendarFace | null;
-  transform: MotionValue<string>;
-  clipPath: MotionValue<string>;
-  opacity: MotionValue<number>;
-  moving: MotionValue<boolean>;
-  iconOpacity: MotionValue<number>;
-  iconScale: MotionValue<number>;
+  /** What moves the window: the launch, the close, the card drag. */
+  scene: LaunchScene;
   /** The home-screen widget it opened out of, if it did: a snapshot of it
    * grows with the window and fades into the app. */
   widget: HTMLElement | null;
-  widgetOpacity: MotionValue<number>;
-  widgetTransform: MotionValue<string>;
-  /** 0 to 1 as the app is pulled up into a card. */
-  pull: MotionValue<number>;
-  dragX: MotionValue<number>;
-  dragY: MotionValue<number>;
   measure: () => { h: number; scale: number };
   /** The phone's screen: the home indicator lives there, not in the
    * window, so it can be swiped from the first frame of a launch. */
   screen: HTMLElement | null;
-  /** A card drag took hold: stop any launch still running. */
-  onDragStart: () => void;
   /** Close; a card flick passes its upward and rightward speeds, unscaled
    * px per ms. */
   onClose: (velocity?: number, velocityX?: number) => void;
@@ -61,21 +49,10 @@ export function AppWindow({
   leaving,
   launch,
   calendar,
-  transform,
-  clipPath,
-  opacity,
-  moving,
-  iconOpacity,
-  iconScale,
+  scene,
   widget,
-  widgetOpacity,
-  widgetTransform,
-  pull,
-  dragX,
-  dragY,
   measure,
   screen,
-  onDragStart,
   onClose,
   onCancelDrag,
 }: AppWindowProps) {
@@ -142,17 +119,30 @@ export function AppWindow({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  // While the window zooms or follows a finger, every frosted bar inside it
-  // would re-blur its backdrop each frame. Suspend the blur for the motion
-  // (the tint still reads as glass at that size and speed) and restore it
-  // at rest. The attribute flips twice per motion, not once per frame.
-  useEffect(() => {
-    const el = windowRef.current;
-    el?.toggleAttribute("data-moving", moving.get());
-    return moving.on("change", (value) => {
-      windowRef.current?.toggleAttribute("data-moving", value);
-    });
-  }, [moving]);
+  // The scene places these and moves them (launch-scene); stable, so a
+  // re-render doesn't hand them over again.
+  const windowEl = useCallback(
+    (el: HTMLDivElement | null) => {
+      windowRef.current = el;
+      scene.register("window", el);
+    },
+    [scene],
+  );
+  const contentEl = useCallback(
+    (el: HTMLDivElement | null) => scene.register("content", el),
+    [scene],
+  );
+  const iconEl = useCallback(
+    (el: HTMLDivElement | null) => scene.register("icon", el),
+    [scene],
+  );
+  const widgetEl = useCallback(
+    (el: HTMLDivElement | null) => {
+      snapshot.current = el;
+      scene.register("widget", el);
+    },
+    [scene],
+  );
 
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     // One finger at a time: a second one must not take the drag over.
@@ -161,11 +151,9 @@ export function AppWindow({
     }
     event.currentTarget.setPointerCapture(event.pointerId);
     const { h, scale } = measure();
-    // set() doesn't stop a running spring, so stop it to take hold.
-    onDragStart();
-    pull.stop();
-    dragX.stop();
-    dragY.stop();
+    // Take hold wherever it is, mid-launch or still springing back.
+    scene.hold();
+    const held = scene.get();
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -173,8 +161,8 @@ export function AppWindow({
       h,
       scale,
       moved: false,
-      baseRise: pull.get() * h * 0.5,
-      baseX: dragX.get(),
+      baseRise: held.p * h * 0.5,
+      baseX: held.dx,
     };
     tracker.reset();
     tracker.add(event.clientY / scale, event.timeStamp);
@@ -205,11 +193,13 @@ export function AppWindow({
     tracker.add(event.clientY / current.scale, event.timeStamp);
     trackerX.add(event.clientX / current.scale, event.timeStamp);
     const rise = Math.max(0, current.baseRise + up);
-    pull.set(clamp(rise / (current.h * 0.5), 0, 1));
-    dragX.set(current.baseX + dx);
-    // Rising a little slower than the finger keeps the card's bottom edge
-    // under it while the card shrinks.
-    dragY.set(-rise * 0.55);
+    scene.jump({
+      p: clamp(rise / (current.h * 0.5), 0, 1),
+      dx: current.baseX + dx,
+      // Rising a little slower than the finger keeps the card's bottom edge
+      // under it while the card shrinks.
+      dy: -rise * 0.55,
+    });
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -225,7 +215,7 @@ export function AppWindow({
     const v = tracker.velocity();
     // The tracker reports toward smaller values as positive: leftward.
     const vx = -trackerX.velocity();
-    if ((pull.get() > 0.16 || v > 0.35) && v > -0.2) {
+    if ((scene.get().p > 0.16 || v > 0.35) && v > -0.2) {
       onClose(v, vx);
     } else {
       onCancelDrag(v, vx);
@@ -253,33 +243,30 @@ export function AppWindow({
 
   return (
     <>
-      <m.div
-        ref={windowRef}
+      <div
+        ref={windowEl}
         className={styles.app}
-        style={{ transform, clipPath, opacity }}
         role="dialog"
         aria-modal="true"
         aria-label={APPS[id].name}
         tabIndex={-1}
         inert={leaving}
       >
-        <Suspense fallback={null}>{content}</Suspense>
-        <m.div
-          className={styles.appIconOverlay}
-          style={{ opacity: iconOpacity, scale: iconScale }}
-        >
-          <AppIcon art={APPS[id].art} calendar={calendar} />
-        </m.div>
-        {widget ? (
-          <m.div
-            ref={snapshot}
-            className={styles.widgetSnapshot}
-            style={{ opacity: widgetOpacity, transform: widgetTransform }}
-            aria-hidden
-            inert
-          />
-        ) : null}
-      </m.div>
+        <div ref={contentEl} className={styles.appContent}>
+          <Suspense fallback={null}>{content}</Suspense>
+          <div ref={iconEl} className={styles.appIconOverlay}>
+            <AppIcon art={APPS[id].art} calendar={calendar} />
+          </div>
+          {widget ? (
+            <div
+              ref={widgetEl}
+              className={styles.widgetSnapshot}
+              aria-hidden
+              inert
+            />
+          ) : null}
+        </div>
+      </div>
       {screen ? createPortal(indicator, screen) : null}
     </>
   );
