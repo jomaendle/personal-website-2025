@@ -2,7 +2,6 @@ import { type ComponentType, lazy } from "react";
 import { SOCIAL_LINKS } from "@/lib/config/navigation";
 import { SITE } from "@/lib/config/site";
 import type { IphoneAppId } from "@/lib/state/iphone-copy";
-import { PROJECTS } from "@/lib/state/projects";
 import type { IconArt } from "./app-icons";
 
 /** Where an app should open to, when something deeper than its icon
@@ -10,6 +9,8 @@ import type { IconArt } from "./app-icons";
 export interface AppLaunch {
   /** Notes: the article to open straight into. */
   note?: string;
+  /** Music: open on Now Playing (from the lock screen or Spotlight). */
+  nowPlaying?: boolean;
 }
 
 export interface AppProps {
@@ -67,6 +68,11 @@ export const APPS: Record<IphoneAppId, AppEntry> = {
     art: "settings",
     load: () => import("./apps/settings-app"),
   },
+  music: {
+    name: "Music",
+    art: "music",
+    load: () => import("./apps/music-app"),
+  },
 };
 
 export const LAZY_APPS = {} as Record<IphoneAppId, ComponentType<AppProps>>;
@@ -82,13 +88,6 @@ export function preloadAllApps() {
 
 /** Home screen bookmarks that leave the phone for another site. */
 export const WEB_CLIPS: { name: string; art: IconArt; href: string }[] = [
-  {
-    name: "Car Kids",
-    art: "music",
-    href:
-      PROJECTS.find((project) => project.id === "music-player")?.link ??
-      "https://radio.jomaendle.com",
-  },
   {
     name: "GitHub",
     art: "github",

@@ -12,6 +12,7 @@ import { APPS, type AppLaunch } from "./apps";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
 import { clamp, VelocityTracker } from "./motion";
+import { LockNowPlaying } from "./music/system-ui";
 import { formatClock, formatLockDate, formatWeekday } from "./use-clock";
 
 interface LockScreenProps {
@@ -163,45 +164,54 @@ export function LockScreen({
         </p>
       </m.div>
 
-      <ul className={styles.notifications} aria-label="Notifications">
-        {notifications.map((notification) => (
-          <li key={notification.app}>
-            <button
-              type="button"
-              className={styles.notification}
-              onClick={() =>
-                onOpenApp(
-                  notification.app,
-                  notification.note ? { note: notification.note } : undefined,
-                )
-              }
-              onPointerDown={() => APPS[notification.app].load()}
+      <div className={styles.lockStack}>
+        <LockNowPlaying
+          onOpen={() => onOpenApp("music", { nowPlaying: true })}
+        />
+        <ul className={styles.notifications} aria-label="Notifications">
+          {notifications.map((notification, index) => (
+            <li
+              key={notification.app}
+              // The wake animation staggers on this, in CSS: no script.
+              style={{ "--i": index } as React.CSSProperties}
             >
-              <AppIcon
-                art={APPS[notification.app].art}
-                className={styles.notificationIcon}
-                calendar={
-                  now
-                    ? { weekday: formatWeekday(now), day: now.getDate() }
-                    : null
+              <button
+                type="button"
+                className={styles.notification}
+                onClick={() =>
+                  onOpenApp(
+                    notification.app,
+                    notification.note ? { note: notification.note } : undefined,
+                  )
                 }
-              />
-              <span className={styles.notificationTitle}>
-                {notification.title}
-              </span>
-              <span className={styles.notificationTime}>
-                {notification.time}
-              </span>
-              <span className={styles.notificationBody}>
-                {notification.body}
-              </span>
-              <span className="sr-only">
-                , {APPS[notification.app].name}. Opens the app.
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+                onPointerDown={() => APPS[notification.app].load()}
+              >
+                <AppIcon
+                  art={APPS[notification.app].art}
+                  className={styles.notificationIcon}
+                  calendar={
+                    now
+                      ? { weekday: formatWeekday(now), day: now.getDate() }
+                      : null
+                  }
+                />
+                <span className={styles.notificationTitle}>
+                  {notification.title}
+                </span>
+                <span className={styles.notificationTime}>
+                  {notification.time}
+                </span>
+                <span className={styles.notificationBody}>
+                  {notification.body}
+                </span>
+                <span className="sr-only">
+                  , {APPS[notification.app].name}. Opens the app.
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className={styles.lockFooter}>
         <button

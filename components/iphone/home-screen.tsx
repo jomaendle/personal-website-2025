@@ -11,7 +11,7 @@ import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
 
-const GRID_APPS: IphoneAppId[] = ["calendar", "contacts", "settings"];
+const GRID_APPS: IphoneAppId[] = ["calendar", "contacts", "settings", "music"];
 const DOCK_APPS: IphoneAppId[] = ["notes", "safari", "photos", "mail"];
 
 interface HomeScreenProps {

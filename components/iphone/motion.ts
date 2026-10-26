@@ -17,6 +17,18 @@ export const SPRING_CLOSE: Transition = {
   bounce: 0.16,
 };
 
+/** UIKit's navigation push: critically damped, about half a second. */
+export const SPRING_PUSH: Transition = {
+  type: "spring",
+  visualDuration: 0.45,
+  bounce: 0,
+  // Settle when it visually arrives. On a 0–1 value the default thresholds
+  // keep a critically damped spring creeping for several hundred ms more,
+  // and until it rests the list underneath stays inert to taps.
+  restDelta: 0.002,
+  restSpeed: 0.05,
+};
+
 export const SPRING_UNLOCK: Transition = {
   type: "spring",
   visualDuration: 0.42,

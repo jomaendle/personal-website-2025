@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, type MotionValue, type Transition } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -8,19 +8,7 @@ import type { NoteBlock, NoteDocument, NoteInline } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
 import { BackChevron, Share } from "../glyphs";
 import styles from "../iphone.module.css";
-import { clamp } from "../motion";
-
-/** UIKit's navigation push: critically damped, about half a second. */
-export const SPRING_PUSH: Transition = {
-  type: "spring",
-  visualDuration: 0.45,
-  bounce: 0,
-  // Settle when it visually arrives. On a 0–1 value the default thresholds
-  // keep a critically damped spring creeping for several hundred ms more,
-  // and until it rests the list underneath stays inert to taps.
-  restDelta: 0.002,
-  restSpeed: 0.05,
-};
+import { useSwipeBack } from "../use-swipe-back";
 
 // ---- Fetching ---------------------------------------------------------------
 
@@ -101,14 +89,7 @@ export function NoteView({
   const { note, failed } = useNote(slug);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const swipe = useRef<{
-    id: number;
-    x: number;
-    y: number;
-    width: number;
-    active: boolean;
-    samples: { x: number; t: number }[];
-  } | null>(null);
+  const swipeBack = useSwipeBack(nav, onBack);
 
   useEffect(() => {
     titleRef.current?.focus({ preventScroll: true });
@@ -140,89 +121,9 @@ export function NoteView({
     }
   };
 
-  // ---- Swipe back ---------------------------------------------------------
-  // iOS 26 takes the back swipe from anywhere in the content, not just the
-  // edge. The scroller is touch-action: pan-y, so the browser keeps vertical
-  // scrolling and hands horizontal drags to these handlers. A mouse selects
-  // text instead, and controls (links, video scrubbing) keep their drags.
-
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (
-      event.pointerType === "mouse" ||
-      swipe.current ||
-      target.closest("video, a, button")
-    ) {
-      return;
-    }
-    nav.stop();
-    swipe.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      width: event.currentTarget.offsetWidth,
-      active: false,
-      samples: [{ x: event.clientX, t: event.timeStamp }],
-    };
-  };
-
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const s = swipe.current;
-    if (!s || s.id !== event.pointerId) {
-      return;
-    }
-    const dx = event.clientX - s.x;
-    const dy = event.clientY - s.y;
-    if (!s.active) {
-      if (Math.hypot(dx, dy) < 10) {
-        return;
-      }
-      if (dx <= 0 || Math.abs(dy) > Math.abs(dx)) {
-        swipe.current = null;
-        return;
-      }
-      s.active = true;
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }
-    s.samples.push({ x: event.clientX, t: event.timeStamp });
-    if (s.samples.length > 4) {
-      s.samples.shift();
-    }
-    nav.set(clamp(1 - dx / s.width, 0, 1));
-  };
-
-  const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    const s = swipe.current;
-    if (s?.id !== event.pointerId) {
-      return;
-    }
-    swipe.current = null;
-    if (!s.active) {
-      return;
-    }
-    const first = s.samples[0];
-    const last = s.samples.at(-1);
-    const vx =
-      first && last && last.t > first.t
-        ? (last.x - first.x) / (last.t - first.t)
-        : 0;
-    if (nav.get() < 0.65 || vx > 0.5) {
-      // px/ms rightwards to nav units per second.
-      onBack((-vx * 1000) / s.width);
-    } else {
-      animate(nav, 1, SPRING_PUSH);
-    }
-  };
-
   return (
     <div className={styles.noteView}>
-      <div
-        className={cn(styles.scroll, styles.noteScroll)}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-      >
+      <div className={cn(styles.scroll, styles.noteScroll)} {...swipeBack}>
         <article className={styles.noteBody}>
           <p className={styles.noteDate}>{noteDate(date)}</p>
           <h1 ref={titleRef} className={styles.noteTitle} tabIndex={-1}>

@@ -18,6 +18,16 @@ const nextConfig = {
   },
   images: {
     formats: ["image/webp", "image/avif"],
+    // Car Kids cover art for the /iphone Music app, from the radio site's
+    // Vercel Blob store. Only the covers folder: the songs are streamed as
+    // media, never through the optimiser.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "07jxyxihso69c0vd.public.blob.vercel-storage.com",
+        pathname: "/covers/**",
+      },
+    ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     // 224 is here for the homepage image stack. Its prints ask for the width
     // they reach lifted by a click, which differs by viewport and orientation
@@ -60,6 +70,10 @@ const nextConfig = {
       "form-action 'self'",
       "manifest-src 'self'",
       "img-src 'self' data: blob: https:",
+      // The /iphone Music app streams Car Kids songs from the radio site's
+      // Blob store. Without this, media falls back to default-src and the
+      // browser refuses to play them.
+      "media-src 'self' https://07jxyxihso69c0vd.public.blob.vercel-storage.com",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline' https://giscus.app",
       // va.vercel-scripts.com serves both @vercel/analytics and

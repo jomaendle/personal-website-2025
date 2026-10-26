@@ -1,6 +1,7 @@
 import { SOCIAL_LINKS } from "@/lib/config/navigation";
 import { SITE } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/state/blog";
+import { TRACKS } from "@/lib/state/car-kids";
 import { PHOTOS } from "@/lib/state/photos";
 import { PROJECTS } from "@/lib/state/projects";
 import { AppIcon } from "../app-icons";
@@ -95,6 +96,11 @@ export default function SettingsApp(_: AppProps) {
           icon={appIcon("photos")}
           title="Photos"
           value={`${PHOTOS.length} photos`}
+        />
+        <Row
+          icon={appIcon("music")}
+          title="Music"
+          value={`${TRACKS.length} songs`}
         />
         <Row
           icon={appIcon("safari")}

@@ -291,3 +291,77 @@ export const Share = (props: GlyphProps) => (
     <path d="M8 9.5 H6.5 A1.5 1.5 0 0 0 5 11 v8.5 A1.5 1.5 0 0 0 6.5 21 h11 a1.5 1.5 0 0 0 1.5 -1.5 V11 A1.5 1.5 0 0 0 17.5 9.5 H16 M12 14.5 V3 M8.5 6.5 L12 3 L15.5 6.5" />
   </svg>
 );
+
+/** Transport controls, filled like SF Symbols' play.fill family. */
+export const PlayGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M7 4.8 C7 3.9 7.95 3.35 8.72 3.82 L19.6 10.6 C20.33 11.06 20.33 12.94 19.6 13.4 L8.72 20.18 C7.95 20.65 7 20.1 7 19.2 Z" />
+  </svg>
+);
+
+export const PauseGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    fill="currentColor"
+    {...props}
+  >
+    <rect x="5.5" y="4" width="4.5" height="16" rx="1.3" />
+    <rect x="14" y="4" width="4.5" height="16" rx="1.3" />
+  </svg>
+);
+
+export const ForwardGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 32 24"
+    width="32"
+    height="24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M2 5.6 C2 4.7 2.98 4.15 3.75 4.63 L13.6 10.9 C14.3 11.35 14.3 12.65 13.6 13.1 L3.75 19.37 C2.98 19.85 2 19.3 2 18.4 Z" />
+    <path d="M15 5.6 C15 4.7 15.98 4.15 16.75 4.63 L26.6 10.9 C27.3 11.35 27.3 12.65 26.6 13.1 L16.75 19.37 C15.98 19.85 15 19.3 15 18.4 Z" />
+  </svg>
+);
+
+export const BackwardGlyph = (props: GlyphProps) => (
+  <ForwardGlyph style={{ transform: "scaleX(-1)" }} {...props} />
+);
+
+export const ShuffleGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    strokeWidth="2"
+    {...base}
+    {...props}
+  >
+    <path d="M3 7 h3.5 c2.2 0 3.6 1.1 4.8 3 l2.4 4 c1.2 1.9 2.6 3 4.8 3 H21 M3 17 h3.5 c1.6 0 2.8 -.6 3.8 -1.7 M21 7 h-2.5 c-1.6 0 -2.8 .6 -3.8 1.7 M18.5 4.5 L21 7 L18.5 9.5 M18.5 14.5 L21 17 L18.5 19.5" />
+  </svg>
+);
+
+export const ChevronDown = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 20 12"
+    width="20"
+    height="12"
+    strokeWidth="2.6"
+    {...base}
+    {...props}
+  >
+    <path d="M2 2 L10 10 L18 2" />
+  </svg>
+);

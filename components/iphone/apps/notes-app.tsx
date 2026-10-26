@@ -15,10 +15,10 @@ import type { AppProps } from "../apps";
 import { useIphoneData } from "../data";
 import { Compose, Magnifier } from "../glyphs";
 import styles from "../iphone.module.css";
-import { FADE } from "../motion";
+import { FADE, SPRING_PUSH } from "../motion";
 import { store } from "../persist";
 import { useKeyboardInset } from "../use-keyboard-inset";
-import { NoteView, prefetchNote, SPRING_PUSH } from "./note-view";
+import { NoteView, prefetchNote } from "./note-view";
 import { Group, NavBar } from "./ui";
 
 /** The note open in Notes, so a reload or a return from Safari lands back

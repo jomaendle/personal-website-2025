@@ -262,8 +262,8 @@ const ART: Record<
     <>
       <defs>
         <linearGradient id={`${id}a`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ff7a59" />
-          <stop offset="1" stopColor="#c13b22" />
+          <stop offset="0" stopColor="#fb5c74" />
+          <stop offset="1" stopColor="#fa233b" />
         </linearGradient>
       </defs>
       <g fill={`url(#${id}a)`} stroke={`url(#${id}a)`}>

@@ -11,7 +11,8 @@ export type IphoneAppId =
   | "mail"
   | "calendar"
   | "contacts"
-  | "settings";
+  | "settings"
+  | "music";
 
 export interface LockNotification {
   app: IphoneAppId;

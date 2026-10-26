@@ -1,7 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useDeferredValue, useState } from "react";
 import { SITE } from "@/lib/config/site";
+import {
+  ALBUMS,
+  CAR_KIDS,
+  SINGLES,
+  TRACKS,
+  type Track,
+  tracksOf,
+} from "@/lib/state/car-kids";
 import type { IphoneAppId } from "@/lib/state/iphone-copy";
 import { cn } from "@/lib/utils";
 import { AppIcon, type CalendarFace } from "./app-icons";
@@ -9,7 +18,14 @@ import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { useIphoneData } from "./data";
 import { Close, Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
+import { useMusicControls } from "./music/player";
 import { useKeyboardInset } from "./use-keyboard-inset";
+
+/** A song's release, to queue the rest of it after the song. */
+const releaseOf = (track: Track): Track[] => {
+  const album = ALBUMS.find((a) => a.id === track.album);
+  return album ? tracksOf(album) : SINGLES;
+};
 
 /** Apps offered before anything is typed, like Siri Suggestions. */
 const SUGGESTED: IphoneAppId[] = ["notes", "photos", "mail", "safari"];
@@ -43,6 +59,7 @@ export function Spotlight({
   const [query, setQuery] = useState("");
   const q = useDeferredValue(query.trim().toLowerCase());
   const keyboard = useKeyboardInset();
+  const controls = useMusicControls();
 
   // Nothing typed is not a match for everything: the empty state shows
   // suggestions instead.
@@ -57,13 +74,21 @@ export function Spotlight({
         .filter((note) => matches(`${note.title} ${note.excerpt}`, q))
         .slice(0, 6)
     : [];
+  const songHits = q
+    ? TRACKS.filter((track) => matches(track.title, q)).slice(0, 5)
+    : [];
   const contactHit = q
     ? [SITE.name, "Johannes Mändle", "Maendle", SITE.role].some((s) =>
         matches(s, q),
       )
     : false;
   const nothing =
-    q && !apps.length && !clips.length && !noteHits.length && !contactHit;
+    q &&
+    !apps.length &&
+    !clips.length &&
+    !noteHits.length &&
+    !songHits.length &&
+    !contactHit;
 
   const launchFrom =
     (id: IphoneAppId, launch?: AppLaunch) =>
@@ -165,6 +190,39 @@ export function Spotlight({
                   date={note.date}
                   onClick={launchFrom("notes", { note: note.slug })}
                 />
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {songHits.length ? (
+          <>
+            <h2 className={styles.spotlightHeader}>Songs</h2>
+            <div className={styles.spotlightCard}>
+              {songHits.map((track) => (
+                <button
+                  key={track.id}
+                  type="button"
+                  className={styles.spotlightRow}
+                  onPointerDown={() => APPS.music.load()}
+                  onClick={(event) => {
+                    // Play inside the tap (browsers only start audio in a
+                    // gesture), queued with the rest of its release.
+                    const queue = releaseOf(track);
+                    controls.play(queue, queue.indexOf(track));
+                    launchFrom("music", { nowPlaying: true })(event);
+                  }}
+                >
+                  <span data-icon className={styles.spotlightSongCover}>
+                    <Image src={track.cover} alt="" fill sizes="72px" />
+                  </span>
+                  <span className={styles.rowMain}>
+                    <span className={styles.rowTitle}>{track.title}</span>
+                    <span className={styles.rowDetail}>
+                      Song · {CAR_KIDS.name}
+                    </span>
+                  </span>
+                </button>
               ))}
             </div>
           </>

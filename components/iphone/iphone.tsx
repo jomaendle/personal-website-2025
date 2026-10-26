@@ -42,6 +42,8 @@ import {
   SPRING_OPEN,
   SPRING_UNLOCK,
 } from "./motion";
+import { MusicProvider } from "./music/player";
+import { DynamicIsland } from "./music/system-ui";
 import { APP_KEY, SEEN_KEY, store, UNLOCKED_KEY } from "./persist";
 import { Spotlight } from "./spotlight";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
@@ -226,7 +228,7 @@ export function Iphone({ notes }: IphoneProps) {
   // ---- Lock and unlock --------------------------------------------------
 
   const settleLock = useCallback(
-    (to: 0 | 1, velocity = 0) => {
+    (to: 0 | 1, velocity = 0, fromKeyboard = false) => {
       const root = document.documentElement;
       if (to === 1) {
         store.set(UNLOCKED_KEY, "1");
@@ -245,8 +247,13 @@ export function Iphone({ notes }: IphoneProps) {
         store.set(UNLOCKED_KEY, null);
         root.removeAttribute("data-iphone");
         setLocked(true);
+        // Focus lands on the unlock button either way; its ring only shows
+        // when the lock came from the keyboard, not from a click.
         requestAnimationFrame(() =>
-          unlockButtonRef.current?.focus({ preventScroll: true }),
+          unlockButtonRef.current?.focus({
+            preventScroll: true,
+            focusVisible: fromKeyboard,
+          }),
         );
       }
       animate(
@@ -427,142 +434,146 @@ export function Iphone({ notes }: IphoneProps) {
 
   return (
     <IphoneDataProvider value={data}>
-      <div className={styles.root}>
-        <div
-          className={styles.ambient}
-          style={{ backgroundImage: `url(${WALLPAPER.blurDataURL})` }}
-          aria-hidden
-        />
-        <Link href="/" className={styles.exit}>
-          ← {IPHONE_COPY.exitLabel}
-        </Link>
-
-        <div className={styles.device}>
-          <button
-            type="button"
-            className={styles.sideButton}
-            aria-label={IPHONE_COPY.lockLabel}
-            onClick={() => {
-              if (appRef.current) {
-                closing.current = false;
-                // jump() stops an opening spring; set() would let it finish,
-                // leaving the dim layer over the lock screen.
-                open.jump(0);
-                pull.jump(0);
-                dragX.jump(0);
-                dragY.jump(0);
-                setApp(null);
-                store.set(APP_KEY, null);
-              }
-              settleLock(0);
-            }}
+      <MusicProvider>
+        <div className={styles.root}>
+          <div
+            className={styles.ambient}
+            style={{ backgroundImage: `url(${WALLPAPER.blurDataURL})` }}
+            aria-hidden
           />
+          <Link href="/" className={styles.exit}>
+            ← {IPHONE_COPY.exitLabel}
+          </Link>
 
-          <main
-            ref={screenRef}
-            id="main-content"
-            tabIndex={-1}
-            className={styles.screen}
-            aria-label={IPHONE_COPY.deviceName}
-          >
-            <Image
-              src={WALLPAPER}
-              alt=""
-              fill
-              preload
-              placeholder="blur"
-              sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
-              className={styles.wallpaper}
-            />
-            <m.div
-              className={styles.dim}
-              style={{ opacity: wallpaperDim }}
-              aria-hidden
-            />
-
-            <HomeScreen
-              inert={locked || app !== null || spotlight}
-              searchRef={searchButton}
-              onSearch={openSpotlight}
-              calendar={calendar}
-              notes={notes.slice(0, 2)}
-              homeRef={homeRef}
-              registerIcon={registerIcon}
-              onOpen={openApp}
-              scale={homeScale}
-              gridOpacity={gridOpacity}
-              bottomY={bottomY}
-              bottomOpacity={bottomOpacity}
+          <div className={styles.device}>
+            <button
+              type="button"
+              className={styles.sideButton}
+              aria-label={IPHONE_COPY.lockLabel}
+              onClick={(event) => {
+                if (appRef.current) {
+                  closing.current = false;
+                  // jump() stops an opening spring; set() would let it finish,
+                  // leaving the dim layer over the lock screen.
+                  open.jump(0);
+                  pull.jump(0);
+                  dragX.jump(0);
+                  dragY.jump(0);
+                  setApp(null);
+                  store.set(APP_KEY, null);
+                }
+                // detail is 0 for Enter or Space, the clicks a keyboard makes.
+                settleLock(0, 0, event.detail === 0);
+              }}
             />
 
-            {spotlight ? (
-              <Spotlight
-                calendar={calendar}
-                inputRef={spotlightInput}
-                onClose={closeSpotlight}
-                onLaunch={launchFromSpotlight}
+            <main
+              ref={screenRef}
+              id="main-content"
+              tabIndex={-1}
+              className={styles.screen}
+              aria-label={IPHONE_COPY.deviceName}
+            >
+              <Image
+                src={WALLPAPER}
+                alt=""
+                fill
+                preload
+                placeholder="blur"
+                sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
+                className={styles.wallpaper}
               />
-            ) : null}
+              <m.div
+                className={styles.dim}
+                style={{ opacity: wallpaperDim }}
+                aria-hidden
+              />
 
-            <LockScreen
-              locked={locked}
-              now={now}
-              notifications={lockNotifications(notes[0], PHOTOS.length).filter(
-                (notification) => !seen.includes(notification.app),
-              )}
-              unlock={unlock}
-              lockY={lockY}
-              lockFade={lockFade}
-              lockOpacity={lockOpacity}
-              measure={measure}
-              onSettle={settleLock}
-              onOpenApp={openFromLock}
-              unlockButtonRef={unlockButtonRef}
-            />
-
-            <m.div
-              className={styles.dim}
-              style={{ opacity: appDim, zIndex: 25 }}
-              aria-hidden
-            />
-
-            {app === null ? null : (
-              <AppWindow
-                key={app}
-                launch={launch}
-                id={app}
+              <HomeScreen
+                inert={locked || app !== null || spotlight}
+                searchRef={searchButton}
+                onSearch={openSpotlight}
                 calendar={calendar}
-                transform={appTransform}
-                clipPath={appClip}
-                opacity={appOpacity}
-                moving={appMoving}
-                iconOpacity={iconOpacity}
-                pull={pull}
-                dragX={dragX}
-                dragY={dragY}
+                notes={notes.slice(0, 2)}
+                homeRef={homeRef}
+                registerIcon={registerIcon}
+                onOpen={openApp}
+                scale={homeScale}
+                gridOpacity={gridOpacity}
+                bottomY={bottomY}
+                bottomOpacity={bottomOpacity}
+              />
+
+              {spotlight ? (
+                <Spotlight
+                  calendar={calendar}
+                  inputRef={spotlightInput}
+                  onClose={closeSpotlight}
+                  onLaunch={launchFromSpotlight}
+                />
+              ) : null}
+
+              <LockScreen
+                locked={locked}
+                now={now}
+                notifications={lockNotifications(
+                  notes[0],
+                  PHOTOS.length,
+                ).filter((notification) => !seen.includes(notification.app))}
+                unlock={unlock}
+                lockY={lockY}
+                lockFade={lockFade}
+                lockOpacity={lockOpacity}
                 measure={measure}
-                onClose={closeApp}
-                onCancelDrag={cancelDrag}
+                onSettle={settleLock}
+                onOpenApp={openFromLock}
+                unlockButtonRef={unlockButtonRef}
               />
-            )}
 
-            <div className={styles.statusBar} aria-hidden>
-              <m.span
-                className={styles.statusTime}
-                style={{ opacity: statusTimeOpacity }}
-              >
-                {formatClock(now)}
-              </m.span>
-              <span className={styles.statusIcons}>
-                <Signal />
-                <Wifi />
-                <Battery />
-              </span>
-            </div>
-            <div className={styles.island} aria-hidden />
-          </main>
+              <m.div
+                className={styles.dim}
+                style={{ opacity: appDim, zIndex: 25 }}
+                aria-hidden
+              />
+
+              {app === null ? null : (
+                <AppWindow
+                  key={app}
+                  launch={launch}
+                  id={app}
+                  calendar={calendar}
+                  transform={appTransform}
+                  clipPath={appClip}
+                  opacity={appOpacity}
+                  moving={appMoving}
+                  iconOpacity={iconOpacity}
+                  pull={pull}
+                  dragX={dragX}
+                  dragY={dragY}
+                  measure={measure}
+                  onClose={closeApp}
+                  onCancelDrag={cancelDrag}
+                />
+              )}
+
+              <div className={styles.statusBar} aria-hidden>
+                <m.span
+                  className={styles.statusTime}
+                  style={{ opacity: statusTimeOpacity }}
+                >
+                  {formatClock(now)}
+                </m.span>
+                <span className={styles.statusIcons}>
+                  <Signal />
+                  <Wifi />
+                  <Battery />
+                </span>
+              </div>
+              <DynamicIsland />
+            </main>
+          </div>
         </div>
-      </div>
+      </MusicProvider>
     </IphoneDataProvider>
   );
 }
