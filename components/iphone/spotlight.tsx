@@ -14,6 +14,8 @@ import {
   tracksOf,
 } from "@/lib/state/car-kids";
 import type { IphoneAppId } from "@/lib/state/iphone-copy";
+import { PHOTO_LIBRARY } from "@/lib/state/photos";
+import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
@@ -59,6 +61,38 @@ interface SpotlightProps {
 const matches = (haystack: string, query: string) =>
   haystack.toLowerCase().includes(query);
 
+/** Settings pages Spotlight finds, by what someone might type for them. */
+const SETTINGS = [
+  {
+    title: "Wallpaper",
+    detail: "Settings",
+    terms: ["wallpaper", "background", "lock screen"],
+    launch: { settings: "wallpaper" } as AppLaunch,
+  },
+  {
+    title: "iPhone Version",
+    detail: "Settings · Back to the website",
+    terms: ["iphone", "website", "web version", "normal", "classic", "exit"],
+    launch: undefined,
+  },
+];
+
+/** What finds the one contact: the name, the role, and the ways to reach
+ * me, as Spotlight matches any field of a contact card. */
+const CONTACT_TERMS = [
+  SITE.name,
+  "Johannes Mändle",
+  "Maendle",
+  SITE.role,
+  SITE.contact.email,
+  "email",
+  "call",
+  "phone",
+  "contact",
+  "linkedin",
+  "hire",
+];
+
 /** Everything on the phone that matches `q`. Nothing typed is not a match
  * for everything: the empty state shows suggestions instead. */
 function search(q: string, notes: NoteSummary[]) {
@@ -67,6 +101,9 @@ function search(q: string, notes: NoteSummary[]) {
       apps: [],
       clips: [],
       noteHits: [],
+      photoHits: [],
+      projectHits: [],
+      settingHits: [],
       songHits: [],
       contactHit: false,
       nothing: false,
@@ -79,21 +116,44 @@ function search(q: string, notes: NoteSummary[]) {
   const noteHits = notes
     .filter((note) => matches(`${note.title} ${note.excerpt}`, q))
     .slice(0, 6);
-  const songHits = TRACKS.filter((track) => matches(track.title, q)).slice(
-    0,
-    5,
+  // Photos by what they show and where: "san diego", "blossom".
+  const photoHits = PHOTO_LIBRARY.flatMap((photo, index) =>
+    photo.about && matches(`${photo.about.title} ${photo.about.place}`, q)
+      ? [{ index, photo, about: photo.about }]
+      : [],
+  ).slice(0, 6);
+  const projectHits = PROJECTS.filter((project) =>
+    matches(`${project.title} ${project.description} ${project.link}`, q),
   );
-  const contactHit = [SITE.name, "Johannes Mändle", "Maendle", SITE.role].some(
-    (s) => matches(s, q),
+  const settingHits = SETTINGS.filter((setting) =>
+    [setting.title, ...setting.terms].some((term) => matches(term, q)),
   );
+  // The band's name finds its songs, as an artist search does.
+  const songHits = TRACKS.filter((track) =>
+    matches(`${track.title} ${CAR_KIDS.name}`, q),
+  ).slice(0, 5);
+  const contactHit = CONTACT_TERMS.some((s) => matches(s, q));
   const nothing = !(
     apps.length ||
     clips.length ||
     noteHits.length ||
+    photoHits.length ||
+    projectHits.length ||
+    settingHits.length ||
     songHits.length ||
     contactHit
   );
-  return { apps, clips, noteHits, songHits, contactHit, nothing };
+  return {
+    apps,
+    clips,
+    noteHits,
+    photoHits,
+    projectHits,
+    settingHits,
+    songHits,
+    contactHit,
+    nothing,
+  };
 }
 
 /**
@@ -120,6 +180,9 @@ export function Spotlight({
   const controls = useMusicControls();
   const rootRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  /** When it opened: a second tap on the Search pill, under which the
+   * dismiss layer now lies, isn't a tap on the blur. */
+  const [openedAt] = useState(() => performance.now());
 
   // Opened by a swipe, nothing has focus (the home screen went inert under
   // it): take it on the dialog itself, without raising the keyboard, once
@@ -136,10 +199,17 @@ export function Spotlight({
     return () => cancelAnimationFrame(frame);
   }, [pulling]);
 
-  const { apps, clips, noteHits, songHits, contactHit, nothing } = search(
-    q,
-    notes,
-  );
+  const {
+    apps,
+    clips,
+    noteHits,
+    photoHits,
+    projectHits,
+    settingHits,
+    songHits,
+    contactHit,
+    nothing,
+  } = search(q, notes);
 
   // The frosting goes on once Spotlight is at rest: blurring the backdrop
   // under a changing opacity redraws the whole blur every frame. In motion
@@ -219,7 +289,11 @@ export function Spotlight({
       <button
         type="button"
         className={styles.spotlightDismiss}
-        onClick={onClose}
+        onClick={() => {
+          if (performance.now() - openedAt > 400) {
+            onClose();
+          }
+        }}
         aria-label="Close search"
         tabIndex={-1}
       />
@@ -282,6 +356,81 @@ export function Spotlight({
                   date={note.date}
                   onClick={launchFrom("notes", { note: note.slug })}
                 />
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {photoHits.length ? (
+          <>
+            <h2 className={styles.spotlightHeader}>Photos</h2>
+            <div className={styles.spotlightCard}>
+              {photoHits.map(({ index, photo, about }) => (
+                <button
+                  key={photo.file}
+                  type="button"
+                  className={styles.spotlightRow}
+                  onPointerDown={() => APPS.photos.load()}
+                  onClick={launchFrom("photos", { photo: index })}
+                >
+                  <span data-icon className={styles.spotlightSongCover}>
+                    <Image src={photo.image} alt="" fill sizes="72px" />
+                  </span>
+                  <span className={styles.rowMain}>
+                    <span className={styles.rowTitle}>{about.title}</span>
+                    <span className={styles.rowDetail}>
+                      Photos · {about.place}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {projectHits.length ? (
+          <>
+            <h2 className={styles.spotlightHeader}>Safari</h2>
+            <div className={styles.spotlightCard}>
+              {projectHits.map((project) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  className={styles.spotlightRow}
+                  onPointerDown={() => APPS.safari.load()}
+                  onClick={launchFrom("safari")}
+                >
+                  <AppIcon art="safari" className={styles.spotlightRowIcon} />
+                  <span className={styles.rowMain}>
+                    <span className={styles.rowTitle}>{project.title}</span>
+                    <span className={styles.rowDetail}>
+                      {project.link.replace(/^https?:\/\/|\/$/g, "")}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {settingHits.length ? (
+          <>
+            <h2 className={styles.spotlightHeader}>Settings</h2>
+            <div className={styles.spotlightCard}>
+              {settingHits.map((setting) => (
+                <button
+                  key={setting.title}
+                  type="button"
+                  className={styles.spotlightRow}
+                  onPointerDown={() => APPS.settings.load()}
+                  onClick={launchFrom("settings", setting.launch)}
+                >
+                  <AppIcon art="settings" className={styles.spotlightRowIcon} />
+                  <span className={styles.rowMain}>
+                    <span className={styles.rowTitle}>{setting.title}</span>
+                    <span className={styles.rowDetail}>{setting.detail}</span>
+                  </span>
+                </button>
               ))}
             </div>
           </>

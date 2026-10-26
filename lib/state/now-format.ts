@@ -76,3 +76,12 @@ export function ageText(date: string, now: Date): string {
 export function isRecent(date: string, now: Date): boolean {
   return now.getTime() - new Date(date).getTime() <= 14 * 86_400_000;
 }
+
+/** "Nov 22, 2025" as the reader's locale writes a medium date; the text as
+ * given if it doesn't parse. */
+export function mediumDateText(date: string): string {
+  const then = new Date(date);
+  return Number.isNaN(then.getTime())
+    ? date
+    : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(then);
+}

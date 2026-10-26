@@ -126,6 +126,16 @@ long task from 394ms to none.
   spring is caught or lands. Write an identity transform as `none`, as
   framer-motion does: any transform makes a containing block for fixed
   children.
+- When a new animation takes over from motion (an interruption, a
+  finger's release), set its `startTime` to the instant its samples start.
+  Left pending, it stands on its first keyframe until the next commit: a
+  frame or two dead still in the middle of a movement. Measured on the
+  launch interrupted by Escape: a full stop in 3 runs of 3 before, none
+  after. From rest, leave it pending, so a busy first frame isn't skipped.
+- A copy of whatever is leaving, kept on screen while it goes (a closing
+  card when the next app launches, the calendar level being zoomed away
+  from), beats unmounting it in one frame: `cloneNode`, its live styles
+  copied from `getComputedStyle`, a short fade, then removed.
 - Keep transform and opacity in an animation of their own. One property
   the compositor can't run in the same animation takes the whole animation
   off it: the window's `border-radius` sat beside its transform, and

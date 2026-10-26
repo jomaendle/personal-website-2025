@@ -142,6 +142,60 @@ export default function CalendarApp(_: AppProps) {
   } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const viewRef = useLatest(view);
+  const leaveRef = useLatest((origin: { x: number; y: number }, out: boolean) =>
+    leave(origin, out),
+  );
+
+  /** The level being left stays on screen while the next one zooms: a copy
+   * of it, scrolled where it was, growing away behind the level coming in,
+   * or shrinking away in front of it on the way back out. Unmounted at once,
+   * the zoom would come in over black. */
+  const leave = (origin: { x: number; y: number }, out: boolean) => {
+    const root = rootRef.current;
+    const level = root?.querySelector<HTMLElement>(`.${styles.calView}`);
+    if (!(root && level) || reducedMotion()) {
+      return;
+    }
+    const copy = level.cloneNode(true) as HTMLElement;
+    copy.className = styles.calView ?? "";
+    copy.setAttribute("aria-hidden", "true");
+    copy.inert = true;
+    copy.style.pointerEvents = "none";
+    copy.style.transformOrigin = `${origin.x}px ${origin.y}px`;
+    if (out) {
+      root.append(copy);
+    } else {
+      root.prepend(copy);
+    }
+    // A copy starts at the top of every scroller; put each where it was.
+    const scrolled = [...level.querySelectorAll<HTMLElement>("*")];
+    const copies = [...copy.querySelectorAll<HTMLElement>("*")];
+    scrolled.forEach((el, i) => {
+      const twin = copies[i];
+      if (twin && el.scrollTop) {
+        twin.scrollTop = el.scrollTop;
+      }
+    });
+    const away = copy.animate(
+      out
+        ? [
+            { transform: "scale(1)", opacity: 1 },
+            { transform: "scale(0.7)", opacity: 0 },
+          ]
+        : [
+            { transform: "scale(1)", opacity: 1, offset: 0 },
+            { opacity: 1, offset: 0.3 },
+            { transform: "scale(1.6)", opacity: 0, offset: 1 },
+          ],
+      {
+        duration: out ? 380 : 420,
+        easing: "cubic-bezier(0.32, 0.72, 0, 1)",
+        fill: "forwards",
+      },
+    );
+    away.onfinish = () => copy.remove();
+    setTimeout(() => copy.remove(), 700);
+  };
 
   const go = (next: View, from: HTMLElement | null, out: boolean) => {
     const root = rootRef.current;
@@ -149,11 +203,12 @@ export default function CalendarApp(_: AppProps) {
       const r = from.getBoundingClientRect();
       const box = root.getBoundingClientRect();
       const k = box.width / (root.offsetWidth || 1) || 1;
-      setZoom({
+      const origin = {
         x: (r.left + r.width / 2 - box.left) / k,
         y: (r.top + r.height / 2 - box.top) / k,
-        out,
-      });
+      };
+      leave(origin, out);
+      setZoom({ ...origin, out });
     } else {
       setZoom(null);
     }
@@ -169,7 +224,14 @@ export default function CalendarApp(_: AppProps) {
       }
       event.preventDefault();
       event.stopPropagation();
-      setZoom(null);
+      // Back out as the back button goes, from the middle of the day.
+      const root = rootRef.current;
+      const origin = {
+        x: (root?.offsetWidth ?? 0) / 2,
+        y: (root?.offsetHeight ?? 0) / 3,
+      };
+      leaveRef.current(origin, true);
+      setZoom({ ...origin, out: true });
       setView("month");
     };
     window.addEventListener("keydown", onKey, true);
@@ -234,6 +296,10 @@ export default function CalendarApp(_: AppProps) {
     </div>
   );
 }
+
+/** Reduced motion swaps levels with a plain fade, nothing left behind. */
+const reducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ---- Shared chrome --------------------------------------------------------------
 

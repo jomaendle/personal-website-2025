@@ -5,7 +5,7 @@ import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import type { NoteSummary } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
-import type { AppProps } from "../apps";
+import { APPS, type AppProps } from "../apps";
 import { springTo } from "../compositor-spring";
 import { useIphoneData } from "../data";
 import { Compose, Magnifier } from "../glyphs";
@@ -38,7 +38,7 @@ const shortDate = (date: string) => {
  * by the back button, Escape, or a swipe to the right from anywhere in the
  * note, which follows the finger.
  */
-export default function NotesApp({ launch }: AppProps) {
+export default function NotesApp({ launch, openApp }: AppProps) {
   const { notes } = useIphoneData();
   const reduced = useReducedMotion() ?? false;
   const [open, setOpen] = useState<string | null>(
@@ -80,7 +80,9 @@ export default function NotesApp({ launch }: AppProps) {
   };
 
   /** Back to the list, from wherever a swipe left the note. */
-  const pop = (velocity = 0) => {
+  // No velocity (the back button, Escape): it carries on at whatever speed
+  // the stack is already moving.
+  const pop = (velocity?: number) => {
     const slug = open;
     if (!slug || popping.current) {
       return;
@@ -214,9 +216,8 @@ export default function NotesApp({ launch }: AppProps) {
               enterKeyHint="search"
             />
           </label>
-          {/* My notes are the articles: there's nothing for a visitor to
-              write, so New Note is drawn dimmed, as iOS shows an action
-              that isn't available. */}
+          {/* My notes are the articles; what a visitor can write is a note
+              to me, so compose goes to Mail. */}
           <button
             type="button"
             className={cn(
@@ -224,8 +225,9 @@ export default function NotesApp({ launch }: AppProps) {
               styles.glassButtonLarge,
               styles.tinted,
             )}
-            disabled
-            aria-label="New Note (not available)"
+            onClick={() => openApp("mail")}
+            onPointerDown={() => APPS.mail.load()}
+            aria-label="Write to Jo"
           >
             <Compose />
           </button>

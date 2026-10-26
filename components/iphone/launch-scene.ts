@@ -89,9 +89,11 @@ const LONGEST = 2500;
 /** Rest thresholds, per value: within this much, moving this slowly (per
  * second), as framer-motion's restDelta and restSpeed. */
 const REST: Record<Key, [number, number]> = {
-  a: [0.002, 0.05],
-  p: [0.002, 0.05],
-  k: [0.002, 0.05],
+  // About half a pixel of the window's height: rested any sooner, the last
+  // keyframe snaps the final 1.7px in one step.
+  a: [0.0005, 0.012],
+  p: [0.0005, 0.012],
+  k: [0.0005, 0.012],
   dx: [0.5, 10],
   dy: [0.5, 10],
   c: [0.002, 0.05],
@@ -310,14 +312,10 @@ export function pose(
       // faded by the time the stretch would show.
       transform: `scale(${w / origin.size}, ${shown / origin.height})`,
     },
-    splash: {
-      opacity:
-        clamp(state.c, 0, 1) *
-        (1 -
-          (g.fromWidget
-            ? fadeOut(state.a, 0.03, 0.22)
-            : fadeOut(state.a, 0.04, 0.26))),
-    },
+    // Under the art, whole while the cover holds: the art fades over it.
+    // Fading in as the art fades out, the two would leave a dip where
+    // neither covers the window.
+    splash: { opacity: clamp(state.c, 0, 1) },
     homeZoom: { transform: `scale(${1 + 0.08 * ac * (1 - p)})` },
     dim: { opacity: 0.5 * ac * (1 - p) },
   };
@@ -438,6 +436,57 @@ export class LaunchScene {
    * The keys named stop there; any other motion carries on. */
   jump(values: Partial<LaunchState>) {
     this.freeze(Object.keys(values) as Key[], values);
+  }
+
+  /**
+   * Leave a copy of the window where it is on screen, fading as it shrinks
+   * on a little, for when the next launch takes the scene before this one
+   * has gone home: the card doesn't vanish in one frame. Its styles are the
+   * live ones, read from its running animations.
+   */
+  ghost() {
+    const win = this.elements.window;
+    const parent = win?.parentElement;
+    if (!(win && parent)) {
+      return;
+    }
+    const clone = win.cloneNode(true) as HTMLElement;
+    const live = (src: HTMLElement, dst: HTMLElement) => {
+      const cs = getComputedStyle(src);
+      dst.style.transform = cs.transform;
+      dst.style.opacity = cs.opacity;
+      dst.style.borderRadius = cs.borderRadius;
+    };
+    live(win, clone);
+    // The window's own parts (content, icon art, launch screen, widget)
+    // are found in the copy by their place among the window's elements.
+    const all = [...win.querySelectorAll<HTMLElement>("*")];
+    const copies = [...clone.querySelectorAll<HTMLElement>("*")];
+    for (const el of Object.values(this.elements)) {
+      const i = el && el !== win ? all.indexOf(el) : -1;
+      const copy = copies[i];
+      if (el && copy) {
+        live(el, copy);
+      }
+    }
+    clone.removeAttribute("role");
+    clone.removeAttribute("aria-modal");
+    clone.setAttribute("aria-hidden", "true");
+    clone.inert = true;
+    clone.style.pointerEvents = "none";
+    parent.append(clone);
+    const { opacity } = clone.style;
+    const transform =
+      clone.style.transform === "none" ? "" : clone.style.transform;
+    const fade = clone.animate(
+      [
+        { transform: transform || "none", opacity },
+        { transform: `${transform} scale(0.9)`.trim(), opacity: 0 },
+      ],
+      { duration: 180, easing: "ease-in", fill: "forwards" },
+    );
+    fade.onfinish = () => clone.remove();
+    setTimeout(() => clone.remove(), 400);
   }
 
   /** Stop wherever everything is (a finger took hold). */
@@ -562,6 +611,14 @@ export class LaunchScene {
     const duration = (frames.length - 1) * STEP;
     this.elements.window?.toggleAttribute("data-moving", frames.some(moving));
     const poses = frames.map((state) => pose(state, g, reduced));
+    // Taking over from motion (an interruption, a finger's release), the new
+    // animations start now, where the samples start. Left to start on their
+    // own, they wait for the next frame's commit on keyframe 0: a frame or
+    // two standing still in the middle of a movement. From rest they can
+    // wait, so a launch's busy first frame isn't skipped.
+    const handOff =
+      previous.length > 0 ||
+      KEYS.some((key) => Math.abs(velocityAt(this.motions[key], now)) > 1e-3);
     this.running = [];
     if (duration > 0) {
       for (const key of Object.keys(this.elements) as ElementKey[]) {
@@ -575,13 +632,15 @@ export class LaunchScene {
         const [fast, slow] = split(poses.map((p) => p[key] ?? {}));
         for (const keyframes of [fast, slow]) {
           if (keyframes) {
-            this.running.push(
-              el.animate(keyframes, {
-                duration,
-                easing: "linear",
-                fill: "both",
-              }),
-            );
+            const animation = el.animate(keyframes, {
+              duration,
+              easing: "linear",
+              fill: "both",
+            });
+            if (handOff) {
+              animation.startTime = now;
+            }
+            this.running.push(animation);
           }
         }
       }

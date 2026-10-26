@@ -67,6 +67,9 @@ interface OpenOptions {
   instant?: boolean;
   /** Where inside the app to land (a note, for the Notes widget). */
   launch?: AppLaunch;
+  /** What focus goes back to on the way home, when that isn't a button
+   * around `from`: a widget's row, say, when the zoom is the whole widget. */
+  opener?: HTMLElement;
 }
 
 export function Iphone({ notes, photoBytes }: IphoneProps) {
@@ -256,27 +259,26 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
           lockedRef.current &&
           document.activeElement instanceof HTMLElement &&
           document.activeElement !== document.body;
-        setLocked(false);
+        // Committed now, not on the scheduler's next task: called from a
+        // timer (the side button), the commit could land after the frame
+        // that moves focus, onto a layer still inert.
+        flushSync(() => setLocked(false));
         if (focusWasOnLock) {
           // The lock screen just went inert under the focused button.
-          requestAnimationFrame(() =>
-            homeRef.current?.focus({ preventScroll: true }),
-          );
+          homeRef.current?.focus({ preventScroll: true });
         }
       } else {
         store.set(UNLOCKED_KEY, null);
         // Not removed: without the attribute the page would replay its
         // wake-up animation over the lock screen sliding down.
         root.dataset.iphone = "locked";
-        setLocked(true);
+        flushSync(() => setLocked(true));
         // Focus lands on the unlock button either way; its ring only shows
         // when the lock came from the keyboard, not from a click.
-        requestAnimationFrame(() =>
-          unlockButtonRef.current?.focus({
-            preventScroll: true,
-            focusVisible: fromKeyboard,
-          }),
-        );
+        unlockButtonRef.current?.focus({
+          preventScroll: true,
+          focusVisible: fromKeyboard,
+        });
       }
       springTo(unlock, {
         to,
@@ -350,7 +352,25 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   );
 
   const openApp = useCallback(
-    (id: IphoneAppId, { from, instant = false, launch }: OpenOptions = {}) => {
+    (
+      id: IphoneAppId,
+      { from, instant = false, launch, opener: openedBy }: OpenOptions = {},
+    ) => {
+      // Tapped again on its way home: it turns round from where it is, at
+      // the speed it's going, rather than start over from the icon.
+      if (appRef.current === id && closing.current) {
+        closing.current = false;
+        setClosingApp(false);
+        store.set(APP_KEY, id);
+        scene.animate({
+          a: { to: 1, transition: SPRING_OPEN },
+          p: { to: 0, transition: SPRING_OPEN },
+          dx: { to: 0, transition: SPRING_OPEN },
+          dy: { to: 0, transition: SPRING_OPEN },
+          k: { to: 1, transition: SPRING_OPEN },
+        });
+        return;
+      }
       const screen = screenRef.current;
       const icon = from ?? icons.current.get(id);
       // A closing app can be interrupted by the next launch, as on iOS.
@@ -358,13 +378,18 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         return;
       }
       APPS[id].load();
+      // Another app still on its way home: it fades out where it is rather
+      // than disappear when this one takes the window.
+      if (appRef.current && closing.current) {
+        scene.ghost();
+      }
       measure();
       geometry.current.origin = rectWithin(icon, screen);
       geometry.current.previous = geometry.current.origin;
       geometry.current.fromIcon = isAppIcon(icon);
       geometry.current.fromWidget = isWidget(icon);
       originEl.current = icon;
-      opener.current = icon.closest("button");
+      opener.current = openedBy ?? icon.closest("button");
       hideSource(icon);
       // Also stops whatever was still running from the last app.
       // The cover stays up until the window reports its app rendered.
@@ -374,16 +399,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       store.set(APP_KEY, id);
       setLaunch(launch);
       setApp(id);
-      if (!instant) {
-        // Once React has mounted the app (its window is in the scene by
-        // then): the whole launch is handed to the compositor at once, so
-        // it runs at full rate however busy the page is from here on.
-        requestAnimationFrame(() => {
-          if (appRef.current === id && !closing.current) {
-            scene.animate({ a: { to: 1, transition: SPRING_OPEN } });
-          }
-        });
-      }
+      // The window starts the launch from its mount commit (onMounted).
+      pendingLaunch.current = instant ? null : id;
     },
     [measure, hideSource, scene],
   );
@@ -450,6 +467,37 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         });
     },
     [scene, retarget, hideSource],
+  );
+
+  /** The launch waiting for its window: started in the commit that mounts
+   * it, with the window already in the scene, and handed to the compositor
+   * at once, so it runs at full rate however busy the page is from there.
+   * A frame sooner than waiting for the next animation frame to start it. */
+  const pendingLaunch = useRef<IphoneAppId | null>(null);
+  const onWindowMounted = useCallback(
+    (id: IphoneAppId) => {
+      // Not appRef: the window's mount effect runs before this component's
+      // own layout effects have caught it up with the app just set.
+      if (pendingLaunch.current === id && !closing.current) {
+        pendingLaunch.current = null;
+        scene.animate({ a: { to: 1, transition: SPRING_OPEN } });
+      }
+    },
+    [scene],
+  );
+
+  /** From one app straight into another, as following a link to it does:
+   * the open one goes and the other comes out of its icon. A closing app
+   * can be interrupted by a launch, so this is a close, then an open. */
+  const switchApp = useCallback(
+    (id: IphoneAppId, launch?: AppLaunch) => {
+      if (appRef.current === id) {
+        return;
+      }
+      closeApp();
+      openApp(id, { launch });
+    },
+    [openApp, closeApp],
   );
 
   /** Back to full screen, carrying the release speed (down is negative;
@@ -745,6 +793,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
                 className={styles.wallpaper}
               />
+              <div className={styles.scrim} aria-hidden />
               <m.div
                 ref={wallDim}
                 className={styles.dim}
@@ -824,6 +873,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   screen={screenRef.current}
                   onClose={closeApp}
                   onCancelDrag={cancelDrag}
+                  onSwitch={switchApp}
+                  onMounted={onWindowMounted}
                 />
               )}
 

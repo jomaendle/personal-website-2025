@@ -275,7 +275,10 @@ export function LockScreen({
           className={styles.unlockHint}
           onClick={() => onSettle(1)}
         >
-          {IPHONE_COPY.unlockHint}
+          <span className={styles.hintCoarse}>{IPHONE_COPY.unlockHint}</span>
+          <span className={styles.hintFine}>
+            {IPHONE_COPY.unlockHintPointer}
+          </span>
         </button>
         <button
           type="button"
@@ -301,6 +304,7 @@ export function LockScreen({
         sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
         className={cn(styles.wallpaper, styles.lockWallpaper)}
       />
+      <span className={cn(styles.scrim, styles.lockScrim)} aria-hidden />
     </m.div>
   );
 }

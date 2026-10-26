@@ -39,6 +39,8 @@ export const IPHONE_COPY = {
     "My site as an iPhone. Articles in Notes, photographs in Photos, projects in Safari.",
   deviceName: "Jo’s iPhone",
   unlockHint: "Swipe up to open",
+  /** With a mouse or trackpad, where a click, a scroll or a drag opens it. */
+  unlockHintPointer: "Click or scroll up to open",
   lockLabel: "Lock iPhone",
   closeAppLabel: "Close app",
   exitLabel: "jomaendle.com",

@@ -91,11 +91,22 @@ export function Row({
   value,
   bold,
   href,
-  chevron = Boolean(href),
+  chevron,
   titleClassName,
   icon,
   onPress,
 }: RowProps) {
+  // A chevron goes somewhere inside the phone; a link that leaves it says
+  // so with an arrow, as iOS does for anything that opens elsewhere.
+  const leaves = Boolean(href && !href.startsWith("/"));
+  const trailing =
+    chevron === false ? null : leaves ? (
+      <span className={styles.rowValue} aria-hidden>
+        ↗
+      </span>
+    ) : chevron || onPress || href ? (
+      <Chevron className={styles.chevron} />
+    ) : null;
   const content = (
     <>
       {icon}
@@ -114,7 +125,7 @@ export function Row({
       {value === undefined ? null : (
         <span className={styles.rowValue}>{value}</span>
       )}
-      {chevron || onPress ? <Chevron className={styles.chevron} /> : null}
+      {trailing}
     </>
   );
 

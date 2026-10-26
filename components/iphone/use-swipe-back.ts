@@ -22,7 +22,7 @@ interface Swipe {
   /** On-screen width, so the level tracks the finger 1:1 even when the
    * device frame is scaled to fit the window. */
   width: number;
-  /** Where the stack was when the finger landed (mid-spring, perhaps). */
+  /** Where the stack was when the drag took it (mid-spring, perhaps). */
   base: number;
   active: boolean;
   /** Tracks x; its velocity reads leftward-positive, as app-window's. */
@@ -57,6 +57,9 @@ function follow(
       return next === "cancel" ? null : s;
     }
     s.active = true;
+    // Only now does the finger take the slide, wherever it is in flight: a
+    // tap during a push leaves the push alone, as UIKit does.
+    s.base = halt(nav);
     // Track from here, so the level doesn't jump by the slop.
     s.x = event.clientX;
     dx = 0;
@@ -83,15 +86,6 @@ export function useSwipeBack(
     }
     swipe.current = null;
     if (!s.active) {
-      // A touch that caught a slide in flight and lifted without dragging:
-      // let it carry on to whichever end it was nearer.
-      if (s.base > 0 && s.base < 1) {
-        if (s.base < 0.65) {
-          onBack(0);
-        } else {
-          springTo(nav, { to: 1, transition: SPRING_PUSH });
-        }
-      }
       return;
     }
     // Rightward release speed in px/ms.
@@ -111,8 +105,6 @@ export function useSwipeBack(
       if (swipe.current || !swipeable(event)) {
         return;
       }
-      // Catch a slide in flight, where it is on screen.
-      const caught = halt(nav);
       const tracker = new VelocityTracker();
       tracker.add(event.clientX, event.timeStamp);
       swipe.current = {
@@ -120,7 +112,7 @@ export function useSwipeBack(
         x: event.clientX,
         y: event.clientY,
         width: event.currentTarget.getBoundingClientRect().width || 1,
-        base: caught,
+        base: nav.get(),
         active: false,
         tracker,
       };

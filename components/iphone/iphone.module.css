@@ -128,6 +128,11 @@
   .root {
     --top-inset: 54px;
     --bottom-inset: 34px;
+    /* The track too, not just the device in it: in a window shorter than
+       the frame the row would start at the top, and the frame's scale,
+       which shrinks it about its own centre, would leave it hanging off
+       the bottom. (On a phone the device fills a stretched track.) */
+    place-content: center;
   }
 
   /* The wallpaper's own 8px blur placeholder, stretched over the window:
@@ -156,9 +161,9 @@
     top: 20px;
     left: 24px;
     z-index: 1;
-    color: rgb(255 255 255 / 0.7);
+    color: rgb(255 255 255 / 0.85);
     font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.04em;
     text-decoration: none;
   }
@@ -268,6 +273,25 @@
   pointer-events: none;
 }
 
+/* What iOS does under the clock and along the bottom so white text reads on
+   any photo: a soft shade at the top and the foot of the wallpaper, too
+   faint to notice on a dark one. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    rgb(0 0 0 / 0.3),
+    rgb(0 0 0 / 0) 34%,
+    rgb(0 0 0 / 0) 68%,
+    rgb(0 0 0 / 0.32)
+  );
+}
+
+.lockScrim {
+  z-index: -1;
+}
+
 /* A stored wallpaper choice, before the client has rendered it: nothing,
    rather than the default for a frame (see wallpapers.ts). */
 :global(html[data-wallpaper-pending]) .wallpaper,
@@ -363,7 +387,7 @@
   font-size: 21px;
   font-weight: 600;
   letter-spacing: 0;
-  text-shadow: 0 1px 12px rgb(0 0 0 / 0.15);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.3);
   min-height: 1.3em;
 }
 
@@ -535,6 +559,9 @@
   font-size: 15px;
   font-weight: 500;
   color: #fff;
+  text-shadow:
+    0 0 1px rgb(0 0 0 / 0.5),
+    0 1px 6px rgb(0 0 0 / 0.45);
   white-space: nowrap;
   background: none;
   cursor: pointer;
@@ -715,7 +742,10 @@
   font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  /* A tight edge and a soft halo: readable on white flowers or pale sky. */
+  text-shadow:
+    0 0 1px rgb(0 0 0 / 0.55),
+    0 1px 4px rgb(0 0 0 / 0.45);
 }
 
 .cell:active .icon,
@@ -2340,23 +2370,6 @@ button.row:active {
 
 .rowLink {
   color: var(--ios-blue);
-}
-
-/* The nav bar's back button: chevron and the previous page's title. */
-.navBack {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: -4px;
-  padding: 0 4px;
-  min-height: 44px;
-  font-size: 17px;
-  color: var(--ios-blue);
-  cursor: pointer;
-}
-
-.navBack:active {
-  opacity: 0.4;
 }
 
 /* UISwitch: 51×31, the knob 27pt with a soft shadow. */
@@ -4157,13 +4170,11 @@ ol.noteList {
   }
 }
 
+/* Coming back out, the level settles from slightly large under the one
+   leaving, which covers it as it goes: no fade of its own over black. */
 @keyframes cal-zoom-out {
   from {
-    opacity: 0;
     transform: scale(1.35);
-  }
-  50% {
-    opacity: 1;
   }
 }
 
@@ -4361,6 +4372,9 @@ ol.noteList {
 
 .calMini {
   display: block;
+  /* A button centres its content in a stretched cell; a five-week month
+     would sit lower than a six-week one beside it. */
+  align-self: start;
   padding: 4px;
   border-radius: 10px;
   background: none;
@@ -4757,4 +4771,25 @@ button.row:active {
   :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule) {
     outline: 1px solid rgb(255 255 255 / 0.3);
   }
+}
+
+/* The unlock hint names what works with the pointer in use. */
+.hintFine {
+  display: none;
+}
+
+@media (pointer: fine) {
+  .hintCoarse {
+    display: none;
+  }
+
+  .hintFine {
+    display: inline;
+  }
+}
+
+/* An icon held down lifts a little, as iOS does before its menu. */
+.cell[data-held] > :first-child {
+  scale: 1.08;
+  transition: scale 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }

@@ -4,6 +4,7 @@ import { type MotionValue, m } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
+import { mediumDateText } from "@/lib/state/now-format";
 import { FEATURED_PHOTO } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import { AppIcon, type CalendarFace } from "./app-icons";
@@ -11,6 +12,7 @@ import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
 import { useVelocityTracker } from "./motion";
+import { useMinute } from "./use-clock";
 
 const GRID_APPS: IphoneAppId[] = ["calendar", "contacts", "settings", "music"];
 const DOCK_APPS: IphoneAppId[] = ["notes", "safari", "photos", "mail"];
@@ -23,7 +25,7 @@ interface HomeScreenProps {
   registerIcon: (id: IphoneAppId, el: HTMLElement | null) => void;
   onOpen: (
     id: IphoneAppId,
-    options?: { from?: HTMLElement; launch?: AppLaunch },
+    options?: { from?: HTMLElement; launch?: AppLaunch; opener?: HTMLElement },
   ) => void;
   /** The grid's wrapper, which leans in as an app opens over it (moved by
    * the launch scene, apart from the unlock's zoom on the grid itself). */
@@ -63,6 +65,7 @@ export function HomeScreen({
   searchPull,
   onSearchPull,
 }: HomeScreenProps) {
+  const now = useMinute();
   // A swipe down anywhere on the home screen opens Spotlight, as on iOS,
   // even when it starts on an icon: that icon's tap is then swallowed.
   const pull = useRef<{
@@ -74,8 +77,33 @@ export function HomeScreen({
   } | null>(null);
   const swallowClick = useRef(false);
   const tracker = useVelocityTracker();
+  // A long press on an icon lifts it and, as on iOS, doesn't open the app
+  // when the finger comes up. (There are no quick actions to show.)
+  const press = useRef<{ timer: number; cell: HTMLElement | null } | null>(
+    null,
+  );
+  const endPress = () => {
+    if (press.current) {
+      clearTimeout(press.current.timer);
+      press.current.cell?.removeAttribute("data-held");
+      press.current = null;
+    }
+  };
   const onPointerDown = (event: React.PointerEvent) => {
     swallowClick.current = false;
+    endPress();
+    const cell = (event.target as HTMLElement).closest<HTMLElement>(
+      `.${styles.cell}`,
+    );
+    if (cell && event.button === 0) {
+      press.current = {
+        cell,
+        timer: window.setTimeout(() => {
+          swallowClick.current = true;
+          cell.setAttribute("data-held", "");
+        }, 500),
+      };
+    }
     if (event.button === 0) {
       pull.current = {
         id: event.pointerId,
@@ -93,6 +121,9 @@ export function HomeScreen({
       return;
     }
     const dy = event.clientY - start.y;
+    if (Math.hypot(event.clientX - start.x, dy) > 10) {
+      endPress();
+    }
     if (!start.active) {
       if (Math.abs(dy) < 10 || dy < Math.abs(event.clientX - start.x) * 1.5) {
         if (Math.abs(event.clientX - start.x) > 10) {
@@ -112,6 +143,7 @@ export function HomeScreen({
     searchPull.set(Math.max(0, Math.min(1, dy / 140)));
   };
   const endPull = () => {
+    endPress();
     const start = pull.current;
     pull.current = null;
     if (start?.active) {
@@ -120,10 +152,12 @@ export function HomeScreen({
     }
   };
   const notesWidget = useRef<HTMLDivElement>(null);
-  const openNotes = (note?: string) =>
+  // Out of the whole widget, and back to the row or header that was used.
+  const openNotes = (opener: HTMLElement, note?: string) =>
     onOpen("notes", {
       from: notesWidget.current ?? undefined,
       launch: note ? { note } : undefined,
+      opener,
     });
 
   const appButton = (id: IphoneAppId, labelled: boolean) => (
@@ -166,6 +200,12 @@ export function HomeScreen({
       onPointerMove={onPointerMove}
       onPointerUp={endPull}
       onPointerCancel={endPull}
+      // A long press is ours, not the browser's callout.
+      onContextMenu={(event) => {
+        if ((event.target as HTMLElement).closest(`.${styles.cell}`)) {
+          event.preventDefault();
+        }
+      }}
       onClickCapture={(event) => {
         if (swallowClick.current) {
           swallowClick.current = false;
@@ -219,7 +259,7 @@ export function HomeScreen({
               <button
                 type="button"
                 className={styles.widgetNotesHead}
-                onClick={() => openNotes()}
+                onClick={(event) => openNotes(event.currentTarget)}
               >
                 Writing
                 <span aria-hidden>›</span>
@@ -229,10 +269,19 @@ export function HomeScreen({
                   key={note.slug}
                   type="button"
                   className={styles.widgetNote}
-                  onClick={() => openNotes(note.slug)}
+                  onClick={(event) => openNotes(event.currentTarget, note.slug)}
                 >
                   <span className={styles.widgetNoteTitle}>{note.title}</span>
-                  <span className={styles.widgetNoteDate}>{note.date}</span>
+                  {/* In the reader's locale, written before first paint by
+                      NOW_SCRIPT; the server's is the blog's own. */}
+                  <span
+                    className={styles.widgetNoteDate}
+                    data-now="medium"
+                    data-since={note.date}
+                    suppressHydrationWarning
+                  >
+                    {now ? mediumDateText(note.date) : note.date}
+                  </span>
                 </button>
               ))}
             </div>
@@ -242,7 +291,7 @@ export function HomeScreen({
             <button
               type="button"
               className={cn(styles.cellLabel, styles.cellLabelButton)}
-              onClick={() => openNotes()}
+              onClick={(event) => openNotes(event.currentTarget)}
               tabIndex={-1}
               aria-hidden
             >

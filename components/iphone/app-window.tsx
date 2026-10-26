@@ -36,6 +36,10 @@ interface AppWindowProps {
    * px per ms. */
   onClose: (velocity?: number, velocityX?: number) => void;
   onCancelDrag: (velocity: number, velocityX: number) => void;
+  /** Leave for another app (AppProps.openApp). */
+  onSwitch: (id: IphoneAppId, launch?: AppLaunch) => void;
+  /** The window is mounted and in the scene: the launch can start. */
+  onMounted: (id: IphoneAppId) => void;
 }
 
 /** Inside the window's Suspense boundary, after the app: commits only once
@@ -62,6 +66,8 @@ export function AppWindow({
   screen,
   onClose,
   onCancelDrag,
+  onSwitch,
+  onMounted,
 }: AppWindowProps) {
   const App = LAZY_APPS[id];
   const windowRef = useRef<HTMLDivElement>(null);
@@ -86,8 +92,8 @@ export function AppWindow({
   // render again for them, which in Calendar is nineteen months of days.
   const close = useCallback(() => onClose(), [onClose]);
   const content = useMemo(
-    () => <App close={close} launch={launch} />,
-    [App, close, launch],
+    () => <App close={close} launch={launch} openApp={onSwitch} />,
+    [App, close, launch, onSwitch],
   );
 
   // A copy of the widget as it is on screen, at its own size: the window
@@ -140,6 +146,13 @@ export function AppWindow({
   // recalculation of the whole app right as the zoom starts.
   // And only if the app hasn't put focus somewhere of its own by then (a
   // note's title, the Now Playing sheet, a Mail field).
+  // After the effects above: the window's elements are in the scene (their
+  // refs ran in this commit) and the cover is settled.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, on mount
+  useLayoutEffect(() => {
+    onMounted(id);
+  }, []);
+
   useEffect(() => {
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {

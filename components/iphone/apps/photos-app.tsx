@@ -25,8 +25,6 @@ import {
   LibraryGlyph,
   Magnifier,
   Share,
-  Sliders,
-  Trash,
 } from "../glyphs";
 import styles from "../iphone.module.css";
 import {
@@ -130,6 +128,51 @@ function shotKeyframes(
   return { outer, inner };
 }
 
+/** The zoom out of a thumbnail each frame is running, so an interruption
+ * (Escape, a finger) can carry on from where the photo is on screen: its
+ * animations hold no fill, and its inline style says nothing of it. */
+const zooms = new WeakMap<
+  HTMLElement,
+  {
+    from: Shot;
+    to: Shot;
+    progress: number[];
+    t0: number;
+    photo: HTMLElement | null | undefined;
+  }
+>();
+
+/** Stop a zoom in flight and say where it had got to; null if it had
+ * already landed, or there was none. */
+function catchZoom(frame: HTMLElement): Shot | null {
+  const zoom = zooms.get(frame);
+  zooms.delete(frame);
+  if (!zoom) {
+    return null;
+  }
+  const i = ((performance.now() - zoom.t0) / 1000) * FPS;
+  const last = zoom.progress.length - 1;
+  for (const animation of [
+    ...frame.getAnimations(),
+    ...(zoom.photo?.getAnimations() ?? []),
+  ]) {
+    animation.cancel();
+  }
+  if (i >= last) {
+    return null;
+  }
+  const lo = Math.max(0, Math.floor(i));
+  const e = lerp(zoom.progress[lo] ?? 0, zoom.progress[lo + 1] ?? 1, i - lo);
+  const { from, to } = zoom;
+  return {
+    tx: lerp(from.tx, to.tx, e),
+    ty: lerp(from.ty, to.ty, e),
+    u: lerp(from.u, to.u, e),
+    rx: lerp(from.rx, to.rx, e),
+    ry: lerp(from.ry, to.ry, e),
+  };
+}
+
 /** Run a move on the frame and the photo inside it; `done` once it ends. */
 function playShot(
   els: { frame: HTMLElement; photo: HTMLElement | null | undefined },
@@ -150,7 +193,10 @@ function playShot(
   els.photo?.animate(inner, timing);
   const animation = els.frame.animate(outer, timing);
   if (done) {
+    zooms.delete(els.frame);
     animation.onfinish = done;
+  } else {
+    zooms.set(els.frame, { ...move, t0: performance.now(), photo: els.photo });
   }
 }
 
@@ -198,7 +244,7 @@ function putBack(
     playShot(
       els,
       {
-        from: shotOf(frame, W, H),
+        from: catchZoom(frame) ?? shotOf(frame, W, H),
         to,
         progress:
           velocity > 0
@@ -216,6 +262,20 @@ function putBack(
   }
 }
 
+let labelDate: Intl.DateTimeFormat | undefined;
+
+/** What a screen reader hears for a photo: what it shows, where and when,
+ * from the library; a print with nothing written about it is numbered. */
+function photoLabel(index: number) {
+  const photo = PHOTO_LIBRARY[index];
+  const about = photo?.about;
+  if (!(photo && about)) {
+    return `Photo ${index + 1} of ${PHOTOS.length}`;
+  }
+  labelDate ??= new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+  return `${about.title}, ${about.place.split(",")[0]}, ${labelDate.format(photoDate(photo))}`;
+}
+
 /**
  * My photographs as Photos' library grid, under a progressive blur. A photo
  * zooms out of its thumbnail into a viewer and back into it on the way out,
@@ -226,10 +286,14 @@ function putBack(
  * scroll down, or press the info button) and the photo slides up over its
  * info, the way Photos shows a photo's details.
  */
-export default function PhotosApp(_: AppProps) {
+export default function PhotosApp({ launch }: AppProps) {
   const reduced = useReducedMotion() ?? false;
-  const [viewing, setViewing] = useState<number | null>(null);
-  const [current, setCurrent] = useState(0);
+  // Opened on a photo (a Spotlight result), it starts in the viewer.
+  const [viewing, setViewing] = useState<number | null>(launch?.photo ?? null);
+  const [current, setCurrent] = useState(launch?.photo ?? 0);
+  /** That first viewing has no thumbnail on screen to grow out of: the app
+   * itself is still opening. */
+  const launchedOnPhoto = useRef(launch?.photo !== undefined);
   /** The strip's width, measured on its first scroll of a viewing. */
   const stripWidth = useRef(0);
   const [chrome, setChrome] = useState(true);
@@ -289,6 +353,9 @@ export default function PhotosApp(_: AppProps) {
     dy: number;
     /** Where the info panel was when an info drag began. */
     base: number;
+    /** Where the photo was when a dismiss drag caught its zoom in flight,
+     * as a uniform shot the drag moves on from. */
+    from?: { tx: number; ty: number; u: number };
   } | null>(null);
   const tracker = useVelocityTracker();
   /** The viewer is closing from a fast downward flick. */
@@ -359,7 +426,9 @@ export default function PhotosApp(_: AppProps) {
     strip.scrollLeft = viewing * strip.clientWidth;
     strip.focus({ preventScroll: true });
     const frame = frames.current[viewing];
-    const from = reduced ? null : thumbPose(viewing);
+    const fromLaunch = launchedOnPhoto.current;
+    launchedOnPhoto.current = false;
+    const from = reduced || fromLaunch ? null : thumbPose(viewing);
     backdropRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: from ? ZOOM.duration * 0.7 : 200,
       easing: "ease-out",
@@ -591,7 +660,7 @@ export default function PhotosApp(_: AppProps) {
     }
     if (d.mode === "dismiss") {
       tracker.add(event.clientY, event.timeStamp);
-      followFinger(d.dx, d.dy);
+      followFinger(d.dx, d.dy, d.from);
     }
     if (d.mode === "info") {
       tracker.add(event.clientY, event.timeStamp);
@@ -612,6 +681,15 @@ export default function PhotosApp(_: AppProps) {
     }
     if (d.mode === "dismiss") {
       setChrome(false);
+      // Caught on its way out of the thumbnail: the finger takes it from
+      // there, not from full size. The drag scales evenly, so the frame's
+      // squash becomes an even scale of the same width.
+      const frame = frames.current[current];
+      const live = frame && catchZoom(frame);
+      if (live) {
+        const [W] = viewerBox();
+        d.from = { tx: live.tx, ty: live.ty, u: (live.rx * live.u) / W };
+      }
     }
     if (d.mode === "info") {
       d.base = halt(progress);
@@ -630,11 +708,15 @@ export default function PhotosApp(_: AppProps) {
   };
 
   /** The photo shrinks and follows the finger; the black thins behind it. */
-  const followFinger = (dx: number, dy: number) => {
+  const followFinger = (
+    dx: number,
+    dy: number,
+    from = { tx: 0, ty: 0, u: 1 },
+  ) => {
     const frame = frames.current[current];
     const pulled = clamp(dy / (viewerRef.current?.offsetHeight ?? 800), 0, 1);
     if (frame) {
-      frame.style.transform = `translate(${dx}px, ${Math.max(0, dy)}px) scale(${1 - pulled * 0.4})`;
+      frame.style.transform = `translate(${from.tx + dx}px, ${from.ty + Math.max(0, dy)}px) scale(${from.u * (1 - pulled * 0.4)})`;
     }
     if (backdropRef.current) {
       backdropRef.current.style.opacity = String(1 - clamp(pulled * 2.2, 0, 1));
@@ -777,14 +859,6 @@ export default function PhotosApp(_: AppProps) {
             >
               <FilterGlyph />
             </button>
-            <button
-              type="button"
-              className={styles.pill}
-              disabled
-              aria-label="Select (not available)"
-            >
-              Select
-            </button>
           </div>
         </header>
 
@@ -811,7 +885,7 @@ export default function PhotosApp(_: AppProps) {
                       : undefined,
                 }}
                 onClick={() => open(index)}
-                aria-label={`Photo ${index + 1} of ${PHOTOS.length}`}
+                aria-label={photoLabel(index)}
               >
                 {/* No blur placeholder: three dozen of them, each a filtered
                     image to decode, were most of the launch's first frame.
@@ -858,6 +932,7 @@ export default function PhotosApp(_: AppProps) {
           className={styles.viewer}
           data-closing={closing || undefined}
           role="dialog"
+          aria-modal="true"
           aria-label="Photo viewer"
           onKeyDown={(event) => {
             if (event.key === "Escape") {
@@ -934,7 +1009,10 @@ export default function PhotosApp(_: AppProps) {
                         <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
                         <Image
                           src={photo}
-                          alt={`Photograph ${index + 1}`}
+                          alt={
+                            PHOTO_LIBRARY[index]?.about?.description ??
+                            `Photograph ${index + 1}`
+                          }
                           fill
                           sizes={FULL_SIZES}
                           loading="eager"
@@ -997,8 +1075,11 @@ export default function PhotosApp(_: AppProps) {
                     behavior: reduced ? "auto" : "smooth",
                   })
                 }
-                aria-label={`Show photo ${index + 1}`}
+                aria-label={`Show ${photoLabel(index)}`}
                 aria-current={index === current}
+                // One stop in the tab order, not 32: the arrow keys move
+                // between photos already.
+                tabIndex={index === current ? 0 : -1}
               >
                 {/* The thumbnails near the current photo; the rest are plain
                     slots until they come near, as a strip of three dozen
@@ -1076,9 +1157,9 @@ function ViewerBar({
   );
 }
 
-/** iOS 26's photo toolbar: Share, then Favorite, Info and Edit in one glass
- * capsule, then Delete. Edit and Delete belong to the library's owner, not a
- * visitor, so they are drawn dimmed, as unavailable actions are. */
+/** iOS 26's photo toolbar: Share, then Favorite and Info in one glass
+ * capsule. Edit and Delete belong to the library's owner, not a visitor, so
+ * they are left out rather than shown and dead. */
 function ViewerTools({
   hidden,
   favorite,
@@ -1139,20 +1220,7 @@ function ViewerTools({
         >
           <InfoGlyph filled={info} />
         </button>
-        <span className={styles.unavailable} aria-hidden>
-          <Sliders />
-        </span>
       </div>
-      <span
-        className={cn(
-          styles.glassButton,
-          styles.glassButtonLarge,
-          styles.unavailable,
-        )}
-        aria-hidden
-      >
-        <Trash />
-      </span>
     </div>
   );
 }

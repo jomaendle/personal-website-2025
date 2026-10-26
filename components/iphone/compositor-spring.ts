@@ -189,6 +189,11 @@ export function springTo(
     );
   }
   const duration = (samples.length - 1) * STEP;
+  const t0 = performance.now();
+  // Taking over from motion, start now, where the samples start, rather than
+  // stand on the first keyframe until the next commit (see launch-scene).
+  const handOff =
+    Boolean(previous) || Math.abs(velocity ?? start.velocity) > 1e-3;
   const animations: Animation[] = [];
   for (const { el, style } of bindings ?? registry.get(mv)?.() ?? []) {
     if (!el || duration <= 0) {
@@ -198,13 +203,15 @@ export function springTo(
     // so it can't take the transform and opacity off the compositor.
     for (const keyframes of split(samples.map(style))) {
       if (keyframes) {
-        animations.push(
-          el.animate(keyframes, {
-            duration,
-            easing: "linear",
-            fill: "forwards",
-          }),
-        );
+        const animation = el.animate(keyframes, {
+          duration,
+          easing: "linear",
+          fill: "forwards",
+        });
+        if (handOff) {
+          animation.startTime = t0;
+        }
+        animations.push(animation);
       }
     }
   }
@@ -218,7 +225,7 @@ export function springTo(
   }
   mv.jump(to);
   return new Promise((resolve) => {
-    const run: Run = { t0: performance.now(), samples, animations, resolve };
+    const run: Run = { t0, samples, animations, resolve };
     runs.set(mv, run);
     const done = () => {
       if (runs.get(mv) !== run) {

@@ -11,12 +11,19 @@ export interface AppLaunch {
   note?: string;
   /** Music: open on Now Playing (from the lock screen or Spotlight). */
   nowPlaying?: boolean;
+  /** Photos: open on this photo (its index in the library). */
+  photo?: number;
+  /** Settings: open on this page. */
+  settings?: "wallpaper";
 }
 
 export interface AppProps {
   /** Send the app home, as the home indicator would. */
   close: () => void;
   launch?: AppLaunch;
+  /** Go to another app, as a link to it does on iOS: this one goes and the
+   * other opens out of its icon. */
+  openApp: (id: IphoneAppId, launch?: AppLaunch) => void;
 }
 
 interface AppEntry {

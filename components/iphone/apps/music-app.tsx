@@ -25,7 +25,13 @@ import {
   SpeakerGlyph,
 } from "../glyphs";
 import styles from "../iphone.module.css";
-import { FADE, rubberband, SPRING_PUSH, useVelocityTracker } from "../motion";
+import {
+  FADE,
+  rubberband,
+  SPRING_PUSH,
+  springEasing,
+  useVelocityTracker,
+} from "../motion";
 import { useMusic, useMusicControls, useMusicTime } from "../music/player";
 import { useLatest } from "../use-latest";
 import { usePushStack } from "../use-push-stack";
@@ -120,7 +126,9 @@ export default function MusicApp({ launch }: AppProps) {
     });
   };
 
-  const pop = (velocity = 0) => {
+  // No velocity (the back button, Escape): it carries on at whatever speed
+  // the stack is already moving.
+  const pop = (velocity?: number) => {
     if (popping.current) {
       return;
     }
@@ -622,10 +630,35 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     if (!(d && el)) {
       return;
     }
-    el.style.transition = "";
-    el.style.transform = "";
-    // Far enough, or flicked down: the tracker reports upward as positive.
-    if (d.active && (d.dy > 120 || -tracker.velocity() > 0.3)) {
+    // Downward speed, px per ms (the tracker reports upward as positive).
+    const vy = -tracker.velocity();
+    // Far enough, or flicked down.
+    const closing = d.active && (d.dy > 120 || vy > 0.3);
+    if (d.active) {
+      // From where the finger left it, at the finger's speed, on a spring:
+      // the sheet's own transition would start from rest and run its fixed
+      // half second whatever the flick. The class change it goes to happens
+      // underneath, with the transition off, and the spring covers it.
+      const from = `translateY(${d.dy}px)`;
+      const distance = closing ? el.offsetHeight * 1.02 - d.dy : d.dy;
+      const speed = distance > 1 ? ((closing ? vy : -vy) * 1000) / distance : 0;
+      el.style.transition = "none";
+      const spring = el.animate(
+        [
+          { transform: from },
+          { transform: closing ? "translateY(102%)" : "none" },
+        ],
+        springEasing(Math.max(0, speed), { stiffness: 300, damping: 1 }),
+      );
+      el.style.transform = "";
+      spring.onfinish = () => {
+        el.style.transition = "";
+      };
+    } else {
+      el.style.transition = "";
+      el.style.transform = "";
+    }
+    if (closing) {
       onClose();
     }
   };
@@ -635,6 +668,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
       ref={sheet}
       className={cn(styles.nowPlaying, open && styles.nowPlayingOpen)}
       role="dialog"
+      aria-modal={open || undefined}
       aria-label="Now Playing"
       aria-hidden={!open}
       inert={!open}

@@ -43,9 +43,12 @@ const appIcon = (art: Parameters<typeof AppIcon>[0]["art"]) => (
  * reach me as system rows, the apps with what each one holds, and the
  * phone's own settings: the wallpaper, and the way back to the plain site.
  * Wallpaper pushes its own page, as Settings does. */
-export default function SettingsApp(_: AppProps) {
-  const [page, setPage] = useState<"wallpaper" | null>(null);
-  const stack = usePushStack(0);
+export default function SettingsApp({ launch, openApp }: AppProps) {
+  // Opened on a page (from Spotlight): already pushed, as iOS does.
+  const [page, setPage] = useState<"wallpaper" | null>(
+    launch?.settings ?? null,
+  );
+  const stack = usePushStack(launch?.settings ? 1 : 0);
   const { nav, reduced } = stack;
   const popping = useRef(false);
   const opener = useRef<HTMLElement | null>(null);
@@ -62,7 +65,9 @@ export default function SettingsApp(_: AppProps) {
     });
   };
 
-  const pop = (velocity = 0) => {
+  // No velocity (the back button, Escape): it carries on at whatever speed
+  // the stack is already moving.
+  const pop = (velocity?: number) => {
     if (popping.current) {
       return;
     }
@@ -114,7 +119,7 @@ export default function SettingsApp(_: AppProps) {
         style={stack.backStyle}
         inert={page !== null}
       >
-        <SettingsRoot onWallpaper={push} />
+        <SettingsRoot onWallpaper={push} openApp={openApp} />
         <m.div
           ref={stack.dimRef}
           className={styles.navDim}
@@ -136,7 +141,13 @@ export default function SettingsApp(_: AppProps) {
   );
 }
 
-function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
+function SettingsRoot({
+  onWallpaper,
+  openApp,
+}: {
+  onWallpaper: () => void;
+  openApp: AppProps["openApp"];
+}) {
   const router = useRouter();
   const wallpaper = useWallpaper();
   /** The "iPhone" switch: off means the plain site, which it then opens. */
@@ -154,7 +165,7 @@ function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
 
       <div className={styles.group}>
         <Row
-          href="/"
+          onPress={() => openApp("contacts")}
           icon={
             <span className={styles.profileMonogram} aria-hidden>
               {SITE_INITIALS}
@@ -167,14 +178,13 @@ function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
 
       <Group iconInset>
         <Row
-          href={`mailto:${SITE.contact.email}`}
+          onPress={() => openApp("mail")}
           icon={
             <Tile color="#0a84ff">
               <Envelope width={18} height={18} />
             </Tile>
           }
           title="Email"
-          chevron
         />
         <Row
           href={SITE.contact.booking}
@@ -195,22 +205,25 @@ function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
 
       <Group iconInset>
         <Row
-          href="/blog"
+          onPress={() => openApp("notes")}
           icon={appIcon("notes")}
           title="Notes"
           value={`${BLOG_POSTS.length} articles`}
         />
         <Row
+          onPress={() => openApp("photos")}
           icon={appIcon("photos")}
           title="Photos"
           value={`${PHOTOS.length} photos`}
         />
         <Row
+          onPress={() => openApp("music")}
           icon={appIcon("music")}
           title="Music"
           value={`${TRACKS.length} songs`}
         />
         <Row
+          onPress={() => openApp("safari")}
           icon={appIcon("safari")}
           title="Safari"
           value={`${PROJECTS.length} projects`}
@@ -234,11 +247,7 @@ function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
         <Row
           title="iPhone Version"
           value={
-            <Switch
-              checked={phone}
-              onChange={leave}
-              label="Show the site as an iPhone"
-            />
+            <Switch checked={phone} onChange={leave} label="iPhone Version" />
           }
         />
       </Group>
@@ -294,11 +303,11 @@ function WallpaperPage({
         leading={
           <button
             type="button"
-            className={styles.navBack}
+            className={styles.glassButton}
             onClick={() => onBack()}
+            aria-label="Back to Settings"
           >
             <BackChevron width={10} height={17} />
-            Settings
           </button>
         }
       />
