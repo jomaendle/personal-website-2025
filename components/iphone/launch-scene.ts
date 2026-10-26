@@ -49,10 +49,14 @@ export interface LaunchState {
   dx: number;
   dy: number;
   k: number;
+  /** The cover: 1 while the icon (or widget) art must stay over the window
+   * because the app inside hasn't rendered yet (its code still loading on
+   * a first open), 0 once it has. iOS holds the launch image the same way. */
+  c: number;
 }
 
 type Key = keyof LaunchState;
-const KEYS: Key[] = ["a", "p", "dx", "dy", "k"];
+const KEYS: Key[] = ["a", "p", "dx", "dy", "k", "c"];
 
 /** What the scene reads of a framer-motion transition (motion.ts): a
  * spring's visual duration and bounce, or a tween's duration in seconds. */
@@ -87,6 +91,7 @@ const REST: Record<Key, [number, number]> = {
   k: [0.002, 0.05],
   dx: [0.5, 10],
   dy: [0.5, 10],
+  c: [0.002, 0.05],
 };
 
 /** framer-motion's mapping from a visual duration and bounce to a spring:
@@ -262,8 +267,8 @@ export function pose(
     return {
       window: { transform: "none", opacity: ac, borderRadius: `${radius}px` },
       content: { transform: "none" },
-      icon: { opacity: 0 },
-      widget: { opacity: 0 },
+      icon: { opacity: g.fromIcon ? state.c : 0 },
+      widget: { opacity: g.fromWidget ? state.c : 0 },
       homeZoom: { transform: "none" },
       dim: { opacity: 0.5 * ac },
     };
@@ -274,19 +279,26 @@ export function pose(
     window: {
       transform: `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale}, ${scale * squash})`,
       // Out of anything but an icon or widget (a song's cover, a banner),
-      // the app fades in over it as it grows.
-      opacity: g.fromIcon || g.fromWidget ? 1 : clamp(state.a / 0.3, 0, 1),
+      // the app fades in over it as it grows; with nothing to cover it, not
+      // before it has rendered.
+      opacity:
+        g.fromIcon || g.fromWidget
+          ? 1
+          : clamp(state.a / 0.3, 0, 1) * (1 - clamp(state.c, 0, 1)),
       borderRadius: `${r}px / ${r / squash}px`,
     },
     content: { transform: `scale(1, ${1 / squash})` },
     icon: {
-      opacity: g.fromIcon ? fadeOut(state.a, 0.04, 0.26) : 0,
+      // Hands over to the app early in the zoom, or once the app is there.
+      opacity: g.fromIcon ? Math.max(fadeOut(state.a, 0.04, 0.26), state.c) : 0,
       // The art covers what the window shows of itself, as iOS scales the
       // icon's snapshot with the window.
       transform: `translateY(-50%) scale(${shown / w})`,
     },
     widget: {
-      opacity: g.fromWidget ? fadeOut(state.a, 0.03, 0.22) : 0,
+      opacity: g.fromWidget
+        ? Math.max(fadeOut(state.a, 0.03, 0.22), state.c)
+        : 0,
       // Stretched to fill the window, as iOS stretches the snapshot; it has
       // faded by the time the stretch would show.
       transform: `scale(${w / origin.size}, ${shown / origin.height})`,
@@ -342,9 +354,15 @@ export class LaunchScene {
     dx: { kind: "still", value: 0 },
     dy: { kind: "still", value: 0 },
     k: { kind: "still", value: 1 },
+    c: { kind: "still", value: 0 },
   };
   private running: Animation[] = [];
-  private finish: ((completed: boolean) => void) | null = null;
+  /** Whoever is waiting on a move: the values it asked for, and the
+   * answer. Settled true when everything rests; false as soon as one of
+   * its values is moved or set by someone else. A move of other values
+   * (the cover fading while a close runs) leaves it waiting. */
+  private waiters: { keys: Set<Key>; resolve: (completed: boolean) => void }[] =
+    [];
   private timer: ReturnType<typeof setTimeout> | undefined;
   private elements: SceneElements = {
     window: null,
@@ -391,7 +409,8 @@ export class LaunchScene {
   /** Set values outright, no motion: a finger's drag, a restore, a reset. */
   jump(values: Partial<LaunchState>) {
     const state = { ...this.get(), ...values };
-    this.stop(false);
+    const keys = Object.keys(values) as Key[];
+    this.stop(keys.length ? keys : KEYS);
     for (const key of KEYS) {
       this.motions[key] = { kind: "still", value: state[key] };
     }
@@ -410,10 +429,29 @@ export class LaunchScene {
    */
   animate(targets: Partial<Record<Key, Target>>): Promise<boolean> {
     const now = performance.now();
+    const keys = Object.keys(targets) as Key[];
+    this.interrupt(keys);
     for (const key of KEYS) {
       this.motions[key] = this.next(key, targets[key], now);
     }
-    return this.play(now);
+    this.play(now);
+    return new Promise((resolve) => {
+      this.waiters.push({ keys: new Set(keys), resolve });
+    });
+  }
+
+  /** Answer false to whoever was waiting on any of `keys`. */
+  private interrupt(keys: Key[]) {
+    const taken = new Set(keys);
+    const kept: typeof this.waiters = [];
+    for (const waiter of this.waiters) {
+      if ([...waiter.keys].some((key) => taken.has(key))) {
+        waiter.resolve(false);
+      } else {
+        kept.push(waiter);
+      }
+    }
+    this.waiters = kept;
   }
 
   /** A value's motion from `now`: a new spring (or tween) toward its
@@ -472,13 +510,11 @@ export class LaunchScene {
   }
 
   /** Sample every motion from `now` until all rest, and run it. */
-  private play(now: number): Promise<boolean> {
+  private play(now: number) {
     const g = this.geometry();
     const reduced = this.reduced();
     const frames = this.sample(now);
     const previous = this.running;
-    const resolvePrevious = this.finish;
-    this.finish = null;
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
@@ -513,34 +549,26 @@ export class LaunchScene {
     for (const animation of previous) {
       animation.cancel();
     }
-    resolvePrevious?.(false);
     // The final pose as the element's own style, under the animation, so
     // it stays put once the animation is dropped.
     this.write(final, undefined, false);
-    return this.whenDone(final, duration);
-  }
-
-  /** Settles once the animations end; false if they're superseded. */
-  private whenDone(final: LaunchState, duration: number): Promise<boolean> {
-    return new Promise((resolve) => {
-      this.finish = resolve;
-      // When the animations themselves end (they run on their own clock,
-      // which a background tab slows); a timer when nothing is drawn.
-      const lead = this.running[0];
-      if (lead) {
-        lead.finished.then(
-          () => {
-            if (this.running[0] === lead) {
-              this.settle(final);
-            }
-          },
-          // Cancelled: superseded, and the next move took over.
-          () => undefined,
-        );
-      } else {
-        this.timer = setTimeout(() => this.settle(final), duration);
-      }
-    });
+    // Settle when the animations themselves end (they run on their own
+    // clock, which a background tab slows); on a timer when nothing is
+    // drawn.
+    const lead = this.running[0];
+    if (lead) {
+      lead.finished.then(
+        () => {
+          if (this.running[0] === lead) {
+            this.settle(final);
+          }
+        },
+        // Cancelled: superseded, and the next move took over.
+        () => undefined,
+      );
+    } else {
+      this.timer = setTimeout(() => this.settle(final), duration);
+    }
   }
 
   private settle(final: LaunchState) {
@@ -552,24 +580,25 @@ export class LaunchScene {
     }
     this.running = [];
     this.write(final);
-    const resolve = this.finish;
-    this.finish = null;
-    resolve?.(true);
+    const waiters = this.waiters;
+    this.waiters = [];
+    for (const waiter of waiters) {
+      waiter.resolve(true);
+    }
     for (const listener of this.settleListeners) {
       listener(final);
     }
   }
 
-  /** Stop the running animation where it is. */
-  private stop(completed: boolean) {
+  /** Stop the running animations where they are; whoever waited on any
+   * of `keys` is told they didn't finish. */
+  private stop(keys: Key[]) {
     clearTimeout(this.timer);
     for (const animation of this.running) {
       animation.cancel();
     }
     this.running = [];
-    const resolve = this.finish;
-    this.finish = null;
-    resolve?.(completed);
+    this.interrupt(keys);
   }
 
   /** Put elements in a state's pose as their own style. */

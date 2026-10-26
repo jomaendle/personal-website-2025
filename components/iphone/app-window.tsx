@@ -38,6 +38,13 @@ interface AppWindowProps {
   onCancelDrag: (velocity: number, velocityX: number) => void;
 }
 
+/** Inside the window's Suspense boundary, after the app: commits only once
+ * the app has, so its first layout effect is the moment the app is there. */
+function Rendered({ onRendered }: { onRendered: () => void }) {
+  useLayoutEffect(onRendered, [onRendered]);
+  return null;
+}
+
 /**
  * A running app. It zooms out of its icon (the icon art fading over the top
  * for the first third, as on iOS) and goes home by a swipe up from the home
@@ -102,6 +109,32 @@ export function AppWindow({
     }
     box.replaceChildren(copy);
   }, [widget]);
+
+  // The icon (or widget) art covers the window until the app inside has
+  // rendered, as iOS holds an app's launch image: its code may still be
+  // downloading on a first open, and the window under it is black until
+  // then. Rendered in the same commit as the window (the code was already
+  // here), the cover drops at once and the zoom's own hand-over runs; later,
+  // it fades out from wherever the zoom has got to.
+  // A child's layout effect runs before its parent's: on the first commit
+  // `rendered` is set before the window's own effect below reads it, and
+  // `mounted` is still false, so the cover is dropped rather than faded.
+  const mounted = useRef(false);
+  const rendered = useRef(false);
+  const onRendered = useCallback(() => {
+    rendered.current = true;
+    if (mounted.current) {
+      scene.animate({
+        c: { to: 0, transition: { type: "tween", duration: 0.2 } },
+      });
+    }
+  }, [scene]);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    if (rendered.current) {
+      scene.jump({ c: 0 });
+    }
+  }, [scene]);
 
   // After the first frames, not during the mount: focusing forces a style
   // recalculation of the whole app right as the zoom starts.
@@ -253,7 +286,10 @@ export function AppWindow({
         inert={leaving}
       >
         <div ref={contentEl} className={styles.appContent}>
-          <Suspense fallback={null}>{content}</Suspense>
+          <Suspense fallback={null}>
+            {content}
+            <Rendered onRendered={onRendered} />
+          </Suspense>
           <div ref={iconEl} className={styles.appIconOverlay}>
             <AppIcon art={APPS[id].art} calendar={calendar} />
           </div>

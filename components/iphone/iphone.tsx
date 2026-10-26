@@ -386,7 +386,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       opener.current = icon.closest("button");
       hideSource(icon);
       // Also stops whatever was still running from the last app.
-      scene.jump({ a: instant ? 1 : 0, p: 0, dx: 0, dy: 0, k: 1 });
+      // The cover stays up until the window reports its app rendered.
+      scene.jump({ a: instant ? 1 : 0, p: 0, dx: 0, dy: 0, k: 1, c: 1 });
       closing.current = false;
       setClosingApp(false);
       store.set(APP_KEY, id);
@@ -657,19 +658,17 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [closeApp, closeSpotlight]);
 
-  // Warm every app's chunk once the phone is unlocked and the main thread
-  // has nothing better to do.
+  // Warm every app's chunk once the main thread has nothing better to do:
+  // while the lock screen is up, when the network is otherwise idle, so a
+  // first open after the unlock isn't waiting on a download.
   useEffect(() => {
-    if (locked) {
-      return;
-    }
     if ("requestIdleCallback" in window) {
-      const handle = requestIdleCallback(preloadAllApps, { timeout: 3000 });
+      const handle = requestIdleCallback(preloadAllApps, { timeout: 1500 });
       return () => cancelIdleCallback(handle);
     }
-    const handle = setTimeout(preloadAllApps, 1500);
+    const handle = setTimeout(preloadAllApps, 800);
     return () => clearTimeout(handle);
-  }, [locked]);
+  }, []);
 
   return (
     <IphoneDataProvider value={data}>
@@ -704,7 +703,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                       closing.current = false;
                       // Stops an opening spring, which would otherwise finish
                       // and leave the dim layer over the lock screen.
-                      scene.jump({ a: 0, p: 0, dx: 0, dy: 0, k: 1 });
+                      scene.jump({ a: 0, p: 0, dx: 0, dy: 0, k: 1, c: 0 });
                       setApp(null);
                       setClosingApp(false);
                       hideSource(null);
