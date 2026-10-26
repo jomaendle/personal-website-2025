@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { SITE } from "@/lib/config/site";
 import { IPHONE_COPY, MAIL_ALERTS } from "@/lib/state/iphone-copy";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
+import { showBanner } from "../banner";
 import { ArrowUp, Close, Compose } from "../glyphs";
 import styles from "../iphone.module.css";
 import { store } from "../persist";
@@ -66,6 +67,7 @@ function findProblem(name: string, email: string, topic: string): Alert | null {
  * the draft intact.
  */
 const DRAFT_KEY = "iphone:mail";
+const SENT_KEY = "iphone:mail-sent";
 
 const readDraft = () => {
   const empty = { name: "", email: "", subject: "", body: "" };
@@ -75,6 +77,96 @@ const readDraft = () => {
     return empty;
   }
 };
+
+/** The Sent mailbox, kept for the visit like the draft. */
+const readSent = (): SentMessage[] => {
+  try {
+    const list = JSON.parse(store.get(SENT_KEY) ?? "[]");
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+};
+
+type Outcome = { ok: true } | { ok: false; message: string };
+
+/** The message on its way, if one is. Module state, not the component's:
+ * Mail can be closed (and opened again) while it sends, and the send
+ * carries on and finishes either way. */
+let inFlight: (SentMessage & { done: Promise<Outcome> }) | null = null;
+/** How many Mail windows are open, to know whether anyone saw the result. */
+let openWindows = 0;
+
+async function post(payload: {
+  name: string;
+  email: string;
+  topic: string;
+}): Promise<Outcome> {
+  try {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return { ok: true };
+    }
+    const data = await res.json().catch(() => ({}));
+    return {
+      ok: false,
+      message:
+        res.status === 429
+          ? MAIL_ALERTS.failed.rateLimited
+          : data.details || MAIL_ALERTS.failed.fallback,
+    };
+  } catch {
+    return { ok: false, message: MAIL_ALERTS.failed.offline };
+  }
+}
+
+/**
+ * Send, and record the result where it outlives the window: a sent message
+ * goes into Sent and out of the draft; a failed one stays the draft. With
+ * Mail closed by the time it's done, a banner says how it went.
+ */
+function deliver(
+  message: SentMessage,
+  payload: { name: string; email: string; topic: string },
+) {
+  const done = post(payload).then((outcome) => {
+    inFlight = null;
+    if (outcome.ok) {
+      store.set(
+        DRAFT_KEY,
+        JSON.stringify({
+          name: payload.name,
+          email: payload.email,
+          subject: "",
+          body: "",
+        }),
+      );
+      store.set(SENT_KEY, JSON.stringify([message, ...readSent()]));
+    }
+    if (openWindows === 0) {
+      showBanner(
+        outcome.ok
+          ? {
+              app: "mail",
+              title: "Message Sent",
+              body: message.subject || message.body,
+            }
+          : {
+              app: "mail",
+              title: MAIL_ALERTS.failed.title,
+              body: "Your message is still in Mail. Tap to try again.",
+            },
+      );
+    }
+    return outcome;
+  });
+  inFlight = { ...message, done };
+  return done;
+}
 
 export default function MailApp({ close }: AppProps) {
   // The draft outlives the app, as Mail keeps an unsent message: closed
@@ -86,17 +178,49 @@ export default function MailApp({ close }: AppProps) {
   const [body, setBody] = useState(draft.body);
   /** The message being sent: its row keeps this id when it lands in Sent,
    * so it is one row that finishes sending, not one swapped for another. */
-  const [outgoingId, setOutgoingId] = useState(0);
-  const [phase, setPhase] = useState<Phase>("composing");
+  // Opened again while a message is still sending: it's still sending.
+  const [outgoingId, setOutgoingId] = useState(() => inFlight?.id ?? 0);
+  const [phase, setPhase] = useState<Phase>(() =>
+    inFlight ? "sending" : "composing",
+  );
   const [alert, setAlert] = useState<Alert | null>(null);
   /** The alert just dismissed, fading out. */
   const [fading, setFading] = useState<Alert | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [sent, setSent] = useState<SentMessage[]>([]);
+  const [sent, setSent] = useState<SentMessage[]>(readSent);
+  const mounted = useRef(false);
 
   useEffect(() => {
     store.set(DRAFT_KEY, JSON.stringify({ name, email, subject, body }));
   }, [name, email, subject, body]);
+
+  /** A send finished: show it here, if this window is still open. */
+  const settle = (outcome: Outcome) => {
+    if (!mounted.current) {
+      return;
+    }
+    if (outcome.ok) {
+      setSent(readSent());
+      setSubject("");
+      setBody("");
+      setPhase("sent");
+    } else {
+      setPhase("composing");
+      setAlert({ title: MAIL_ALERTS.failed.title, message: outcome.message });
+    }
+  };
+  const onSettled = useEffectEvent(settle);
+
+  useEffect(() => {
+    mounted.current = true;
+    openWindows += 1;
+    // Picks up a send started by a window closed since.
+    inFlight?.done.then(onSettled);
+    return () => {
+      mounted.current = false;
+      openWindows -= 1;
+    };
+  }, []);
 
   const sendRef = useRef<HTMLButtonElement>(null);
   const keyboard = useKeyboardInset();
@@ -129,45 +253,12 @@ export default function MailApp({ close }: AppProps) {
     const id = Date.now();
     setOutgoingId(id);
     setPhase("sending");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), topic }),
-      });
-      if (res.ok) {
-        // Straight to storage too: closed mid-send, the component is gone
-        // and its state with it, and a sent message mustn't come back as a
-        // draft.
-        store.set(
-          DRAFT_KEY,
-          JSON.stringify({ name, email, subject: "", body: "" }),
-        );
-        setSent((list) => [
-          { id, subject: subject.trim(), body: body.trim() },
-          ...list,
-        ]);
-        setSubject("");
-        setBody("");
-        setPhase("sent");
-        return;
-      }
-      const data = await res.json().catch(() => ({}));
-      setPhase("composing");
-      setAlert({
-        title: MAIL_ALERTS.failed.title,
-        message:
-          res.status === 429
-            ? MAIL_ALERTS.failed.rateLimited
-            : data.details || MAIL_ALERTS.failed.fallback,
-      });
-    } catch {
-      setPhase("composing");
-      setAlert({
-        title: MAIL_ALERTS.failed.title,
-        message: MAIL_ALERTS.failed.offline,
-      });
-    }
+    settle(
+      await deliver(
+        { id, subject: subject.trim(), body: body.trim() },
+        { name: name.trim(), email: email.trim(), topic },
+      ),
+    );
   };
 
   /** Return in a single-line field moves on, as in Mail. */

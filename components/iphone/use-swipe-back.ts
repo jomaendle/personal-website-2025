@@ -38,7 +38,9 @@ const swipeable = (event: React.PointerEvent<HTMLElement>) =>
 function releaseVelocity(samples: Sample[]) {
   const first = samples[0];
   const last = samples.at(-1);
-  return first && last && last.t > first.t
+  // A finger that stopped before letting go isn't flicking: the samples
+  // are from before it stopped (pointer events only come with movement).
+  return first && last && last.t > first.t && performance.now() - last.t <= 60
     ? (last.x - first.x) / (last.t - first.t)
     : 0;
 }

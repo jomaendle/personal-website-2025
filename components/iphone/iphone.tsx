@@ -27,6 +27,7 @@ import {
 import { PHOTOS, WALLPAPER } from "@/lib/state/photos";
 import { AppWindow } from "./app-window";
 import { APPS, type AppLaunch, preloadAllApps } from "./apps";
+import { BannerHost } from "./banner";
 import { IphoneDataProvider } from "./data";
 import { Battery, Signal, Wifi } from "./glyphs";
 import { HomeScreen } from "./home-screen";
@@ -170,6 +171,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const searchButton = useRef<HTMLButtonElement>(null);
   /** Notifications already opened this visit, which the lock screen drops. */
   const [seen, setSeen] = useState<IphoneAppId[]>([]);
+  // Kept for the visit; written here rather than in the updater, which
+  // React may run twice.
+  useEffect(() => {
+    if (seen.length > 0) {
+      store.set(SEEN_KEY, JSON.stringify(seen));
+    }
+  }, [seen]);
   const appRef = useRef(app);
   appRef.current = app;
 
@@ -509,8 +517,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * which the springs carry on from; anything else (a click event, from a
    * button using this as its handler) counts as none. */
   const closeApp = useCallback(
-    (velocity?: unknown) => {
+    (velocity?: unknown, velocityX?: number) => {
       const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
+      const vx = typeof velocityX === "number" ? velocityX : 0;
       const id = appRef.current;
       if (!id || closing.current) {
         return;
@@ -530,7 +539,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         0,
         reduced ? FADE : { ...SPRING_CLOSE, velocity: (v * 1000) / (h * 0.5) },
       );
-      animate(dragX, 0, transition);
+      // A sideways throw carries on into the way home.
+      animate(
+        dragX,
+        0,
+        reduced ? FADE : { ...SPRING_CLOSE, velocity: vx * 1000 },
+      );
       // The card keeps rising a touch with the flick, then goes home.
       animate(
         dragY,
@@ -566,15 +580,16 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     [open, pull, dragX, dragY, retarget, hideSource],
   );
 
-  /** Back to full screen, carrying the release speed (down is negative). */
+  /** Back to full screen, carrying the release speed (down is negative;
+   * `velocityX` rightward). */
   const cancelDrag = useCallback(
-    (velocity = 0) => {
+    (velocity = 0, velocityX = 0) => {
       const { h } = geometry.current;
       animate(pull, 0, {
         ...SPRING_OPEN,
         velocity: (velocity * 1000) / (h * 0.5),
       });
-      animate(dragX, 0, SPRING_OPEN);
+      animate(dragX, 0, { ...SPRING_OPEN, velocity: velocityX * 1000 });
       animate(dragY, 0, { ...SPRING_OPEN, velocity: -velocity * 1000 * 0.55 });
       // A drag that caught a launch mid-way finishes the launch.
       animate(open, 1, SPRING_OPEN);
@@ -607,11 +622,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         unlock.jump(1);
         setLocked(false);
         document.documentElement.dataset.iphone = "home";
-        setSeen((list) => {
-          const next = list.includes(id) ? list : [...list, id];
-          store.set(SEEN_KEY, JSON.stringify(next));
-          return next;
-        });
+        setSeen((list) => (list.includes(id) ? list : [...list, id]));
       });
     },
     [openApp, open, unlock],
@@ -926,6 +937,21 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   onCancelDrag={cancelDrag}
                 />
               )}
+
+              <BannerHost
+                onOpen={(id, from) => {
+                  // From the home screen it opens the app out of the
+                  // banner; over an app or the lock screen it just goes.
+                  if (lockedRef.current || appRef.current) {
+                    return appRef.current === id;
+                  }
+                  openApp(id, {
+                    from:
+                      from.querySelector<HTMLElement>("[aria-hidden]") ?? from,
+                  });
+                  return true;
+                }}
+              />
 
               <div className={styles.statusBar} aria-hidden>
                 <m.span

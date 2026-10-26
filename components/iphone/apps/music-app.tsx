@@ -9,7 +9,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
   ALBUMS,
@@ -532,6 +532,60 @@ function MiniPlayer({
  * forward on play, as in Apple Music. Drag the sheet down, tap the
  * chevron or press Escape to close it.
  */
+/** The gap between a scrolling line and its repeat, in px. */
+const MARQUEE_GAP = 40;
+/** How fast it scrolls, in px per second. */
+const MARQUEE_SPEED = 30;
+
+/**
+ * A line that scrolls when it doesn't fit, as Now Playing's title does: a
+ * pause, one pass round to where it started, and again. Only while `active`
+ * (the sheet is up), so nothing animates out of sight, and never with
+ * reduced motion, where it keeps its ellipsis.
+ */
+function Marquee({ text, active }: { text: string; active: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion() ?? false;
+  /** How far one pass travels, or 0 when the line fits. */
+  const [travel, setTravel] = useState(0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: measured again for each new line
+  useLayoutEffect(() => {
+    const box = ref.current;
+    const line = box?.firstElementChild as HTMLElement | null;
+    if (!(box && line)) {
+      return;
+    }
+    const measure = () => {
+      const width = line.offsetWidth;
+      setTravel(width > box.clientWidth + 1 ? width + MARQUEE_GAP : 0);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [text]);
+  const running = travel > 0 && active && !reduced;
+  return (
+    <span
+      ref={ref}
+      className={cn(styles.marquee, running && styles.marqueeRunning)}
+      style={
+        running
+          ? ({
+              "--marquee-shift": `${-travel}px`,
+              // The scroll is two thirds of the loop; the rest is the pause.
+              "--marquee-duration": `${(travel / MARQUEE_SPEED) * 1.5}s`,
+              "--marquee-gap": `${MARQUEE_GAP}px`,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
+      <span>{text}</span>
+      {running ? <span aria-hidden>{text}</span> : null}
+    </span>
+  );
+}
+
 function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { track, playing, waiting, failed, queue, index } = useMusic();
   const { toggle, next, previous } = useMusicControls();
@@ -647,7 +701,9 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         </div>
 
         <div className={styles.nowPlayingMeta}>
-          <h2 className={styles.nowPlayingTitle}>{track.title}</h2>
+          <h2 className={styles.nowPlayingTitle}>
+            <Marquee text={track.title} active={open} />
+          </h2>
           <p className={styles.nowPlayingArtist}>{CAR_KIDS.name}</p>
           {failed ? (
             <p className={styles.nowPlayingError} role="status">

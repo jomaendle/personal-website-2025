@@ -1,7 +1,14 @@
 "use client";
 
 import { type MotionValue, m } from "framer-motion";
-import { Suspense, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { createPortal } from "react-dom";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
@@ -37,9 +44,10 @@ interface AppWindowProps {
   screen: HTMLElement | null;
   /** A card drag took hold: stop any launch still running. */
   onDragStart: () => void;
-  /** Close; a card flick passes its upward speed, unscaled px per ms. */
-  onClose: (velocity?: number) => void;
-  onCancelDrag: (velocity: number) => void;
+  /** Close; a card flick passes its upward and rightward speeds, unscaled
+   * px per ms. */
+  onClose: (velocity?: number, velocityX?: number) => void;
+  onCancelDrag: (velocity: number, velocityX: number) => void;
 }
 
 /**
@@ -86,7 +94,17 @@ export function AppWindow({
     baseX: number;
   } | null>(null);
   const tracker = useVelocityTracker();
+  const trackerX = useVelocityTracker();
   const snapshot = useRef<HTMLDivElement>(null);
+
+  // The same element across the window's own re-renders (the close
+  // starting, the clock ticking over in the shell): the app inside doesn't
+  // render again for them, which in Calendar is nineteen months of days.
+  const close = useCallback(() => onClose(), [onClose]);
+  const content = useMemo(
+    () => <App close={close} launch={launch} />,
+    [App, close, launch],
+  );
 
   // A copy of the widget as it is on screen, at its own size: the window
   // and the snapshot's stretch scale it up. Copied rather than rendered again, so it's whatever the
@@ -160,6 +178,8 @@ export function AppWindow({
     };
     tracker.reset();
     tracker.add(event.clientY / scale, event.timeStamp);
+    trackerX.reset();
+    trackerX.add(event.clientX / scale, event.timeStamp);
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -183,6 +203,7 @@ export function AppWindow({
     const dx = (event.clientX - current.x) / current.scale;
     const up = (current.y - event.clientY) / current.scale;
     tracker.add(event.clientY / current.scale, event.timeStamp);
+    trackerX.add(event.clientX / current.scale, event.timeStamp);
     const rise = Math.max(0, current.baseRise + up);
     pull.set(clamp(rise / (current.h * 0.5), 0, 1));
     dragX.set(current.baseX + dx);
@@ -202,10 +223,12 @@ export function AppWindow({
       return;
     }
     const v = tracker.velocity();
+    // The tracker reports toward smaller values as positive: leftward.
+    const vx = -trackerX.velocity();
     if ((pull.get() > 0.16 || v > 0.35) && v > -0.2) {
-      onClose(v);
+      onClose(v, vx);
     } else {
-      onCancelDrag(v);
+      onCancelDrag(v, vx);
     }
   };
 
@@ -240,9 +263,7 @@ export function AppWindow({
         tabIndex={-1}
         inert={leaving}
       >
-        <Suspense fallback={null}>
-          <App close={() => onClose()} launch={launch} />
-        </Suspense>
+        <Suspense fallback={null}>{content}</Suspense>
         <m.div
           className={styles.appIconOverlay}
           style={{ opacity: iconOpacity, scale: iconScale }}

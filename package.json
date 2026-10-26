@@ -24,7 +24,6 @@
     "@supabase/supabase-js": "^2.117.3",
     "@types/mdx": "^2.0.14",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/og": "^1.0.3",
     "@vercel/speed-insights": "^2.0.0",
     "baseline-status": "^1.2.0",
     "class-variance-authority": "^0.7.1",

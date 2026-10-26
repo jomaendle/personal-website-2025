@@ -73,6 +73,18 @@ export function AppIcon({
         <rect width="60" height="60" fill={`url(#${id}t)`} />
         {ART[art](id, calendar ?? null)}
       </svg>
+      {art === "calendar" ? (
+        // Filled in before first paint by NOW_SCRIPT, which knows the
+        // reader's date; the server doesn't.
+        <span className={styles.calendarFace}>
+          <span data-now="weekday" suppressHydrationWarning>
+            {calendar ? calendar.weekday.toUpperCase() : ""}
+          </span>
+          <span data-now="day" suppressHydrationWarning>
+            {calendar ? String(calendar.day) : ""}
+          </span>
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -178,37 +190,9 @@ const ART: Record<
       />
     </>
   ),
-  calendar: (_id, face) => (
-    <>
-      <text
-        x="30"
-        y="16.5"
-        textAnchor="middle"
-        fill="#ff453a"
-        fontSize="8.5"
-        fontWeight="600"
-        fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-        data-now="weekday"
-        suppressHydrationWarning
-      >
-        {face ? face.weekday.toUpperCase() : ""}
-      </text>
-      <text
-        x="30"
-        y="47"
-        textAnchor="middle"
-        fill="#fff"
-        fontSize="33"
-        fontWeight="300"
-        letterSpacing="-1"
-        fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-        data-now="day"
-        suppressHydrationWarning
-      >
-        {face ? String(face.day) : ""}
-      </text>
-    </>
-  ),
+  // Drawn as HTML over the art (CalendarFace below): SVG text is shaped
+  // again on every frame its icon is scaled, as it is all through a zoom.
+  calendar: () => null,
   contacts: () => (
     <>
       <rect x="12" y="10" width="36" height="40" rx="5" fill="#3a3a3c" />
@@ -287,17 +271,13 @@ const ART: Record<
   linkedin: () => (
     <>
       <rect x="11" y="11" width="38" height="38" rx="7" fill="#0a66c2" />
-      <text
-        x="30.5"
-        y="41"
-        textAnchor="middle"
-        fill="#fff"
-        fontSize="25"
-        fontWeight="700"
-        fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-      >
-        in
-      </text>
+      {/* The letters as shapes, not text: text would be shaped again on
+          every frame the icon is scaled. */}
+      <g fill="#fff" transform="translate(-1.2 0)">
+        <circle cx="21" cy="20.4" r="3.1" />
+        <rect x="18.4" y="25.5" width="5.2" height="15.5" />
+        <path d="M27 25.5h5v2.4c1.1-1.8 3-2.9 5.6-2.9 4.6 0 6.4 3 6.4 7.7V41h-5.2v-7.6c0-2.3-.6-3.8-2.8-3.8-2.4 0-3.9 1.6-3.9 4.1V41H27Z" />
+      </g>
     </>
   ),
 };

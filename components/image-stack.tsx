@@ -3,7 +3,13 @@
 import { track } from "@vercel/analytics";
 import Image, { type StaticImageData } from "next/image";
 import { usePlausible } from "next-plausible";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import { PHOTOS } from "@/lib/state/photos";
 import styles from "./image-stack.module.css";
 
@@ -268,8 +274,9 @@ export function ImageStack() {
   // hover and travel report once per page view; each lift reports, with
   // the print, since that is a deliberate act.
   const reported = useRef(new Set<string>());
-  const report = useRef<Report>(() => undefined);
-  report.current = (action, print) => {
+  // An Effect Event: the pointer listeners below are bound once, and this
+  // still sees the current `plausible` without a ref written during render.
+  const report = useEffectEvent<Report>((action, print) => {
     if (action !== "lift") {
       if (reported.current.has(action)) return;
       reported.current.add(action);
@@ -277,7 +284,7 @@ export function ImageStack() {
     const props = print === undefined ? { action } : { action, print };
     plausible("Photo pile", { props });
     track("Photo pile", props);
-  };
+  });
   const state = useRef({
     /** Prominence per print: 0 at rest, 1 directly under the pointer. Each
      * spring is a triple: where it is, how fast, and where it is headed. */
@@ -462,7 +469,7 @@ export function ImageStack() {
       if (!s.drag) return;
       dragTo(s, event, geometry);
       if (Math.abs(event.clientX - s.drag.originX) >= CLICK_SLOP) {
-        report.current("travel");
+        report("travel");
         // A real drag means leafing through: the press lets go, and a
         // lifted print goes back.
         s.pTarget.fill(0);
@@ -473,7 +480,7 @@ export function ImageStack() {
     const hoverMove = (geometry: Geometry) => {
       s.hovering = true;
       showCursor(hit, printUnder(s, geometry));
-      report.current("hover");
+      report("hover");
     };
 
     const handleMove = (event: PointerEvent) => {
@@ -516,7 +523,7 @@ export function ImageStack() {
         s.uTarget[next] = 1;
         s.target.fill(0);
         if (s.hovering) s.target[next] = 1;
-        report.current("lift", next + 1);
+        report("lift", next + 1);
       }
       s.focused = next;
       // The pointer's surface grows to cover a lifted print. Written here,
@@ -654,7 +661,7 @@ export function ImageStack() {
         geometry.maxTravel,
       );
       s.wheeledAt = event.timeStamp;
-      report.current("travel");
+      report("travel");
       start();
     };
 

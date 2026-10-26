@@ -56,6 +56,10 @@ export const lerp = (from: number, to: number, t: number) =>
 
 /** Vertical release velocity in px/ms (positive is up), averaged over the
  * last 80ms of samples, so one jittery event can't flick a sheet shut. */
+/** How long a finger can rest before letting go and still count as moving,
+ * in ms. */
+const HELD = 60;
+
 export class VelocityTracker {
   private samples: { y: number; t: number }[] = [];
 
@@ -66,10 +70,17 @@ export class VelocityTracker {
     }
   }
 
+  /** Read at the release: a finger that stopped before letting go
+   * (pointer events only come with movement, so the last samples are
+   * from before it stopped) isn't flicking. */
   velocity() {
     const first = this.samples[0];
     const last = this.samples.at(-1);
-    if (!(first && last) || last.t === first.t) {
+    if (
+      !(first && last) ||
+      last.t === first.t ||
+      performance.now() - last.t > HELD
+    ) {
       return 0;
     }
     return (first.y - last.y) / (last.t - first.t);
@@ -78,6 +89,52 @@ export class VelocityTracker {
   reset() {
     this.samples = [];
   }
+}
+
+/**
+ * A spring from 0 to 1 as a Web Animation easing (CSS `linear()`), for the
+ * hand-offs a motion value can't drive: a photo's transform and clip-path.
+ * `velocity` is where the gesture left off, in progress per second, so the
+ * animation carries on at the finger's speed instead of starting from rest.
+ * Damping 1 settles without overshoot; less lets it overshoot and come back.
+ * Falls back to an ease-out curve where `linear()` isn't supported.
+ */
+export function springEasing(
+  velocity: number,
+  {
+    stiffness = 280,
+    damping = 1,
+  }: { stiffness?: number; damping?: number } = {},
+): { easing: string; duration: number } {
+  if (
+    typeof CSS === "undefined" ||
+    !CSS.supports("animation-timing-function", "linear(0, 1)")
+  ) {
+    return { easing: "cubic-bezier(0.2, 0.9, 0.25, 1)", duration: 420 };
+  }
+  const c = 2 * damping * Math.sqrt(stiffness);
+  const step = 1 / 240;
+  let x = 0;
+  let v = velocity;
+  let t = 0;
+  const points = [0];
+  while (t < 1.5) {
+    v += (stiffness * (1 - x) - c * v) * step;
+    x += v * step;
+    t += step;
+    // A point every 1/60 s is smooth enough for linear() to interpolate.
+    if (Math.round(t * 240) % 4 === 0) {
+      points.push(x);
+    }
+    if (Math.abs(1 - x) < 0.001 && Math.abs(v) < 0.02) {
+      break;
+    }
+  }
+  points.push(1);
+  return {
+    easing: `linear(${points.map((p) => Number(p.toFixed(4))).join(", ")})`,
+    duration: Math.round(t * 1000),
+  };
 }
 
 /** One tracker for the component's lifetime, built once rather than on

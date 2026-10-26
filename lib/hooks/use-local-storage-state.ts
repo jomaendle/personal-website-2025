@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * useState persisted to localStorage. Replaces jotai's atomWithStorage — the
@@ -17,6 +17,9 @@ export function useLocalStorageState<T>(
   defaultValue: T,
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const [value, setValue] = useState<T>(defaultValue);
+  // Only persist values the caller set, so the default (or the value just
+  // read back) is never written over what's stored.
+  const dirty = useRef(false);
 
   useEffect(() => {
     try {
@@ -31,21 +34,21 @@ export function useLocalStorageState<T>(
     }
   }, [key]);
 
-  const setAndPersist = useCallback(
-    (next: T | ((prev: T) => T)) => {
-      setValue((prev) => {
-        const resolved =
-          typeof next === "function" ? (next as (prev: T) => T)(prev) : next;
-        try {
-          window.localStorage.setItem(key, JSON.stringify(resolved));
-        } catch {
-          // Storage full or blocked — state still updates for this session.
-        }
-        return resolved;
-      });
-    },
-    [key],
-  );
+  // The write happens after commit, not inside a state updater: React may
+  // run updaters more than once, and they should stay pure.
+  useEffect(() => {
+    if (!dirty.current) return;
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Storage full or blocked — state still updates for this session.
+    }
+  }, [key, value]);
+
+  const setAndPersist = useCallback((next: T | ((prev: T) => T)) => {
+    dirty.current = true;
+    setValue(next);
+  }, []);
 
   return [value, setAndPersist];
 }

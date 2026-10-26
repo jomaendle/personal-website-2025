@@ -27,7 +27,13 @@ import {
   Trash,
 } from "../glyphs";
 import styles from "../iphone.module.css";
-import { clamp, FADE, SPRING_PUSH, useVelocityTracker } from "../motion";
+import {
+  clamp,
+  FADE,
+  SPRING_PUSH,
+  springEasing,
+  useVelocityTracker,
+} from "../motion";
 import { useShare } from "../use-share";
 import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
@@ -64,20 +70,24 @@ type Pose = {
 
 const REST_TRANSFORM = "translate(0px, 0px) scale(1)";
 
-/** Animate the photo back from a finger-dragged transform to rest. */
-function settle(frame: HTMLElement) {
+/** Animate the photo back from a finger-dragged transform to rest, on a
+ * spring that starts at the finger's speed (`velocity`, progress per
+ * second toward rest), so a release mid-swipe doesn't stop dead first. */
+function settle(frame: HTMLElement, velocity: number) {
   const from = frame.style.transform;
   frame.style.transform = "";
-  frame.animate([{ transform: from }, { transform: REST_TRANSFORM }], {
-    duration: 300,
-    easing: ZOOM.easing,
-  });
+  frame.animate(
+    [{ transform: from }, { transform: REST_TRANSFORM }],
+    springEasing(velocity, { stiffness: 320, damping: 0.85 }),
+  );
 }
 
-/** Fly the photo to `to` (its thumbnail), or fade it if there is none. */
+/** Fly the photo to `to` (its thumbnail), or fade it if there is none.
+ * After a flick it leaves at the flick's speed (`velocity`, progress per
+ * second), rather than braking into a fixed curve. */
 function putBack(
   frame: HTMLElement,
-  { rest, to, duration }: { rest: Pose; to: Pose | null; duration: number },
+  { rest, to, velocity }: { rest: Pose; to: Pose | null; velocity: number },
   done: () => void,
 ) {
   if (to) {
@@ -86,8 +96,7 @@ function putBack(
       clipPath: rest.clipPath,
     };
     frame.animate([from, to], {
-      ...ZOOM,
-      duration,
+      ...(velocity > 0 ? springEasing(velocity, { stiffness: 260 }) : ZOOM),
       fill: "forwards",
     }).onfinish = done;
   } else {
@@ -160,7 +169,9 @@ export default function PhotosApp(_: AppProps) {
   } | null>(null);
   const tracker = useVelocityTracker();
   /** The viewer is closing from a fast downward flick. */
-  const flicked = useRef(false);
+  /** The flick that closed the viewer, as progress per second toward the
+   * thumbnail; 0 for a close by button or a slow drag. */
+  const flicked = useRef(0);
 
   /**
    * The photo's pose sitting on its thumbnail, in the viewer's unscaled
@@ -385,8 +396,8 @@ export default function PhotosApp(_: AppProps) {
       return;
     }
     setClosing(true);
-    const fast = flicked.current;
-    flicked.current = false;
+    const flick = flicked.current;
+    flicked.current = 0;
     // The bars go first, so they don't sit over the grid as the photo flies.
     setChrome(false);
     const frame = frames.current[current];
@@ -414,8 +425,7 @@ export default function PhotosApp(_: AppProps) {
         {
           rest: restPose(current),
           to,
-          // Shorter after a fast flick, so it doesn't brake into the curve.
-          duration: fast ? ZOOM.duration * 0.8 : ZOOM.duration,
+          velocity: flick,
         },
         done,
       );
@@ -532,18 +542,23 @@ export default function PhotosApp(_: AppProps) {
     const v = -tracker.velocity();
     // Far enough, or a flick downwards: a light one will do.
     if (dy > 90 || (v > 0.15 && dy > 24)) {
-      flicked.current = v > 0.4;
+      // The flick's speed as progress toward the thumbnail, about half the
+      // viewer away; capped so a hard flick doesn't snap there.
+      const h = viewerRef.current?.offsetHeight ?? 800;
+      flicked.current = clamp((v * 1000) / (h * 0.5), 0, 6);
       close();
     } else {
-      settleBack();
+      // Moving down is moving away from rest: a negative start.
+      settleBack(dy > 1 ? clamp((-v * 1000) / dy, -8, 8) : 0);
     }
   };
 
-  /** Back to rest, chrome and all. */
-  const settleBack = () => {
+  /** Back to rest, chrome and all, from the finger's speed (progress per
+   * second toward rest). */
+  const settleBack = (velocity = 0) => {
     const frame = frames.current[current];
     if (frame) {
-      settle(frame);
+      settle(frame, velocity);
     }
     // The black comes back with the photo, not in one frame.
     const backdrop = backdropRef.current;
@@ -774,16 +789,23 @@ export default function PhotosApp(_: AppProps) {
                   }}
                   className={styles.viewerFrame}
                 >
-                  {/* Already in the cache from the grid: sharp enough to
-                      zoom with, and it covers the full image's load. */}
-                  <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
-                  <Image
-                    src={photo}
-                    alt={`Photograph ${index + 1}`}
-                    fill
-                    sizes={FULL_SIZES}
-                    loading={Math.abs(index - viewing) <= 1 ? "eager" : "lazy"}
-                  />
+                  {/* Only the photos a swipe can reach next: building all of
+                      them made the tap that opens the viewer a long task.
+                      The thumbnail, already in the cache from the grid, is
+                      sharp enough to zoom with and covers the full image's
+                      load. */}
+                  {Math.abs(index - current) <= 2 ? (
+                    <>
+                      <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
+                      <Image
+                        src={photo}
+                        alt={`Photograph ${index + 1}`}
+                        fill
+                        sizes={FULL_SIZES}
+                        loading="eager"
+                      />
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}

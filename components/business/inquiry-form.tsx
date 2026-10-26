@@ -1,7 +1,8 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { Link } from "next-view-transitions";
+import { type FormEvent, useRef, useState } from "react";
 import { H3 } from "@/components/ui/heading";
 import { isValidEmail } from "@/lib/email-validation";
 import { BUSINESS_COPY, type Lang } from "@/lib/state/business-copy";
@@ -81,6 +82,9 @@ export function InquiryForm({ lang }: { lang: Lang }) {
   });
 
   const isLoading = status === "loading";
+  // `disabled={isLoading}` only lands after a re-render, so a fast double
+  // click or double Enter can still submit twice. A ref flips synchronously.
+  const inFlight = useRef(false);
 
   const set = (key: keyof typeof values) => (value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -110,6 +114,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (inFlight.current) return;
 
     const errors = validate();
     setFieldErrors(errors);
@@ -120,6 +125,7 @@ export function InquiryForm({ lang }: { lang: Lang }) {
       return;
     }
 
+    inFlight.current = true;
     setStatus("loading");
     setErrorMessage("");
 
@@ -149,6 +155,8 @@ export function InquiryForm({ lang }: { lang: Lang }) {
     } catch {
       setStatus("error");
       setErrorMessage(t.networkError);
+    } finally {
+      inFlight.current = false;
     }
   };
 
@@ -353,12 +361,12 @@ export function InquiryForm({ lang }: { lang: Lang }) {
             personal data before the visitor has any reason to visit the footer. */}
         <p className="text-muted-foreground text-xs leading-relaxed">
           {t.privacyNote}{" "}
-          <a
+          <Link
             href="/datenschutz"
             className="underline underline-offset-2 transition-colors hover:text-brand"
           >
             {t.privacyLinkLabel}
-          </a>
+          </Link>
           .
         </p>
 

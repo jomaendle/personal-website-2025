@@ -7,6 +7,13 @@ import {
 } from "@/lib/state/ai-impact-copy";
 
 const WHITESPACE = /\s+/;
+const LESS_THAN = /</g;
+
+// JSON.stringify doesn't escape `<`, so a string containing `</script>` would
+// close the tag early. `\u003c` is the same character to a JSON parser.
+function toJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(LESS_THAN, "\\u003c");
+}
 
 interface PersonStructuredData {
   "@context": "https://schema.org";
@@ -93,9 +100,9 @@ export function PersonStructuredData() {
     <Script
       id="person-structured-data"
       type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is escaped JSON of locally-defined data, never user input
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
+        __html: toJsonLd(structuredData),
       }}
     />
   );
@@ -157,9 +164,9 @@ export function BlogPostStructuredData({
     <Script
       id="blog-post-structured-data"
       type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is escaped JSON of locally-defined data, never user input
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
+        __html: toJsonLd(structuredData),
       }}
     />
   );
@@ -272,7 +279,7 @@ export function BusinessStructuredData({ lang }: { lang: "de" | "en" }) {
   const scriptProps = {
     id: `business-structured-data-${lang}`,
     type: "application/ld+json",
-    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
+    dangerouslySetInnerHTML: { __html: toJsonLd(structuredData) },
   };
   return <Script {...scriptProps} />;
 }
@@ -382,7 +389,7 @@ export function AiImpactStructuredData({ lang }: { lang: Lang }) {
   const scriptProps = {
     id: `ai-impact-structured-data-${lang}`,
     type: "application/ld+json",
-    dangerouslySetInnerHTML: { __html: JSON.stringify(structuredData) },
+    dangerouslySetInnerHTML: { __html: toJsonLd(structuredData) },
   };
   return <Script {...scriptProps} />;
 }
@@ -414,9 +421,9 @@ export function WebsiteStructuredData() {
     <Script
       id="website-structured-data"
       type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is JSON.stringify of locally-defined data, never user input
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD scripts can only be injected this way; the payload is escaped JSON of locally-defined data, never user input
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(structuredData),
+        __html: toJsonLd(structuredData),
       }}
     />
   );

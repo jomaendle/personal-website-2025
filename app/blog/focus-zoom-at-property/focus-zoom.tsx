@@ -52,7 +52,9 @@ export const FocusZoomAtProperty = () => {
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKey);
-    window.addEventListener("touchstart", onTouchStart);
+    // Passive: the handler never calls preventDefault, so don't make the
+    // browser wait on it before scrolling.
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd);
 
     // Without this cleanup every visit to the article stacked another five

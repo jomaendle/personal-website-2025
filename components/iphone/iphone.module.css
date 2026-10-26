@@ -406,6 +406,46 @@
   scale: 0.97;
 }
 
+/* A banner over whatever is on screen, below the island: drops in on a
+   spring's curve and slides back up when it goes. */
+.bannerHost {
+  position: absolute;
+  top: calc(var(--top-inset) - 4px);
+  left: 8px;
+  right: 8px;
+  z-index: 38;
+  pointer-events: none;
+}
+
+.banner {
+  pointer-events: auto;
+  touch-action: none;
+  background: rgb(40 40 40 / 0.72);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.28),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.1),
+    0 8px 30px rgb(0 0 0 / 0.35);
+  animation: banner-in 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+.bannerLeaving {
+  pointer-events: none;
+  animation: banner-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes banner-in {
+  from {
+    transform: translateY(calc(-100% - var(--top-inset)));
+  }
+}
+
+@keyframes banner-out {
+  to {
+    transform: translateY(calc(-100% - var(--top-inset)));
+    opacity: 0;
+  }
+}
+
 .notificationIcon {
   --icon: 38px;
   grid-row: span 2;
@@ -1062,17 +1102,22 @@
   opacity: 0.5;
 }
 
-/* The island grows sideways into Music's compact live activity. */
+/* The island grows sideways into Music's compact live activity: drawn at
+   its widest and revealed by a clip, which only repaints, where animating
+   the width laid it out again every frame. 4px spare each side leave room
+   for the overshoot. */
 .island {
+  width: 204px;
   align-items: center;
   justify-content: space-between;
-  padding: 0 6px;
-  transition: width 0.45s cubic-bezier(0.3, 1.25, 0.5, 1);
+  padding: 0 10px;
+  clip-path: inset(0 39.5px round 20px);
+  transition: clip-path 0.45s cubic-bezier(0.3, 1.25, 0.5, 1);
 }
 
 .islandLive {
   cursor: pointer;
-  width: 196px;
+  clip-path: inset(0 4px round 20px);
 }
 
 .islandCover,
@@ -1647,10 +1692,47 @@
 
 .nowPlayingTitle {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 22px;
   font-weight: 700;
+}
+
+.marquee {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marquee > span {
+  display: inline-block;
+}
+
+/* Faded at the edges while it scrolls, as iOS does, so the line slides out
+   of view rather than being cut. */
+.marqueeRunning {
+  text-overflow: clip;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent
+  );
+}
+
+.marqueeRunning > span {
+  padding-right: var(--marquee-gap);
+  animation: marquee var(--marquee-duration) linear infinite;
+}
+
+@keyframes marquee {
+  0%,
+  33% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(var(--marquee-shift));
+  }
 }
 
 .nowPlayingArtist {
@@ -1781,6 +1863,43 @@
   overflow: hidden;
   border-radius: 22.5%;
   transition: filter 0.15s ease;
+}
+
+/* The Calendar icon's weekday and date, sized off the icon itself (the
+   container), so a zoom scales them like the art, without re-laying out
+   text. Placed as on the 60-unit grid the art is drawn on. */
+.icon:has(> .calendarFace) {
+  container-type: size;
+}
+
+.calendarFace {
+  position: absolute;
+  inset: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.calendarFace > * {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.calendarFace > :first-child {
+  top: 17.5cqh;
+  color: #ff453a;
+  font-size: 14.2cqw;
+  font-weight: 600;
+}
+
+.calendarFace > :last-child {
+  top: 32.5cqh;
+  color: #fff;
+  font-size: 55cqw;
+  font-weight: 300;
+  letter-spacing: -0.03em;
 }
 
 /* iOS 26's lit edge: a hairline catching light along the top, fading down
@@ -3042,7 +3161,9 @@ ol.noteList {
 
 /* Photos' scrubber: narrow thumbnails, the current one widened to its own
    shape, centred as you swipe. */
+/* The current thumbnail widens, a layout change: kept inside the strip. */
 .scrubber {
+  contain: layout;
   position: absolute;
   left: 0;
   right: 0;
@@ -4223,6 +4344,14 @@ ol.noteList {
 
   .mailboxBehind {
     transform: none;
+  }
+
+  .banner {
+    animation: wake-fade 0.2s ease-out both !important;
+  }
+
+  .bannerLeaving {
+    animation: wake-fade 0.2s ease-in reverse both !important;
   }
 }
 

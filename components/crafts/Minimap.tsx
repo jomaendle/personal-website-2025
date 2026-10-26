@@ -349,7 +349,11 @@ export function Minimap() {
       wake();
     }, IDLE_DELAY);
   }, [wake]);
-  interruptRef.current = interrupt;
+  // Synced after commit, not during render: render work can be discarded.
+  // `coast` only reaches for it mid-throw, long after the first commit.
+  useEffect(() => {
+    interruptRef.current = interrupt;
+  }, [interrupt]);
 
   const setTarget = useCallback(
     (value: number, strength = 1) => {
