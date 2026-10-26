@@ -343,8 +343,20 @@ export function split(
     fast.push(f);
     slow.push(s);
   }
-  const has = (list: Keyframe[]) => Object.keys(list[0] ?? {}).length > 0;
-  return [has(fast) ? fast : null, has(slow) ? slow : null];
+  return [changing(fast) ? fast : null, changing(slow) ? slow : null];
+}
+
+/** Whether a run of keyframes changes anything: one that holds still the
+ * whole way (the launch screen on a warm start, the icon art on a widget
+ * launch) needs no animation, and would only be work for the compositor. */
+function changing(keyframes: Keyframe[]): boolean {
+  const first = keyframes[0];
+  if (!first || Object.keys(first).length === 0) {
+    return false;
+  }
+  return keyframes.some((frame) =>
+    Object.keys(first).some((property) => frame[property] !== first[property]),
+  );
 }
 
 /** Whether the window is moving in this state: its glass drops its blur. */
