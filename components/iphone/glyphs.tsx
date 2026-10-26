@@ -522,3 +522,17 @@ export const SpeakerGlyph = ({
     ) : null}
   </svg>
 );
+
+export const PlusGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    strokeWidth="2"
+    {...base}
+    {...props}
+  >
+    <path d="M12 5 V19 M5 12 H19" />
+  </svg>
+);

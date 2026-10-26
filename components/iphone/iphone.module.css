@@ -3583,36 +3583,356 @@ ol.noteList {
 
 /* ---- Calendar -------------------------------------------------------- */
 
+/* ---- Calendar -------------------------------------------------------
+   Month, year and day levels, each zooming out of what opened it. */
 .calendar {
   --tint: var(--ios-red);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
 }
 
-.week {
+.calView {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+}
+
+/* Into a month or a day: the level grows out of the cell that was tapped.
+   Back out: it settles from slightly large, as the level in front recedes
+   into it. */
+.calZoomIn {
+  animation: cal-zoom-in 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calZoomOut {
+  animation: cal-zoom-out 0.38s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calFade {
+  animation: cal-fade 0.2s ease-out both;
+}
+
+@keyframes cal-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes cal-zoom-out {
+  from {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.calBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--top-inset) + 4px) 16px 6px;
+}
+
+.glassButton.calAdd {
+  color: var(--label);
+}
+
+.calTitle {
+  flex: none;
+  padding: 4px 18px 6px;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.calWeekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  padding: 0 8px 12px;
-  border-bottom: 0.5px solid var(--separator) !important;
+  flex: none;
+  grid-template-columns: 28px repeat(7, 1fr);
+  padding: 4px 8px 6px 0;
+  border-bottom: 0.5px solid var(--separator);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--label);
+}
+
+.calWeekdays::before {
+  content: "";
+}
+
+.calMonths {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(max(var(--bottom-inset), 28px) + 80px);
+  scrollbar-width: none;
+}
+
+.calMonths::-webkit-scrollbar {
+  display: none;
+}
+
+.calWeek {
+  display: grid;
+  grid-template-columns: 28px repeat(7, 1fr);
+  padding-right: 8px;
+}
+
+.calWeek + .calWeek {
+  border-top: 0.5px solid var(--separator);
+}
+
+.calMonthName {
+  padding: 18px 0 2px;
+  font-size: 22px;
+  font-weight: 700;
   text-align: center;
 }
 
-.weekday {
+.calMonthNow {
+  color: var(--ios-red);
+}
+
+.calWeekNumber {
+  padding: 4px 0 0 6px;
   font-size: 11px;
+  font-weight: 600;
+  color: var(--label-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.calDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 64px;
+  padding-top: 8px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calDayNumber {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s ease-out;
+}
+
+.calDay:active .calDayNumber {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.calDayWeekend {
   color: var(--label-2);
 }
 
-.weekDate {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  margin: 4px auto 0;
-  border-radius: 50%;
-  font-size: 19px;
+.calDayToday .calDayNumber,
+.calDayToday:active .calDayNumber {
+  background: var(--ios-red);
+  color: #fff;
+  font-weight: 600;
 }
 
-.weekDateToday {
-  background: var(--ios-red);
+.calDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--label-3);
+}
+
+.calToolbar {
+  justify-content: flex-start;
+}
+
+.pill.calToday {
+  height: 48px;
+  padding: 0 22px;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--label);
+  cursor: pointer;
+  transition: scale 0.15s ease-out;
+}
+
+.pill.calToday:active {
+  scale: 0.95;
+}
+
+/* Year: two years of mini months. */
+.calYears {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--top-inset) + 8px) 12px
+    calc(max(var(--bottom-inset), 28px) + 24px);
+  scrollbar-width: none;
+}
+
+.calYears::-webkit-scrollbar {
+  display: none;
+}
+
+.calYearTitle {
+  padding: 8px 6px 10px;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.calYearNow {
+  color: var(--ios-red);
+}
+
+.calMinis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 12px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid var(--separator);
+  margin-bottom: 8px;
+}
+
+.calMini {
+  display: block;
+  padding: 4px;
+  border-radius: 10px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.calMini:active {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.calMiniName {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 17px;
   font-weight: 600;
+}
+
+.calMiniNow .calMiniName {
+  color: var(--ios-red);
+}
+
+.calMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.calMiniToday {
+  border-radius: 50%;
+  background: var(--ios-red);
+}
+
+/* Day: the week strip and the day's events. */
+.calStrip {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 6px 8px 10px;
+  border-bottom: 0.5px solid var(--separator);
+  touch-action: pan-y;
+}
+
+.calStripNext {
+  animation: cal-week-next 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calStripPrev {
+  animation: cal-week-prev 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes cal-week-next {
+  from {
+    opacity: 0;
+    transform: translateX(30%);
+  }
+}
+
+@keyframes cal-week-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-30%);
+  }
+}
+
+.calStripDay {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background 0.2s ease-out,
+    color 0.2s ease-out;
+}
+
+.calStripToday {
+  color: var(--ios-red);
+  font-weight: 600;
+}
+
+.calStripSelected {
+  background: var(--label);
+  color: #000;
+  font-weight: 600;
+}
+
+.calStripToday.calStripSelected {
+  background: var(--ios-red);
+  color: #fff;
+}
+
+.calDayBody {
+  animation: cal-fade 0.2s ease-out both;
+}
+
+.calEmpty {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 17px;
+  color: var(--label-2);
 }
 
 .dayTitle {
