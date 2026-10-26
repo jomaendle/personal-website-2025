@@ -23,7 +23,7 @@ import {
   type IphoneAppId,
   lockNotifications,
 } from "@/lib/state/iphone-copy";
-import { PHOTOS, WALLPAPER } from "@/lib/state/photos";
+import { PHOTOS } from "@/lib/state/photos";
 import { AppWindow } from "./app-window";
 import { APPS, type AppLaunch, preloadAllApps } from "./apps";
 import { BannerHost } from "./banner";
@@ -49,6 +49,7 @@ import { Spotlight } from "./spotlight";
 import { useBattery } from "./use-battery";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
 import { useLatest } from "./use-latest";
+import { useWallpaper, wallpaperShown } from "./wallpapers";
 
 /** An app icon (on the home screen, or a Spotlight app result), as opposed
  * to a widget, a song's cover or a contact's monogram, which cross-fade. */
@@ -670,13 +671,20 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     return () => clearTimeout(handle);
   }, []);
 
+  const wallpaper = useWallpaper();
+  // The stylesheet hides the wallpaper while a stored choice is pending
+  // (persist.ts); once the chosen one has rendered, show it.
+  useEffect(() => {
+    wallpaperShown(wallpaper.key);
+  }, [wallpaper]);
+
   return (
     <IphoneDataProvider value={data}>
       <MusicProvider>
         <div className={styles.root}>
           <div
             className={styles.ambient}
-            style={{ backgroundImage: `url(${WALLPAPER.blurDataURL})` }}
+            style={{ backgroundImage: `url(${wallpaper.image.blurDataURL})` }}
             aria-hidden
           />
           <Link href="/" className={styles.exit}>
@@ -740,7 +748,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 aria-hidden
               />
               <Image
-                src={WALLPAPER}
+                src={wallpaper.image}
                 alt=""
                 fill
                 preload

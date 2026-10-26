@@ -81,6 +81,8 @@ interface RowProps {
   titleClassName?: string;
   /** A 29pt tile or app icon before the title, as in Settings. */
   icon?: ReactNode;
+  /** A row that acts within the app (pushes a page) rather than linking. */
+  onPress?: () => void;
 }
 
 export function Row({
@@ -92,6 +94,7 @@ export function Row({
   chevron = Boolean(href),
   titleClassName,
   icon,
+  onPress,
 }: RowProps) {
   const content = (
     <>
@@ -111,10 +114,17 @@ export function Row({
       {value === undefined ? null : (
         <span className={styles.rowValue}>{value}</span>
       )}
-      {chevron ? <Chevron className={styles.chevron} /> : null}
+      {chevron || onPress ? <Chevron className={styles.chevron} /> : null}
     </>
   );
 
+  if (onPress) {
+    return (
+      <button type="button" className={styles.row} onClick={onPress}>
+        {content}
+      </button>
+    );
+  }
   if (!href) {
     return <div className={styles.row}>{content}</div>;
   }
@@ -134,5 +144,29 @@ export function Row({
     >
       {content}
     </a>
+  );
+}
+
+/** iOS's switch: green when on, the knob sliding across. */
+export function Switch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className={styles.switch}
+      onClick={() => onChange(!checked)}
+    >
+      <span className={styles.switchKnob} />
+    </button>
   );
 }

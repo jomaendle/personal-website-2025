@@ -8,7 +8,6 @@ import {
   type IphoneAppId,
   type LockNotification,
 } from "@/lib/state/iphone-copy";
-import { WALLPAPER } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import { AppIcon } from "./app-icons";
 import { APPS, type AppLaunch } from "./apps";
@@ -18,6 +17,7 @@ import styles from "./iphone.module.css";
 import { rubberband, useVelocityTracker } from "./motion";
 import { LockNowPlaying } from "./music/system-ui";
 import { formatClock, formatLockDate, formatWeekday } from "./use-clock";
+import { useWallpaper } from "./wallpapers";
 
 interface LockScreenProps {
   locked: boolean;
@@ -60,6 +60,7 @@ export function LockScreen({
   rootRef,
   faceRef,
 }: LockScreenProps) {
+  const wallpaper = useWallpaper();
   const [torch, setTorch] = useState(false);
   const drag = useRef<{
     id: number;
@@ -288,7 +289,7 @@ export function LockScreen({
           lifting away over the home screen rather than sliding as a
           see-through layer of text over the icons. */}
       <Image
-        src={WALLPAPER}
+        src={wallpaper.image}
         alt=""
         fill
         placeholder="blur"

@@ -268,6 +268,13 @@
   pointer-events: none;
 }
 
+/* A stored wallpaper choice, before the client has rendered it: nothing,
+   rather than the default for a frame (see wallpapers.ts). */
+:global(html[data-wallpaper-pending]) .wallpaper,
+:global(html[data-wallpaper-pending]) .ambient {
+  visibility: hidden;
+}
+
 /* The display going dark under the side button: quickly off, then the
    lock screen fades up out of the black. */
 .screenOff {
@@ -2333,6 +2340,129 @@ button.row:active {
 
 .rowLink {
   color: var(--ios-blue);
+}
+
+/* The nav bar's back button: chevron and the previous page's title. */
+.navBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -4px;
+  padding: 0 4px;
+  min-height: 44px;
+  font-size: 17px;
+  color: var(--ios-blue);
+  cursor: pointer;
+}
+
+.navBack:active {
+  opacity: 0.4;
+}
+
+/* UISwitch: 51×31, the knob 27pt with a soft shadow. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 51px;
+  height: 31px;
+  border-radius: 16px;
+  background: rgb(120 120 128 / 0.32);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--ios-green);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 3px 8px rgb(0 0 0 / 0.15),
+    0 3px 1px rgb(0 0 0 / 0.06);
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.switch[aria-checked="true"] .switchKnob {
+  transform: translateX(20px);
+}
+
+/* Settings → Wallpaper: each choice as a small lock screen. */
+.wallpaperLead {
+  padding: 0 16px 16px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+
+.wallpaperGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 14px;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.wallpaperOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.wallpaperOption:active {
+  scale: 0.96;
+}
+
+.wallpaperFrame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 19.5;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--grouped);
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  transition: outline-color 0.2s ease;
+}
+
+.wallpaperChosen .wallpaperFrame {
+  outline-color: var(--ios-blue);
+}
+
+.wallpaperClock {
+  position: absolute;
+  pointer-events: none;
+  top: 14%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+
+.wallpaperTitle {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.wallpaperPlace {
+  font-size: 12px;
+  color: var(--label-2);
 }
 
 .chevron {

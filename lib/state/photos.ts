@@ -510,3 +510,52 @@ export const FEATURED_PHOTO = dsc00535;
 /** The /iphone wallpaper: cherry blossom against a blue spring sky, in
  * Böblingen. Portrait, with sky where the clock sits. */
 export const WALLPAPER = earthLookingUp;
+
+export interface WallpaperChoice {
+  /** Stored as the reader's choice, so it never changes once shipped. */
+  key: string;
+  image: StaticImageData;
+  title: string;
+  place: string;
+}
+
+/** The wallpapers Settings offers: portraits, with quiet space at the top
+ * for the clock. The first is the default. */
+export const WALLPAPERS: WallpaperChoice[] = [
+  {
+    key: "looking-up",
+    image: earthLookingUp,
+    title: "Looking Up",
+    place: "Böblingen",
+  },
+  {
+    key: "palms-at-dusk",
+    image: earthPalmsAtDusk,
+    title: "Palms at Dusk",
+    place: "Bali",
+  },
+  {
+    key: "palm-fronds",
+    image: earthPalmFronds,
+    title: "Palm Fronds",
+    place: "Bali",
+  },
+  {
+    key: "white-frangipani",
+    image: earthWhiteFrangipani,
+    title: "White Frangipani",
+    place: "Bali",
+  },
+  {
+    key: "distant-tower",
+    image: earthDistantTower,
+    title: "Distant Tower",
+    place: "Taipei",
+  },
+  {
+    key: "sun-on-the-water",
+    image: dsc04499,
+    title: "Sun on the Water",
+    place: "Portugal",
+  },
+];

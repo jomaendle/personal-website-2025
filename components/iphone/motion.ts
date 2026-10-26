@@ -26,10 +26,11 @@ export const SPRING_CLOSE: Transition = {
   restSpeed: 0.05,
 };
 
-/** UIKit's navigation push: critically damped, about half a second. */
+/** UIKit's navigation push: critically damped, a little over a third of a
+ * second to arrive. */
 export const SPRING_PUSH: Transition = {
   type: "spring",
-  visualDuration: 0.45,
+  visualDuration: 0.36,
   bounce: 0,
   // Settle when it visually arrives. On a 0–1 value the default thresholds
   // keep a critically damped spring creeping for several hundred ms more,
