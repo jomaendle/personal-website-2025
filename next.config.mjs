@@ -3,6 +3,9 @@ import createMDX from "@next/mdx";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ["mdx", "jsx", "js", "ts", "tsx"],
+  // The React Compiler memoizes components and hooks on its own, so a
+  // clock tick or a drag's state change re-renders only what it touches.
+  reactCompiler: true,
   experimental: {
     // No `viewTransition` flag: Next 16 removed it, and this site never needed
     // it anyway — navigation transitions come from `next-view-transitions`
