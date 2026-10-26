@@ -390,6 +390,11 @@ function MonthView({
   );
 }
 
+/** The month view's row heights, as `.calMonthName` and `.calDay` draw
+ * them. */
+const MONTH_HEAD = 48;
+const WEEK_ROW = 64;
+
 function MonthGrid({
   month,
   today,
@@ -412,6 +417,11 @@ function MonthGrid({
     <section
       ref={sectionRef}
       className={styles.calMonth}
+      // Its exact height, so months off screen can skip layout without the
+      // list's scroll positions moving: the name row, then each week.
+      style={{
+        containIntrinsicSize: `auto ${MONTH_HEAD + weeks.length * WEEK_ROW}px`,
+      }}
       aria-label={formats.monthYear.format(month)}
     >
       {/* The month's name sits over its first day, as in Calendar. */}

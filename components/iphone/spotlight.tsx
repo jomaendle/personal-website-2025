@@ -132,9 +132,31 @@ export function Spotlight({
     notes,
   );
 
+  // The frosting goes on once Spotlight is at rest: blurring the backdrop
+  // under a changing opacity redraws the whole blur every frame. In motion
+  // it's a darker tint instead, which reads the same at a glance.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!pull || pulling) {
+      return;
+    }
+    const settle = (v: number) => {
+      if (v >= 0.999) {
+        setSettled(true);
+      }
+    };
+    settle(pull.get());
+    return pull.on("change", settle);
+  }, [pull, pulling]);
+
   const onAnimationEnd = (event: React.AnimationEvent<HTMLElement>) => {
-    if (leaving && event.target === event.currentTarget) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (leaving) {
       onLeft();
+    } else {
+      setSettled(true);
     }
   };
 
@@ -173,6 +195,7 @@ export function Spotlight({
         styles.spotlight,
         pull && styles.spotlightPulled,
         leaving && styles.spotlightLeaving,
+        settled && !leaving && !pulling && styles.spotlightSettled,
       )}
       style={pull ? { opacity: pull } : undefined}
       role="dialog"

@@ -79,7 +79,14 @@ export default function NotesApp({ launch }: AppProps) {
     setLeaving(false);
     store.set(NOTE_KEY, slug);
     setOpen(slug);
-    animate(nav, 1, reduced ? FADE : SPRING_PUSH);
+    // On the next frame, once the note has mounted: started here, the
+    // spring's clock would run through the mount, and the first frame drawn
+    // would already be well into the slide.
+    requestAnimationFrame(() => {
+      if (!popping.current) {
+        animate(nav, 1, reduced ? FADE : SPRING_PUSH);
+      }
+    });
   };
 
   /** Back to the list, from wherever a swipe left the note. */
