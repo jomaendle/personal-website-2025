@@ -2,7 +2,7 @@
 
 import { type MotionValue, m } from "framer-motion";
 import Image from "next/image";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/config/site";
 import type { NoteSummary } from "@/lib/iphone-notes";
 import {
@@ -110,7 +110,8 @@ export function Spotlight({
 }: SpotlightProps) {
   const { notes } = useIphoneData();
   const [query, setQuery] = useState("");
-  const q = useDeferredValue(query.trim().toLowerCase());
+  // Not deferred: the search is small, and Return must act on what's typed.
+  const q = query.trim().toLowerCase();
   const keyboard = useKeyboardInset();
   const controls = useMusicControls();
   const rootRef = useRef<HTMLDivElement>(null);

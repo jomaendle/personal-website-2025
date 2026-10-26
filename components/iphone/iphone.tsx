@@ -150,6 +150,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** The side button: the display goes dark for a moment while the phone
    * locks under it, as iOS turns the screen off rather than sliding. */
   const [screenOff, setScreenOff] = useState(false);
+  const lockTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  useEffect(() => () => clearTimeout(lockTimer.current), []);
   /** A fresh Spotlight each time, even reopened mid-fade: a new query and
    * its own focus, not the fading one's. */
   const [spotlightKey, setSpotlightKey] = useState(0);
@@ -514,6 +518,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         setApp(null);
         hideSource(null);
         requestAnimationFrame(() => {
+          // Still locked (closed mid-launch from the lock screen): the
+          // lock screen's unlock button, not the inert home screen.
+          if (lockedRef.current) {
+            unlockButtonRef.current?.focus({ preventScroll: true });
+            return;
+          }
           // Back to whatever opened it: the widget, the icon, or for an app
           // opened from the lock screen, its icon on the home screen.
           const target =
@@ -554,14 +564,17 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const openFromLock = useCallback(
     (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => {
       openApp(id, { launch, from });
+      // Until the app has landed, however long that takes (a drag can hold
+      // a launch), or it has gone.
       const done = open.on("change", (a) => {
+        if (appRef.current !== id || closing.current) {
+          done();
+          return;
+        }
         if (a < 0.999) {
           return;
         }
         done();
-        if (appRef.current !== id || closing.current) {
-          return;
-        }
         store.set(UNLOCKED_KEY, "1");
         unlock.jump(1);
         setLocked(false);
@@ -572,8 +585,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
           return next;
         });
       });
-      // Closed before it got there: it goes back into the lock screen.
-      setTimeout(done, 2000);
     },
     [openApp, open, unlock],
   );
@@ -740,12 +751,16 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               className={styles.sideButton}
               aria-label={IPHONE_COPY.lockLabel}
               onClick={(event) => {
+                if (lockTimer.current) {
+                  return;
+                }
                 const fromKeyboard = event.detail === 0;
                 setScreenOff(true);
                 // Under the black: put everything away and lock, then let
                 // the lock screen come up.
-                setTimeout(
+                lockTimer.current = setTimeout(
                   () => {
+                    lockTimer.current = undefined;
                     if (appRef.current) {
                       closing.current = false;
                       // jump() stops an opening spring; set() would let it finish,

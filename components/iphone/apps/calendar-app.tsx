@@ -294,15 +294,21 @@ function MonthView({
   const scroller = useRef<HTMLDivElement>(null);
   const sections = useRef(new Map<string, HTMLElement>());
   const [title, setTitle] = useState(focus);
+  // Six months back to a year on from today, widened to take in the month
+  // it opens at (any month of the year view, or a day swiped far away).
   const year = today.getFullYear();
   const month = today.getMonth();
+  const focusIndex =
+    (focus.getFullYear() - year) * 12 + focus.getMonth() - month;
+  const from = Math.min(-MONTHS_BEFORE, focusIndex - 1);
+  const to = Math.max(MONTHS_AFTER, focusIndex + 2);
   const months = useMemo(
     () =>
       Array.from(
-        { length: MONTHS_BEFORE + MONTHS_AFTER + 1 },
-        (_, i) => new Date(year, month - MONTHS_BEFORE + i, 1),
+        { length: to - from + 1 },
+        (_, i) => new Date(year, month + from + i, 1),
       ),
-    [year, month],
+    [year, month, from, to],
   );
 
   const scrollTo = (date: Date, smooth: boolean) => {
@@ -420,10 +426,13 @@ function MonthGrid({
       </div>
       {weeks.map((week) => {
         const first = week.find(Boolean) as Date;
+        // The ISO week is the one its Thursday is in, which holds for
+        // Sunday-first rows too.
+        const thursday = week.find((d) => d?.getDay() === 4) ?? first;
         return (
           <div key={first.getTime()} className={styles.calWeek}>
             <span className={styles.calWeekNumber} aria-hidden>
-              {isoWeek(first)}
+              {isoWeek(thursday)}
             </span>
             {week.map((day, i) =>
               day ? (
@@ -488,11 +497,14 @@ function YearView({
   const ref = useRef<HTMLDivElement>(null);
   const years = [today.getFullYear(), today.getFullYear() + 1];
 
-  // This month in view.
+  // This month in view: the year list's own scroll, not the page's.
   useLayoutEffect(() => {
-    ref.current
-      ?.querySelector<HTMLElement>(`.${styles.calMiniNow}`)
-      ?.scrollIntoView({ block: "center" });
+    const box = ref.current;
+    const now = box?.querySelector<HTMLElement>(`.${styles.calMiniNow}`);
+    if (box && now) {
+      box.scrollTop =
+        now.offsetTop - box.offsetTop - box.clientHeight / 2 + now.offsetHeight;
+    }
   }, []);
 
   return (
@@ -587,8 +599,9 @@ function DayView({
   const week = weekOf(selected, start);
 
   const pick = (day: Date) => {
-    const moved = day.getTime() - (week[0]?.getTime() ?? 0);
-    setSlide(moved < 0 ? "prev" : moved >= 7 * DAY ? "next" : null);
+    // In whole days, so a daylight-saving week still counts as seven.
+    const moved = Math.round((day.getTime() - (week[0]?.getTime() ?? 0)) / DAY);
+    setSlide(moved < 0 ? "prev" : moved >= 7 ? "next" : null);
     onSelect(day);
   };
 

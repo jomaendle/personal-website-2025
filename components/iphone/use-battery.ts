@@ -26,6 +26,7 @@ export function useBattery() {
       return;
     }
     let manager: BatteryManager | null = null;
+    let live = true;
     const update = () => {
       if (manager) {
         setBattery({ level: manager.level, charging: manager.charging });
@@ -34,6 +35,9 @@ export function useBattery() {
     nav
       .getBattery()
       .then((m) => {
+        if (!live) {
+          return;
+        }
         manager = m;
         update();
         m.addEventListener("levelchange", update);
@@ -41,6 +45,7 @@ export function useBattery() {
       })
       .catch(() => undefined);
     return () => {
+      live = false;
       manager?.removeEventListener("levelchange", update);
       manager?.removeEventListener("chargingchange", update);
     };

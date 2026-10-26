@@ -136,6 +136,13 @@ export default function MailApp({ close }: AppProps) {
         body: JSON.stringify({ name: name.trim(), email: email.trim(), topic }),
       });
       if (res.ok) {
+        // Straight to storage too: closed mid-send, the component is gone
+        // and its state with it, and a sent message mustn't come back as a
+        // draft.
+        store.set(
+          DRAFT_KEY,
+          JSON.stringify({ name, email, subject: "", body: "" }),
+        );
         setSent((list) => [
           { id, subject: subject.trim(), body: body.trim() },
           ...list,
