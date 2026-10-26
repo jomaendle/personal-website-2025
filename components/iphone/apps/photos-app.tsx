@@ -999,7 +999,12 @@ export default function PhotosApp(_: AppProps) {
                 aria-label={`Show photo ${index + 1}`}
                 aria-current={index === current}
               >
-                <Image src={photo} alt="" fill sizes="64px" />
+                {/* The thumbnails near the current photo; the rest are plain
+                    slots until they come near, as a strip of three dozen
+                    images is most of the tap that opens the viewer. */}
+                {Math.abs(index - current) <= 10 ? (
+                  <Image src={photo} alt="" fill sizes="64px" />
+                ) : null}
               </button>
             ))}
           </div>

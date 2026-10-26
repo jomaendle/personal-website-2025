@@ -10,14 +10,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { PHOTOS } from "@/lib/state/photos";
+import { PILE_PHOTOS } from "@/lib/state/photos";
 import styles from "./image-stack.module.css";
 
 const clamp = (value: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, value));
 
 /** The pile, in order. */
-const PRINTS = PHOTOS;
+const PRINTS = PILE_PHOTOS;
 /** How many prints are assumed in view before anything is measured. The
  * server renders these with real images and the rest as placeholders; a
  * wider window reveals more as soon as it has been measured. */

@@ -80,13 +80,40 @@ for (const id of Object.keys(APPS) as IphoneAppId[]) {
   LAZY_APPS[id] = lazy(APPS[id].load);
 }
 
+/**
+ * Warm every app's code, one app per idle moment rather than all at once:
+ * each chunk's evaluation is a task of its own, and spread out none of them
+ * lands under a tap on the lock screen. The dock's apps go first, then the
+ * library's first screen of thumbnails, fetched and decoded ahead so a
+ * launch's first frames aren't waiting on images.
+ */
 export function preloadAllApps() {
-  for (const app of Object.values(APPS)) {
-    app.load();
-  }
-  // The library's first screen of thumbnails too, fetched and decoded
-  // ahead, so the launch's first frames aren't waiting on images.
-  import("./apps/photos-app").then((photos) => photos.warmLibrary());
+  const order: IphoneAppId[] = [
+    "notes",
+    "photos",
+    "safari",
+    "mail",
+    "calendar",
+    "music",
+    "contacts",
+    "settings",
+  ];
+  const idle = (work: () => void) => {
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(work, { timeout: 2000 });
+    } else {
+      setTimeout(work, 250);
+    }
+  };
+  const next = (i: number) => {
+    const id = order[i];
+    if (!id) {
+      import("./apps/photos-app").then((photos) => photos.warmLibrary());
+      return;
+    }
+    APPS[id].load().then(() => idle(() => next(i + 1)));
+  };
+  next(0);
 }
 
 /** Home screen bookmarks that leave the phone for another site. */

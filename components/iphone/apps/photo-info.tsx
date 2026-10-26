@@ -65,7 +65,9 @@ const fileSize = (bytes: number) =>
     : `${Math.max(1, Math.round(bytes / 1e3))} KB`;
 
 const EXTENSION = /\.([^.]+)$/;
-const baseName = (file: string) => file.replace(EXTENSION, "");
+/** "DSC05383", from "DSC05383.webp" or "earth/last-light.webp". */
+const baseName = (file: string) =>
+  file.slice(file.lastIndexOf("/") + 1).replace(EXTENSION, "");
 const format = (file: string) =>
   (file.match(EXTENSION)?.[1] ?? "").toUpperCase();
 
