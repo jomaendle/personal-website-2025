@@ -1,15 +1,10 @@
 import { SOCIAL_LINKS } from "@/lib/config/navigation";
-import { SITE } from "@/lib/config/site";
+import { SITE, SITE_INITIALS } from "@/lib/config/site";
 import { JOB_POSITIONS } from "@/lib/state/jobs";
 import type { AppProps } from "../apps";
 import { CalendarGlyph, Envelope, Globe } from "../glyphs";
 import styles from "../iphone.module.css";
 import { Group, Row } from "./ui";
-
-const initials = SITE.name
-  .split(" ")
-  .map((part) => part.charAt(0))
-  .join("");
 
 const SCHEME = /^https?:\/\/(www\.)?/;
 const TRAILING_SLASH = /\/$/;
@@ -22,7 +17,7 @@ export default function ContactsApp(_: AppProps) {
     <div className={styles.scroll}>
       <header className={styles.contactHead}>
         <span className={styles.monogram} aria-hidden>
-          {initials}
+          {SITE_INITIALS}
         </span>
         <h1 className={styles.contactName}>{SITE.name}</h1>
         <p className={styles.contactRole}>{SITE.role}</p>

@@ -3,7 +3,7 @@
 import { type MotionValue, m } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { SITE } from "@/lib/config/site";
+import { SITE, SITE_INITIALS } from "@/lib/config/site";
 import type { NoteSummary } from "@/lib/iphone-notes";
 import {
   ALBUMS,
@@ -334,10 +334,7 @@ export function Spotlight({
                   className={styles.spotlightMonogram}
                   aria-hidden
                 >
-                  {SITE.name
-                    .split(" ")
-                    .map((part) => part.charAt(0))
-                    .join("")}
+                  {SITE_INITIALS}
                 </span>
                 <span className={styles.rowMain}>
                   <span className={styles.rowTitle}>{SITE.name}</span>

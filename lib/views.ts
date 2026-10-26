@@ -74,9 +74,15 @@ export function incrementView(slug: string): Promise<number | null> {
  * shows once, already including this read, rather than flipping up by one.
  */
 export function useViewCount(slug: string, increment = false) {
-  const [state, setState] = useState<{ views: number | null; failed: boolean }>(
-    () => ({ views: counted.get(slug) ?? null, failed: false }),
-  );
+  const fresh = (forSlug: string) => ({
+    slug: forSlug,
+    views: counted.get(forSlug) ?? null,
+    failed: false,
+  });
+  const [state, setState] = useState(() => fresh(slug));
+  // Keyed by slug, so a hook handed a new one starts over rather than
+  // showing the last one's count until the fetch comes back.
+  const current = state.slug === slug ? state : fresh(slug);
 
   useEffect(() => {
     let live = true;
@@ -88,12 +94,16 @@ export function useViewCount(slug: string, increment = false) {
               counted.get(slug) ??
               all.find((item) => item.slug === slug)?.views ??
               0;
-            setState({ views, failed: false });
+            setState({ slug, views, failed: false });
           }
         })
         .catch(() => {
           if (live) {
-            setState((s) => (s.views === null ? { ...s, failed: true } : s));
+            setState((s) =>
+              s.slug !== slug || s.views === null
+                ? { slug, views: null, failed: true }
+                : s,
+            );
           }
         });
     if (increment) {
@@ -102,7 +112,7 @@ export function useViewCount(slug: string, increment = false) {
           return;
         }
         if (total) {
-          setState({ views: total, failed: false });
+          setState({ slug, views: total, failed: false });
         } else {
           fromList();
         }
@@ -115,5 +125,5 @@ export function useViewCount(slug: string, increment = false) {
     };
   }, [slug, increment]);
 
-  return state;
+  return { views: current.views, failed: current.failed };
 }

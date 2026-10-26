@@ -34,7 +34,13 @@ interface LockScreenProps {
   measure: () => { h: number; scale: number };
   onSettle: (to: 0 | 1, velocity?: number) => void;
   /** Open an app out of `from`: the banner, card or button tapped. */
-  onOpenApp: (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => void;
+  onOpenApp: (
+    id: IphoneAppId,
+    launch?: AppLaunch,
+    from?: HTMLElement,
+    /** Opened from its notification, which then counts as read. */
+    notification?: boolean,
+  ) => void;
   unlockButtonRef: React.RefObject<HTMLButtonElement | null>;
   /** The sliding layer and its clock, which the unlock's spring moves on
    * the compositor (compositor-spring). */
@@ -209,6 +215,7 @@ export function LockScreen({
                     notification.app,
                     notification.note ? { note: notification.note } : undefined,
                     event.currentTarget,
+                    true,
                   )
                 }
                 onPointerDown={() => APPS[notification.app].load()}

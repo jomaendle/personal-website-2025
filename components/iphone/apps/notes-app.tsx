@@ -87,7 +87,6 @@ export default function NotesApp({ launch }: AppProps) {
     }
     popping.current = true;
     setLeaving(true);
-    store.set(NOTE_KEY, null);
     springTo(nav, {
       to: 0,
       transition: reduced ? FADE : SPRING_PUSH,
@@ -104,6 +103,9 @@ export default function NotesApp({ launch }: AppProps) {
         return;
       }
       popping.current = false;
+      // Only now: a pop caught by a finger and let go leaves the note open,
+      // and a reload or Escape has to find it still there.
+      store.set(NOTE_KEY, null);
       // Flushed, so the list has stopped being inert before focus returns
       // to the row the note was opened from.
       flushSync(() => {
@@ -116,6 +118,7 @@ export default function NotesApp({ launch }: AppProps) {
 
   /** The latest pop, for the Escape listener below. */
   const popRef = useLatest(() => pop());
+  const openRef = useLatest(open);
 
   // Escape steps back out of a note first, as the back button does; the next
   // Escape closes the app. A capture listener on the window, so it runs
@@ -123,7 +126,7 @@ export default function NotesApp({ launch }: AppProps) {
   // phone's own Escape handler, which skips events already handled.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && store.get(NOTE_KEY)) {
+      if (event.key === "Escape" && openRef.current) {
         event.preventDefault();
         event.stopPropagation();
         popRef.current();

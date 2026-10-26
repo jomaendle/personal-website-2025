@@ -504,7 +504,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * under the app as it starts to grow.
    */
   const openFromLock = useCallback(
-    (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => {
+    (
+      id: IphoneAppId,
+      launch?: AppLaunch,
+      from?: HTMLElement,
+      notification = false,
+    ) => {
       openApp(id, { launch, from });
       // Until the app has landed, however long that takes (a drag can hold
       // a launch), or it has gone.
@@ -522,7 +527,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         unlock.jump(1);
         setLocked(false);
         document.documentElement.dataset.iphone = "home";
-        setSeen((list) => (list.includes(id) ? list : [...list, id]));
+        // A notification that was opened is read; the camera or the music
+        // controls opening the same app leave it on the lock screen.
+        if (notification) {
+          setSeen((list) => (list.includes(id) ? list : [...list, id]));
+        }
       });
     },
     [openApp, scene, unlock],

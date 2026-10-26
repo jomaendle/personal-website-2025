@@ -2,15 +2,14 @@ import { m } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SOCIAL_LINKS } from "@/lib/config/navigation";
-import { SITE } from "@/lib/config/site";
+import { SITE, SITE_INITIALS } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/state/blog";
 import { TRACKS } from "@/lib/state/car-kids";
 import { PHOTOS, WALLPAPERS } from "@/lib/state/photos";
 import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import { AppIcon } from "../app-icons";
-import type { AppProps } from "../apps";
+import { type AppProps, WEB_CLIPS } from "../apps";
 import { springTo } from "../compositor-spring";
 import { BackChevron, CalendarGlyph, Envelope } from "../glyphs";
 import styles from "../iphone.module.css";
@@ -21,14 +20,7 @@ import { useSwipeBack } from "../use-swipe-back";
 import { setWallpaper, useWallpaper } from "../wallpapers";
 import { Group, NavBar, Row, Switch } from "./ui";
 
-const initials = SITE.name
-  .split(" ")
-  .map((part) => part.charAt(0))
-  .join("");
-
-const github =
-  SOCIAL_LINKS.find((link) => link.label === "GitHub")?.href ??
-  "https://github.com/jomaendle";
+const github = WEB_CLIPS.find((clip) => clip.name === "GitHub")?.href ?? "/";
 
 /** A coloured 29pt tile with a white glyph, Settings' system-row icon. */
 const Tile = ({
@@ -165,7 +157,7 @@ function SettingsRoot({ onWallpaper }: { onWallpaper: () => void }) {
           href="/"
           icon={
             <span className={styles.profileMonogram} aria-hidden>
-              {initials}
+              {SITE_INITIALS}
             </span>
           }
           title={<span className={styles.profileName}>{SITE.name}</span>}
@@ -300,7 +292,6 @@ function WallpaperPage({
       ref={pageRef}
       className={styles.scroll}
       tabIndex={-1}
-      aria-label="Wallpaper"
       {...swipeBack}
     >
       <NavBar

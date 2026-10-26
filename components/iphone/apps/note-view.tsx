@@ -30,7 +30,17 @@ export function prefetchNote(slug: string): Promise<NoteDocument | null> {
   let pending = cache.get(slug);
   if (!pending) {
     pending = fetch(`/iphone/notes/${slug}`)
-      .then((res) => (res.ok ? (res.json() as Promise<NoteDocument>) : null))
+      .then((res) => {
+        if (res.ok) {
+          return res.json() as Promise<NoteDocument>;
+        }
+        // A note that isn't there stays not there; a server having a bad
+        // moment gets asked again on the next open.
+        if (res.status !== 404) {
+          cache.delete(slug);
+        }
+        return null;
+      })
       .then((note) => {
         if (note) {
           loaded.add(slug);

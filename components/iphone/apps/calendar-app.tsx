@@ -120,7 +120,15 @@ const formats = {
  * page; "+" books one too, and Today brings the view back to today.
  */
 export default function CalendarApp(_: AppProps) {
-  const today = useMinute() ?? new Date();
+  // The day, not the minute: every cell takes `today`, and a new Date each
+  // minute would have the whole grid render again for nothing.
+  const minute = useMinute();
+  const [today, setToday] = useState(() => atMidnight(new Date()));
+  useEffect(() => {
+    if (minute && !sameDay(minute, today)) {
+      setToday(atMidnight(minute));
+    }
+  }, [minute, today]);
   const start = useMemo(firstWeekday, []);
   const [view, setView] = useState<View>("month");
   const [selected, setSelected] = useState(() => atMidnight(new Date()));

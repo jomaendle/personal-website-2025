@@ -57,6 +57,9 @@ export interface LaunchState {
 
 type Key = keyof LaunchState;
 const KEYS: Key[] = ["a", "p", "dx", "dy", "k", "c"];
+/** What a finger can take hold of: everything but the cover, which keeps
+ * fading as the app underneath arrives. */
+const GRASPABLE: Key[] = ["a", "p", "dx", "dy", "k"];
 
 /** What the scene reads of a framer-motion transition (motion.ts): a
  * spring's visual duration and bounce, or a tween's duration in seconds. */
@@ -431,20 +434,34 @@ export class LaunchScene {
     };
   }
 
-  /** Set values outright, no motion: a finger's drag, a restore, a reset. */
+  /** Set values outright, no motion: a finger's drag, a restore, a reset.
+   * The keys named stop there; any other motion carries on. */
   jump(values: Partial<LaunchState>) {
-    const state = { ...this.get(), ...values };
-    const keys = Object.keys(values) as Key[];
-    this.stop(keys.length ? keys : KEYS);
-    for (const key of KEYS) {
-      this.motions[key] = { kind: "still", value: state[key] };
-    }
-    this.write(state);
+    this.freeze(Object.keys(values) as Key[], values);
   }
 
   /** Stop wherever everything is (a finger took hold). */
   hold() {
-    this.jump({});
+    this.freeze(GRASPABLE, {});
+  }
+
+  private freeze(keys: Key[], values: Partial<LaunchState>) {
+    const now = performance.now();
+    const state = { ...this.get(), ...values };
+    const stillMoving = KEYS.some(
+      (key) => !keys.includes(key) && !valueAt(this.motions[key], now).done,
+    );
+    this.stop(keys);
+    for (const key of KEYS) {
+      this.motions[key] = keys.includes(key)
+        ? { kind: "still", value: state[key] }
+        : this.next(key, undefined, now);
+    }
+    if (stillMoving) {
+      this.play(now);
+    } else {
+      this.write(state);
+    }
   }
 
   /**

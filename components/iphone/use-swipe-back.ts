@@ -1,7 +1,7 @@
 import type { MotionValue } from "framer-motion";
 import { useRef } from "react";
 import { halt, springTo } from "./compositor-spring";
-import { clamp, rubberband, SPRING_PUSH } from "./motion";
+import { clamp, rubberband, SPRING_PUSH, VelocityTracker } from "./motion";
 
 /**
  * The interactive back swipe of a navigation stack. iOS 26 takes it from
@@ -15,8 +15,6 @@ import { clamp, rubberband, SPRING_PUSH } from "./motion";
  *
  * `nav` is the stack position: 1 shows the pushed level, 0 the one below.
  */
-type Sample = { x: number; t: number };
-
 interface Swipe {
   id: number;
   x: number;
@@ -27,24 +25,14 @@ interface Swipe {
   /** Where the stack was when the finger landed (mid-spring, perhaps). */
   base: number;
   active: boolean;
-  samples: Sample[];
+  /** Tracks x; its velocity reads leftward-positive, as app-window's. */
+  tracker: VelocityTracker;
 }
 
 /** Controls keep their own drags, and a mouse selects text instead. */
 const swipeable = (event: React.PointerEvent<HTMLElement>) =>
   event.pointerType !== "mouse" &&
   !(event.target as HTMLElement).closest("video, a, button, input");
-
-/** Rightward release speed in px/ms over the last few samples. */
-function releaseVelocity(samples: Sample[]) {
-  const first = samples[0];
-  const last = samples.at(-1);
-  // A finger that stopped before letting go isn't flicking: the samples
-  // are from before it stopped (pointer events only come with movement).
-  return first && last && last.t > first.t && performance.now() - last.t <= 60
-    ? (last.x - first.x) / (last.t - first.t)
-    : 0;
-}
 
 /** Before a drag commits: keep waiting inside the slop, give it up to the
  * scroller if it turns out vertical or leftward, or start the back swipe. */
@@ -74,10 +62,7 @@ function follow(
     dx = 0;
     event.currentTarget.setPointerCapture(event.pointerId);
   }
-  s.samples = [
-    ...s.samples.slice(-3),
-    { x: event.clientX, t: event.timeStamp },
-  ];
+  s.tracker.add(event.clientX, event.timeStamp);
   // Past the start (dragging the note further left), it gives like a
   // rubber band instead of stopping dead.
   const next = s.base - dx / s.width;
@@ -100,7 +85,8 @@ export function useSwipeBack(
     if (!s.active) {
       return;
     }
-    const vx = releaseVelocity(s.samples);
+    // Rightward release speed in px/ms.
+    const vx = -s.tracker.velocity();
     // px/ms rightwards to stack units per second.
     const velocity = (-vx * 1000) / s.width;
     // A flick decides by its direction; failing one, how far it went.
@@ -118,6 +104,8 @@ export function useSwipeBack(
       }
       // Catch a slide in flight, where it is on screen.
       const caught = halt(nav);
+      const tracker = new VelocityTracker();
+      tracker.add(event.clientX, event.timeStamp);
       swipe.current = {
         id: event.pointerId,
         x: event.clientX,
@@ -125,7 +113,7 @@ export function useSwipeBack(
         width: event.currentTarget.getBoundingClientRect().width || 1,
         base: caught,
         active: false,
-        samples: [{ x: event.clientX, t: event.timeStamp }],
+        tracker,
       };
     },
     onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
