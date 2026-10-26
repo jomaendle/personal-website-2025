@@ -11,29 +11,23 @@ import dsc04938 from "@/public/assets/DSC04938.webp";
 import dsc05383 from "@/public/assets/DSC05383.webp";
 import dsc05480 from "@/public/assets/DSC05480.webp";
 import dsc09908 from "@/public/assets/DSC09908.webp";
-import earthCoastalBluffs from "@/public/assets/earth/coastal-bluffs.webp";
 import earthCurvingShore from "@/public/assets/earth/curving-shore.webp";
 import earthDistantTower from "@/public/assets/earth/distant-tower.webp";
 import earthEveningOverTheCove from "@/public/assets/earth/evening-over-the-cove.webp";
-import earthGlacierFlow from "@/public/assets/earth/glacier-flow.webp";
 import earthGoldenGate from "@/public/assets/earth/golden-gate.webp";
 import earthHighAlpineRidges from "@/public/assets/earth/high-alpine-ridges.webp";
 import earthLookingUp from "@/public/assets/earth/looking-up.webp";
 import earthLowTide from "@/public/assets/earth/low-tide.webp";
-import earthMachuPicchu from "@/public/assets/earth/machu-picchu.webp";
-import earthMineralRidges from "@/public/assets/earth/mineral-ridges.webp";
 import earthOneBranch from "@/public/assets/earth/one-branch.webp";
 import earthPalmFronds from "@/public/assets/earth/palm-fronds.webp";
 import earthPalmsAtDusk from "@/public/assets/earth/palms-at-dusk.webp";
 import earthPalmsInTheBreeze from "@/public/assets/earth/palms-in-the-breeze.webp";
-import earthPeritoMoreno from "@/public/assets/earth/perito-moreno.webp";
 import earthScallopedShore from "@/public/assets/earth/scalloped-shore.webp";
 import earthStormClouds from "@/public/assets/earth/storm-clouds.webp";
 import earthStraightDesertRoad from "@/public/assets/earth/straight-desert-road.webp";
 import earthSugarloaf from "@/public/assets/earth/sugarloaf.webp";
 import earthTheCliffEdge from "@/public/assets/earth/the-cliff-edge.webp";
 import earthTheQuiraing from "@/public/assets/earth/the-quiraing.webp";
-import earthThroughTheMist from "@/public/assets/earth/through-the-mist.webp";
 import earthTideLines from "@/public/assets/earth/tide-lines.webp";
 import earthWhiteFrangipani from "@/public/assets/earth/white-frangipani.webp";
 import mapArchesNationalPark from "@/public/assets/maps/arches-national-park.webp";
@@ -44,22 +38,16 @@ import mapBenidorm from "@/public/assets/maps/benidorm.webp";
 import mapBoblingen from "@/public/assets/maps/boblingen.webp";
 import mapBromo from "@/public/assets/maps/bromo.webp";
 import mapForrestGumpPoint from "@/public/assets/maps/forrest-gump-point.webp";
-import mapGlaciarPeritoMoreno from "@/public/assets/maps/glaciar-perito-moreno.webp";
-import mapHalfMoonBay from "@/public/assets/maps/half-moon-bay.webp";
-import mapIguazuFalls from "@/public/assets/maps/iguazu-falls.webp";
 import mapKohPhangan from "@/public/assets/maps/koh-phangan.webp";
 import mapKohSamui from "@/public/assets/maps/koh-samui.webp";
 import mapLechtalAlps from "@/public/assets/maps/lechtal-alps.webp";
-import mapMachuPicchu from "@/public/assets/maps/machu-picchu.webp";
 import mapPraiaDoNorte from "@/public/assets/maps/praia-do-norte.webp";
-import mapRainbowMountain from "@/public/assets/maps/rainbow-mountain.webp";
 import mapRioDeJaneiro from "@/public/assets/maps/rio-de-janeiro.webp";
 import mapSagres from "@/public/assets/maps/sagres.webp";
 import mapSanDiego from "@/public/assets/maps/san-diego.webp";
 import mapSanFrancisco from "@/public/assets/maps/san-francisco.webp";
 import mapTaipei from "@/public/assets/maps/taipei.webp";
 import mapTheQuiraing from "@/public/assets/maps/the-quiraing.webp";
-import mapTorresDelPaineNationalPark from "@/public/assets/maps/torres-del-paine-national-park.webp";
 import mapUluwatu from "@/public/assets/maps/uluwatu.webp";
 import mapVilaNovaDeMilfontes from "@/public/assets/maps/vila-nova-de-milfontes.webp";
 import photo6554107 from "@/public/assets/Photo_6554107.webp";
@@ -186,138 +174,6 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       pin: { lat: 9.5104, lng: 100.0167 },
       map: mapKohSamui,
       href: `${BEAUTY_OF_EARTH_PHOTO}9`,
-    },
-  },
-  {
-    image: earthGlacierFlow,
-    file: "earth/glacier-flow.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 16,
-      aperture: 10,
-      shutter: "1/100",
-      taken: "2019-10-11T15:07:45",
-    },
-    about: {
-      title: "Glacier Flow",
-      description:
-        "A wide glacier of blue-white ice meets a rocky outcrop and a milky lake under low cloud in Torres del Paine National Park, Chile.",
-      place: "Torres del Paine National Park, Chile",
-      pin: { lat: -50.9459, lng: -73.4128 },
-      map: mapTorresDelPaineNationalPark,
-      href: `${BEAUTY_OF_EARTH_PHOTO}aAewyCdbMOf6`,
-    },
-  },
-  {
-    image: earthPeritoMoreno,
-    file: "earth/perito-moreno.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 18,
-      aperture: 11,
-      shutter: "1/320",
-      taken: "2019-10-17T17:38:13",
-    },
-    about: {
-      title: "Perito Moreno",
-      description:
-        "The jagged blue face of Perito Moreno Glacier meets a turquoise lake below snow-streaked mountains in Argentine Patagonia.",
-      place: "Glaciar Perito Moreno, Argentina",
-      pin: { lat: -50.4968, lng: -73.1338 },
-      map: mapGlaciarPeritoMoreno,
-      href: `${BEAUTY_OF_EARTH_PHOTO}-maJXk5ZP3nQ`,
-    },
-  },
-  {
-    image: earthThroughTheMist,
-    file: "earth/through-the-mist.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 16,
-      aperture: 8,
-      shutter: "1/100",
-      taken: "2019-11-14T15:18:10",
-    },
-    about: {
-      title: "Through the Mist",
-      description:
-        "Multiple cascades of Iguazu Falls pour into a mist-filled gorge, with green jungle lining the cliffs above.",
-      place: "Iguazu Falls, Brazil",
-      pin: { lat: -25.6854, lng: -54.4431 },
-      map: mapIguazuFalls,
-      href: `${BEAUTY_OF_EARTH_PHOTO}qIDJrB27r1Qf`,
-    },
-  },
-  {
-    image: earthMineralRidges,
-    file: "earth/mineral-ridges.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 16,
-      aperture: 11,
-      shutter: "1/160",
-      taken: "2020-01-19T20:05:45",
-    },
-    about: {
-      title: "Mineral Ridges",
-      description:
-        "Striped mineral bands of red, gold, and turquoise run down the ridges of Rainbow Mountain in Peru, with a line of small figures walking the trail below and clouds massed over the surrounding peaks.",
-      place: "Rainbow Mountain, Peru",
-      pin: { lat: -13.8726, lng: -71.3051 },
-      map: mapRainbowMountain,
-      href: `${BEAUTY_OF_EARTH_PHOTO}meAvp37PatYY`,
-    },
-  },
-  {
-    image: earthMachuPicchu,
-    file: "earth/machu-picchu.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 22,
-      aperture: 8,
-      shutter: "1/80",
-      taken: "2020-01-23T15:26:32",
-    },
-    about: {
-      title: "Machu Picchu",
-      description:
-        "Terraced stone ruins of Machu Picchu spread along a ridge, with Huayna Picchu and cloud-wrapped green mountains rising behind.",
-      place: "Machu Picchu, Peru",
-      pin: { lat: -13.163, lng: -72.548 },
-      map: mapMachuPicchu,
-      href: `${BEAUTY_OF_EARTH_PHOTO}G6n1cUoBwg2b`,
-    },
-  },
-  {
-    image: earthCoastalBluffs,
-    file: "earth/coastal-bluffs.webp",
-    exif: {
-      camera: "Sony ILCE-6000",
-      lens: "E PZ 16-50mm F3.5-5.6 OSS",
-      iso: 100,
-      focalLength: 39,
-      aperture: 11,
-      shutter: "1/320",
-      taken: "2022-04-03T01:03:51",
-    },
-    about: {
-      title: "Coastal Bluffs",
-      description:
-        "A wide sandy beach curves beneath eroded cliffs at Half Moon Bay, California, with waves rolling in and a hillside town visible in the distance.",
-      place: "Half Moon Bay, California",
-      pin: { lat: 37.4659, lng: -122.4482 },
-      map: mapHalfMoonBay,
-      href: `${BEAUTY_OF_EARTH_PHOTO}d5i_x6ExBPz4`,
     },
   },
   {
