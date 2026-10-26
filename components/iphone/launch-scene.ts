@@ -1,5 +1,5 @@
 import type { Transition } from "framer-motion";
-import { clamp, lerp, type Rect } from "./motion";
+import { clamp, FPS, lerp, type Rect } from "./motion";
 
 /**
  * The app launch, close and card drag, run on the compositor.
@@ -8,8 +8,8 @@ import { clamp, lerp, type Rect } from "./motion";
  * leaves every frame at the mercy of the main thread, which at the start of
  * a launch is busy building the app: on a phone the zoom stuttered at its
  * fastest. So each move is worked out in advance instead. The springs are
- * simulated once, every element's pose is sampled from them at 60 frames a
- * second, and each element gets one Web Animation of transform and opacity,
+ * simulated once, every element's pose is sampled from them at 120 frames a
+ * second (120 for ProMotion), and each element gets one Web Animation of transform and opacity,
  * which the browser runs off the main thread (Core Animation in Safari).
  * An interruption reads where the springs are at that instant, position and
  * speed, and carries on from there, so nothing jumps.
@@ -75,8 +75,8 @@ type Motion =
     }
   | { kind: "tween"; t0: number; from: number; to: number; duration: number };
 
-/** Simulation step, and keyframe spacing: 60 per second. */
-export const STEP = 1000 / 60;
+/** Simulation step, and keyframe spacing (FPS a second). */
+export const STEP = 1000 / FPS;
 /** At most this long, whatever the springs do. */
 const LONGEST = 2500;
 /** Rest thresholds, per value: within this much, moving this slowly (per
@@ -296,6 +296,33 @@ export function pose(
   };
 }
 
+/** The properties a browser composites: transform and opacity. */
+const COMPOSITED = new Set(["transform", "opacity"]);
+
+/** Keyframes split into those the compositor runs and the rest, either
+ * missing when it has none. */
+export function split(
+  keyframes: Keyframe[],
+): [Keyframe[] | null, Keyframe[] | null] {
+  const fast: Keyframe[] = [];
+  const slow: Keyframe[] = [];
+  for (const frame of keyframes) {
+    const f: Keyframe = {};
+    const s: Keyframe = {};
+    for (const [property, value] of Object.entries(frame)) {
+      if (COMPOSITED.has(property)) {
+        f[property] = value;
+      } else {
+        s[property] = value;
+      }
+    }
+    fast.push(f);
+    slow.push(s);
+  }
+  const has = (list: Keyframe[]) => Object.keys(list[0] ?? {}).length > 0;
+  return [has(fast) ? fast : null, has(slow) ? slow : null];
+}
+
 /** Whether the window is moving in this state: its glass drops its blur. */
 const moving = (s: LaunchState) => s.a < 0.999 || s.p > 0.001;
 
@@ -464,10 +491,21 @@ export class LaunchScene {
         if (!el) {
           continue;
         }
-        const keyframes = poses.map((p) => p[key] ?? {});
-        this.running.push(
-          el.animate(keyframes, { duration, easing: "linear", fill: "both" }),
-        );
+        // Transform and opacity in one animation, anything else (the
+        // window's corner radius) in another: a single property the
+        // compositor can't run takes the whole animation off it.
+        const [fast, slow] = split(poses.map((p) => p[key] ?? {}));
+        for (const keyframes of [fast, slow]) {
+          if (keyframes) {
+            this.running.push(
+              el.animate(keyframes, {
+                duration,
+                easing: "linear",
+                fill: "both",
+              }),
+            );
+          }
+        }
       }
     }
     // The old animations go once the new ones are in, in the same frame,

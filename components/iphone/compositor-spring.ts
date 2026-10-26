@@ -1,5 +1,11 @@
 import type { MotionValue, Transition } from "framer-motion";
-import { easeOut, type SceneTransition, STEP, simulate } from "./launch-scene";
+import {
+  easeOut,
+  type SceneTransition,
+  STEP,
+  simulate,
+  split,
+} from "./launch-scene";
 import { lerp } from "./motion";
 
 /**
@@ -132,14 +138,21 @@ export function springTo(
   const duration = (samples.length - 1) * STEP;
   const animations: Animation[] = [];
   for (const { el, style } of bindings ?? registry.get(mv)?.() ?? []) {
-    if (el && duration > 0) {
-      animations.push(
-        el.animate(samples.map(style), {
-          duration,
-          easing: "linear",
-          fill: "forwards",
-        }),
-      );
+    if (!el || duration <= 0) {
+      continue;
+    }
+    // Anything the compositor can't run goes in an animation of its own,
+    // so it can't take the transform and opacity off the compositor.
+    for (const keyframes of split(samples.map(style))) {
+      if (keyframes) {
+        animations.push(
+          el.animate(keyframes, {
+            duration,
+            easing: "linear",
+            fill: "forwards",
+          }),
+        );
+      }
     }
   }
   // The previous run's animations go once the new ones are in, in the same

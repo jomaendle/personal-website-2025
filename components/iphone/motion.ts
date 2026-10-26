@@ -48,6 +48,14 @@ export const SPRING_UNLOCK: Transition = {
  * than cutting to it (see docs/solutions/frontend-animation). */
 export const FADE: Transition = { duration: 0.2, ease: "easeOut" };
 
+/**
+ * Keyframes per second for motion worked out ahead (the launch scene, the
+ * compositor spring, the photo zoom). The compositor draws straight lines
+ * between keyframes, so they're sampled for ProMotion's 120Hz rather than
+ * 60, where every other frame would be an interpolation.
+ */
+export const FPS = 120;
+
 export const clamp = (value: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, value));
 
@@ -112,12 +120,12 @@ export function springEasing(
   const points = springProgress(velocity, options);
   return {
     easing: `linear(${points.map((p) => Number(p.toFixed(4))).join(", ")})`,
-    duration: Math.round(((points.length - 1) * 1000) / 60),
+    duration: Math.round(((points.length - 1) * 1000) / FPS),
   };
 }
 
-/** The same spring from 0 to 1, as its progress every 1/60 s: for motions
- * built frame by frame (a photo's nested transforms). */
+/** The same spring from 0 to 1, as its progress every 1/FPS s: for
+ * motions built frame by frame (a photo's nested transforms). */
 export function springProgress(
   velocity: number,
   {
@@ -126,17 +134,19 @@ export function springProgress(
   }: { stiffness?: number; damping?: number } = {},
 ): number[] {
   const c = 2 * damping * Math.sqrt(stiffness);
-  const step = 1 / 240;
+  const sub = 4;
+  const step = 1 / (FPS * sub);
   let x = 0;
   let v = velocity;
   let t = 0;
+  let n = 0;
   const points = [0];
   while (t < 1.5) {
     v += (stiffness * (1 - x) - c * v) * step;
     x += v * step;
     t += step;
-    // A point every 1/60 s is smooth enough to interpolate between.
-    if (Math.round(t * 240) % 4 === 0) {
+    n += 1;
+    if (n % sub === 0) {
       points.push(x);
     }
     if (Math.abs(1 - x) < 0.001 && Math.abs(v) < 0.02) {
@@ -147,14 +157,15 @@ export function springProgress(
   return points;
 }
 
-/** A CSS cubic-bezier easing as progress every 1/60 s over `duration` ms. */
+/** A CSS cubic-bezier easing as progress every 1/FPS s over `duration`
+ * ms. */
 export function bezierProgress(
   [x1, y1, x2, y2]: [number, number, number, number],
   duration: number,
 ): number[] {
   const at = (a: number, b: number, t: number) =>
     3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
-  const frames = Math.max(1, Math.round((duration * 60) / 1000));
+  const frames = Math.max(1, Math.round((duration * FPS) / 1000));
   return Array.from({ length: frames + 1 }, (_, i) => {
     const x = i / frames;
     // Solve the curve's x for t by bisection, then read its y.

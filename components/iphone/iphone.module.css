@@ -650,11 +650,14 @@
 }
 
 /* Leans in as an app opens over the home screen, about the same point the
-   grid zooms around on unlock. */
+   grid zooms around on unlock. Its own layer from the start, not from the
+   first frame of each launch, so promotion never costs a frame or nudges
+   it by a pixel as an animation begins and ends. */
 .homeZoom {
   position: absolute;
   inset: 0;
   transform-origin: 50% 45%;
+  will-change: transform;
 }
 
 .homeGrid {
@@ -873,14 +876,28 @@
   outline: none;
   /* iOS 26's Spotlight: a thick, dark frosting that keeps only the
      wallpaper's colour, so results read at a glance. */
-  background: rgb(0 0 0 / 0.72);
+  background: rgb(0 0 0 / 0.5);
   animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  transition: background-color 0.2s ease-out;
+}
+
+/* In motion, a darker tint stands in for the frosting (0.72 black in all,
+   with the base). It fades out by opacity once the blur is on, which the
+   compositor runs, where a fading background colour repaints the screen. */
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.44);
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
 }
 
 .spotlightSettled {
-  background: rgb(0 0 0 / 0.5);
   backdrop-filter: blur(60px) saturate(1.5) brightness(0.7);
+}
+
+.spotlightSettled::before {
+  opacity: 0;
 }
 
 @keyframes spotlight-in {
@@ -945,17 +962,19 @@
 
 /* While Spotlight is up the home screen steps back: the icons and widgets
    fade and shrink a touch, so only the wallpaper's colour is left under the
-   frosting and the results read cleanly, as in iOS 26. Important, to win
-   over the inline opacity the unlock drives. The fade runs only on the way
-   in and out, so it never lags a gesture. */
-.screen[data-spotlight] :is(.homeGrid, .homeBottom) {
+   frosting and the results read cleanly, as in iOS 26. On the grid's
+   wrapper and the dock's own children, which carry no inline opacity from
+   the unlock: overriding that would take `!important`, and a transition of
+   an important property can't run on the compositor. The fade runs only on
+   the way in and out, so it never lags a gesture. */
+.screen[data-spotlight] :is(.homeZoom, .homeBottom > *) {
   transition:
     opacity 0.25s ease-out,
     scale 0.25s ease-out;
 }
 
-.screen[data-spotlight="open"] :is(.homeGrid, .homeBottom) {
-  opacity: 0 !important;
+.screen[data-spotlight="open"] :is(.homeZoom, .homeBottom > *) {
+  opacity: 0;
   scale: 0.96;
 }
 
@@ -2333,11 +2352,14 @@ button.row:active {
 
 /* A navigation stack: each level is a full-screen layer. The one being
    pushed carries the shadow UIKit casts on the level beneath. */
+/* Each page of a navigation stack slides on every push and pop: layered
+   from the start, for the same reason as the home screen's zoom. */
 .navLayer {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: var(--bg);
+  will-change: transform;
 }
 
 .navTop {

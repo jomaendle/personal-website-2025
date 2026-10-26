@@ -84,6 +84,9 @@ export function preloadAllApps() {
   for (const app of Object.values(APPS)) {
     app.load();
   }
+  // The library's first screen of thumbnails too, fetched and decoded
+  // ahead, so the launch's first frames aren't waiting on images.
+  import("./apps/photos-app").then((photos) => photos.warmLibrary());
 }
 
 /** Home screen bookmarks that leave the phone for another site. */

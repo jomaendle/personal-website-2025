@@ -90,6 +90,27 @@ both per frame from the same progress instead.
 - When a motion value jumps to its target at the start, anything that
   reads it mid-flight sees the target. Use `motionNow()` for the real
   position, and wait for the spring's promise before treating it as landed.
+- Keep transform and opacity in an animation of their own. One property
+  the compositor can't run in the same animation takes the whole animation
+  off it: the window's `border-radius` sat beside its transform, and
+  Chrome's trace reported the launch as not composited ("unsupported CSS
+  property"). `split()` in launch-scene.ts separates them.
+- Never transition or animate a property that has an `!important`
+  declaration. The animation can't override it, so the browser won't
+  composite it ("affects important property"). Move the effect to an
+  element that has no inline style to beat.
+- Fade a tint by opacity on its own layer instead of transitioning
+  `background-color` on a full-screen element, which repaints every frame.
+- Sample precomputed motion at 120 frames a second (`FPS` in motion.ts).
+  The compositor draws straight lines between keyframes, so at 60 every
+  other ProMotion frame is an interpolation.
+- Give the few layers that move on every interaction (`.app`,
+  `.homeZoom`, `.navLayer`) their own layer up front with `will-change`.
+  Not everything: each full-screen layer costs GPU memory on a phone.
+- Check, don't assume. Trace a transition with the `devtools.timeline`
+  category and read each `Animation` event's `compositeFailed` and
+  `unsupportedProperties` (e2e/composite.cjs in the session scratchpad did
+  this for every transition).
 - Prove it with a blocked main thread: run a 400ms busy loop just after the
   animation starts and count the frames a CDP screencast delivers (24 for
   the launch after the change, none before).

@@ -6,7 +6,7 @@ import {
   useReducedMotion,
   useTransform,
 } from "framer-motion";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ import {
   bezierProgress,
   clamp,
   FADE,
+  FPS,
   lerp,
   SPRING_PUSH,
   springEasing,
@@ -45,6 +46,25 @@ import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
  * full image, so it shows the cached thumbnail at once instead of a blur. */
 const THUMB_SIZES = "(min-width: 640px) and (min-height: 640px) 134px, 34vw";
 const FULL_SIZES = "(min-width: 640px) and (min-height: 640px) 402px, 100vw";
+
+/** The library's first screen of thumbnails, fetched and decoded at the
+ * size the grid will ask for (the same srcset and sizes), while the phone
+ * is idle. */
+export function warmLibrary() {
+  for (const photo of PHOTOS.slice(0, 12)) {
+    const { props } = getImageProps({
+      src: photo,
+      alt: "",
+      sizes: THUMB_SIZES,
+      fill: true,
+    });
+    const img = new window.Image();
+    img.sizes = props.sizes ?? "";
+    img.srcset = props.srcSet ?? "";
+    img.src = props.src;
+    img.decode().catch(() => undefined);
+  }
+}
 /** iOS's photo zoom: quick out of the gate, long soft landing. */
 const ZOOM = { duration: 420, easing: "cubic-bezier(0.2, 0.9, 0.25, 1)" };
 /** Where the library was scrolled to, kept while the page is open so the
@@ -121,7 +141,7 @@ function playShot(
     move.size,
   );
   const timing: KeyframeAnimationOptions = {
-    duration: ((move.progress.length - 1) * 1000) / 60,
+    duration: ((move.progress.length - 1) * 1000) / FPS,
     easing: "linear",
     fill: done ? "forwards" : "none",
   };
