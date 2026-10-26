@@ -14,7 +14,7 @@ import { AppIcon } from "./app-icons";
 import { APPS, type AppLaunch } from "./apps";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
-import { rubberband, VelocityTracker } from "./motion";
+import { rubberband, useVelocityTracker } from "./motion";
 import { LockNowPlaying } from "./music/system-ui";
 import { formatClock, formatLockDate, formatWeekday } from "./use-clock";
 
@@ -63,7 +63,7 @@ export function LockScreen({
      * a spring-back carries on from there instead of jumping. */
     base: number;
   } | null>(null);
-  const velocity = useRef(new VelocityTracker());
+  const tracker = useVelocityTracker();
   /** Set when a swipe ends on a button, so its click doesn't also fire. */
   const swallowClick = useRef(false);
 
@@ -85,8 +85,8 @@ export function LockScreen({
       active: false,
       base: Math.max(0, unlock.get()),
     };
-    velocity.current.reset();
-    velocity.current.add(event.clientY, event.timeStamp);
+    tracker.reset();
+    tracker.add(event.clientY, event.timeStamp);
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -104,7 +104,7 @@ export function LockScreen({
       // retarget the click of a tap on a notification to this layer.
       event.currentTarget.setPointerCapture(event.pointerId);
     }
-    velocity.current.add(event.clientY, event.timeStamp);
+    tracker.add(event.clientY, event.timeStamp);
     // Dragging down rubber-bands instead of moving freely, as on iOS.
     const progress =
       travel >= 0
@@ -123,7 +123,7 @@ export function LockScreen({
       return;
     }
     swallowClick.current = true;
-    const v = velocity.current.velocity();
+    const v = tracker.velocity();
     const open = (unlock.get() > 0.3 || v > 0.4) && v > -0.2;
     // px/ms of finger to unlock-progress per second.
     onSettle(open ? 1 : 0, (v * 1000) / current.h);
@@ -164,9 +164,19 @@ export function LockScreen({
         className="flex flex-col items-center"
       >
         <Padlock className={styles.lockGlyph} open={!locked} />
-        <p className={styles.lockDate}>{formatLockDate(now)}</p>
+        {/* Filled in before first paint by NOW_SCRIPT, which knows the
+            reader's time; the server doesn't. */}
+        <p className={styles.lockDate} data-now="date" suppressHydrationWarning>
+          {formatLockDate(now)}
+        </p>
         <p className={styles.lockTime}>
-          <time dateTime={now?.toISOString()}>{formatClock(now)}</time>
+          <time
+            dateTime={now?.toISOString()}
+            data-now="clock"
+            suppressHydrationWarning
+          >
+            {formatClock(now)}
+          </time>
         </p>
       </m.div>
 
@@ -202,10 +212,24 @@ export function LockScreen({
                       : null
                   }
                 />
-                <span className={styles.notificationTitle}>
+                <span
+                  className={styles.notificationTitle}
+                  data-now={
+                    notification.since && notification.app === "notes"
+                      ? "article"
+                      : undefined
+                  }
+                  data-since={notification.since}
+                  suppressHydrationWarning
+                >
                   {notification.title}
                 </span>
-                <span className={styles.notificationTime}>
+                <span
+                  className={styles.notificationTime}
+                  data-now={notification.since ? "age" : undefined}
+                  data-since={notification.since}
+                  suppressHydrationWarning
+                >
                   {notification.time}
                 </span>
                 <span className={styles.notificationBody}>

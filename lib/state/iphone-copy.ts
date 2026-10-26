@@ -21,7 +21,16 @@ export interface LockNotification {
   title: string;
   body: string;
   time: string;
+  /** When it happened, for the ones whose age (and, for the article, title)
+   * follow the reader's clock. */
+  since?: string;
 }
+
+/** The article notification's title: "New" only while it is. */
+export const ARTICLE_TITLES = {
+  new: "New article",
+  latest: "Latest article",
+} as const;
 
 export const IPHONE_COPY = {
   metaTitle: "iPhone",
@@ -71,7 +80,17 @@ export const MAIL_ALERTS = {
   },
 } as const;
 
-/** Notifications waiting on the lock screen. Tapping one opens its app. */
+const WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: "long" });
+const DAY_MONTH = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+});
+const DAY_MONTH_YEAR = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 /** How long ago, the way a lock-screen notification says it: "now", "5m
  * ago", "2h ago", then "Yesterday", the weekday within a week, then the
  * date. Empty before the visitor's clock is known (on the server). */
@@ -102,15 +121,14 @@ export function notificationAge(date: string, now: Date | null): string {
     return "Yesterday";
   }
   if (days < 7) {
-    return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(then);
+    return WEEKDAY.format(then);
   }
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    ...(then.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
-  }).format(then);
+  return (
+    then.getFullYear() === now.getFullYear() ? DAY_MONTH : DAY_MONTH_YEAR
+  ).format(then);
 }
 
+/** Notifications waiting on the lock screen. Tapping one opens its app. */
 export function lockNotifications(
   latestPost: { title: string; slug: string; date: string } | undefined,
   photoCount: number,
@@ -127,10 +145,11 @@ export function lockNotifications(
               now &&
               now.getTime() - new Date(latestPost.date).getTime() >
                 14 * 86_400_000
-                ? "Latest article"
-                : "New article",
+                ? ARTICLE_TITLES.latest
+                : ARTICLE_TITLES.new,
             body: latestPost.title,
             time: notificationAge(latestPost.date, now),
+            since: latestPost.date,
           },
         ]
       : []),

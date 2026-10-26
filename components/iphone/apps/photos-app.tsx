@@ -27,7 +27,7 @@ import {
   Trash,
 } from "../glyphs";
 import styles from "../iphone.module.css";
-import { clamp, FADE, SPRING_PUSH, VelocityTracker } from "../motion";
+import { clamp, FADE, SPRING_PUSH, useVelocityTracker } from "../motion";
 import { useShare } from "../use-share";
 import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
@@ -158,7 +158,7 @@ export default function PhotosApp(_: AppProps) {
     /** Where the info panel was when an info drag began. */
     base: number;
   } | null>(null);
-  const velocity = useRef(new VelocityTracker());
+  const tracker = useVelocityTracker();
   /** The viewer is closing from a fast downward flick. */
   const flicked = useRef(false);
 
@@ -441,8 +441,8 @@ export default function PhotosApp(_: AppProps) {
       dy: 0,
       base: 0,
     };
-    velocity.current.reset();
-    velocity.current.add(event.clientY, event.timeStamp);
+    tracker.reset();
+    tracker.add(event.clientY, event.timeStamp);
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
@@ -456,11 +456,11 @@ export default function PhotosApp(_: AppProps) {
       beginDrag(d, event);
     }
     if (d.mode === "dismiss") {
-      velocity.current.add(event.clientY, event.timeStamp);
+      tracker.add(event.clientY, event.timeStamp);
       followFinger(d.dx, d.dy);
     }
     if (d.mode === "info") {
-      velocity.current.add(event.clientY, event.timeStamp);
+      tracker.add(event.clientY, event.timeStamp);
       const { h, k } = viewerSize();
       progress.set(clamp(d.base - d.dy / k / (h * sheetFor(current)), 0, 1));
     }
@@ -521,7 +521,7 @@ export default function PhotosApp(_: AppProps) {
   /** Upward flick speed decides, or failing a flick, whichever half the
    * panel is in. */
   const endInfoDrag = () => {
-    const v = velocity.current.velocity();
+    const v = tracker.velocity();
     showInfo(v > 0.3 || (v > -0.3 && progress.get() > 0.5), v);
   };
 
@@ -529,7 +529,7 @@ export default function PhotosApp(_: AppProps) {
    * less settles it where it was. */
   const endDismiss = (dy: number) => {
     // Downward flick speed: the tracker reports upward as positive.
-    const v = -velocity.current.velocity();
+    const v = -tracker.velocity();
     // Far enough, or a flick downwards: a light one will do.
     if (dy > 90 || (v > 0.15 && dy > 24)) {
       flicked.current = v > 0.4;

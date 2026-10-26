@@ -31,7 +31,7 @@ import {
   SpeakerGlyph,
 } from "../glyphs";
 import styles from "../iphone.module.css";
-import { FADE, rubberband, SPRING_PUSH, VelocityTracker } from "../motion";
+import { FADE, rubberband, SPRING_PUSH, useVelocityTracker } from "../motion";
 import { useMusic, useMusicControls, useMusicTime } from "../music/player";
 import { useSwipeBack } from "../use-swipe-back";
 
@@ -544,7 +544,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     k: number;
     active: boolean;
   } | null>(null);
-  const velocity = useRef(new VelocityTracker());
+  const tracker = useVelocityTracker();
 
   useEffect(() => {
     if (open) {
@@ -566,7 +566,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     el.style.transition = "";
     el.style.transform = "";
     // Far enough, or flicked down: the tracker reports upward as positive.
-    if (d.active && (d.dy > 120 || -velocity.current.velocity() > 0.3)) {
+    if (d.active && (d.dy > 120 || -tracker.velocity() > 0.3)) {
       onClose();
     }
   };
@@ -592,8 +592,8 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
           k: el.getBoundingClientRect().height / (el.offsetHeight || 1) || 1,
           active: false,
         };
-        velocity.current.reset();
-        velocity.current.add(event.clientY / drag.current.k, event.timeStamp);
+        tracker.reset();
+        tracker.add(event.clientY / drag.current.k, event.timeStamp);
       }}
       onPointerMove={(event) => {
         const d = drag.current;
@@ -613,7 +613,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
           el.style.transition = "none";
           return;
         }
-        velocity.current.add(event.clientY / d.k, event.timeStamp);
+        tracker.add(event.clientY / d.k, event.timeStamp);
         // Down follows the finger; up gives a little, as a rubber band.
         d.dy =
           travel >= 0 ? travel : -rubberband(-travel, el.offsetHeight || 800);

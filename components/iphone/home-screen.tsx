@@ -10,7 +10,7 @@ import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
-import { VelocityTracker } from "./motion";
+import { useVelocityTracker } from "./motion";
 
 const GRID_APPS: IphoneAppId[] = ["calendar", "contacts", "settings", "music"];
 const DOCK_APPS: IphoneAppId[] = ["notes", "safari", "photos", "mail"];
@@ -65,7 +65,7 @@ export function HomeScreen({
     active: boolean;
   } | null>(null);
   const swallowClick = useRef(false);
-  const velocity = useRef(new VelocityTracker());
+  const tracker = useVelocityTracker();
   const onPointerDown = (event: React.PointerEvent) => {
     swallowClick.current = false;
     if (event.button === 0) {
@@ -75,8 +75,8 @@ export function HomeScreen({
         y: event.clientY,
         active: false,
       };
-      velocity.current.reset();
-      velocity.current.add(event.clientY, event.timeStamp);
+      tracker.reset();
+      tracker.add(event.clientY, event.timeStamp);
     }
   };
   const onPointerMove = (event: React.PointerEvent) => {
@@ -100,7 +100,7 @@ export function HomeScreen({
       onSearchPull("start");
       return;
     }
-    velocity.current.add(event.clientY, event.timeStamp);
+    tracker.add(event.clientY, event.timeStamp);
     searchPull.set(Math.max(0, Math.min(1, dy / 140)));
   };
   const endPull = () => {
@@ -108,7 +108,7 @@ export function HomeScreen({
     pull.current = null;
     if (start?.active) {
       // The tracker reports upward as positive.
-      onSearchPull("end", -velocity.current.velocity());
+      onSearchPull("end", -tracker.velocity());
     }
   };
   const notesWidget = useRef<HTMLDivElement>(null);

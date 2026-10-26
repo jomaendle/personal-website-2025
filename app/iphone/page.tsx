@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Iphone } from "@/components/iphone/iphone";
+import { NOW_SCRIPT } from "@/components/iphone/now-script";
 import { PREPAINT_SCRIPT } from "@/components/iphone/persist";
 import { getNoteSummaries } from "@/lib/iphone-notes";
 import { getPhotoBytes } from "@/lib/iphone-photos";
@@ -49,6 +50,10 @@ export default function IphonePage() {
         dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }}
       />
       <Iphone notes={getNoteSummaries()} photoBytes={getPhotoBytes()} />
+      <script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: a constant, locally defined script that fills in the reader's time before first paint
+        dangerouslySetInnerHTML={{ __html: NOW_SCRIPT }}
+      />
     </>
   );
 }

@@ -7,7 +7,10 @@ import { useSyncExternalStore } from "react";
  * background tabs throttle timers.
  *
  * The server has no idea what time it is for the reader, so it renders
- * `null` and the clocks show Apple's 9:41 until hydration.
+ * `null` and the clocks show Apple's 9:41. Before first paint NOW_SCRIPT
+ * writes in the real time and leaves the minute it used, which hydration
+ * starts from, so the page hydrates onto text that's already right; a
+ * minute that has ticked over since is picked up straight after.
  */
 const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -52,7 +55,10 @@ function subscribe(listener: () => void) {
 }
 
 const getSnapshot = () => Math.floor(Date.now() / 60_000);
-const getServerSnapshot = () => null;
+const getServerSnapshot = () =>
+  typeof window === "undefined"
+    ? null
+    : ((window as { __iphoneMinute?: number }).__iphoneMinute ?? null);
 
 export function useMinute(): Date | null {
   const minute = useSyncExternalStore(

@@ -188,8 +188,10 @@ const ART: Record<
         fontSize="8.5"
         fontWeight="600"
         fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+        data-now="weekday"
+        suppressHydrationWarning
       >
-        {face?.weekday.toUpperCase()}
+        {face ? face.weekday.toUpperCase() : ""}
       </text>
       <text
         x="30"
@@ -200,8 +202,10 @@ const ART: Record<
         fontWeight="300"
         letterSpacing="-1"
         fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+        data-now="day"
+        suppressHydrationWarning
       >
-        {face?.day}
+        {face ? String(face.day) : ""}
       </text>
     </>
   ),

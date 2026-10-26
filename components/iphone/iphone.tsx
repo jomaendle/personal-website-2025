@@ -52,6 +52,9 @@ import { formatClock, formatWeekday, useMinute } from "./use-clock";
 /** An app icon (on the home screen, or a Spotlight app result), as opposed
  * to a widget, a song's cover or a contact's monogram, which cross-fade. */
 const isAppIcon = (el: HTMLElement) => el.classList.contains(styles.icon ?? "");
+/** A home-screen widget, which lifts off and grows with the window. */
+const isWidget = (el: HTMLElement) =>
+  el.classList.contains(styles.widget ?? "");
 
 interface Geometry {
   w: number;
@@ -68,6 +71,9 @@ interface Geometry {
   /** Whether that was an app icon, whose art covers the window early on. A
    * widget instead cross-fades straight into the app. */
   fromIcon: boolean;
+  /** Whether it was a widget, whose snapshot grows with the window and
+   * hands over to the app, rather than fading the app in over it. */
+  fromWidget: boolean;
 }
 
 /** The destination now: the origin, or partway to it from a previous one
@@ -116,6 +122,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     origin: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
     previous: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
     fromIcon: true,
+    fromWidget: false,
   });
   const closing = useRef(false);
   /** What opened the current app (an icon, a widget), to focus on close. */
@@ -273,9 +280,27 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     if (reducedRef.current) {
       return a;
     }
-    // Out of a widget the app fades in over the widget as it grows, and
-    // back out onto it on the way home.
-    return geometry.current.fromIcon ? 1 : clamp(a / 0.3, 0, 1);
+    // Out of anything else (a song's cover, a lock-screen banner) the app
+    // fades in over it as it grows, and back out onto it on the way home.
+    const { fromIcon, fromWidget } = geometry.current;
+    return fromIcon || fromWidget ? 1 : clamp(a / 0.3, 0, 1);
+  });
+  /** Out of a widget: the widget itself grows with the window, stretched
+   * to fill it as iOS stretches its snapshot, and fades into the app over
+   * the first quarter, before the stretch shows. Back home, the reverse
+   * lands it exactly on the widget, which then takes over. */
+  const widgetOpacity = useTransform(open, (a) => {
+    if (reducedRef.current || !geometry.current.fromWidget) {
+      return 0;
+    }
+    const t = clamp((a - 0.03) / 0.22, 0, 1);
+    return 1 - t * t * (3 - 2 * t);
+  });
+  const widgetTransform = useTransform([open, homing], ([a = 0]: number[]) => {
+    const { w, h } = geometry.current;
+    const origin = originAt(geometry.current, homing.get());
+    const visible = h - 2 * startInset() * (1 - clamp(a, 0, 1));
+    return `scale(${w / origin.size}, ${visible / origin.height})`;
   });
   /** The icon art covers the window as it grows, as iOS scales the icon's
    * snapshot with the window, rather than sitting as a square in its middle. */
@@ -381,14 +406,15 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
   // ---- Apps --------------------------------------------------------------
 
-  /** iOS lifts the icon off the home screen into the app: hide the one the
-   * app came out of until it lands back in it. Icons only; a widget stays. */
+  /** iOS lifts the icon (or widget) off the home screen into the app: hide
+   * the one the app came out of until it lands back in it. */
   const hideSource = useCallback((icon: HTMLElement | null) => {
     if (source.current) {
       source.current.style.visibility = "";
     }
     source.current =
-      icon?.classList.contains(styles.icon ?? "") &&
+      icon &&
+      (isAppIcon(icon) || isWidget(icon)) &&
       !icon.closest("[role=dialog]")
         ? icon
         : null;
@@ -426,6 +452,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       geometry.current.previous = originAt(geometry.current, homing.get());
       geometry.current.origin = rectWithin(icon, screen);
       geometry.current.fromIcon = isAppIcon(icon);
+      geometry.current.fromWidget = false;
       originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
@@ -449,6 +476,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       geometry.current.previous = geometry.current.origin;
       homing.jump(1);
       geometry.current.fromIcon = isAppIcon(icon);
+      geometry.current.fromWidget = isWidget(icon);
       originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
@@ -885,6 +913,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   moving={appMoving}
                   iconOpacity={iconOpacity}
                   iconScale={iconScale}
+                  widget={geometry.current.fromWidget ? originEl.current : null}
+                  widgetOpacity={widgetOpacity}
+                  widgetTransform={widgetTransform}
                   pull={pull}
                   dragX={dragX}
                   dragY={dragY}
@@ -901,7 +932,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   className={styles.statusTime}
                   style={{ opacity: statusTimeOpacity }}
                 >
-                  {formatClock(now)}
+                  <span data-now="clock" suppressHydrationWarning>
+                    {formatClock(now)}
+                  </span>
                 </m.span>
                 <span className={styles.statusIcons}>
                   <Signal />

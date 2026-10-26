@@ -1,13 +1,13 @@
 "use client";
 
 import { type MotionValue, m } from "framer-motion";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
-import { clamp, VelocityTracker } from "./motion";
+import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
   id: IphoneAppId;
@@ -22,6 +22,11 @@ interface AppWindowProps {
   moving: MotionValue<boolean>;
   iconOpacity: MotionValue<number>;
   iconScale: MotionValue<number>;
+  /** The home-screen widget it opened out of, if it did: a snapshot of it
+   * grows with the window and fades into the app. */
+  widget: HTMLElement | null;
+  widgetOpacity: MotionValue<number>;
+  widgetTransform: MotionValue<string>;
   /** 0 to 1 as the app is pulled up into a card. */
   pull: MotionValue<number>;
   dragX: MotionValue<number>;
@@ -54,6 +59,9 @@ export function AppWindow({
   moving,
   iconOpacity,
   iconScale,
+  widget,
+  widgetOpacity,
+  widgetTransform,
   pull,
   dragX,
   dragY,
@@ -77,7 +85,28 @@ export function AppWindow({
     baseRise: number;
     baseX: number;
   } | null>(null);
-  const velocity = useRef(new VelocityTracker());
+  const tracker = useVelocityTracker();
+  const snapshot = useRef<HTMLDivElement>(null);
+
+  // A copy of the widget as it is on screen, at its own size: the window
+  // and the snapshot's stretch scale it up. Copied rather than rendered again, so it's whatever the
+  // widget showed, with its images already loaded.
+  useLayoutEffect(() => {
+    const box = snapshot.current;
+    if (!(box && widget)) {
+      return;
+    }
+    const copy = widget.cloneNode(true) as HTMLElement;
+    copy.style.width = `${widget.offsetWidth}px`;
+    copy.style.height = `${widget.offsetHeight}px`;
+    copy.style.visibility = "visible";
+    copy.style.display = getComputedStyle(widget).display;
+    for (const img of copy.querySelectorAll("img")) {
+      img.loading = "eager";
+      img.decoding = "sync";
+    }
+    box.replaceChildren(copy);
+  }, [widget]);
 
   // After the first frames, not during the mount: focusing forces a style
   // recalculation of the whole app right as the zoom starts.
@@ -129,8 +158,8 @@ export function AppWindow({
       baseRise: pull.get() * h * 0.5,
       baseX: dragX.get(),
     };
-    velocity.current.reset();
-    velocity.current.add(event.clientY / scale, event.timeStamp);
+    tracker.reset();
+    tracker.add(event.clientY / scale, event.timeStamp);
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -153,7 +182,7 @@ export function AppWindow({
     }
     const dx = (event.clientX - current.x) / current.scale;
     const up = (current.y - event.clientY) / current.scale;
-    velocity.current.add(event.clientY / current.scale, event.timeStamp);
+    tracker.add(event.clientY / current.scale, event.timeStamp);
     const rise = Math.max(0, current.baseRise + up);
     pull.set(clamp(rise / (current.h * 0.5), 0, 1));
     dragX.set(current.baseX + dx);
@@ -172,7 +201,7 @@ export function AppWindow({
       onClose();
       return;
     }
-    const v = velocity.current.velocity();
+    const v = tracker.velocity();
     if ((pull.get() > 0.16 || v > 0.35) && v > -0.2) {
       onClose(v);
     } else {
@@ -220,6 +249,15 @@ export function AppWindow({
         >
           <AppIcon art={APPS[id].art} calendar={calendar} />
         </m.div>
+        {widget ? (
+          <m.div
+            ref={snapshot}
+            className={styles.widgetSnapshot}
+            style={{ opacity: widgetOpacity, transform: widgetTransform }}
+            aria-hidden
+            inert
+          />
+        ) : null}
       </m.div>
       {screen ? createPortal(indicator, screen) : null}
     </>

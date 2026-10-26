@@ -1,4 +1,5 @@
 import type { Transition } from "framer-motion";
+import { useState } from "react";
 
 /**
  * iOS animates almost everything with critically damped springs: no bounce
@@ -77,6 +78,12 @@ export class VelocityTracker {
   reset() {
     this.samples = [];
   }
+}
+
+/** One tracker for the component's lifetime, built once rather than on
+ * every render. */
+export function useVelocityTracker() {
+  return useState(() => new VelocityTracker())[0];
 }
 
 export interface Rect {
