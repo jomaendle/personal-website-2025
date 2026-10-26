@@ -74,7 +74,10 @@ export class VelocityTracker {
 export interface Rect {
   x: number;
   y: number;
+  /** Width. */
   size: number;
+  /** Height: the same as `size` for an icon, less for a wide widget. */
+  height: number;
   radius: number;
 }
 
@@ -100,11 +103,18 @@ export function rectWithin(el: HTMLElement, root: HTMLElement): Rect {
     y -= up.scrollTop;
   }
   const size = el.offsetWidth;
+  const height = el.offsetHeight || size;
   const raw = getComputedStyle(el).borderTopLeftRadius;
   const radius = raw.endsWith("%")
     ? (size * Number.parseFloat(raw)) / 100
     : Number.parseFloat(raw) || 0;
   // A superellipse corner is drawn with a larger radius than the circular
   // arc it resembles; clip to the arc's size.
-  return { x, y, size, radius: Math.min(radius, size * 0.235) };
+  return {
+    x,
+    y,
+    size,
+    height,
+    radius: Math.min(radius, Math.min(size, height) * 0.235),
+  };
 }

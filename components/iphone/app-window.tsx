@@ -17,6 +17,7 @@ interface AppWindowProps {
   opacity: MotionValue<number>;
   moving: MotionValue<boolean>;
   iconOpacity: MotionValue<number>;
+  iconScale: MotionValue<number>;
   /** 0 to 1 as the app is pulled up into a card. */
   pull: MotionValue<number>;
   dragX: MotionValue<number>;
@@ -41,6 +42,7 @@ export function AppWindow({
   opacity,
   moving,
   iconOpacity,
+  iconScale,
   pull,
   dragX,
   dragY,
@@ -156,7 +158,10 @@ export function AppWindow({
       <Suspense fallback={null}>
         <App close={onClose} launch={launch} />
       </Suspense>
-      <m.div className={styles.appIconOverlay} style={{ opacity: iconOpacity }}>
+      <m.div
+        className={styles.appIconOverlay}
+        style={{ opacity: iconOpacity, scale: iconScale }}
+      >
         <AppIcon art={APPS[id].art} calendar={calendar} />
       </m.div>
       <button

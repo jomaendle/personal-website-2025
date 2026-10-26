@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { NoteBlock, NoteDocument, NoteInline } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
+import { fetchAllViews, incrementView } from "@/lib/views";
 import { BackChevron, Share } from "../glyphs";
 import styles from "../iphone.module.css";
 import { useSwipeBack } from "../use-swipe-back";
@@ -50,6 +51,39 @@ function useNote(slug: string) {
   return state;
 }
 
+/** The article's read count, counting this read, as the blog does. Null
+ * until it is known, or for good if it can't be. */
+function useViews(slug: string) {
+  const [views, setViews] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    let counted = false;
+    incrementView(slug).then((total) => {
+      if (live && total) {
+        counted = true;
+        setViews(total);
+      }
+    });
+    fetchAllViews()
+      .then((all) => {
+        if (live && !counted) {
+          setViews(all.find((item) => item.slug === slug)?.views ?? 0);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [slug]);
+  return views;
+}
+
+let count: Intl.NumberFormat | undefined;
+const formatViews = (views: number) => {
+  count ??= new Intl.NumberFormat();
+  return `${count.format(views)} ${views === 1 ? "View" : "Views"}`;
+};
+
 let longDate: Intl.DateTimeFormat | undefined;
 /** The date line at the top of a note: "22 November 2025". */
 const noteDate = (date: string) => {
@@ -90,6 +124,7 @@ export function NoteView({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const swipeBack = useSwipeBack(nav, onBack);
+  const views = useViews(slug);
 
   useEffect(() => {
     titleRef.current?.focus({ preventScroll: true });
@@ -125,7 +160,14 @@ export function NoteView({
     <div className={styles.noteView}>
       <div className={cn(styles.scroll, styles.noteScroll)} {...swipeBack}>
         <article className={styles.noteBody}>
-          <p className={styles.noteDate}>{noteDate(date)}</p>
+          <p className={styles.noteDate}>
+            {noteDate(date)}
+            {/* Its own line, held open while the count loads, so the
+                title never moves. */}
+            <span className={styles.noteViews} data-ready={views !== null}>
+              {views === null ? "\u00a0" : formatViews(views)}
+            </span>
+          </p>
           <h1 ref={titleRef} className={styles.noteTitle} tabIndex={-1}>
             {title}
           </h1>
@@ -256,6 +298,15 @@ function Block({
         <figure className={styles.noteAttachment}>
           <video
             src={block.src}
+            // Its size from the file, read at build, holds the space open
+            // before the first frame arrives.
+            width={block.w}
+            height={block.h}
+            style={
+              block.w && block.h
+                ? { aspectRatio: `${block.w} / ${block.h}` }
+                : undefined
+            }
             controls
             playsInline
             muted

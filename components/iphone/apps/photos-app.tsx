@@ -200,6 +200,14 @@ export default function PhotosApp(_: AppProps) {
     }
   }, [viewing]);
 
+  // Open at the newest photos, at the bottom of the library.
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      grid.scrollTop = grid.scrollHeight;
+    }
+  }, []);
+
   // Keep the scrubber's current thumbnail centred.
   useEffect(() => {
     if (viewing === null) {

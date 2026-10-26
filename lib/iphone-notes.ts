@@ -45,7 +45,7 @@ export type NoteBlock =
   | { t: "quote"; c: NoteBlock[] }
   | { t: "code"; lang: string; v: string }
   | { t: "image"; src: string; w: number; h: number; caption: string }
-  | { t: "video"; src: string; caption: string }
+  | { t: "video"; src: string; caption: string; w?: number; h?: number }
   | { t: "baseline"; feature: string }
   | { t: "demo"; label: string }
   | { t: "hr" };
@@ -178,6 +178,73 @@ export function imageSize(publicPath: string): { w: number; h: number } | null {
   }
   if (data[0] === 0xff && data[1] === 0xd8) {
     return jpegSize(data);
+  }
+  return null;
+}
+
+/** Width and height of an MP4's first visual track, from its track header
+ * (moov > trak > tkhd, where they sit as 16.16 fixed point in the last eight
+ * bytes), so a note's video reserves its space too. */
+export function videoSize(publicPath: string): { w: number; h: number } | null {
+  let data: Buffer;
+  try {
+    data = readFileSync(path.join(PUBLIC_DIR, publicPath));
+  } catch {
+    return null;
+  }
+  return findTrackSize(data, 0, data.length);
+}
+
+const CONTAINERS = new Set(["moov", "trak"]);
+
+/** One MP4 box's type, where its body starts, and its total size; null when
+ * the bytes don't hold a well-formed box. */
+function readBox(data: Buffer, offset: number, end: number) {
+  let size = data.readUInt32BE(offset);
+  let header = 8;
+  if (size === 1 && offset + 16 <= end) {
+    size = Number(data.readBigUInt64BE(offset + 8));
+    header = 16;
+  } else if (size === 0) {
+    size = end - offset;
+  }
+  if (size < header || offset + size > end) {
+    return null;
+  }
+  return {
+    type: data.toString("ascii", offset + 4, offset + 8),
+    body: offset + header,
+    size,
+  };
+}
+
+function trackHeaderSize(data: Buffer, offset: number, size: number) {
+  const w = data.readUInt32BE(offset + size - 8) / 65_536;
+  const h = data.readUInt32BE(offset + size - 4) / 65_536;
+  return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+}
+
+function findTrackSize(
+  data: Buffer,
+  start: number,
+  end: number,
+): { w: number; h: number } | null {
+  let offset = start;
+  while (offset + 8 <= end) {
+    const box = readBox(data, offset, end);
+    if (!box) {
+      return null;
+    }
+    const found =
+      box.type === "tkhd"
+        ? trackHeaderSize(data, offset, box.size)
+        : CONTAINERS.has(box.type)
+          ? findTrackSize(data, box.body, offset + box.size)
+          : null;
+    if (found) {
+      return found;
+    }
+    offset += box.size;
   }
   return null;
 }
@@ -369,7 +436,8 @@ const NATIVE: Record<string, (node: JsxNode) => NoteBlock[]> = {
   },
   BlogVideo: (node) => {
     const src = attribute(node, "src");
-    return src ? [{ t: "video", src, caption: caption(node) }] : [];
+    const size = src ? videoSize(src) : null;
+    return src ? [{ t: "video", src, caption: caption(node), ...size }] : [];
   },
   BaselineStatus: (node) => {
     const feature = attribute(node, "featureId");

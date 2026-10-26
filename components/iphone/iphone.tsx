@@ -84,11 +84,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     h: 874,
     scale: 1,
     radius: 0,
-    origin: { x: 170, y: 406, size: 62, radius: 14 },
+    origin: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
   });
   const closing = useRef(false);
   /** What opened the current app (an icon, a widget), to focus on close. */
   const opener = useRef<HTMLElement | null>(null);
+  /** The icon the app came out of, hidden while the app is its stand-in. */
+  const source = useRef<HTMLElement | null>(null);
 
   const reduced = useReducedMotion() ?? false;
   const reducedRef = useRef(reduced);
@@ -171,7 +173,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       const s0 = origin.size / w;
       const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
       const cx = lerp(origin.x + origin.size / 2, w / 2, a) + dx;
-      const cy = lerp(origin.y + origin.size / 2, h / 2, a) + dy;
+      const cy = lerp(origin.y + origin.height / 2, h / 2, a) + dy;
       return `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale})`;
     },
   );
@@ -179,10 +181,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     if (reducedRef.current) {
       return "none";
     }
-    const { w, h, origin, radius } = geometry.current;
+    const { w, origin, radius } = geometry.current;
     const s0 = origin.size / w;
     const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
-    const inset = Math.max(0, (h - w) / 2) * (1 - a);
+    const inset = startInset() * (1 - a);
     // Radii are in the app's own pixels, so divide out the scale to land on
     // the icon's radius at 0 and a card's ~40pt while dragging.
     const r = Math.max(
@@ -192,16 +194,36 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     return `inset(${inset}px 0px round ${r}px)`;
   });
   const appOpacity = useTransform(open, (a) => (reducedRef.current ? a : 1));
+  /** The icon art covers the window as it grows, as iOS scales the icon's
+   * snapshot with the window, rather than sitting as a square in its middle. */
+  const iconScale = useTransform(open, (a) => {
+    const { w, h } = geometry.current;
+    const start = h - 2 * startInset();
+    return (start + (h - start) * a) / w;
+  });
   /** True while the app window zooms or is dragged as a card. */
   const appMoving = useTransform(
     [open, pull],
     ([a = 0, p = 0]: number[]) => a < 0.999 || p > 0.001,
   );
-  const iconOpacity = useTransform(open, (a) =>
-    reducedRef.current ? 0 : clamp(1 - a / 0.3, 0, 1),
-  );
+  // The icon hands over to the app early, eased so it doesn't dip linearly.
+  const iconOpacity = useTransform(open, (a) => {
+    if (reducedRef.current) {
+      return 0;
+    }
+    const t = clamp((a - 0.04) / 0.26, 0, 1);
+    return 1 - t * t * (3 - 2 * t);
+  });
 
   // ---- Geometry ----------------------------------------------------------
+
+  /** How far the clip is inset top and bottom at the start of the zoom, in
+   * the app's own pixels: what makes the full-screen window icon-shaped. */
+  function startInset() {
+    const { w, h, origin } = geometry.current;
+    const s0 = origin.size / w;
+    return Math.max(0, (h - origin.height / s0) / 2);
+  }
 
   const measure = useCallback(() => {
     const screen = screenRef.current;
@@ -273,6 +295,47 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
   // ---- Apps --------------------------------------------------------------
 
+  /** iOS lifts the icon off the home screen into the app: hide the one the
+   * app came out of until it lands back in it. Icons only; a widget stays. */
+  const hideSource = useCallback((icon: HTMLElement | null) => {
+    if (source.current) {
+      source.current.style.visibility = "";
+    }
+    source.current =
+      icon?.classList.contains(styles.icon ?? "") &&
+      !icon.closest("[role=dialog]")
+        ? icon
+        : null;
+    if (source.current) {
+      source.current.style.visibility = "hidden";
+    }
+  }, []);
+
+  /**
+   * Close into something that is on screen. The app came out of a Spotlight
+   * result, or a lock-screen card, that is gone by now: go home into the
+   * app's own icon instead, as iOS does. Only when that moves the target, and
+   * eased in by how open the app is, so an interrupted launch doesn't jump.
+   */
+  const retarget = useCallback(
+    (id: IphoneAppId) => {
+      const screen = screenRef.current;
+      const from = opener.current;
+      const home = homeRef.current;
+      if (!screen || (from?.isConnected && home?.contains(from))) {
+        return;
+      }
+      const icon = icons.current.get(id);
+      if (!icon) {
+        return;
+      }
+      geometry.current.origin = rectWithin(icon, screen);
+      opener.current = icon.closest("button");
+      hideSource(icon);
+    },
+    [hideSource],
+  );
+
   const openApp = useCallback(
     (id: IphoneAppId, { from, instant = false, launch }: OpenOptions = {}) => {
       const screen = screenRef.current;
@@ -284,6 +347,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       measure();
       geometry.current.origin = rectWithin(icon, screen);
       opener.current = icon.closest("button");
+      hideSource(icon);
       // jump(), not set(): it also stops a spring still running from the
       // last app, which set() would leave fighting this one.
       pull.jump(0);
@@ -298,7 +362,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         animate(open, 1, reducedRef.current ? FADE : SPRING_OPEN);
       }
     },
-    [measure, open, pull, dragX, dragY],
+    [measure, open, pull, dragX, dragY, hideSource],
   );
 
   const closeApp = useCallback(() => {
@@ -308,6 +372,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     }
     closing.current = true;
     store.set(APP_KEY, null);
+    retarget(id);
     const transition = reducedRef.current ? FADE : SPRING_CLOSE;
     animate(pull, 0, transition);
     animate(dragX, 0, transition);
@@ -318,6 +383,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       }
       closing.current = false;
       setApp(null);
+      hideSource(null);
       requestAnimationFrame(() => {
         // Back to whatever opened it: the widget, the icon, or for an app
         // opened from the lock screen, its icon on the home screen.
@@ -329,7 +395,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         target?.focus({ preventScroll: true });
       });
     });
-  }, [open, pull, dragX, dragY]);
+  }, [open, pull, dragX, dragY, retarget, hideSource]);
 
   const cancelDrag = useCallback(() => {
     animate(pull, 0, SPRING_OPEN);
@@ -549,6 +615,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   opacity={appOpacity}
                   moving={appMoving}
                   iconOpacity={iconOpacity}
+                  iconScale={iconScale}
                   pull={pull}
                   dragX={dragX}
                   dragY={dragY}

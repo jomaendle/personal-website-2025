@@ -764,8 +764,10 @@
   position: absolute;
   inset: 0;
   z-index: 15;
-  background: rgb(0 0 0 / 0.3);
-  backdrop-filter: blur(30px) saturate(1.6);
+  /* iOS 26's Spotlight: a thick, dark frosting that keeps only the
+     wallpaper's colour, so results read at a glance. */
+  background: rgb(16 16 18 / 0.62);
+  backdrop-filter: blur(48px) saturate(1.7);
   animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
@@ -2012,6 +2014,23 @@ button.row:active {
   color: var(--label-2);
 }
 
+.noteViews {
+  display: block;
+  margin-top: 1px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.noteViews[data-ready="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noteViews {
+    transition: none;
+  }
+}
+
 /* Notes' paragraph styles: Title, Heading, Subheading, Body, Monostyled. */
 .noteTitle {
   margin-bottom: 10px;
@@ -2258,8 +2277,13 @@ ol.noteList {
 
 /* ---- Photos ---------------------------------------------------------- */
 
+/* The library fills from the bottom up, newest last, and opens scrolled to
+   the end, as Photos does: a short library sits on the toolbar, not under
+   the title with a black gap below it. */
 .photos {
   --ph-header: calc(var(--top-inset) + 64px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* The title floats over the library under a progressive blur: strongest at
@@ -2314,7 +2338,7 @@ ol.noteList {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2px;
-  margin: 0;
+  margin: auto 0 0;
   padding: 0;
   list-style: none;
 }
