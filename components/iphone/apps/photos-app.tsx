@@ -47,6 +47,9 @@ const currentThumbWidth = (photo: { width: number; height: number }) =>
 
 /** How much of the viewer the info panel covers when it is all the way up. */
 const SHEET = 0.46;
+/** Taller for a photo with a description and a map to show. */
+const sheetFor = (index: number) =>
+  PHOTO_LIBRARY[index]?.about ? 0.64 : SHEET;
 
 /** A type alias, not an interface, so it satisfies WAAPI's Keyframe. */
 type Pose = {
@@ -288,7 +291,7 @@ export default function PhotosApp(_: AppProps) {
     const H = viewer.offsetHeight;
     const aspect = photo.width / photo.height;
     const dh = aspect > W / H ? W / aspect : H;
-    return Math.max(0, (H + dh) / 2 - (1 - SHEET) * H);
+    return Math.max(0, (H + dh) / 2 - (1 - sheetFor(index)) * H);
   };
 
   /** Bring the panel on screen, measured for the photo, before it moves. */
@@ -312,7 +315,10 @@ export default function PhotosApp(_: AppProps) {
       show ? 1 : 0,
       reduced
         ? FADE
-        : { ...SPRING_PUSH, velocity: (velocity * 1000) / (h * SHEET * k) },
+        : {
+            ...SPRING_PUSH,
+            velocity: (velocity * 1000) / (h * sheetFor(current) * k),
+          },
     ).then(() => {
       if (progress.get() === 0) {
         setPanel(false);
@@ -450,7 +456,7 @@ export default function PhotosApp(_: AppProps) {
     if (d.mode === "info") {
       velocity.current.add(event.clientY, event.timeStamp);
       const { h, k } = viewerSize();
-      progress.set(clamp(d.base - d.dy / k / (h * SHEET), 0, 1));
+      progress.set(clamp(d.base - d.dy / k / (h * sheetFor(current)), 0, 1));
     }
   };
 
@@ -594,7 +600,8 @@ export default function PhotosApp(_: AppProps) {
 
   const library = PHOTO_LIBRARY[current];
   const date = photoDate(library);
-  const place = library?.exif?.place;
+  // The capsule names the town, as Photos does: "Sagres", not the region.
+  const place = library?.about?.place.split(",")[0];
   const favorite = favorites.has(current);
 
   return (
@@ -740,14 +747,14 @@ export default function PhotosApp(_: AppProps) {
             <PhotoInfo
               photo={library}
               bytes={photoBytes[current] ?? 0}
-              caption={captions[current] ?? ""}
+              caption={captions[current] ?? library.about?.title ?? ""}
               onCaption={(caption) =>
                 setCaptions((all) => ({ ...all, [current]: caption }))
               }
               open={info}
               progress={panelOpacity}
               y={panelY}
-              height={`${SHEET * 100}%`}
+              height={`${sheetFor(current) * 100}%`}
               panelRef={panelRef}
               id={panelId}
             />

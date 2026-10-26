@@ -2688,6 +2688,12 @@ ol.noteList {
   border-radius: 28px 28px 0 0;
   background: var(--grouped);
   scrollbar-width: none;
+  /* The scroll edge effect: content dissolves before it reaches the
+     floating toolbar instead of running hard under it. */
+  mask-image: linear-gradient(
+    #000 calc(100% - max(var(--bottom-inset), 28px) - 92px),
+    transparent calc(100% - max(var(--bottom-inset), 28px) - 30px)
+  );
 }
 
 .photoInfo::-webkit-scrollbar {
@@ -2780,10 +2786,80 @@ ol.noteList {
   border-left: 0.5px solid var(--separator);
 }
 
-.photoInfoPlace {
+.photoInfoAbout {
+  padding-top: 12px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--label-2);
+}
+
+/* The location card: the map, the photo as its pin, the place below. */
+.mapCard {
   margin-top: 16px;
-  font-size: 17px;
+}
+
+.mapLink {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--grouped-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.mapLink:active {
+  opacity: 0.8;
+}
+
+.mapImage {
+  position: relative;
+  display: block;
+  aspect-ratio: 2;
+}
+
+.mapImage img {
+  object-fit: cover;
+}
+
+.mapPin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  translate: -50% -50%;
+  border: 2.5px solid #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.45);
+}
+
+.mapPin img {
+  object-fit: cover;
+}
+
+.mapCredit {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font-size: 9px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.mapPlace {
+  display: block;
+  padding: 11px 14px 12px;
+  font-size: 15px;
   font-weight: 600;
+}
+
+.mapSource {
+  display: block;
+  padding: 14px 4px 4px;
+  font-size: 13px;
+  color: var(--label-2);
+  text-decoration: none;
+  text-align: center;
 }
 
 .chromeHidden {

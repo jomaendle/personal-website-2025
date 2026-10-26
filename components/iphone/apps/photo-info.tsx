@@ -1,7 +1,8 @@
 "use client";
 
 import { type MotionValue, m } from "framer-motion";
-import type { LibraryPhoto, PhotoExif } from "@/lib/state/photos";
+import Image from "next/image";
+import type { LibraryPhoto, PhotoAbout, PhotoExif } from "@/lib/state/photos";
 import { PHOTOS_ADDED } from "@/lib/state/photos";
 import styles from "../iphone.module.css";
 
@@ -102,7 +103,9 @@ interface PhotoInfoProps {
  * taken and its file name, then the camera card. The prints here carry no
  * camera metadata, so the card says so, as Photos does for a saved image,
  * and keeps to what the file itself tells: format, pixels and size. Whatever
- * `exif` a photo is given (camera, lens, exposure, place) fills in the rest.
+ * `exif` a photo is given (camera, lens, exposure) fills in the rest. A photo
+ * I published on thebeautyof.earth also shows what I wrote about it there,
+ * and a map of where it was taken, as Photos shows a photo's location.
  */
 export function PhotoInfo({
   photo,
@@ -151,6 +154,10 @@ export function PhotoInfo({
         />
       </label>
 
+      {photo.about ? (
+        <p className={styles.photoInfoAbout}>{photo.about.description}</p>
+      ) : null}
+
       <div className={styles.photoInfoWhen}>
         <p className={styles.photoInfoDate}>{fullDate.format(date)}</p>
         <p className={styles.photoInfoFile}>{baseName(file)}</p>
@@ -174,9 +181,55 @@ export function PhotoInfo({
         ) : null}
       </section>
 
-      {exif?.place ? (
-        <p className={styles.photoInfoPlace}>{exif.place}</p>
-      ) : null}
+      {photo.about ? <MapCard about={photo.about} thumb={image} /> : null}
     </m.div>
+  );
+}
+
+/** Photos' location card: a map with the photo itself as the pin, the place
+ * under it, opening Maps on a tap. */
+function MapCard({
+  about,
+  thumb,
+}: {
+  about: PhotoAbout;
+  thumb: LibraryPhoto["image"];
+}) {
+  const { lat, lng } = about.pin;
+  const maps = `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(about.place)}`;
+  return (
+    <section className={styles.mapCard} aria-label="Location">
+      <a
+        href={maps}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.mapLink}
+      >
+        <span className={styles.mapImage}>
+          <Image
+            src={about.map}
+            alt=""
+            fill
+            sizes="(min-width: 640px) and (min-height: 640px) 370px, 92vw"
+          />
+          <span className={styles.mapPin} aria-hidden>
+            <Image src={thumb} alt="" fill sizes="44px" />
+          </span>
+          <span className={styles.mapCredit}>© OpenStreetMap</span>
+        </span>
+        <span className={styles.mapPlace}>
+          {about.place}
+          <span className="sr-only"> (opens Maps)</span>
+        </span>
+      </a>
+      <a
+        href={about.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.mapSource}
+      >
+        Also on thebeautyof.earth ↗
+      </a>
+    </section>
   );
 }
