@@ -81,6 +81,12 @@ export function rectWithin(el: HTMLElement, root: HTMLElement): Rect {
     y += node.offsetTop;
     node = node.offsetParent as HTMLElement | null;
   }
+  // offsetTop ignores scrolling: take off what any scroller between the
+  // element and the screen has scrolled by (a Spotlight result list).
+  for (let up = el.parentElement; up && up !== root; up = up.parentElement) {
+    x -= up.scrollLeft;
+    y -= up.scrollTop;
+  }
   const size = el.offsetWidth;
   const raw = getComputedStyle(el).borderTopLeftRadius;
   const radius = raw.endsWith("%")

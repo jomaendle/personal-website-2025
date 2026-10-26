@@ -2,11 +2,12 @@
 
 import { type MotionValue, m } from "framer-motion";
 import Image from "next/image";
+import { useRef } from "react";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { FEATURED_PHOTO } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import { AppIcon, type CalendarFace } from "./app-icons";
-import { APPS, WEB_CLIPS } from "./apps";
+import { APPS, type AppLaunch, WEB_CLIPS } from "./apps";
 import { Magnifier } from "./glyphs";
 import styles from "./iphone.module.css";
 
@@ -16,20 +17,26 @@ const DOCK_APPS: IphoneAppId[] = ["notes", "safari", "photos", "mail"];
 interface HomeScreenProps {
   inert: boolean;
   calendar: CalendarFace | null;
-  latestPosts: { title: string; date: string; slug: string }[];
+  notes: { title: string; date: string; slug: string }[];
   homeRef: React.RefObject<HTMLDivElement | null>;
   registerIcon: (id: IphoneAppId, el: HTMLElement | null) => void;
-  onOpen: (id: IphoneAppId, from?: HTMLElement) => void;
+  onOpen: (
+    id: IphoneAppId,
+    options?: { from?: HTMLElement; launch?: AppLaunch },
+  ) => void;
   scale: MotionValue<number>;
   gridOpacity: MotionValue<number>;
   bottomY: MotionValue<number>;
   bottomOpacity: MotionValue<number>;
+  searchRef: React.RefObject<HTMLButtonElement | null>;
+  /** Open Spotlight; `focus` raises the keyboard (a tap can, a swipe can't). */
+  onSearch: (focus: boolean) => void;
 }
 
 export function HomeScreen({
   inert,
   calendar,
-  latestPosts,
+  notes,
   homeRef,
   registerIcon,
   onOpen,
@@ -37,14 +44,51 @@ export function HomeScreen({
   gridOpacity,
   bottomY,
   bottomOpacity,
+  searchRef,
+  onSearch,
 }: HomeScreenProps) {
+  // A swipe down anywhere on the home screen opens Spotlight, as on iOS,
+  // even when it starts on an icon: that icon's tap is then swallowed.
+  const pull = useRef<{ id: number; x: number; y: number } | null>(null);
+  const swallowClick = useRef(false);
+  const onPointerDown = (event: React.PointerEvent) => {
+    swallowClick.current = false;
+    if (event.button === 0) {
+      pull.current = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+      };
+    }
+  };
+  const onPointerMove = (event: React.PointerEvent) => {
+    const start = pull.current;
+    if (!start || start.id !== event.pointerId) {
+      return;
+    }
+    const dy = event.clientY - start.y;
+    if (dy > 24 && dy > Math.abs(event.clientX - start.x) * 1.5) {
+      pull.current = null;
+      swallowClick.current = true;
+      onSearch(false);
+    }
+  };
+  const notesWidget = useRef<HTMLDivElement>(null);
+  const openNotes = (note?: string) =>
+    onOpen("notes", {
+      from: notesWidget.current ?? undefined,
+      launch: note ? { note } : undefined,
+    });
+
   const appButton = (id: IphoneAppId, labelled: boolean) => (
     <button
       key={id}
       type="button"
       className={styles.cell}
       onClick={(event) =>
-        onOpen(id, event.currentTarget.firstElementChild as HTMLElement)
+        onOpen(id, {
+          from: event.currentTarget.firstElementChild as HTMLElement,
+        })
       }
       onPointerDown={() => APPS[id].load()}
       aria-label={labelled ? undefined : APPS[id].name}
@@ -72,6 +116,21 @@ export function HomeScreen({
       tabIndex={-1}
       aria-label="Home Screen"
       role="region"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={() => {
+        pull.current = null;
+      }}
+      onPointerCancel={() => {
+        pull.current = null;
+      }}
+      onClickCapture={(event) => {
+        if (swallowClick.current) {
+          swallowClick.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
     >
       <m.nav
         className={styles.homeGrid}
@@ -82,10 +141,9 @@ export function HomeScreen({
           type="button"
           className={cn(styles.cell, styles.widgetCell)}
           onClick={(event) =>
-            onOpen(
-              "photos",
-              event.currentTarget.firstElementChild as HTMLElement,
-            )
+            onOpen("photos", {
+              from: event.currentTarget.firstElementChild as HTMLElement,
+            })
           }
           onPointerDown={() => APPS.photos.load()}
         >
@@ -103,31 +161,39 @@ export function HomeScreen({
           <span className={styles.cellLabel}>Photos</span>
         </button>
 
-        <button
-          type="button"
+        {/* Like the real Notes widget, each note is its own tap target and
+            opens straight into that note; the header opens the list. All of
+            them zoom the app out of the widget. */}
+        <div
           className={cn(styles.cell, styles.widgetCell)}
-          onClick={(event) =>
-            onOpen(
-              "notes",
-              event.currentTarget.firstElementChild as HTMLElement,
-            )
-          }
           onPointerDown={() => APPS.notes.load()}
         >
-          <span className={cn(styles.widget, styles.widgetNotes)}>
-            <span className={styles.widgetNotesHead}>
+          <div
+            ref={notesWidget}
+            className={cn(styles.widget, styles.widgetNotes)}
+          >
+            <button
+              type="button"
+              className={styles.widgetNotesHead}
+              onClick={() => openNotes()}
+            >
               Writing
               <span aria-hidden>›</span>
-            </span>
-            {latestPosts.map((post) => (
-              <span key={post.slug} className={styles.widgetNote}>
-                <span className={styles.widgetNoteTitle}>{post.title}</span>
-                <span className={styles.widgetNoteDate}>{post.date}</span>
-              </span>
+            </button>
+            {notes.map((note) => (
+              <button
+                key={note.slug}
+                type="button"
+                className={styles.widgetNote}
+                onClick={() => openNotes(note.slug)}
+              >
+                <span className={styles.widgetNoteTitle}>{note.title}</span>
+                <span className={styles.widgetNoteDate}>{note.date}</span>
+              </button>
             ))}
-          </span>
+          </div>
           <span className={styles.cellLabel}>Notes</span>
-        </button>
+        </div>
 
         {GRID_APPS.map((id) => appButton(id, true))}
 
@@ -150,10 +216,15 @@ export function HomeScreen({
         className={styles.homeBottom}
         style={{ y: bottomY, opacity: bottomOpacity }}
       >
-        <span className={styles.search} aria-hidden>
+        <button
+          ref={searchRef}
+          type="button"
+          className={styles.search}
+          onClick={() => onSearch(true)}
+        >
           <Magnifier width={12} height={12} />
           {IPHONE_COPY.searchLabel}
-        </span>
+        </button>
         <nav className={styles.dock} aria-label="Dock">
           {DOCK_APPS.map((id) => appButton(id, false))}
         </nav>

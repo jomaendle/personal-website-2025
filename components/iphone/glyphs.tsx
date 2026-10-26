@@ -277,3 +277,17 @@ export const Compose = (props: GlyphProps) => (
     <path d="M18.4 3.6 a1.9 1.9 0 0 1 2.7 2.7 L12.5 14.9 L9 16 L10.1 12.5 Z" />
   </svg>
 );
+
+export const Share = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <path d="M8 9.5 H6.5 A1.5 1.5 0 0 0 5 11 v8.5 A1.5 1.5 0 0 0 6.5 21 h11 a1.5 1.5 0 0 0 1.5 -1.5 V11 A1.5 1.5 0 0 0 17.5 9.5 H16 M12 14.5 V3 M8.5 6.5 L12 3 L15.5 6.5" />
+  </svg>
+);

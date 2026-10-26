@@ -5,9 +5,17 @@ import type { IphoneAppId } from "@/lib/state/iphone-copy";
 import { PROJECTS } from "@/lib/state/projects";
 import type { IconArt } from "./app-icons";
 
+/** Where an app should open to, when something deeper than its icon
+ * launched it: a widget row or a notification. */
+export interface AppLaunch {
+  /** Notes: the article to open straight into. */
+  note?: string;
+}
+
 export interface AppProps {
   /** Send the app home, as the home indicator would. */
   close: () => void;
+  launch?: AppLaunch;
 }
 
 interface AppEntry {

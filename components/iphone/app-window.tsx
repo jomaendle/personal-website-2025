@@ -4,16 +4,18 @@ import { type MotionValue, m } from "framer-motion";
 import { Suspense, useEffect, useRef } from "react";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
-import { APPS, LAZY_APPS } from "./apps";
+import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
 import { clamp, VelocityTracker } from "./motion";
 
 interface AppWindowProps {
   id: IphoneAppId;
+  launch?: AppLaunch;
   calendar: CalendarFace | null;
   transform: MotionValue<string>;
   clipPath: MotionValue<string>;
   opacity: MotionValue<number>;
+  moving: MotionValue<boolean>;
   iconOpacity: MotionValue<number>;
   /** 0 to 1 as the app is pulled up into a card. */
   pull: MotionValue<number>;
@@ -32,10 +34,12 @@ interface AppWindowProps {
  */
 export function AppWindow({
   id,
+  launch,
   calendar,
   transform,
   clipPath,
   opacity,
+  moving,
   iconOpacity,
   pull,
   dragX,
@@ -63,6 +67,18 @@ export function AppWindow({
   useEffect(() => {
     windowRef.current?.focus({ preventScroll: true });
   }, []);
+
+  // While the window zooms or follows a finger, every frosted bar inside it
+  // would re-blur its backdrop each frame. Suspend the blur for the motion
+  // (the tint still reads as glass at that size and speed) and restore it
+  // at rest. The attribute flips twice per motion, not once per frame.
+  useEffect(() => {
+    const el = windowRef.current;
+    el?.toggleAttribute("data-moving", moving.get());
+    return moving.on("change", (value) => {
+      windowRef.current?.toggleAttribute("data-moving", value);
+    });
+  }, [moving]);
 
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     // One finger at a time: a second one must not take the drag over.
@@ -138,7 +154,7 @@ export function AppWindow({
       tabIndex={-1}
     >
       <Suspense fallback={null}>
-        <App close={onClose} />
+        <App close={onClose} launch={launch} />
       </Suspense>
       <m.div className={styles.appIconOverlay} style={{ opacity: iconOpacity }}>
         <AppIcon art={APPS[id].art} calendar={calendar} />

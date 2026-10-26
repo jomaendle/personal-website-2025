@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Iphone } from "@/components/iphone/iphone";
 import { PREPAINT_SCRIPT } from "@/components/iphone/persist";
-import { BLOG_POSTS } from "@/lib/state/blog";
+import { getNoteSummaries } from "@/lib/iphone-notes";
 import { IPHONE_COPY } from "@/lib/state/iphone-copy";
 
 export const dynamic = "force-static";
@@ -47,7 +47,7 @@ export default function IphonePage() {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: a constant, locally defined one-liner that has to run before first paint
         dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }}
       />
-      <Iphone latestPosts={BLOG_POSTS.slice(0, 3)} />
+      <Iphone notes={getNoteSummaries()} />
     </>
   );
 }

@@ -13,9 +13,12 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
+import type { NoteSummary } from "@/lib/iphone-notes";
 import {
   IPHONE_COPY,
   type IphoneAppId,
@@ -23,7 +26,8 @@ import {
 } from "@/lib/state/iphone-copy";
 import { PHOTOS, WALLPAPER } from "@/lib/state/photos";
 import { AppWindow } from "./app-window";
-import { APPS, preloadAllApps } from "./apps";
+import { APPS, type AppLaunch, preloadAllApps } from "./apps";
+import { IphoneDataProvider } from "./data";
 import { Battery, Signal, Wifi } from "./glyphs";
 import { HomeScreen } from "./home-screen";
 import styles from "./iphone.module.css";
@@ -38,7 +42,8 @@ import {
   SPRING_OPEN,
   SPRING_UNLOCK,
 } from "./motion";
-import { APP_KEY, store, UNLOCKED_KEY } from "./persist";
+import { APP_KEY, SEEN_KEY, store, UNLOCKED_KEY } from "./persist";
+import { Spotlight } from "./spotlight";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
 
 interface Geometry {
@@ -52,10 +57,20 @@ interface Geometry {
 }
 
 interface IphoneProps {
-  latestPosts: { title: string; date: string; slug: string }[];
+  /** The articles as Notes, newest first, parsed on the server. */
+  notes: NoteSummary[];
 }
 
-export function Iphone({ latestPosts }: IphoneProps) {
+interface OpenOptions {
+  /** The icon or widget it opens out of; the app's own icon by default. */
+  from?: HTMLElement;
+  /** Open without the zoom, as when restoring a return visit. */
+  instant?: boolean;
+  /** Where inside the app to land (a note, for the Notes widget). */
+  launch?: AppLaunch;
+}
+
+export function Iphone({ notes }: IphoneProps) {
   const screenRef = useRef<HTMLDivElement>(null);
   const homeRef = useRef<HTMLDivElement>(null);
   const unlockButtonRef = useRef<HTMLButtonElement>(null);
@@ -79,9 +94,19 @@ export function Iphone({ latestPosts }: IphoneProps) {
   const lockedRef = useRef(locked);
   lockedRef.current = locked;
   const [app, setApp] = useState<IphoneAppId | null>(null);
+  const [launch, setLaunch] = useState<AppLaunch | undefined>(undefined);
+  const [spotlight, setSpotlight] = useState(false);
+  const spotlightRef = useRef(spotlight);
+  spotlightRef.current = spotlight;
+  const spotlightInput = useRef<HTMLInputElement>(null);
+  const searchButton = useRef<HTMLButtonElement>(null);
+  /** Notifications already opened this visit, which the lock screen drops. */
+  const [seen, setSeen] = useState<IphoneAppId[]>([]);
   const appRef = useRef(app);
   appRef.current = app;
 
+  // Stable, so a clock tick doesn't re-render every app reading it.
+  const data = useMemo(() => ({ notes }), [notes]);
   const now = useMinute();
   const calendar = now
     ? { weekday: formatWeekday(now), day: now.getDate() }
@@ -163,6 +188,11 @@ export function Iphone({ latestPosts }: IphoneProps) {
     return `inset(${inset}px 0px round ${r}px)`;
   });
   const appOpacity = useTransform(open, (a) => (reducedRef.current ? a : 1));
+  /** True while the app window zooms or is dragged as a card. */
+  const appMoving = useTransform(
+    [open, pull],
+    ([a = 0, p = 0]: number[]) => a < 0.999 || p > 0.001,
+  );
   const iconOpacity = useTransform(open, (a) =>
     reducedRef.current ? 0 : clamp(1 - a / 0.3, 0, 1),
   );
@@ -235,7 +265,7 @@ export function Iphone({ latestPosts }: IphoneProps) {
   // ---- Apps --------------------------------------------------------------
 
   const openApp = useCallback(
-    (id: IphoneAppId, from?: HTMLElement, instant = false) => {
+    (id: IphoneAppId, { from, instant = false, launch }: OpenOptions = {}) => {
       const screen = screenRef.current;
       const icon = from ?? icons.current.get(id);
       if (!(screen && icon) || appRef.current) {
@@ -253,6 +283,7 @@ export function Iphone({ latestPosts }: IphoneProps) {
       open.jump(instant ? 1 : 0);
       closing.current = false;
       store.set(APP_KEY, id);
+      setLaunch(launch);
       setApp(id);
       if (!instant) {
         animate(open, 1, reducedRef.current ? FADE : SPRING_OPEN);
@@ -298,11 +329,41 @@ export function Iphone({ latestPosts }: IphoneProps) {
   }, [pull, dragX, dragY]);
 
   const openFromLock = useCallback(
-    (id: IphoneAppId) => {
+    (id: IphoneAppId, launch?: AppLaunch) => {
+      // Opening a notification clears it from the lock screen, as on iOS.
+      setSeen((list) => {
+        const next = list.includes(id) ? list : [...list, id];
+        store.set(SEEN_KEY, JSON.stringify(next));
+        return next;
+      });
       settleLock(1);
-      openApp(id);
+      openApp(id, { launch });
     },
     [settleLock, openApp],
+  );
+
+  // ---- Spotlight ------------------------------------------------------------
+
+  const openSpotlight = useCallback((focus: boolean) => {
+    // Flushed and focused inside the tap, or iOS won't raise the keyboard.
+    flushSync(() => setSpotlight(true));
+    if (focus) {
+      spotlightInput.current?.focus({ preventScroll: true });
+    }
+  }, []);
+
+  const closeSpotlight = useCallback(() => {
+    flushSync(() => setSpotlight(false));
+    searchButton.current?.focus({ preventScroll: true });
+  }, []);
+
+  const launchFromSpotlight = useCallback(
+    (id: IphoneAppId, options: { from: HTMLElement; launch?: AppLaunch }) => {
+      // Measure the result's icon before Spotlight goes away with it.
+      openApp(id, options);
+      setSpotlight(false);
+    },
+    [openApp],
   );
 
   // ---- Effects ------------------------------------------------------------
@@ -316,9 +377,17 @@ export function Iphone({ latestPosts }: IphoneProps) {
     unlock.set(1);
     setLocked(false);
     document.documentElement.dataset.iphone = "home";
+    try {
+      const seenBefore = JSON.parse(store.get(SEEN_KEY) ?? "[]");
+      if (Array.isArray(seenBefore)) {
+        setSeen(seenBefore);
+      }
+    } catch {
+      // A malformed value: show every notification again.
+    }
     const lastApp = store.get(APP_KEY) as IphoneAppId | null;
     if (lastApp && lastApp in APPS) {
-      openApp(lastApp, undefined, true);
+      openApp(lastApp, { instant: true });
     }
   }, [unlock, openApp]);
 
@@ -329,13 +398,18 @@ export function Iphone({ latestPosts }: IphoneProps) {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) {
+      if (event.key !== "Escape" || event.defaultPrevented) {
+        return;
+      }
+      if (spotlightRef.current) {
+        closeSpotlight();
+      } else {
         closeApp();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [closeApp]);
+  }, [closeApp, closeSpotlight]);
 
   // Warm every app's chunk once the phone is unlocked and the main thread
   // has nothing better to do.
@@ -352,129 +426,143 @@ export function Iphone({ latestPosts }: IphoneProps) {
   }, [locked]);
 
   return (
-    <div className={styles.root}>
-      <div
-        className={styles.ambient}
-        style={{ backgroundImage: `url(${WALLPAPER.blurDataURL})` }}
-        aria-hidden
-      />
-      <Link href="/" className={styles.exit}>
-        ← {IPHONE_COPY.exitLabel}
-      </Link>
-
-      <div className={styles.device}>
-        <button
-          type="button"
-          className={styles.sideButton}
-          aria-label={IPHONE_COPY.lockLabel}
-          onClick={() => {
-            if (appRef.current) {
-              closing.current = false;
-              // jump() stops an opening spring; set() would let it finish,
-              // leaving the dim layer over the lock screen.
-              open.jump(0);
-              pull.jump(0);
-              dragX.jump(0);
-              dragY.jump(0);
-              setApp(null);
-              store.set(APP_KEY, null);
-            }
-            settleLock(0);
-          }}
+    <IphoneDataProvider value={data}>
+      <div className={styles.root}>
+        <div
+          className={styles.ambient}
+          style={{ backgroundImage: `url(${WALLPAPER.blurDataURL})` }}
+          aria-hidden
         />
+        <Link href="/" className={styles.exit}>
+          ← {IPHONE_COPY.exitLabel}
+        </Link>
 
-        <main
-          ref={screenRef}
-          id="main-content"
-          tabIndex={-1}
-          className={styles.screen}
-          aria-label={IPHONE_COPY.deviceName}
-        >
-          <Image
-            src={WALLPAPER}
-            alt=""
-            fill
-            preload
-            placeholder="blur"
-            sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
-            className={styles.wallpaper}
-          />
-          <m.div
-            className={styles.dim}
-            style={{ opacity: wallpaperDim }}
-            aria-hidden
-          />
-
-          <HomeScreen
-            inert={locked || app !== null}
-            calendar={calendar}
-            latestPosts={latestPosts.slice(0, 2)}
-            homeRef={homeRef}
-            registerIcon={registerIcon}
-            onOpen={openApp}
-            scale={homeScale}
-            gridOpacity={gridOpacity}
-            bottomY={bottomY}
-            bottomOpacity={bottomOpacity}
+        <div className={styles.device}>
+          <button
+            type="button"
+            className={styles.sideButton}
+            aria-label={IPHONE_COPY.lockLabel}
+            onClick={() => {
+              if (appRef.current) {
+                closing.current = false;
+                // jump() stops an opening spring; set() would let it finish,
+                // leaving the dim layer over the lock screen.
+                open.jump(0);
+                pull.jump(0);
+                dragX.jump(0);
+                dragY.jump(0);
+                setApp(null);
+                store.set(APP_KEY, null);
+              }
+              settleLock(0);
+            }}
           />
 
-          <LockScreen
-            locked={locked}
-            now={now}
-            notifications={lockNotifications(
-              latestPosts[0]?.title ?? "",
-              PHOTOS.length,
-            )}
-            unlock={unlock}
-            lockY={lockY}
-            lockFade={lockFade}
-            lockOpacity={lockOpacity}
-            measure={measure}
-            onSettle={settleLock}
-            onOpenApp={openFromLock}
-            unlockButtonRef={unlockButtonRef}
-          />
-
-          <m.div
-            className={styles.dim}
-            style={{ opacity: appDim, zIndex: 25 }}
-            aria-hidden
-          />
-
-          {app === null ? null : (
-            <AppWindow
-              key={app}
-              id={app}
-              calendar={calendar}
-              transform={appTransform}
-              clipPath={appClip}
-              opacity={appOpacity}
-              iconOpacity={iconOpacity}
-              pull={pull}
-              dragX={dragX}
-              dragY={dragY}
-              measure={measure}
-              onClose={closeApp}
-              onCancelDrag={cancelDrag}
+          <main
+            ref={screenRef}
+            id="main-content"
+            tabIndex={-1}
+            className={styles.screen}
+            aria-label={IPHONE_COPY.deviceName}
+          >
+            <Image
+              src={WALLPAPER}
+              alt=""
+              fill
+              preload
+              placeholder="blur"
+              sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
+              className={styles.wallpaper}
             />
-          )}
+            <m.div
+              className={styles.dim}
+              style={{ opacity: wallpaperDim }}
+              aria-hidden
+            />
 
-          <div className={styles.statusBar} aria-hidden>
-            <m.span
-              className={styles.statusTime}
-              style={{ opacity: statusTimeOpacity }}
-            >
-              {formatClock(now)}
-            </m.span>
-            <span className={styles.statusIcons}>
-              <Signal />
-              <Wifi />
-              <Battery />
-            </span>
-          </div>
-          <div className={styles.island} aria-hidden />
-        </main>
+            <HomeScreen
+              inert={locked || app !== null || spotlight}
+              searchRef={searchButton}
+              onSearch={openSpotlight}
+              calendar={calendar}
+              notes={notes.slice(0, 2)}
+              homeRef={homeRef}
+              registerIcon={registerIcon}
+              onOpen={openApp}
+              scale={homeScale}
+              gridOpacity={gridOpacity}
+              bottomY={bottomY}
+              bottomOpacity={bottomOpacity}
+            />
+
+            {spotlight ? (
+              <Spotlight
+                calendar={calendar}
+                inputRef={spotlightInput}
+                onClose={closeSpotlight}
+                onLaunch={launchFromSpotlight}
+              />
+            ) : null}
+
+            <LockScreen
+              locked={locked}
+              now={now}
+              notifications={lockNotifications(notes[0], PHOTOS.length).filter(
+                (notification) => !seen.includes(notification.app),
+              )}
+              unlock={unlock}
+              lockY={lockY}
+              lockFade={lockFade}
+              lockOpacity={lockOpacity}
+              measure={measure}
+              onSettle={settleLock}
+              onOpenApp={openFromLock}
+              unlockButtonRef={unlockButtonRef}
+            />
+
+            <m.div
+              className={styles.dim}
+              style={{ opacity: appDim, zIndex: 25 }}
+              aria-hidden
+            />
+
+            {app === null ? null : (
+              <AppWindow
+                key={app}
+                launch={launch}
+                id={app}
+                calendar={calendar}
+                transform={appTransform}
+                clipPath={appClip}
+                opacity={appOpacity}
+                moving={appMoving}
+                iconOpacity={iconOpacity}
+                pull={pull}
+                dragX={dragX}
+                dragY={dragY}
+                measure={measure}
+                onClose={closeApp}
+                onCancelDrag={cancelDrag}
+              />
+            )}
+
+            <div className={styles.statusBar} aria-hidden>
+              <m.span
+                className={styles.statusTime}
+                style={{ opacity: statusTimeOpacity }}
+              >
+                {formatClock(now)}
+              </m.span>
+              <span className={styles.statusIcons}>
+                <Signal />
+                <Wifi />
+                <Battery />
+              </span>
+            </div>
+            <div className={styles.island} aria-hidden />
+          </main>
+        </div>
       </div>
-    </div>
+    </IphoneDataProvider>
   );
 }

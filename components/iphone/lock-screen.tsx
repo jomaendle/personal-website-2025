@@ -8,7 +8,7 @@ import {
   type LockNotification,
 } from "@/lib/state/iphone-copy";
 import { AppIcon } from "./app-icons";
-import { APPS } from "./apps";
+import { APPS, type AppLaunch } from "./apps";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
 import { clamp, VelocityTracker } from "./motion";
@@ -28,7 +28,7 @@ interface LockScreenProps {
   /** Screen height in screen pixels, and how much the frame is scaled. */
   measure: () => { h: number; scale: number };
   onSettle: (to: 0 | 1, velocity?: number) => void;
-  onOpenApp: (id: IphoneAppId) => void;
+  onOpenApp: (id: IphoneAppId, launch?: AppLaunch) => void;
   unlockButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -169,7 +169,12 @@ export function LockScreen({
             <button
               type="button"
               className={styles.notification}
-              onClick={() => onOpenApp(notification.app)}
+              onClick={() =>
+                onOpenApp(
+                  notification.app,
+                  notification.note ? { note: notification.note } : undefined,
+                )
+              }
               onPointerDown={() => APPS[notification.app].load()}
             >
               <AppIcon

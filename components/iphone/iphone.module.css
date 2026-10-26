@@ -7,6 +7,10 @@
    - Wider, taller windows: an iPhone 16 Pro (402 × 874 pt) in a CSS bezel,
      scaled down to fit the window's height.
 
+   backdrop-filter is written unprefixed only: Lightning CSS adds the -webkit-
+   prefix for the Safari versions that need it. Writing both by hand made it
+   keep only the prefixed one, which left Chrome with no blur at all.
+
    Everything that moves is driven from framer-motion motion values as
    `transform`, `opacity` or `clip-path` on a handful of layers. Nothing here
    animates layout.
@@ -347,7 +351,6 @@
     inset 0 1px 0.5px rgb(255 255 255 / 0.28),
     inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
   backdrop-filter: blur(24px) saturate(1.9) brightness(1.05);
-  -webkit-backdrop-filter: blur(24px) saturate(1.9) brightness(1.05);
   text-align: left;
   color: inherit;
   font: inherit;
@@ -407,7 +410,6 @@
   border-radius: 50%;
   background: rgb(0 0 0 / 0.32);
   backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
   color: #fff;
   cursor: pointer;
   transition:
@@ -473,6 +475,9 @@
   position: absolute;
   inset: 0;
   z-index: 10;
+  /* Vertical drags are the Spotlight swipe, not a page scroll or a pull to
+     refresh; pinch zoom stays available. */
+  touch-action: pan-x pinch-zoom;
   transform-origin: 50% 45%;
 }
 
@@ -568,6 +573,20 @@
   padding: 14px 14px 16px;
 }
 
+.widgetNotesHead,
+.widgetNote {
+  width: 100%;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.widgetNotesHead:active,
+.widgetNote:active {
+  opacity: 0.6;
+}
+
 .widgetNotesHead {
   display: flex;
   align-items: center;
@@ -578,6 +597,8 @@
 }
 
 .widgetNote {
+  display: block;
+  color: var(--label);
   margin-top: 8px;
   padding-top: 8px;
   border-top: 0.5px solid var(--separator) !important;
@@ -587,6 +608,11 @@
   border-top: 0 !important;
   margin-top: 6px;
   padding-top: 0;
+}
+
+.widgetNoteTitle,
+.widgetNoteDate {
+  display: block;
 }
 
 .widgetNoteTitle {
@@ -620,6 +646,9 @@
 }
 
 .search {
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -630,7 +659,6 @@
     inset 0 1px 0.5px rgb(255 255 255 / 0.3),
     inset 0 0 0 0.5px rgb(255 255 255 / 0.12);
   backdrop-filter: blur(20px) saturate(1.8) brightness(1.08);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.08);
   font-size: 13px;
   font-weight: 500;
 }
@@ -651,7 +679,128 @@
     inset 0 0 0 0.5px rgb(255 255 255 / 0.14),
     0 10px 30px rgb(0 0 0 / 0.25);
   backdrop-filter: blur(24px) saturate(1.9) brightness(1.08);
-  -webkit-backdrop-filter: blur(24px) saturate(1.9) brightness(1.08);
+}
+
+/* ---- Spotlight ---------------------------------------------------------- */
+
+.spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background: rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(30px) saturate(1.6);
+  animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes spotlight-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.spotlightDismiss {
+  position: absolute;
+  inset: 0;
+  background: none;
+  cursor: default;
+}
+
+/* The scroller lets taps through to the dismiss layer; its content takes
+   them, and still scrolls it. */
+.spotlightResults {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: calc(var(--top-inset) + 8px) 14px calc(max(var(--bottom-inset), 28px) + 80px);
+  scrollbar-width: none;
+  pointer-events: none;
+  animation: spotlight-results 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.spotlightResults > * {
+  pointer-events: auto;
+}
+
+@keyframes spotlight-results {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.spotlightHeader {
+  margin: 14px 6px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.65);
+}
+
+.spotlightCard {
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgb(40 40 40 / 0.5);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.2),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.08);
+}
+
+.spotlightApps {
+  --icon: 58px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 14px;
+  padding: 16px 6px 14px;
+}
+
+.spotlightRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px 10px 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spotlightRow:active {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.spotlightRow + .spotlightRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.spotlightRowIcon {
+  --icon: 36px;
+}
+
+.spotlightMonogram {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(#a5a5aa, #6e6e73);
+  font-family: var(--ios-rounded);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.spotlightEmpty {
+  margin-top: 40px;
+  text-align: center;
+  color: rgb(255 255 255 / 0.65);
 }
 
 /* ---- App icons ------------------------------------------------------- */
@@ -708,6 +857,10 @@
   transform-origin: 50% 50%;
   will-change: transform, clip-path;
   outline: none;
+}
+
+.app[data-moving] * {
+  backdrop-filter: none !important;
 }
 
 .appIconOverlay {
@@ -783,7 +936,6 @@
   z-index: -1;
   background: linear-gradient(rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.4) 60%, transparent);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   mask-image: linear-gradient(#000 50%, transparent);
   opacity: 0;
   pointer-events: none;
@@ -1008,6 +1160,304 @@ button.row:active {
 
 .notes {
   --tint: var(--ios-yellow);
+  position: absolute;
+  inset: 0;
+}
+
+/* A navigation stack: each level is a full-screen layer. The one being
+   pushed carries the shadow UIKit casts on the level beneath. */
+.navLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.navTop {
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.55);
+}
+
+.navDim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #000;
+  pointer-events: none;
+}
+
+.noteRowDate {
+  margin-right: 0.5em;
+  color: var(--label);
+}
+
+.noteView {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+
+/* Vertical scrolling stays the browser's; horizontal drags reach the back
+   swipe. */
+.noteScroll {
+  touch-action: pan-y;
+}
+
+.noteBody {
+  padding: calc(var(--top-inset) + 58px) 20px calc(var(--bottom-inset) + 40px);
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+}
+
+.noteDate {
+  margin-bottom: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+/* Notes' paragraph styles: Title, Heading, Subheading, Body, Monostyled. */
+.noteTitle {
+  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: 0.002em;
+  outline: none;
+}
+
+.noteHeading {
+  margin: 26px 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.noteSubheading {
+  margin: 20px 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.noteP {
+  margin: 0 0 12px;
+}
+
+.noteList {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.noteList ul,
+.noteList ol {
+  margin: 4px 0 0;
+}
+
+ul.noteList {
+  list-style: disc;
+}
+
+ol.noteList {
+  list-style: decimal;
+}
+
+.noteList li {
+  padding-left: 2px;
+}
+
+.noteList li > .noteP {
+  margin-bottom: 4px;
+}
+
+.noteList li::marker {
+  color: var(--label-2);
+}
+
+.noteQuote {
+  margin: 0 0 12px;
+  padding-left: 12px;
+  border-left: 3px solid var(--label-3) !important;
+  color: var(--label-2);
+}
+
+.noteMono {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: var(--grouped);
+  font-family: ui-monospace, "SF Mono", var(--font-mono), monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
+  /* Notes wraps monostyled text to the width of the note. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+}
+
+.noteInlineCode {
+  padding: 0.1em 0.3em;
+  border-radius: 5px;
+  background: var(--grouped-2);
+  font-family: ui-monospace, "SF Mono", var(--font-mono), monospace;
+  font-size: 0.86em;
+}
+
+.noteLink {
+  padding: 0;
+  background: none;
+  color: var(--tint);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--tint) 45%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Attachments sit inline at full width with rounded corners, as in Notes. */
+.noteAttachment {
+  margin: 4px 0 16px;
+}
+
+.noteAttachment img,
+.noteAttachment video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: var(--grouped);
+}
+
+.noteAttachment figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+
+.noteRule {
+  margin: 20px 0;
+  border: 0;
+  border-top: 0.5px solid var(--separator) !important;
+}
+
+.noteFailed {
+  color: var(--label-2);
+}
+
+.noteFailed a {
+  color: var(--tint);
+}
+
+.linkCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 16px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 14px;
+  background: var(--grouped);
+  color: inherit;
+  text-decoration: none;
+}
+
+.linkCard:active {
+  background: var(--grouped-2);
+}
+
+.linkCardTile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(#c84b31, #9e2f1b);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.linkCardTileBaseline {
+  background: linear-gradient(#34c759, #248a3d);
+  font-family: var(--ios-font);
+  font-size: 20px;
+}
+
+.linkCardTitle {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.linkCardDetail {
+  display: block;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+/* The note's floating controls, over iOS 26's top scroll edge effect. */
+.noteBar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  isolation: isolate;
+  display: flex;
+  justify-content: space-between;
+  padding: calc(var(--top-inset) + 4px) 14px 0;
+  pointer-events: none;
+}
+
+.noteBar > * {
+  pointer-events: auto;
+}
+
+.noteBar::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -24px;
+  z-index: -1;
+  background: linear-gradient(rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.4) 60%, transparent);
+  backdrop-filter: blur(10px);
+  mask-image: linear-gradient(#000 50%, transparent);
+}
+
+/* The system HUD: a frosted square that confirms and fades. */
+.hud {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  translate: -50% -50%;
+  min-width: 150px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: rgb(44 44 46 / 0.82);
+  backdrop-filter: blur(24px) saturate(1.8);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  animation: hud 1.4s ease both;
+  pointer-events: none;
+}
+
+@keyframes hud {
+  0% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  12%,
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ---- Photos ---------------------------------------------------------- */
@@ -1039,7 +1489,6 @@ button.row:active {
   z-index: -1;
   background: linear-gradient(rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.35) 60%, transparent);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   mask-image: linear-gradient(#000 45%, transparent);
   pointer-events: none;
 }
@@ -1222,7 +1671,6 @@ button.row:active {
 .pill {
   background: rgb(255 255 255 / 0.1);
   backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
-  -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
   box-shadow:
     inset 0 0.5px 0 rgb(255 255 255 / 0.4),
     inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
@@ -1284,7 +1732,6 @@ button.row:active {
   z-index: -1;
   background: linear-gradient(transparent, rgb(0 0 0 / 0.55) 45%, rgb(0 0 0 / 0.85));
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   mask-image: linear-gradient(transparent, #000 40%);
   pointer-events: none;
 }
@@ -1305,7 +1752,6 @@ button.row:active {
 .glassField {
   background: rgb(58 58 60 / 0.5);
   backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
 }
 
 .glassField input {
@@ -1315,6 +1761,11 @@ button.row:active {
   background: none;
   color: var(--label);
   font: inherit;
+  outline: none;
+}
+
+/* The caret is the focus indicator in an iOS text field. */
+.glassField input:focus-visible {
   outline: none;
 }
 
@@ -1665,7 +2116,6 @@ button.row:active {
   border-radius: 14px;
   background: rgb(44 44 46 / 0.86);
   backdrop-filter: blur(30px) saturate(1.8);
-  -webkit-backdrop-filter: blur(30px) saturate(1.8);
   text-align: center;
   animation: alert-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
 }

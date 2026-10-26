@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { SITE } from "@/lib/config/site";
 import { IPHONE_COPY, MAIL_ALERTS } from "@/lib/state/iphone-copy";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
 import { ArrowUp, Close, Compose } from "../glyphs";
 import styles from "../iphone.module.css";
+import { useKeyboardInset } from "../use-keyboard-inset";
 import { IosAlert } from "./alert";
 
 /** Loose on purpose: the endpoint does the real check. */
@@ -296,36 +297,6 @@ function MailRow({
       <div className={styles.mailRowPreview}>{body}</div>
     </li>
   );
-}
-
-/**
- * How much of the screen the on-screen keyboard covers. The phone is
- * position: fixed, so iOS Safari slides the keyboard over it rather than
- * resizing anything; lifting the sheet's bottom by this keeps the message
- * field and the Send button above the keys.
- */
-function useKeyboardInset() {
-  const [inset, setInset] = useState(0);
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) {
-      return;
-    }
-    const update = () =>
-      setInset(
-        Math.max(
-          0,
-          Math.round(window.innerHeight - viewport.height - viewport.offsetTop),
-        ),
-      );
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, []);
-  return inset;
 }
 
 /** Mail's Sent mailbox: the outgoing message while it sends, everything

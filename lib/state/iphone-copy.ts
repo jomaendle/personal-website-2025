@@ -15,6 +15,8 @@ export type IphoneAppId =
 
 export interface LockNotification {
   app: IphoneAppId;
+  /** A note to open straight into, for the article notification. */
+  note?: string;
   title: string;
   body: string;
   time: string;
@@ -68,16 +70,21 @@ export const MAIL_ALERTS = {
 
 /** Notifications waiting on the lock screen. Tapping one opens its app. */
 export function lockNotifications(
-  latestPostTitle: string,
+  latestPost: { title: string; slug: string } | undefined,
   photoCount: number,
 ): LockNotification[] {
   return [
-    {
-      app: "notes",
-      title: "New article",
-      body: latestPostTitle,
-      time: "now",
-    },
+    ...(latestPost
+      ? [
+          {
+            app: "notes" as const,
+            note: latestPost.slug,
+            title: "New article",
+            body: latestPost.title,
+            time: "now",
+          },
+        ]
+      : []),
     {
       app: "photos",
       title: "Featured photos",

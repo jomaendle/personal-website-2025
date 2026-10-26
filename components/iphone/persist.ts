@@ -5,6 +5,8 @@
  */
 export const UNLOCKED_KEY = "iphone:unlocked";
 export const APP_KEY = "iphone:app";
+/** Lock-screen notifications already opened, so they stay cleared. */
+export const SEEN_KEY = "iphone:seen";
 
 /** Runs before first paint (see app/iphone/page.tsx). Marks the document so
  * the stylesheet can show the home screen straight away on a return visit,
