@@ -91,6 +91,23 @@ when the code was already there, the cover drops in the same commit and
 nothing shows. Test it by holding every non-initial chunk until the tap
 (e2e/cover.cjs): the idle warming otherwise makes the cold case rare.
 
+## The first frame is the main thread's
+
+A composited animation still needs its first frame from the main thread,
+and a launch mounts a whole app in that frame. Profiling at 4x CPU
+(e2e/deep.cjs, then a CPU profile of the one flow) found the Photos launch
+spending 390ms in a single forced layout: a layout effect restoring the
+grid's scroll position measured all 32 tiles, each with a blur placeholder
+to decode. The same shape turned up three more times: `focus()` on a new
+note's title and on the Spotlight dialog, and `clientWidth` read on every
+scroll event of the photo strip.
+
+Anything that reads layout in the commit (`focus`, `scrollTop`, `offsetTop`,
+`getBoundingClientRect`) pays for the whole tree that just mounted. Move
+the read a frame later, cache it, or shrink the tree it measures:
+`content-visibility: auto` on the tiles below the fold took the launch's
+long task from 394ms to none.
+
 ## Guardrails
 
 - Never drive a large element's motion frame by frame from script unless a
