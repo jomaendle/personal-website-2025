@@ -99,6 +99,9 @@ export default function MusicApp({ launch }: AppProps) {
   /** What opened the album and the sheet, for focus to return to. */
   const albumOpener = useRef<HTMLElement | null>(null);
   const sheetOpener = useRef<HTMLElement | null>(null);
+  /** The mini player's open button: where focus goes from a sheet that was
+   * open from the start (a song played from Spotlight). */
+  const miniOpen = useRef<HTMLButtonElement>(null);
   const focusBack = (el: HTMLElement | null) =>
     requestAnimationFrame(() => {
       if (el?.isConnected) {
@@ -112,7 +115,7 @@ export default function MusicApp({ launch }: AppProps) {
   };
   const closeSheet = () => {
     setNowPlaying(false);
-    focusBack(sheetOpener.current);
+    focusBack(sheetOpener.current ?? miniOpen.current);
   };
 
   const push = (next: Album) => {
@@ -189,7 +192,11 @@ export default function MusicApp({ launch }: AppProps) {
 
       {/* Stays mounted under the sheet, fading, so it doesn't vanish the
           moment the sheet starts to rise or pop back as it goes down. */}
-      {track ? <MiniPlayer hidden={nowPlaying} onOpen={openSheet} /> : null}
+      {/* Stays mounted under the sheet, fading, so it doesn't vanish the
+          moment the sheet starts to rise or pop back as it goes down. */}
+      {track ? (
+        <MiniPlayer hidden={nowPlaying} onOpen={openSheet} openRef={miniOpen} />
+      ) : null}
 
       {track ? <NowPlaying open={nowPlaying} onClose={closeSheet} /> : null}
     </div>
@@ -442,9 +449,11 @@ function AlbumPage({
 function MiniPlayer({
   hidden,
   onOpen,
+  openRef,
 }: {
   hidden: boolean;
   onOpen: () => void;
+  openRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const { track, playing } = useMusic();
   const { toggle, next } = useMusicControls();
@@ -463,6 +472,7 @@ function MiniPlayer({
     >
       <div className={cn(styles.glassField, styles.miniPlayer)}>
         <button
+          ref={openRef}
           type="button"
           className={styles.miniPlayerOpen}
           onClick={onOpen}

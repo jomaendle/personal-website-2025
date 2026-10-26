@@ -73,12 +73,17 @@ export function AppWindow({
 
   // After the first frames, not during the mount: focusing forces a style
   // recalculation of the whole app right as the zoom starts.
+  // And only if the app hasn't put focus somewhere of its own by then (a
+  // note's title, the Now Playing sheet, a Mail field).
   useEffect(() => {
-    const frame = requestAnimationFrame(() =>
-      requestAnimationFrame(() =>
-        windowRef.current?.focus({ preventScroll: true }),
-      ),
-    );
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        const el = windowRef.current;
+        if (el && !el.contains(document.activeElement)) {
+          el.focus({ preventScroll: true });
+        }
+      });
+    });
     return () => cancelAnimationFrame(frame);
   }, []);
 

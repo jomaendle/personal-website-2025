@@ -58,11 +58,32 @@ interface Geometry {
   scale: number;
   /** The screen's corner radius: 55 in the device frame, 0 full-screen. */
   radius: number;
-  /** The icon (or widget) the current app came out of. */
+  /** The icon (or widget) the current app came out of, or is going home
+   * to. */
   origin: Rect;
+  /** Where it was headed before a retarget, blended into `origin` by the
+   * `homing` motion value so a changed destination doesn't jump. */
+  previous: Rect;
   /** Whether that was an app icon, whose art covers the window early on. A
    * widget instead cross-fades straight into the app. */
   fromIcon: boolean;
+}
+
+/** The destination now: the origin, or partway to it from a previous one
+ * while a retargeted close blends over (`t` from 0 to 1). */
+function originAt(g: Geometry, t: number): Rect {
+  const { origin, previous } = g;
+  const k = clamp(t, 0, 1);
+  if (k === 1) {
+    return origin;
+  }
+  return {
+    x: lerp(previous.x, origin.x, k),
+    y: lerp(previous.y, origin.y, k),
+    size: lerp(previous.size, origin.size, k),
+    height: lerp(previous.height, origin.height, k),
+    radius: lerp(previous.radius, origin.radius, k),
+  };
 }
 
 interface IphoneProps {
@@ -92,6 +113,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     scale: 1,
     radius: 0,
     origin: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
+    previous: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
     fromIcon: true,
   });
   const closing = useRef(false);
@@ -116,6 +138,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const [spotlight, setSpotlight] = useState(false);
   /** Spotlight fading out: still drawn, no longer taking input. */
   const [spotlightLeaving, setSpotlightLeaving] = useState(false);
+  /** A fresh Spotlight each time, even reopened mid-fade: a new query and
+   * its own focus, not the fading one's. */
+  const [spotlightKey, setSpotlightKey] = useState(0);
   const spotlightRef = useRef(spotlight);
   spotlightRef.current = spotlight;
   const spotlightInput = useRef<HTMLInputElement>(null);
@@ -144,6 +169,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const pull = useMotionValue(0);
   const dragX = useMotionValue(0);
   const dragY = useMotionValue(0);
+  /** 0 at the old destination of a retargeted close, 1 at the new one. */
+  const homing = useMotionValue(1);
 
   const lockY = useTransform(unlock, (u) =>
     reducedRef.current ? 0 : -u * geometry.current.h,
@@ -186,12 +213,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * stretches.
    */
   const appTransform = useTransform(
-    [open, pull, dragX, dragY],
+    [open, pull, dragX, dragY, homing],
     ([a = 0, p = 0, dx = 0, dy = 0]: number[]) => {
       if (reducedRef.current) {
         return "none";
       }
-      const { w, h, origin } = geometry.current;
+      const { w, h } = geometry.current;
+      const origin = originAt(geometry.current, homing.get());
       const s0 = origin.size / w;
       const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
       const cx = lerp(origin.x + origin.size / 2, w / 2, a) + dx;
@@ -199,25 +227,29 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       return `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale})`;
     },
   );
-  const appClip = useTransform([open, pull], ([a = 0, p = 0]: number[]) => {
-    if (reducedRef.current) {
-      return "none";
-    }
-    const { w, origin, radius } = geometry.current;
-    const s0 = origin.size / w;
-    const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
-    // The spring's bounce past the icon squishes the scale only: clamped,
-    // the clip keeps the icon's shape instead of flattening at the end.
-    const ac = clamp(a, 0, 1);
-    const inset = startInset() * (1 - ac);
-    // Radii are in the app's own pixels, so divide out the scale to land on
-    // the icon's radius at 0 and a card's ~40pt while dragging.
-    const r = Math.max(
-      lerp(origin.radius / s0, radius, ac),
-      (Math.min(1, p * 5) * 40) / scale,
-    );
-    return `inset(${inset}px 0px round ${r}px)`;
-  });
+  const appClip = useTransform(
+    [open, pull, homing],
+    ([a = 0, p = 0]: number[]) => {
+      if (reducedRef.current) {
+        return "none";
+      }
+      const { w, radius } = geometry.current;
+      const origin = originAt(geometry.current, homing.get());
+      const s0 = origin.size / w;
+      const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
+      // The spring's bounce past the icon squishes the scale only: clamped,
+      // the clip keeps the icon's shape instead of flattening at the end.
+      const ac = clamp(a, 0, 1);
+      const inset = startInset() * (1 - ac);
+      // Radii are in the app's own pixels, so divide out the scale to land on
+      // the icon's radius at 0 and a card's ~40pt while dragging.
+      const r = Math.max(
+        lerp(origin.radius / s0, radius, ac),
+        (Math.min(1, p * 5) * 40) / scale,
+      );
+      return `inset(${inset}px 0px round ${r}px)`;
+    },
+  );
   const appOpacity = useTransform(open, (a) => {
     if (reducedRef.current) {
       return a;
@@ -228,7 +260,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   });
   /** The icon art covers the window as it grows, as iOS scales the icon's
    * snapshot with the window, rather than sitting as a square in its middle. */
-  const iconScale = useTransform(open, (a) => {
+  const iconScale = useTransform([open, homing], ([a = 0]: number[]) => {
     const { w, h } = geometry.current;
     const start = h - 2 * startInset();
     return (start + (h - start) * a) / w;
@@ -252,7 +284,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** How far the clip is inset top and bottom at the start of the zoom, in
    * the app's own pixels: what makes the full-screen window icon-shaped. */
   function startInset() {
-    const { w, h, origin } = geometry.current;
+    const { w, h } = geometry.current;
+    const origin = originAt(geometry.current, homing.get());
     const s0 = origin.size / w;
     return Math.max(0, (h - origin.height / s0) / 2);
   }
@@ -348,8 +381,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /**
    * Close into something that is on screen. The app came out of a Spotlight
    * result, or a lock-screen card, that is gone by now: go home into the
-   * app's own icon instead, as iOS does. Only when that moves the target, and
-   * eased in by how open the app is, so an interrupted launch doesn't jump.
+   * app's own icon instead, as iOS does, blending the destination over so
+   * an interrupted launch doesn't jump.
    */
   const retarget = useCallback(
     (id: IphoneAppId) => {
@@ -364,13 +397,18 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       if (!icon) {
         return;
       }
+      // Blend from where it was headed, over the close, rather than jump:
+      // the transform weights the destination by how closed the app is.
+      geometry.current.previous = originAt(geometry.current, homing.get());
       geometry.current.origin = rectWithin(icon, screen);
       geometry.current.fromIcon = isAppIcon(icon);
       originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
+      homing.jump(0);
+      animate(homing, 1, reducedRef.current ? FADE : SPRING_CLOSE);
     },
-    [hideSource],
+    [hideSource, homing],
   );
 
   const openApp = useCallback(
@@ -384,6 +422,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       APPS[id].load();
       measure();
       geometry.current.origin = rectWithin(icon, screen);
+      geometry.current.previous = geometry.current.origin;
+      homing.jump(1);
       geometry.current.fromIcon = isAppIcon(icon);
       originEl.current = icon;
       opener.current = icon.closest("button");
@@ -410,7 +450,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         });
       }
     },
-    [measure, open, pull, dragX, dragY, hideSource],
+    [measure, open, pull, dragX, dragY, hideSource, homing],
   );
 
   /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
@@ -499,6 +539,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     // Flushed and focused inside the tap, or iOS won't raise the keyboard.
     flushSync(() => {
       setSpotlightLeaving(false);
+      setSpotlightKey((key) => key + 1);
       setSpotlight(true);
     });
     if (focus) {
@@ -680,6 +721,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
               {spotlight || spotlightLeaving ? (
                 <Spotlight
+                  key={spotlightKey}
                   leaving={!spotlight}
                   onLeft={() => setSpotlightLeaving(false)}
                   calendar={calendar}

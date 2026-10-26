@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/config/site";
+import type { NoteSummary } from "@/lib/iphone-notes";
 import {
   ALBUMS,
   CAR_KIDS,
@@ -48,6 +49,43 @@ interface SpotlightProps {
 const matches = (haystack: string, query: string) =>
   haystack.toLowerCase().includes(query);
 
+/** Everything on the phone that matches `q`. Nothing typed is not a match
+ * for everything: the empty state shows suggestions instead. */
+function search(q: string, notes: NoteSummary[]) {
+  if (!q) {
+    return {
+      apps: [],
+      clips: [],
+      noteHits: [],
+      songHits: [],
+      contactHit: false,
+      nothing: false,
+    };
+  }
+  const apps = (Object.keys(APPS) as IphoneAppId[]).filter((id) =>
+    matches(APPS[id].name, q),
+  );
+  const clips = WEB_CLIPS.filter((clip) => matches(clip.name, q));
+  const noteHits = notes
+    .filter((note) => matches(`${note.title} ${note.excerpt}`, q))
+    .slice(0, 6);
+  const songHits = TRACKS.filter((track) => matches(track.title, q)).slice(
+    0,
+    5,
+  );
+  const contactHit = [SITE.name, "Johannes Mändle", "Maendle", SITE.role].some(
+    (s) => matches(s, q),
+  );
+  const nothing = !(
+    apps.length ||
+    clips.length ||
+    noteHits.length ||
+    songHits.length ||
+    contactHit
+  );
+  return { apps, clips, noteHits, songHits, contactHit, nothing };
+}
+
 /**
  * Spotlight, from the home screen's Search pill or a swipe down. It searches
  * what the phone holds: apps and bookmarks, the articles in Notes, and the
@@ -77,34 +115,10 @@ export function Spotlight({
     }
   }, []);
 
-  // Nothing typed is not a match for everything: the empty state shows
-  // suggestions instead.
-  const apps = q
-    ? (Object.keys(APPS) as IphoneAppId[]).filter((id) =>
-        matches(APPS[id].name, q),
-      )
-    : [];
-  const clips = q ? WEB_CLIPS.filter((clip) => matches(clip.name, q)) : [];
-  const noteHits = q
-    ? notes
-        .filter((note) => matches(`${note.title} ${note.excerpt}`, q))
-        .slice(0, 6)
-    : [];
-  const songHits = q
-    ? TRACKS.filter((track) => matches(track.title, q)).slice(0, 5)
-    : [];
-  const contactHit = q
-    ? [SITE.name, "Johannes Mändle", "Maendle", SITE.role].some((s) =>
-        matches(s, q),
-      )
-    : false;
-  const nothing =
-    q &&
-    !apps.length &&
-    !clips.length &&
-    !noteHits.length &&
-    !songHits.length &&
-    !contactHit;
+  const { apps, clips, noteHits, songHits, contactHit, nothing } = search(
+    q,
+    notes,
+  );
 
   const onAnimationEnd = (event: React.AnimationEvent<HTMLElement>) => {
     if (leaving && event.target === event.currentTarget) {

@@ -218,10 +218,21 @@ function readBox(data: Buffer, offset: number, end: number) {
   };
 }
 
+/** The track's display size. The 3x3 matrix just before it says how the
+ * frames are turned: with its first entry zero and its second not, they
+ * play a quarter turn round (a portrait phone recording), so the box it
+ * needs is the other way up. */
 function trackHeaderSize(data: Buffer, offset: number, size: number) {
   const w = data.readUInt32BE(offset + size - 8) / 65_536;
   const h = data.readUInt32BE(offset + size - 4) / 65_536;
-  return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+  if (!(w > 0 && h > 0)) {
+    return null;
+  }
+  const matrix = offset + size - 8 - 36;
+  const quarterTurn =
+    data.readInt32BE(matrix) === 0 && data.readInt32BE(matrix + 4) !== 0;
+  const [dw, dh] = quarterTurn ? [h, w] : [w, h];
+  return { w: Math.round(dw), h: Math.round(dh) };
 }
 
 function findTrackSize(

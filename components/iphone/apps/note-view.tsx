@@ -12,7 +12,7 @@ import {
 } from "react";
 import type { NoteBlock, NoteDocument, NoteInline } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
-import { fetchAllViews, incrementView } from "@/lib/views";
+import { useViewCount } from "@/lib/views";
 import { BackChevron, Share } from "../glyphs";
 import styles from "../iphone.module.css";
 import { useSwipeBack } from "../use-swipe-back";
@@ -57,33 +57,6 @@ function useNote(slug: string) {
     };
   }, [slug]);
   return state;
-}
-
-/** The article's read count, counting this read, as the blog does. Null
- * until it is known, or for good if it can't be. */
-function useViews(slug: string) {
-  const [views, setViews] = useState<number | null>(null);
-  useEffect(() => {
-    let live = true;
-    let counted = false;
-    incrementView(slug).then((total) => {
-      if (live && total) {
-        counted = true;
-        setViews(total);
-      }
-    });
-    fetchAllViews()
-      .then((all) => {
-        if (live && !counted) {
-          setViews(all.find((item) => item.slug === slug)?.views ?? 0);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      live = false;
-    };
-  }, [slug]);
-  return views;
 }
 
 let count: Intl.NumberFormat | undefined;
@@ -132,7 +105,8 @@ export function NoteView({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const swipeBack = useSwipeBack(nav, onBack);
-  const views = useViews(slug);
+  // Reading the note counts as reading the article, as on the blog.
+  const { views } = useViewCount(slug, true);
 
   useEffect(() => {
     titleRef.current?.focus({ preventScroll: true });

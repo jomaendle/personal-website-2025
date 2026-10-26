@@ -3,6 +3,8 @@
  * routes. Shared by the blog's ViewCounter and the /iphone Notes app.
  */
 
+import { useEffect, useState } from "react";
+
 export interface ViewsResponse {
   views: number;
   slug?: string;
@@ -36,6 +38,11 @@ export function fetchAllViews(): Promise<ViewsResponse[]> {
 // double-invokes effects in dev; navigations remount the article layout).
 const incrementedSlugs = new Set<string>();
 
+// Totals this visit's increments returned. They beat the list, which was
+// fetched (and cached) before the increment, so a reopened article can't
+// show a count lower than the one it showed the first time.
+const counted = new Map<string, number>();
+
 /** Count a read, once per slug per visit. Resolves to the new total, or null
  * when it was already counted, skipped in development, or failed. */
 export function incrementView(slug: string): Promise<number | null> {
@@ -51,6 +58,62 @@ export function incrementView(slug: string): Promise<number | null> {
     body: JSON.stringify({ slug }),
   })
     .then((res) => (res.ok ? res.json() : null))
-    .then((data: ViewsResponse | null) => data?.views || null)
+    .then((data: ViewsResponse | null) => {
+      const total = data?.views || null;
+      if (total) {
+        counted.set(slug, total);
+      }
+      return total;
+    })
     .catch(() => null);
+}
+
+/**
+ * An article's view count, and with `increment`, this read counted in it.
+ * The increment is awaited before falling back to the list, so the count
+ * shows once, already including this read, rather than flipping up by one.
+ */
+export function useViewCount(slug: string, increment = false) {
+  const [state, setState] = useState<{ views: number | null; failed: boolean }>(
+    () => ({ views: counted.get(slug) ?? null, failed: false }),
+  );
+
+  useEffect(() => {
+    let live = true;
+    const fromList = () =>
+      fetchAllViews()
+        .then((all) => {
+          if (live) {
+            const views =
+              counted.get(slug) ??
+              all.find((item) => item.slug === slug)?.views ??
+              0;
+            setState({ views, failed: false });
+          }
+        })
+        .catch(() => {
+          if (live) {
+            setState((s) => (s.views === null ? { ...s, failed: true } : s));
+          }
+        });
+    if (increment) {
+      incrementView(slug).then((total) => {
+        if (!live) {
+          return;
+        }
+        if (total) {
+          setState({ views: total, failed: false });
+        } else {
+          fromList();
+        }
+      });
+    } else {
+      fromList();
+    }
+    return () => {
+      live = false;
+    };
+  }, [slug, increment]);
+
+  return state;
 }
