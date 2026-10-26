@@ -519,43 +519,29 @@ export interface WallpaperChoice {
   place: string;
 }
 
+/** A wallpaper's caption, from what the library says about the photo, so
+ * the two can't disagree: its title, and the place without the country. */
+function wallpaper(key: string, image: StaticImageData): WallpaperChoice {
+  const about = PHOTO_LIBRARY.find((p) => p.image === image)?.about;
+  if (!about) {
+    throw new Error(`Wallpaper ${key} has no place in the library`);
+  }
+  return {
+    key,
+    image,
+    title: about.title,
+    place: about.place.split(",")[0] ?? about.place,
+  };
+}
+
 /** The wallpapers Settings offers: portraits, with quiet space at the top
- * for the clock. The first is the default. */
+ * for the clock. The first is the default. Keys are stored as the reader's
+ * choice, so they never change; an unknown one falls back to the default. */
 export const WALLPAPERS: WallpaperChoice[] = [
-  {
-    key: "looking-up",
-    image: earthLookingUp,
-    title: "Looking Up",
-    place: "Böblingen",
-  },
-  {
-    key: "palms-at-dusk",
-    image: earthPalmsAtDusk,
-    title: "Palms at Dusk",
-    place: "Bali",
-  },
-  {
-    key: "palm-fronds",
-    image: earthPalmFronds,
-    title: "Palm Fronds",
-    place: "Bali",
-  },
-  {
-    key: "white-frangipani",
-    image: earthWhiteFrangipani,
-    title: "White Frangipani",
-    place: "Bali",
-  },
-  {
-    key: "distant-tower",
-    image: earthDistantTower,
-    title: "Distant Tower",
-    place: "Taipei",
-  },
-  {
-    key: "sun-on-the-water",
-    image: dsc04499,
-    title: "Sun on the Water",
-    place: "Portugal",
-  },
+  wallpaper("looking-up", earthLookingUp),
+  wallpaper("palms-at-dusk", earthPalmsAtDusk),
+  wallpaper("palm-fronds", earthPalmFronds),
+  wallpaper("white-frangipani", earthWhiteFrangipani),
+  wallpaper("distant-tower", earthDistantTower),
+  wallpaper("palms-in-the-breeze", earthPalmsInTheBreeze),
 ];

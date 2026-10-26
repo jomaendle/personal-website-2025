@@ -83,6 +83,15 @@ export function useSwipeBack(
     }
     swipe.current = null;
     if (!s.active) {
+      // A touch that caught a slide in flight and lifted without dragging:
+      // let it carry on to whichever end it was nearer.
+      if (s.base > 0 && s.base < 1) {
+        if (s.base < 0.65) {
+          onBack(0);
+        } else {
+          springTo(nav, { to: 1, transition: SPRING_PUSH });
+        }
+      }
       return;
     }
     // Rightward release speed in px/ms.

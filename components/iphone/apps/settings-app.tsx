@@ -288,12 +288,7 @@ function WallpaperPage({
   }, []);
 
   return (
-    <div
-      ref={pageRef}
-      className={styles.scroll}
-      tabIndex={-1}
-      {...swipeBack}
-    >
+    <div ref={pageRef} className={styles.scroll} tabIndex={-1} {...swipeBack}>
       <NavBar
         title="Wallpaper"
         leading={
