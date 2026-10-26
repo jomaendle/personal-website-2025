@@ -194,11 +194,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         : (1 + 0.16 * (1 - u)) * (1 + 0.08 * clamp(a, 0, 1) * (1 - p)),
   );
   const gridOpacity = useTransform(unlock, (u) => clamp(u * 1.4 - 0.2, 0, 1));
+  // The dock and Search pill come in with the icons, rising a little as
+  // the grid settles from its zoom, not sliding up from below the screen.
   const bottomY = useTransform(unlock, (u) =>
-    reducedRef.current ? 0 : (1 - u) * 180,
+    reducedRef.current ? 0 : (1 - u) * 60,
   );
   const bottomOpacity = useTransform(unlock, (u) =>
-    reducedRef.current ? u : 1,
+    reducedRef.current ? u : clamp(u * 1.4 - 0.2, 0, 1),
   );
   const appDim = useTransform(
     [open, pull],
@@ -390,7 +392,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       // Not the opener: a widget's opener is one of its rows, or none.
       const from = originEl.current;
       const home = homeRef.current;
-      if (!screen || (from?.isConnected && home?.contains(from))) {
+      // Still locked (closed mid-launch from a banner): back into it.
+      if (
+        !screen ||
+        lockedRef.current ||
+        (from?.isConnected && home?.contains(from))
+      ) {
         return;
       }
       const icon = icons.current.get(id);
@@ -470,7 +477,14 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       const reduced = reducedRef.current;
       const transition = reduced ? FADE : SPRING_CLOSE;
       const { h } = geometry.current;
-      animate(pull, 0, transition);
+      // The flick's speed goes on what the finger was driving: the pull into a
+      // card and its rise. Put on `open`, it would also swing the card toward
+      // the icon, and the card would turn back down the moment it's let go.
+      animate(
+        pull,
+        0,
+        reduced ? FADE : { ...SPRING_CLOSE, velocity: (v * 1000) / (h * 0.5) },
+      );
       animate(dragX, 0, transition);
       // The card keeps rising a touch with the flick, then goes home.
       animate(
@@ -478,11 +492,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         0,
         reduced ? FADE : { ...SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
       );
-      animate(
-        open,
-        0,
-        reduced ? FADE : { ...SPRING_CLOSE, velocity: (-v * 1000) / (h * 0.5) },
-      ).then(() => {
+      animate(open, 0, transition).then(() => {
         if (!closing.current) {
           return;
         }
@@ -515,22 +525,44 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       });
       animate(dragX, 0, SPRING_OPEN);
       animate(dragY, 0, { ...SPRING_OPEN, velocity: -velocity * 1000 * 0.55 });
+      // A drag that caught a launch mid-way finishes the launch.
+      animate(open, 1, SPRING_OPEN);
     },
-    [pull, dragX, dragY],
+    [pull, dragX, dragY, open],
   );
 
+  /**
+   * Open an app from the lock screen, as iOS does: it grows out of the
+   * banner (or card, or button) that was tapped, over the lock screen, and
+   * the phone unlocks underneath once the app covers it. Opening a
+   * notification clears it, then too, so the banner doesn't vanish from
+   * under the app as it starts to grow.
+   */
   const openFromLock = useCallback(
-    (id: IphoneAppId, launch?: AppLaunch) => {
-      // Opening a notification clears it from the lock screen, as on iOS.
-      setSeen((list) => {
-        const next = list.includes(id) ? list : [...list, id];
-        store.set(SEEN_KEY, JSON.stringify(next));
-        return next;
+    (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => {
+      openApp(id, { launch, from });
+      const done = open.on("change", (a) => {
+        if (a < 0.999) {
+          return;
+        }
+        done();
+        if (appRef.current !== id || closing.current) {
+          return;
+        }
+        store.set(UNLOCKED_KEY, "1");
+        unlock.jump(1);
+        setLocked(false);
+        document.documentElement.dataset.iphone = "home";
+        setSeen((list) => {
+          const next = list.includes(id) ? list : [...list, id];
+          store.set(SEEN_KEY, JSON.stringify(next));
+          return next;
+        });
       });
-      settleLock(1);
-      openApp(id, { launch });
+      // Closed before it got there: it goes back into the lock screen.
+      setTimeout(done, 2000);
     },
-    [settleLock, openApp],
+    [openApp, open, unlock],
   );
 
   // ---- Spotlight ------------------------------------------------------------
@@ -771,6 +803,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   dragX={dragX}
                   dragY={dragY}
                   measure={measure}
+                  screen={screenRef.current}
+                  onDragStart={() => open.stop()}
                   onClose={closeApp}
                   onCancelDrag={cancelDrag}
                 />

@@ -12,7 +12,12 @@ import { useMusic, useMusicControls, useMusicTime } from "./player";
  * artwork, title, progress, and controls that work without unlocking. The
  * card itself opens Now Playing in Music.
  */
-export function LockNowPlaying({ onOpen }: { onOpen: () => void }) {
+export function LockNowPlaying({
+  onOpen,
+}: {
+  /** Opens Music out of the card's cover. */
+  onOpen: (from: HTMLElement) => void;
+}) {
   const { track, playing } = useMusic();
   const { toggle, next, previous } = useMusicControls();
   if (!track) {
@@ -20,7 +25,17 @@ export function LockNowPlaying({ onOpen }: { onOpen: () => void }) {
   }
   return (
     <section className={styles.lockPlayer} aria-label="Now Playing">
-      <button type="button" className={styles.lockPlayerOpen} onClick={onOpen}>
+      <button
+        type="button"
+        className={styles.lockPlayerOpen}
+        onClick={(event) =>
+          onOpen(
+            event.currentTarget.querySelector<HTMLElement>(
+              `.${styles.lockPlayerCover}`,
+            ) ?? event.currentTarget,
+          )
+        }
+      >
         <span className={styles.lockPlayerCover}>
           <Image src={track.cover} alt="" fill sizes="96px" />
         </span>

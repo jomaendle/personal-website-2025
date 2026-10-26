@@ -1,17 +1,20 @@
 "use client";
 
 import { type MotionValue, m } from "framer-motion";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import {
   IPHONE_COPY,
   type IphoneAppId,
   type LockNotification,
 } from "@/lib/state/iphone-copy";
+import { WALLPAPER } from "@/lib/state/photos";
+import { cn } from "@/lib/utils";
 import { AppIcon } from "./app-icons";
 import { APPS, type AppLaunch } from "./apps";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
-import { clamp, VelocityTracker } from "./motion";
+import { rubberband, VelocityTracker } from "./motion";
 import { LockNowPlaying } from "./music/system-ui";
 import { formatClock, formatLockDate, formatWeekday } from "./use-clock";
 
@@ -29,7 +32,8 @@ interface LockScreenProps {
   /** Screen height in screen pixels, and how much the frame is scaled. */
   measure: () => { h: number; scale: number };
   onSettle: (to: 0 | 1, velocity?: number) => void;
-  onOpenApp: (id: IphoneAppId, launch?: AppLaunch) => void;
+  /** Open an app out of `from`: the banner, card or button tapped. */
+  onOpenApp: (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => void;
   unlockButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -103,8 +107,10 @@ export function LockScreen({
     velocity.current.add(event.clientY, event.timeStamp);
     // Dragging down rubber-bands instead of moving freely, as on iOS.
     const progress =
-      travel >= 0 ? travel / current.h : -Math.sqrt(-travel) / current.h;
-    unlock.set(clamp(current.base + progress, -0.04, 1));
+      travel >= 0
+        ? travel / current.h
+        : -rubberband(-travel, current.h) / current.h;
+    unlock.set(Math.min(1, current.base + progress));
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -166,7 +172,7 @@ export function LockScreen({
 
       <div className={styles.lockStack}>
         <LockNowPlaying
-          onOpen={() => onOpenApp("music", { nowPlaying: true })}
+          onOpen={(from) => onOpenApp("music", { nowPlaying: true }, from)}
         />
         <ul className={styles.notifications} aria-label="Notifications">
           {notifications.map((notification, index) => (
@@ -178,10 +184,11 @@ export function LockScreen({
               <button
                 type="button"
                 className={styles.notification}
-                onClick={() =>
+                onClick={(event) =>
                   onOpenApp(
                     notification.app,
                     notification.note ? { note: notification.note } : undefined,
+                    event.currentTarget,
                   )
                 }
                 onPointerDown={() => APPS[notification.app].load()}
@@ -235,13 +242,26 @@ export function LockScreen({
           type="button"
           className={styles.quickAction}
           aria-label="Open Photos"
-          onClick={() => onOpenApp("photos")}
+          onClick={(event) =>
+            onOpenApp("photos", undefined, event.currentTarget)
+          }
           onPointerDown={() => APPS.photos.load()}
         >
           <Camera />
         </button>
       </div>
       <span className={styles.homeIndicator} />
+      {/* The lock screen is a cover sheet with the wallpaper on it, opaque,
+          lifting away over the home screen rather than sliding as a
+          see-through layer of text over the icons. */}
+      <Image
+        src={WALLPAPER}
+        alt=""
+        fill
+        placeholder="blur"
+        sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
+        className={cn(styles.wallpaper, styles.lockWallpaper)}
+      />
     </m.div>
   );
 }

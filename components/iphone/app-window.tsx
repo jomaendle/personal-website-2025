@@ -2,6 +2,7 @@
 
 import { type MotionValue, m } from "framer-motion";
 import { Suspense, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
@@ -26,6 +27,11 @@ interface AppWindowProps {
   dragX: MotionValue<number>;
   dragY: MotionValue<number>;
   measure: () => { h: number; scale: number };
+  /** The phone's screen: the home indicator lives there, not in the
+   * window, so it can be swiped from the first frame of a launch. */
+  screen: HTMLElement | null;
+  /** A card drag took hold: stop any launch still running. */
+  onDragStart: () => void;
   /** Close; a card flick passes its upward speed, unscaled px per ms. */
   onClose: (velocity?: number) => void;
   onCancelDrag: (velocity: number) => void;
@@ -52,6 +58,8 @@ export function AppWindow({
   dragX,
   dragY,
   measure,
+  screen,
+  onDragStart,
   onClose,
   onCancelDrag,
 }: AppWindowProps) {
@@ -107,6 +115,7 @@ export function AppWindow({
     event.currentTarget.setPointerCapture(event.pointerId);
     const { h, scale } = measure();
     // set() doesn't stop a running spring, so stop it to take hold.
+    onDragStart();
     pull.stop();
     dragX.stop();
     dragY.stop();
@@ -171,39 +180,48 @@ export function AppWindow({
     }
   };
 
-  return (
-    <m.div
-      ref={windowRef}
-      className={styles.app}
-      style={{ transform, clipPath, opacity }}
-      role="dialog"
-      aria-modal="true"
-      aria-label={APPS[id].name}
-      tabIndex={-1}
-      inert={leaving}
+  // At screen level, above the window: it reaches the bottom edge from the
+  // start of a launch, as iOS's home gesture does.
+  const indicator = (
+    <button
+      type="button"
+      className={styles.homeIndicatorHit}
+      disabled={leaving}
+      aria-label={IPHONE_COPY.closeAppLabel}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      // Pointer input is handled above; this is Enter and Space.
+      onClick={(event) => event.detail === 0 && onClose()}
     >
-      <Suspense fallback={null}>
-        <App close={() => onClose()} launch={launch} />
-      </Suspense>
+      <span className={styles.homeIndicator} />
+    </button>
+  );
+
+  return (
+    <>
       <m.div
-        className={styles.appIconOverlay}
-        style={{ opacity: iconOpacity, scale: iconScale }}
+        ref={windowRef}
+        className={styles.app}
+        style={{ transform, clipPath, opacity }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={APPS[id].name}
+        tabIndex={-1}
+        inert={leaving}
       >
-        <AppIcon art={APPS[id].art} calendar={calendar} />
+        <Suspense fallback={null}>
+          <App close={() => onClose()} launch={launch} />
+        </Suspense>
+        <m.div
+          className={styles.appIconOverlay}
+          style={{ opacity: iconOpacity, scale: iconScale }}
+        >
+          <AppIcon art={APPS[id].art} calendar={calendar} />
+        </m.div>
       </m.div>
-      <button
-        type="button"
-        className={styles.homeIndicatorHit}
-        aria-label={IPHONE_COPY.closeAppLabel}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        // Pointer input is handled above; this is Enter and Space.
-        onClick={(event) => event.detail === 0 && onClose()}
-      >
-        <span className={styles.homeIndicator} />
-      </button>
-    </m.div>
+      {screen ? createPortal(indicator, screen) : null}
+    </>
   );
 }
