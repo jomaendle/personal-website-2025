@@ -2404,10 +2404,220 @@ ol.noteList {
   transition: opacity 0.2s ease;
 }
 
-.viewerTitle {
+/* With the info up the photo stays put: no swiping to the next one. */
+.viewerStripLocked {
+  overflow-x: hidden;
+  touch-action: none;
+}
+
+/* iOS 26's title: a glass capsule with the place or day over the time. */
+.viewerCapsule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  max-width: 220px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.viewerCapsuleTitle,
+.viewerCapsuleDetail {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewerCapsuleTitle {
   font-size: 15px;
   font-weight: 600;
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+}
+
+.viewerCapsuleDetail {
+  font-size: 12px;
+  color: var(--label-2);
+}
+
+.viewerMore {
+  justify-self: end;
+}
+
+/* The bottom toolbar: share, a capsule of favourite, info and edit, and
+   delete, all floating glass. */
+.viewerTools {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(max(var(--bottom-inset), 28px) + 6px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity 0.2s ease;
+}
+
+.toolCapsule {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.toolCapsule > * {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.toolCapsule > span {
+  cursor: default;
+}
+
+.toolCapsule > button:active {
+  scale: 0.9;
+}
+
+.toolCapsule > button:focus-visible {
+  outline: 2px solid var(--ios-blue);
+  outline-offset: -2px;
+}
+
+.toolFavorite {
+  color: var(--ios-red);
+}
+
+/* ---- Photos: Info ------------------------------------------------------
+   The details under a photo swiped up: a sheet over the bottom of the
+   viewer, scrolling on its own, its foot kept clear of the toolbar. */
+.photoInfo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 16px calc(max(var(--bottom-inset), 28px) + 76px);
+  border-radius: 28px 28px 0 0;
+  background: var(--grouped);
+  scrollbar-width: none;
+}
+
+.photoInfo::-webkit-scrollbar {
+  display: none;
+}
+
+.photoCaption input {
+  width: 100%;
+  padding: 2px 0 14px;
+  border-bottom: 0.5px solid var(--separator);
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+}
+
+.photoCaption input::placeholder {
+  color: var(--label-3);
+}
+
+.photoInfoWhen {
+  padding: 14px 0 16px;
+}
+
+.photoInfoDate {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.photoInfoFile {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.cameraCard {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--grouped-2);
+  font-size: 15px;
+}
+
+.cameraHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: rgb(255 255 255 / 0.05);
+  font-weight: 600;
+}
+
+.cameraBadge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--fill);
+  color: var(--label-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cameraBody {
+  padding: 11px 14px 12px;
+  color: var(--label-2);
+}
+
+.cameraLens {
+  margin-bottom: 2px;
+  color: var(--label);
+}
+
+.cameraExposure {
+  display: flex;
+  border-top: 0.5px solid var(--separator);
+  color: var(--label-2);
+  font-size: 12px;
+}
+
+.cameraExposure li {
+  flex: 1;
+  padding: 9px 2px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cameraExposure li + li {
+  border-left: 0.5px solid var(--separator);
+}
+
+.photoInfoPlace {
+  margin-top: 16px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .chromeHidden {
@@ -2421,7 +2631,8 @@ ol.noteList {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--bottom-inset) + 10px);
+  /* Above the toolbar, as in iOS 26. */
+  bottom: calc(max(var(--bottom-inset), 28px) + 66px);
   z-index: 1;
   display: flex;
   align-items: center;

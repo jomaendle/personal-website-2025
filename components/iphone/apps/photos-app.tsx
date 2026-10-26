@@ -1,14 +1,31 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import {
+  animate,
+  m,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
 import Image from "next/image";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { PHOTOS } from "@/lib/state/photos";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
-import { BackChevron, Magnifier } from "../glyphs";
+import { useIphoneData } from "../data";
+import {
+  BackChevron,
+  Ellipsis,
+  Heart,
+  InfoGlyph,
+  Magnifier,
+  Share,
+  Sliders,
+  Trash,
+} from "../glyphs";
 import styles from "../iphone.module.css";
-import { clamp, VelocityTracker } from "../motion";
+import { clamp, FADE, SPRING_PUSH, VelocityTracker } from "../motion";
+import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
 /** Grid thumbnails ask for this; the viewer asks for the same, underneath the
  * full image, so it shows the cached thumbnail at once instead of a blur. */
@@ -16,6 +33,8 @@ const THUMB_SIZES = "(min-width: 640px) and (min-height: 640px) 134px, 34vw";
 const FULL_SIZES = "(min-width: 640px) and (min-height: 640px) 402px, 100vw";
 /** iOS's photo zoom: quick out of the gate, long soft landing. */
 const ZOOM = { duration: 420, easing: "cubic-bezier(0.2, 0.9, 0.25, 1)" };
+/** How much of the viewer the info panel covers when it is all the way up. */
+const SHEET = 0.46;
 
 /** A type alias, not an interface, so it satisfies WAAPI's Keyframe. */
 type Pose = {
@@ -62,7 +81,9 @@ function putBack(
  * the iOS hero transition, run as a Web Animation on transform and clip-path
  * so it stays on the compositor. In the viewer: swipe sideways between photos
  * (a native scroll-snap strip), swipe down to put one back, tap to hide the
- * chrome, or scrub the thumbnail strip along the bottom.
+ * chrome, or scrub the thumbnail strip along the bottom. Swipe up (or
+ * scroll down, or press the info button) and the photo slides up over its
+ * info, the way Photos shows a photo's details.
  */
 export default function PhotosApp(_: AppProps) {
   const reduced = useReducedMotion() ?? false;
@@ -70,6 +91,25 @@ export default function PhotosApp(_: AppProps) {
   const [current, setCurrent] = useState(0);
   const [chrome, setChrome] = useState(true);
   const [closing, setClosing] = useState(false);
+  const { photoBytes } = useIphoneData();
+  /** The info panel: where it is headed, and whether it is on screen. */
+  const [info, setInfo] = useState(false);
+  const [panel, setPanel] = useState(false);
+  const [favorites, setFavorites] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
+  const [captions, setCaptions] = useState<Record<number, string>>({});
+  const [toast, setToast] = useState<string | null>(null);
+  const panelId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  /** 0 is the photo alone, 1 the photo slid up over its info. */
+  const progress = useMotionValue(0);
+  /** How far the photo slides up to sit on the panel, in pixels. */
+  const shift = useRef(0);
+  const stripY = useTransform(progress, (p) => -p * shift.current);
+  const panelY = useTransform(progress, (p) =>
+    reduced ? "0%" : `${(1 - p) * 100}%`,
+  );
 
   const gridRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -82,9 +122,11 @@ export default function PhotosApp(_: AppProps) {
     id: number;
     x: number;
     y: number;
-    mode: "pending" | "dismiss" | "pan";
+    mode: "pending" | "dismiss" | "pan" | "info";
     dx: number;
     dy: number;
+    /** Where the info panel was when an info drag began. */
+    base: number;
   } | null>(null);
   const velocity = useRef(new VelocityTracker());
 
@@ -173,10 +215,120 @@ export default function PhotosApp(_: AppProps) {
     }
   }, [current, viewing, reduced]);
 
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+    const timer = setTimeout(() => setToast(null), 1400);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const open = (index: number) => {
     setCurrent(index);
     setChrome(true);
+    progress.jump(0);
+    setInfo(false);
+    setPanel(false);
     setViewing(index);
+  };
+
+  /** The viewer's height, and how much bigger it is on screen (the device
+   * frame may be scaled to fit the window). */
+  const viewerSize = () => {
+    const viewer = viewerRef.current;
+    const h = viewer?.offsetHeight || 800;
+    const k = (viewer?.getBoundingClientRect().height ?? h) / h || 1;
+    return { h, k };
+  };
+
+  /** How far the photo has to slide up for its bottom edge to meet the top
+   * of the panel. */
+  const measureShift = (index: number) => {
+    const viewer = viewerRef.current;
+    const photo = PHOTOS[index];
+    if (!(viewer && photo)) {
+      return 0;
+    }
+    const W = viewer.offsetWidth;
+    const H = viewer.offsetHeight;
+    const aspect = photo.width / photo.height;
+    const dh = aspect > W / H ? W / aspect : H;
+    return Math.max(0, (H + dh) / 2 - (1 - SHEET) * H);
+  };
+
+  /** Bring the panel on screen, measured for the photo, before it moves. */
+  const preparePanel = () => {
+    if (progress.get() === 0) {
+      shift.current = measureShift(current);
+    }
+    setPanel(true);
+    setChrome(true);
+  };
+
+  /** Slide the info up or away; `velocity` in screen pixels per ms, upward. */
+  const showInfo = (show: boolean, velocity = 0) => {
+    if (show) {
+      preparePanel();
+    }
+    setInfo(show);
+    const { h, k } = viewerSize();
+    animate(
+      progress,
+      show ? 1 : 0,
+      reduced
+        ? FADE
+        : { ...SPRING_PUSH, velocity: (velocity * 1000) / (h * SHEET * k) },
+    ).then(() => {
+      if (progress.get() === 0) {
+        setPanel(false);
+      }
+    });
+  };
+
+  const share = async () => {
+    const photo = PHOTOS[current];
+    if (!photo) {
+      return;
+    }
+    const url = new URL(photo.src, window.location.href).href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ url });
+      } catch {
+        // Dismissed: nothing to do.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setToast("Link Copied");
+    } catch {
+      setToast("Couldn’t Copy Link");
+    }
+  };
+
+  const toggleFavorite = () =>
+    setFavorites((before) => {
+      const after = new Set(before);
+      if (!after.delete(current)) {
+        after.add(current);
+      }
+      return after;
+    });
+
+  /** Out of the info: drop the panel and carry the slid-up offset over onto
+   * the photo itself, so it flies home from where it is. */
+  const lowerOnto = (frame: HTMLElement | null | undefined) => {
+    const lifted = stripY.get();
+    if (!lifted) {
+      return;
+    }
+    progress.jump(0);
+    setInfo(false);
+    setPanel(false);
+    if (frame) {
+      frame.style.transform = `translate(0px, ${lifted}px) scale(1)`;
+    }
   };
 
   /** Put the current photo back where it came from, from wherever the
@@ -187,6 +339,7 @@ export default function PhotosApp(_: AppProps) {
     }
     setClosing(true);
     const frame = frames.current[current];
+    lowerOnto(frame);
     // Bring its thumbnail into view first, as Photos keeps the grid in step.
     thumbs.current[current]?.scrollIntoView({ block: "nearest" });
     const to = reduced ? null : thumbPose(current);
@@ -226,6 +379,7 @@ export default function PhotosApp(_: AppProps) {
       mode: "pending",
       dx: 0,
       dy: 0,
+      base: 0,
     };
     velocity.current.reset();
     velocity.current.add(event.clientY, event.timeStamp);
@@ -239,31 +393,100 @@ export default function PhotosApp(_: AppProps) {
     d.dx = event.clientX - d.x;
     d.dy = event.clientY - d.y;
     if (d.mode === "pending" && Math.hypot(d.dx, d.dy) >= 8) {
-      // Past the slop it is a drag, not a tap: down is dismiss, else a pan.
-      d.mode = d.dy > 0 && Math.abs(d.dy) > Math.abs(d.dx) ? "dismiss" : "pan";
-      if (d.mode === "dismiss") {
-        event.currentTarget.setPointerCapture(event.pointerId);
-        setChrome(false);
-      }
+      beginDrag(d, event);
     }
     if (d.mode === "dismiss") {
       velocity.current.add(event.clientY, event.timeStamp);
       followFinger(d.dx, d.dy);
     }
+    if (d.mode === "info") {
+      velocity.current.add(event.clientY, event.timeStamp);
+      const { h, k } = viewerSize();
+      progress.set(clamp(d.base - d.dy / k / (h * SHEET), 0, 1));
+    }
+  };
+
+  /** Past the slop it is a drag, not a tap: down dismisses, up brings the
+   * info, and with the info up, down takes it away again. */
+  const beginDrag = (
+    d: NonNullable<typeof drag.current>,
+    event: React.PointerEvent<HTMLElement>,
+  ) => {
+    d.mode = classify(d.dx, d.dy);
+    if (d.mode !== "pan") {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    if (d.mode === "dismiss") {
+      setChrome(false);
+    }
+    if (d.mode === "info") {
+      progress.stop();
+      d.base = progress.get();
+      preparePanel();
+    }
+  };
+
+  const classify = (dx: number, dy: number) => {
+    if (Math.abs(dy) <= Math.abs(dx)) {
+      return "pan";
+    }
+    if (info) {
+      return dy > 0 ? "info" : "pan";
+    }
+    return dy > 0 ? "dismiss" : "info";
   };
 
   /** The photo shrinks and follows the finger; the black thins behind it. */
   const followFinger = (dx: number, dy: number) => {
     const frame = frames.current[current];
-    const progress = clamp(dy / (viewerRef.current?.offsetHeight ?? 800), 0, 1);
+    const pulled = clamp(dy / (viewerRef.current?.offsetHeight ?? 800), 0, 1);
     if (frame) {
-      frame.style.transform = `translate(${dx}px, ${Math.max(0, dy)}px) scale(${1 - progress * 0.4})`;
+      frame.style.transform = `translate(${dx}px, ${Math.max(0, dy)}px) scale(${1 - pulled * 0.4})`;
     }
     if (backdropRef.current) {
-      backdropRef.current.style.opacity = String(
-        1 - clamp(progress * 2.2, 0, 1),
-      );
+      backdropRef.current.style.opacity = String(1 - clamp(pulled * 2.2, 0, 1));
     }
+  };
+
+  /** A tap shows or hides the chrome, as in Photos; with the info up, it
+   * puts the info away. */
+  const tap = () => {
+    if (info) {
+      showInfo(false);
+    } else {
+      setChrome((on) => !on);
+    }
+  };
+
+  /** Upward flick speed decides, or failing a flick, whichever half the
+   * panel is in. */
+  const endInfoDrag = () => {
+    const v = velocity.current.velocity();
+    showInfo(v > 0.3 || (v > -0.3 && progress.get() > 0.5), v);
+  };
+
+  /** A dismiss let go: far or fast enough puts the photo back, anything
+   * less settles it where it was. */
+  const endDismiss = (dy: number) => {
+    // Downward flick speed: the tracker reports upward as positive.
+    const v = -velocity.current.velocity();
+    if (dy > 90 || v > 0.5) {
+      close();
+    } else {
+      settleBack();
+    }
+  };
+
+  /** Back to rest, chrome and all. */
+  const settleBack = () => {
+    const frame = frames.current[current];
+    if (frame) {
+      settle(frame);
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.opacity = "";
+    }
+    setChrome(true);
   };
 
   const onPointerUp = (event: React.PointerEvent<HTMLElement>) => {
@@ -273,47 +496,50 @@ export default function PhotosApp(_: AppProps) {
       return;
     }
     if (d.mode === "pending") {
-      // A tap shows or hides the chrome, as in Photos.
-      setChrome((on) => !on);
-      return;
+      tap();
+    } else if (d.mode === "info") {
+      endInfoDrag();
+    } else if (d.mode === "dismiss") {
+      endDismiss(d.dy);
     }
-    if (d.mode !== "dismiss") {
-      return;
-    }
-    // Downward flick speed: the tracker reports upward as positive.
-    const v = -velocity.current.velocity();
-    if (d.dy > 90 || v > 0.5) {
-      close();
-      return;
-    }
-    // Not far enough: settle back, chrome and all.
-    const frame = frames.current[current];
-    if (frame) {
-      settle(frame);
-    }
-    if (backdropRef.current) {
-      backdropRef.current.style.opacity = "";
-    }
-    setChrome(true);
   };
 
   /** The browser took the gesture (a sideways swipe on touch): not a tap,
-   * and a half-done dismiss goes back. */
+   * and a half-done drag goes back. */
   const onPointerCancel = () => {
     const d = drag.current;
     drag.current = null;
-    if (d?.mode !== "dismiss") {
+    if (d?.mode === "info") {
+      showInfo(progress.get() > 0.5);
+    } else if (d?.mode === "dismiss") {
+      settleBack();
+    }
+  };
+
+  /** Scrolling down over the photo brings its info, as a swipe up does;
+   * scrolling back up past the top of the info puts it away. */
+  const onWheel = (event: React.WheelEvent<HTMLElement>) => {
+    if (
+      closing ||
+      Math.abs(event.deltaY) < 4 ||
+      Math.abs(event.deltaX) > Math.abs(event.deltaY)
+    ) {
       return;
     }
-    const frame = frames.current[current];
-    if (frame) {
-      settle(frame);
+    const sheet = panelRef.current;
+    // Inside the panel, scrolling is the panel's own until it is at its top.
+    const sheetScrolled =
+      Boolean(sheet?.contains(event.target as Node)) &&
+      (sheet?.scrollTop ?? 0) > 0;
+    if (event.deltaY > 0 ? !info : info && !sheetScrolled) {
+      showInfo(!info);
     }
-    if (backdropRef.current) {
-      backdropRef.current.style.opacity = "";
-    }
-    setChrome(true);
   };
+
+  const library = PHOTO_LIBRARY[current];
+  const date = photoDate(library);
+  const place = library?.exif?.place;
+  const favorite = favorites.has(current);
 
   return (
     <>
@@ -372,19 +598,29 @@ export default function PhotosApp(_: AppProps) {
           aria-label="Photo viewer"
           onKeyDown={(event) => {
             if (event.key === "Escape") {
-              // Close the viewer, not the app.
+              // Put the info away, then close the viewer, never the app.
               event.preventDefault();
               event.stopPropagation();
-              close();
+              if (info) {
+                showInfo(false);
+              } else {
+                close();
+              }
             }
           }}
+          onWheel={onWheel}
         >
           <div ref={backdropRef} className={styles.viewerBackdrop} />
 
-          <section
+          <m.section
             ref={stripRef}
-            className={styles.viewerStrip}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region has to take focus for the arrow keys to scroll it
+            className={cn(
+              styles.viewerStrip,
+              panel && styles.viewerStripLocked,
+            )}
+            style={{ y: stripY }}
+            // A scrollable region has to take focus for the arrow keys to
+            // scroll it.
             tabIndex={0}
             aria-label="Photos. Use the arrow keys to move between them."
             onScroll={(event) => {
@@ -423,25 +659,39 @@ export default function PhotosApp(_: AppProps) {
                 </div>
               </div>
             ))}
-          </section>
+          </m.section>
 
-          <div className={cn(styles.viewerBar, !chrome && styles.chromeHidden)}>
-            <button
-              type="button"
-              className={styles.glassButton}
-              onClick={close}
-              aria-label="Back to library"
-            >
-              <BackChevron width={10} height={16} />
-            </button>
-            <span className={styles.viewerTitle} aria-live="polite">
-              {current + 1} of {PHOTOS.length}
-            </span>
-          </div>
+          {panel && library ? (
+            <PhotoInfo
+              photo={library}
+              bytes={photoBytes[current] ?? 0}
+              caption={captions[current] ?? ""}
+              onCaption={(caption) =>
+                setCaptions((all) => ({ ...all, [current]: caption }))
+              }
+              open={info}
+              progress={progress}
+              y={panelY}
+              height={`${SHEET * 100}%`}
+              panelRef={panelRef}
+              id={panelId}
+            />
+          ) : null}
+
+          <ViewerBar
+            hidden={!chrome}
+            date={date}
+            place={place}
+            position={`Photo ${current + 1} of ${PHOTOS.length}`}
+            onBack={close}
+          />
 
           <div
             ref={scrubberRef}
-            className={cn(styles.scrubber, !chrome && styles.chromeHidden)}
+            className={cn(
+              styles.scrubber,
+              (panel || !chrome) && styles.chromeHidden,
+            )}
           >
             {PHOTOS.map((photo, index) => (
               <button
@@ -469,8 +719,129 @@ export default function PhotosApp(_: AppProps) {
               </button>
             ))}
           </div>
+
+          <ViewerTools
+            hidden={!chrome}
+            favorite={favorite}
+            info={info}
+            panelId={panel ? panelId : undefined}
+            onShare={share}
+            onFavorite={toggleFavorite}
+            onInfo={() => showInfo(!info)}
+          />
+
+          {toast ? (
+            <div className={styles.hud} role="status">
+              {toast}
+            </div>
+          ) : null}
         </div>
       )}
     </>
+  );
+}
+
+/** The viewer's top bar: back, the day and time in a glass capsule (the
+ * place over them, when the photo has one), and the More button. */
+function ViewerBar({
+  hidden,
+  date,
+  place,
+  position,
+  onBack,
+}: {
+  hidden: boolean;
+  date: Date;
+  place: string | undefined;
+  position: string;
+  onBack: () => void;
+}) {
+  const day = relativeDay(date);
+  return (
+    <div className={cn(styles.viewerBar, hidden && styles.chromeHidden)}>
+      <button
+        type="button"
+        className={styles.glassButton}
+        onClick={onBack}
+        aria-label="Back to library"
+      >
+        <BackChevron width={10} height={16} />
+      </button>
+      <div className={styles.viewerCapsule}>
+        <span className={styles.viewerCapsuleTitle}>{place ?? day}</span>
+        <span className={styles.viewerCapsuleDetail}>
+          {place ? `${day} ${timeOf(date)}` : timeOf(date)}
+        </span>
+      </div>
+      <span className={cn(styles.glassButton, styles.viewerMore)} aria-hidden>
+        <Ellipsis />
+      </span>
+      <span className="sr-only" aria-live="polite">
+        {position}
+      </span>
+    </div>
+  );
+}
+
+/** iOS 26's photo toolbar: Share, then Favorite, Info and Edit in one glass
+ * capsule, then Delete. Edit and Delete belong to the library's owner, not a
+ * visitor, so they are drawn and do nothing. */
+function ViewerTools({
+  hidden,
+  favorite,
+  info,
+  panelId,
+  onShare,
+  onFavorite,
+  onInfo,
+}: {
+  hidden: boolean;
+  favorite: boolean;
+  info: boolean;
+  panelId: string | undefined;
+  onShare: () => void;
+  onFavorite: () => void;
+  onInfo: () => void;
+}) {
+  return (
+    <div className={cn(styles.viewerTools, hidden && styles.chromeHidden)}>
+      <button
+        type="button"
+        className={cn(styles.glassButton, styles.glassButtonLarge)}
+        onClick={onShare}
+        aria-label="Share"
+      >
+        <Share />
+      </button>
+      <div className={styles.toolCapsule}>
+        <button
+          type="button"
+          className={cn(favorite && styles.toolFavorite)}
+          onClick={onFavorite}
+          aria-label="Favorite"
+          aria-pressed={favorite}
+        >
+          <Heart filled={favorite} />
+        </button>
+        <button
+          type="button"
+          onClick={onInfo}
+          aria-label="Info"
+          aria-expanded={info}
+          aria-controls={panelId}
+        >
+          <InfoGlyph filled={info} />
+        </button>
+        <span aria-hidden>
+          <Sliders />
+        </span>
+      </div>
+      <span
+        className={cn(styles.glassButton, styles.glassButtonLarge)}
+        aria-hidden
+      >
+        <Trash />
+      </span>
+    </div>
   );
 }

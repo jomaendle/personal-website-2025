@@ -365,3 +365,85 @@ export const ChevronDown = (props: GlyphProps) => (
     <path d="M2 2 L10 10 L18 2" />
   </svg>
 );
+
+export const Heart = ({
+  filled = false,
+  ...props
+}: GlyphProps & { filled?: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    strokeWidth="1.8"
+    {...base}
+    fill={filled ? "currentColor" : "none"}
+    {...props}
+  >
+    <path d="M12 20.2 C5.6 16 3 12.6 3 9.2 A4.7 4.7 0 0 1 12 7.2 A4.7 4.7 0 0 1 21 9.2 C21 12.6 18.4 16 12 20.2 Z" />
+  </svg>
+);
+
+/** Photos' info button: the "i" in a circle, with Visual Look Up's sparkle. */
+export const InfoGlyph = ({
+  filled = false,
+  ...props
+}: GlyphProps & { filled?: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    strokeWidth="1.7"
+    {...base}
+    {...props}
+  >
+    <circle cx="11" cy="13" r="8" fill={filled ? "currentColor" : "none"} />
+    <path
+      d="M11 12 V16.6 M9.6 16.6 H12.4"
+      stroke={filled ? "#000" : "currentColor"}
+    />
+    <circle
+      cx="11"
+      cy="9.2"
+      r="0.6"
+      fill={filled ? "#000" : "currentColor"}
+      stroke="none"
+    />
+    <path
+      d="M19.5 1.8 L20.2 3.8 L22.2 4.5 L20.2 5.2 L19.5 7.2 L18.8 5.2 L16.8 4.5 L18.8 3.8 Z"
+      fill="currentColor"
+      strokeWidth="0.6"
+    />
+  </svg>
+);
+
+export const Sliders = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <path d="M4 7 H14 M18 7 H20 M4 17 H6 M10 17 H20" />
+    <circle cx="16" cy="7" r="2.2" />
+    <circle cx="8" cy="17" r="2.2" />
+  </svg>
+);
+
+export const Trash = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <path d="M4 6.5 H20 M9.5 6.5 V4.5 A1 1 0 0 1 10.5 3.5 H13.5 A1 1 0 0 1 14.5 4.5 V6.5 M6 6.5 L7 19.5 A1.5 1.5 0 0 0 8.5 21 H15.5 A1.5 1.5 0 0 0 17 19.5 L18 6.5 M10 10.5 V17 M14 10.5 V17" />
+  </svg>
+);

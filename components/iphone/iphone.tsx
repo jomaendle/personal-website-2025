@@ -61,6 +61,8 @@ interface Geometry {
 interface IphoneProps {
   /** The articles as Notes, newest first, parsed on the server. */
   notes: NoteSummary[];
+  /** Each library photo's file size, read from disk at build. */
+  photoBytes: number[];
 }
 
 interface OpenOptions {
@@ -72,7 +74,7 @@ interface OpenOptions {
   launch?: AppLaunch;
 }
 
-export function Iphone({ notes }: IphoneProps) {
+export function Iphone({ notes, photoBytes }: IphoneProps) {
   const screenRef = useRef<HTMLDivElement>(null);
   const homeRef = useRef<HTMLDivElement>(null);
   const unlockButtonRef = useRef<HTMLButtonElement>(null);
@@ -108,7 +110,7 @@ export function Iphone({ notes }: IphoneProps) {
   appRef.current = app;
 
   // Stable, so a clock tick doesn't re-render every app reading it.
-  const data = useMemo(() => ({ notes }), [notes]);
+  const data = useMemo(() => ({ notes, photoBytes }), [notes, photoBytes]);
   const now = useMinute();
   const calendar = now
     ? { weekday: formatWeekday(now), day: now.getDate() }
