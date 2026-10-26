@@ -52,6 +52,8 @@ export default function NotesApp({ launch }: AppProps) {
   const rows = useRef(new Map<string, HTMLButtonElement>());
   const keyboard = useKeyboardInset();
   const popping = useRef(false);
+  /** Going back: the list takes taps again before the slide fully settles. */
+  const [leaving, setLeaving] = useState(false);
   /** The latest pop, for the Escape listener below. */
   const popRef = useRef<() => void>(() => undefined);
 
@@ -74,6 +76,7 @@ export default function NotesApp({ launch }: AppProps) {
 
   const push = (slug: string) => {
     popping.current = false;
+    setLeaving(false);
     store.set(NOTE_KEY, slug);
     setOpen(slug);
     animate(nav, 1, reduced ? FADE : SPRING_PUSH);
@@ -86,6 +89,7 @@ export default function NotesApp({ launch }: AppProps) {
       return;
     }
     popping.current = true;
+    setLeaving(true);
     store.set(NOTE_KEY, null);
     animate(nav, 0, reduced ? FADE : { ...SPRING_PUSH, velocity }).then(() => {
       if (!popping.current) {
@@ -94,7 +98,10 @@ export default function NotesApp({ launch }: AppProps) {
       popping.current = false;
       // Flushed, so the list has stopped being inert before focus returns
       // to the row the note was opened from.
-      flushSync(() => setOpen(null));
+      flushSync(() => {
+        setOpen(null);
+        setLeaving(false);
+      });
       rows.current.get(slug)?.focus({ preventScroll: true });
     });
   };
@@ -138,7 +145,7 @@ export default function NotesApp({ launch }: AppProps) {
       <m.div
         className={styles.navLayer}
         style={{ x: listX }}
-        inert={open !== null}
+        inert={open !== null && !leaving}
       >
         <div className={cn(styles.scroll, styles.scrollWithBar)}>
           <NavBar title="Writing" />
@@ -181,6 +188,15 @@ export default function NotesApp({ launch }: AppProps) {
               placeholder="Search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                // Escape cancels the search, as on iOS, instead of closing
+                // the app (the phone skips an Escape already handled).
+                if (event.key === "Escape" && query) {
+                  event.preventDefault();
+                  setQuery("");
+                  event.currentTarget.blur();
+                }
+              }}
               autoComplete="off"
               enterKeyHint="search"
             />

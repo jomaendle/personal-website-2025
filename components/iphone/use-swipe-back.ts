@@ -20,7 +20,11 @@ interface Swipe {
   id: number;
   x: number;
   y: number;
+  /** On-screen width, so the level tracks the finger 1:1 even when the
+   * device frame is scaled to fit the window. */
   width: number;
+  /** Where the stack was when the finger landed (mid-spring, perhaps). */
+  base: number;
   active: boolean;
   samples: Sample[];
 }
@@ -55,20 +59,23 @@ function follow(
   event: React.PointerEvent<HTMLElement>,
   nav: MotionValue<number>,
 ): Swipe | null {
-  const dx = event.clientX - s.x;
+  let dx = event.clientX - s.x;
   if (!s.active) {
     const next = intent(dx, event.clientY - s.y);
     if (next !== "start") {
       return next === "cancel" ? null : s;
     }
     s.active = true;
+    // Track from here, so the level doesn't jump by the slop.
+    s.x = event.clientX;
+    dx = 0;
     event.currentTarget.setPointerCapture(event.pointerId);
   }
   s.samples = [
     ...s.samples.slice(-3),
     { x: event.clientX, t: event.timeStamp },
   ];
-  nav.set(clamp(1 - dx / s.width, 0, 1));
+  nav.set(clamp(s.base - dx / s.width, 0, 1));
   return s;
 }
 
@@ -88,11 +95,13 @@ export function useSwipeBack(
       return;
     }
     const vx = releaseVelocity(s.samples);
-    if (nav.get() < 0.65 || vx > 0.5) {
-      // px/ms rightwards to stack units per second.
-      onBack((-vx * 1000) / s.width);
+    // px/ms rightwards to stack units per second.
+    const velocity = (-vx * 1000) / s.width;
+    // A flick decides by its direction; failing one, how far it went.
+    if ((nav.get() < 0.65 && vx > -0.1) || vx > 0.3) {
+      onBack(velocity);
     } else {
-      animate(nav, 1, SPRING_PUSH);
+      animate(nav, 1, { ...SPRING_PUSH, velocity });
     }
   };
 
@@ -106,7 +115,8 @@ export function useSwipeBack(
         id: event.pointerId,
         x: event.clientX,
         y: event.clientY,
-        width: event.currentTarget.offsetWidth,
+        width: event.currentTarget.getBoundingClientRect().width || 1,
+        base: nav.get(),
         active: false,
         samples: [{ x: event.clientX, t: event.timeStamp }],
       };

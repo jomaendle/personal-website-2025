@@ -28,7 +28,10 @@ export default function CalendarApp(_: AppProps) {
   return (
     <div className={cn(styles.scroll, styles.calendar)}>
       <div className={styles.navBar} style={{ animation: "none" }}>
-        <div className={styles.navLeading} aria-hidden>
+        <div
+          className={cn(styles.pill, styles.navLeading, styles.calendarBack)}
+          aria-hidden
+        >
           <BackChevron width={10} height={17} />
           {monthFormat.format(now)}
         </div>

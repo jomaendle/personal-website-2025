@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/config/site";
 import {
   ALBUMS,
@@ -31,6 +31,10 @@ const releaseOf = (track: Track): Track[] => {
 const SUGGESTED: IphoneAppId[] = ["notes", "photos", "mail", "safari"];
 
 interface SpotlightProps {
+  /** Fading out: drawn, but inert. */
+  leaving: boolean;
+  /** The fade-out finished. */
+  onLeft: () => void;
   calendar: CalendarFace | null;
   inputRef: React.RefObject<HTMLInputElement | null>;
   onClose: () => void;
@@ -50,6 +54,8 @@ const matches = (haystack: string, query: string) =>
  * one contact. A result opens its app out of the result's own icon.
  */
 export function Spotlight({
+  leaving,
+  onLeft,
   calendar,
   inputRef,
   onClose,
@@ -60,6 +66,16 @@ export function Spotlight({
   const q = useDeferredValue(query.trim().toLowerCase());
   const keyboard = useKeyboardInset();
   const controls = useMusicControls();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Opened by a swipe, nothing has focus (the home screen went inert under
+  // it): take it on the dialog itself, without raising the keyboard.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (root && !root.contains(document.activeElement)) {
+      root.focus({ preventScroll: true });
+    }
+  }, []);
 
   // Nothing typed is not a match for everything: the empty state shows
   // suggestions instead.
@@ -90,6 +106,12 @@ export function Spotlight({
     !songHits.length &&
     !contactHit;
 
+  const onAnimationEnd = (event: React.AnimationEvent<HTMLElement>) => {
+    if (leaving && event.target === event.currentTarget) {
+      onLeft();
+    }
+  };
+
   const launchFrom =
     (id: IphoneAppId, launch?: AppLaunch) =>
     (event: React.MouseEvent<HTMLElement>) => {
@@ -119,10 +141,15 @@ export function Spotlight({
 
   return (
     <div
-      className={styles.spotlight}
+      ref={rootRef}
+      tabIndex={-1}
+      className={cn(styles.spotlight, leaving && styles.spotlightLeaving)}
       role="dialog"
       aria-modal="true"
       aria-label="Search"
+      inert={leaving}
+      aria-hidden={leaving || undefined}
+      onAnimationEnd={onAnimationEnd}
     >
       {/* Tapping the blur outside the results dismisses, as on iOS. */}
       <button

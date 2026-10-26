@@ -447,3 +447,78 @@ export const Trash = (props: GlyphProps) => (
     <path d="M4 6.5 H20 M9.5 6.5 V4.5 A1 1 0 0 1 10.5 3.5 H13.5 A1 1 0 0 1 14.5 4.5 V6.5 M6 6.5 L7 19.5 A1.5 1.5 0 0 0 8.5 21 H15.5 A1.5 1.5 0 0 0 17 19.5 L18 6.5 M10 10.5 V17 M14 10.5 V17" />
   </svg>
 );
+
+/** Photos' filter button: three lines, each shorter than the last. */
+export const FilterGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    strokeWidth="2"
+    {...base}
+    {...props}
+  >
+    <path d="M4 7 H20 M7 12 H17 M10 17 H14" />
+  </svg>
+);
+
+/** Photos' Library tab: a photo on a stack. */
+export const LibraryGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <rect x="3.5" y="6.5" width="14" height="14" rx="3" />
+    <path d="M7 3.5 H17.5 A3 3 0 0 1 20.5 6.5 V17" />
+    <path d="M3.5 17 L8 12.5 L11.5 16 L13.5 14 L17.5 18" />
+  </svg>
+);
+
+/** Photos' Collections tab: four tiles. */
+export const CollectionsGlyph = (props: GlyphProps) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+  </svg>
+);
+
+/** The volume slider's ends: a speaker, with sound waves at the loud end. */
+export const SpeakerGlyph = ({
+  loud = false,
+  ...props
+}: GlyphProps & { loud?: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    strokeWidth="1.8"
+    {...base}
+    {...props}
+  >
+    <path
+      d="M4 9.5 H7.5 L12 5.5 V18.5 L7.5 14.5 H4 Z"
+      fill="currentColor"
+      stroke="none"
+    />
+    {loud ? (
+      <path d="M15.5 9 A4 4 0 0 1 15.5 15 M18 6.5 A7.5 7.5 0 0 1 18 17.5" />
+    ) : null}
+  </svg>
+);

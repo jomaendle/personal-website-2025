@@ -10,6 +10,9 @@ import { clamp, VelocityTracker } from "./motion";
 
 interface AppWindowProps {
   id: IphoneAppId;
+  /** On its way home: no longer takes input, so taps reach the home screen
+   * around it and nothing inside reacts as it shrinks. */
+  leaving: boolean;
   launch?: AppLaunch;
   calendar: CalendarFace | null;
   transform: MotionValue<string>;
@@ -23,8 +26,9 @@ interface AppWindowProps {
   dragX: MotionValue<number>;
   dragY: MotionValue<number>;
   measure: () => { h: number; scale: number };
-  onClose: () => void;
-  onCancelDrag: () => void;
+  /** Close; a card flick passes its upward speed, unscaled px per ms. */
+  onClose: (velocity?: number) => void;
+  onCancelDrag: (velocity: number) => void;
 }
 
 /**
@@ -35,6 +39,7 @@ interface AppWindowProps {
  */
 export function AppWindow({
   id,
+  leaving,
   launch,
   calendar,
   transform,
@@ -66,8 +71,15 @@ export function AppWindow({
   } | null>(null);
   const velocity = useRef(new VelocityTracker());
 
+  // After the first frames, not during the mount: focusing forces a style
+  // recalculation of the whole app right as the zoom starts.
   useEffect(() => {
-    windowRef.current?.focus({ preventScroll: true });
+    const frame = requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        windowRef.current?.focus({ preventScroll: true }),
+      ),
+    );
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   // While the window zooms or follows a finger, every frosted bar inside it
@@ -112,12 +124,21 @@ export function AppWindow({
     if (!current || current.id !== event.pointerId) {
       return;
     }
+    if (!current.moved) {
+      const far = Math.hypot(
+        event.clientX - current.x,
+        event.clientY - current.y,
+      );
+      if (far < 6 * current.scale) {
+        return;
+      }
+      // The drag starts here, so the card doesn't jump by the slop.
+      current.moved = true;
+      current.x = event.clientX;
+      current.y = event.clientY;
+    }
     const dx = (event.clientX - current.x) / current.scale;
     const up = (current.y - event.clientY) / current.scale;
-    if (!current.moved && Math.hypot(dx, up) < 6) {
-      return;
-    }
-    current.moved = true;
     velocity.current.add(event.clientY / current.scale, event.timeStamp);
     const rise = Math.max(0, current.baseRise + up);
     pull.set(clamp(rise / (current.h * 0.5), 0, 1));
@@ -139,9 +160,9 @@ export function AppWindow({
     }
     const v = velocity.current.velocity();
     if ((pull.get() > 0.16 || v > 0.35) && v > -0.2) {
-      onClose();
+      onClose(v);
     } else {
-      onCancelDrag();
+      onCancelDrag(v);
     }
   };
 
@@ -154,9 +175,10 @@ export function AppWindow({
       aria-modal="true"
       aria-label={APPS[id].name}
       tabIndex={-1}
+      inert={leaving}
     >
       <Suspense fallback={null}>
-        <App close={onClose} launch={launch} />
+        <App close={() => onClose()} launch={launch} />
       </Suspense>
       <m.div
         className={styles.appIconOverlay}

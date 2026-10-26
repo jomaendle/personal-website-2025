@@ -113,6 +113,8 @@ export default function SettingsApp(_: AppProps) {
         <Row
           title="Open jomaendle.com"
           href="/"
+          // An action row, in the tint, has no disclosure chevron on iOS.
+          chevron={false}
           titleClassName={styles.rowLink}
         />
       </Group>

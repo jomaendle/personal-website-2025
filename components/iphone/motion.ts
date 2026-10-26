@@ -15,6 +15,10 @@ export const SPRING_CLOSE: Transition = {
   type: "spring",
   visualDuration: 0.42,
   bounce: 0.16,
+  // Settle once it's within a pixel or so of the icon, rather than creeping
+  // on, so the home screen takes taps as soon as the app has landed.
+  restDelta: 0.002,
+  restSpeed: 0.05,
 };
 
 /** UIKit's navigation push: critically damped, about half a second. */
@@ -118,3 +122,8 @@ export function rectWithin(el: HTMLElement, root: HTMLElement): Rect {
     radius: Math.min(radius, Math.min(size, height) * 0.235),
   };
 }
+
+/** UIKit's rubber band past an edge: `overshoot` pixels of finger travel
+ * against a `dimension`-sized view give this many pixels of movement. */
+export const rubberband = (overshoot: number, dimension: number) =>
+  (overshoot * dimension * 0.55) / (dimension + 0.55 * Math.abs(overshoot));

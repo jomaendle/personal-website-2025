@@ -48,6 +48,10 @@ import { APP_KEY, SEEN_KEY, store, UNLOCKED_KEY } from "./persist";
 import { Spotlight } from "./spotlight";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
 
+/** An app icon (on the home screen, or a Spotlight app result), as opposed
+ * to a widget, a song's cover or a contact's monogram, which cross-fade. */
+const isAppIcon = (el: HTMLElement) => el.classList.contains(styles.icon ?? "");
+
 interface Geometry {
   w: number;
   h: number;
@@ -56,6 +60,9 @@ interface Geometry {
   radius: number;
   /** The icon (or widget) the current app came out of. */
   origin: Rect;
+  /** Whether that was an app icon, whose art covers the window early on. A
+   * widget instead cross-fades straight into the app. */
+  fromIcon: boolean;
 }
 
 interface IphoneProps {
@@ -85,10 +92,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     scale: 1,
     radius: 0,
     origin: { x: 170, y: 406, size: 62, height: 62, radius: 14 },
+    fromIcon: true,
   });
   const closing = useRef(false);
   /** What opened the current app (an icon, a widget), to focus on close. */
   const opener = useRef<HTMLElement | null>(null);
+  /** What the app zoomed out of (an icon, a widget), to zoom back into. */
+  const originEl = useRef<HTMLElement | null>(null);
   /** The icon the app came out of, hidden while the app is its stand-in. */
   const source = useRef<HTMLElement | null>(null);
 
@@ -100,8 +110,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const lockedRef = useRef(locked);
   lockedRef.current = locked;
   const [app, setApp] = useState<IphoneAppId | null>(null);
+  /** The app is on its way home: the home screen already takes taps. */
+  const [closingApp, setClosingApp] = useState(false);
   const [launch, setLaunch] = useState<AppLaunch | undefined>(undefined);
   const [spotlight, setSpotlight] = useState(false);
+  /** Spotlight fading out: still drawn, no longer taking input. */
+  const [spotlightLeaving, setSpotlightLeaving] = useState(false);
   const spotlightRef = useRef(spotlight);
   spotlightRef.current = spotlight;
   const spotlightInput = useRef<HTMLInputElement>(null);
@@ -144,8 +158,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const wallpaperDim = useTransform(unlock, [0, 1], [0, 0.14]);
   // Home zooms in from slightly large as the lock screen lifts, and leans
   // toward the reader while an app opens over it.
-  const homeScale = useTransform([unlock, open], ([u = 0, a = 0]: number[]) =>
-    reducedRef.current ? 1 : (1 + 0.16 * (1 - u)) * (1 + 0.08 * a),
+  // Pulling the app into a card settles the home screen back as it goes.
+  const homeScale = useTransform(
+    [unlock, open, pull],
+    ([u = 0, a = 0, p = 0]: number[]) =>
+      reducedRef.current
+        ? 1
+        : (1 + 0.16 * (1 - u)) * (1 + 0.08 * clamp(a, 0, 1) * (1 - p)),
   );
   const gridOpacity = useTransform(unlock, (u) => clamp(u * 1.4 - 0.2, 0, 1));
   const bottomY = useTransform(unlock, (u) =>
@@ -154,7 +173,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const bottomOpacity = useTransform(unlock, (u) =>
     reducedRef.current ? u : 1,
   );
-  const appDim = useTransform(open, [0, 1], [0, 0.5]);
+  const appDim = useTransform(
+    [open, pull],
+    ([a = 0, p = 0]: number[]) => 0.5 * clamp(a, 0, 1) * (1 - p),
+  );
 
   /**
    * The zoom out of the icon. At 0 the app is scaled to the icon's width,
@@ -184,16 +206,26 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     const { w, origin, radius } = geometry.current;
     const s0 = origin.size / w;
     const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
-    const inset = startInset() * (1 - a);
+    // The spring's bounce past the icon squishes the scale only: clamped,
+    // the clip keeps the icon's shape instead of flattening at the end.
+    const ac = clamp(a, 0, 1);
+    const inset = startInset() * (1 - ac);
     // Radii are in the app's own pixels, so divide out the scale to land on
     // the icon's radius at 0 and a card's ~40pt while dragging.
     const r = Math.max(
-      lerp(origin.radius / s0, radius, a),
+      lerp(origin.radius / s0, radius, ac),
       (Math.min(1, p * 5) * 40) / scale,
     );
     return `inset(${inset}px 0px round ${r}px)`;
   });
-  const appOpacity = useTransform(open, (a) => (reducedRef.current ? a : 1));
+  const appOpacity = useTransform(open, (a) => {
+    if (reducedRef.current) {
+      return a;
+    }
+    // Out of a widget the app fades in over the widget as it grows, and
+    // back out onto it on the way home.
+    return geometry.current.fromIcon ? 1 : clamp(a / 0.3, 0, 1);
+  });
   /** The icon art covers the window as it grows, as iOS scales the icon's
    * snapshot with the window, rather than sitting as a square in its middle. */
   const iconScale = useTransform(open, (a) => {
@@ -208,7 +240,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   );
   // The icon hands over to the app early, eased so it doesn't dip linearly.
   const iconOpacity = useTransform(open, (a) => {
-    if (reducedRef.current) {
+    if (reducedRef.current || !geometry.current.fromIcon) {
       return 0;
     }
     const t = clamp((a - 0.04) / 0.26, 0, 1);
@@ -269,7 +301,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         }
       } else {
         store.set(UNLOCKED_KEY, null);
-        root.removeAttribute("data-iphone");
+        // Not removed: without the attribute the page would replay its
+        // wake-up animation over the lock screen sliding down.
+        root.dataset.iphone = "locked";
         setLocked(true);
         // Focus lands on the unlock button either way; its ring only shows
         // when the lock came from the keyboard, not from a click.
@@ -320,7 +354,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const retarget = useCallback(
     (id: IphoneAppId) => {
       const screen = screenRef.current;
-      const from = opener.current;
+      // Not the opener: a widget's opener is one of its rows, or none.
+      const from = originEl.current;
       const home = homeRef.current;
       if (!screen || (from?.isConnected && home?.contains(from))) {
         return;
@@ -330,6 +365,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         return;
       }
       geometry.current.origin = rectWithin(icon, screen);
+      geometry.current.fromIcon = isAppIcon(icon);
+      originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
     },
@@ -340,12 +377,15 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     (id: IphoneAppId, { from, instant = false, launch }: OpenOptions = {}) => {
       const screen = screenRef.current;
       const icon = from ?? icons.current.get(id);
-      if (!(screen && icon) || appRef.current) {
+      // A closing app can be interrupted by the next launch, as on iOS.
+      if (!(screen && icon) || (appRef.current && !closing.current)) {
         return;
       }
       APPS[id].load();
       measure();
       geometry.current.origin = rectWithin(icon, screen);
+      geometry.current.fromIcon = isAppIcon(icon);
+      originEl.current = icon;
       opener.current = icon.closest("button");
       hideSource(icon);
       // jump(), not set(): it also stops a spring still running from the
@@ -355,53 +395,89 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       dragY.jump(0);
       open.jump(instant ? 1 : 0);
       closing.current = false;
+      setClosingApp(false);
       store.set(APP_KEY, id);
       setLaunch(launch);
       setApp(id);
       if (!instant) {
-        animate(open, 1, reducedRef.current ? FADE : SPRING_OPEN);
+        // Start on the next frame, after React has mounted the app: started
+        // now, the spring's clock would run through the mount, and on a slow
+        // phone the first frame drawn would already be a third of the way open.
+        requestAnimationFrame(() => {
+          if (appRef.current === id && !closing.current) {
+            animate(open, 1, reducedRef.current ? FADE : SPRING_OPEN);
+          }
+        });
       }
     },
     [measure, open, pull, dragX, dragY, hideSource],
   );
 
-  const closeApp = useCallback(() => {
-    const id = appRef.current;
-    if (!id || closing.current) {
-      return;
-    }
-    closing.current = true;
-    store.set(APP_KEY, null);
-    retarget(id);
-    const transition = reducedRef.current ? FADE : SPRING_CLOSE;
-    animate(pull, 0, transition);
-    animate(dragX, 0, transition);
-    animate(dragY, 0, transition);
-    animate(open, 0, transition).then(() => {
-      if (!closing.current) {
+  /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
+   * which the springs carry on from; anything else (a click event, from a
+   * button using this as its handler) counts as none. */
+  const closeApp = useCallback(
+    (velocity?: unknown) => {
+      const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
+      const id = appRef.current;
+      if (!id || closing.current) {
         return;
       }
-      closing.current = false;
-      setApp(null);
-      hideSource(null);
-      requestAnimationFrame(() => {
-        // Back to whatever opened it: the widget, the icon, or for an app
-        // opened from the lock screen, its icon on the home screen.
-        const target =
-          opener.current?.isConnected &&
-          homeRef.current?.contains(opener.current)
-            ? opener.current
-            : (icons.current.get(id)?.closest("button") ?? homeRef.current);
-        target?.focus({ preventScroll: true });
+      closing.current = true;
+      setClosingApp(true);
+      store.set(APP_KEY, null);
+      retarget(id);
+      const reduced = reducedRef.current;
+      const transition = reduced ? FADE : SPRING_CLOSE;
+      const { h } = geometry.current;
+      animate(pull, 0, transition);
+      animate(dragX, 0, transition);
+      // The card keeps rising a touch with the flick, then goes home.
+      animate(
+        dragY,
+        0,
+        reduced ? FADE : { ...SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
+      );
+      animate(
+        open,
+        0,
+        reduced ? FADE : { ...SPRING_CLOSE, velocity: (-v * 1000) / (h * 0.5) },
+      ).then(() => {
+        if (!closing.current) {
+          return;
+        }
+        closing.current = false;
+        setClosingApp(false);
+        setApp(null);
+        hideSource(null);
+        requestAnimationFrame(() => {
+          // Back to whatever opened it: the widget, the icon, or for an app
+          // opened from the lock screen, its icon on the home screen.
+          const target =
+            opener.current?.isConnected &&
+            homeRef.current?.contains(opener.current)
+              ? opener.current
+              : (icons.current.get(id)?.closest("button") ?? homeRef.current);
+          target?.focus({ preventScroll: true });
+        });
       });
-    });
-  }, [open, pull, dragX, dragY, retarget, hideSource]);
+    },
+    [open, pull, dragX, dragY, retarget, hideSource],
+  );
 
-  const cancelDrag = useCallback(() => {
-    animate(pull, 0, SPRING_OPEN);
-    animate(dragX, 0, SPRING_OPEN);
-    animate(dragY, 0, SPRING_OPEN);
-  }, [pull, dragX, dragY]);
+  /** Back to full screen, carrying the release speed (down is negative). */
+  const cancelDrag = useCallback(
+    (velocity = 0) => {
+      const { h } = geometry.current;
+      animate(pull, 0, {
+        ...SPRING_OPEN,
+        velocity: (velocity * 1000) / (h * 0.5),
+      });
+      animate(dragX, 0, SPRING_OPEN);
+      animate(dragY, 0, { ...SPRING_OPEN, velocity: -velocity * 1000 * 0.55 });
+    },
+    [pull, dragX, dragY],
+  );
 
   const openFromLock = useCallback(
     (id: IphoneAppId, launch?: AppLaunch) => {
@@ -421,14 +497,20 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
   const openSpotlight = useCallback((focus: boolean) => {
     // Flushed and focused inside the tap, or iOS won't raise the keyboard.
-    flushSync(() => setSpotlight(true));
+    flushSync(() => {
+      setSpotlightLeaving(false);
+      setSpotlight(true);
+    });
     if (focus) {
       spotlightInput.current?.focus({ preventScroll: true });
     }
   }, []);
 
   const closeSpotlight = useCallback(() => {
-    flushSync(() => setSpotlight(false));
+    flushSync(() => {
+      setSpotlight(false);
+      setSpotlightLeaving(true);
+    });
     searchButton.current?.focus({ preventScroll: true });
   }, []);
 
@@ -437,6 +519,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       // Measure the result's icon before Spotlight goes away with it.
       openApp(id, options);
       setSpotlight(false);
+      // It fades out under the app as the app zooms over it.
+      setSpotlightLeaving(true);
     },
     [openApp],
   );
@@ -449,6 +533,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     if (!store.get(UNLOCKED_KEY)) {
       return;
     }
+    // The lock screen's resting offset is the screen's height.
+    measure();
     unlock.set(1);
     setLocked(false);
     document.documentElement.dataset.iphone = "home";
@@ -464,7 +550,19 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     if (lastApp && lastApp in APPS) {
       openApp(lastApp, { instant: true });
     }
-  }, [unlock, openApp]);
+    // The motion components hydrate with the server's locked styles and
+    // subscribe only after this effect, so they miss the values just set
+    // (the grid stayed zoomed, the clock hidden). Once they're listening,
+    // nudge each value so every transform derived from it re-applies.
+    const frame = requestAnimationFrame(() => {
+      for (const value of [unlock, open]) {
+        const settled = value.get();
+        value.jump(settled - 0.001);
+        value.jump(settled);
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [unlock, open, openApp, measure]);
 
   useEffect(
     () => () => document.documentElement.removeAttribute("data-iphone"),
@@ -528,8 +626,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   dragX.jump(0);
                   dragY.jump(0);
                   setApp(null);
+                  setClosingApp(false);
+                  hideSource(null);
                   store.set(APP_KEY, null);
                 }
+                // Locking dismisses Spotlight, as on iOS.
+                setSpotlight(false);
+                setSpotlightLeaving(false);
                 // detail is 0 for Enter or Space, the clicks a keyboard makes.
                 settleLock(0, 0, event.detail === 0);
               }}
@@ -541,6 +644,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               tabIndex={-1}
               className={styles.screen}
               aria-label={IPHONE_COPY.deviceName}
+              data-spotlight={
+                spotlight ? "open" : spotlightLeaving ? "leaving" : undefined
+              }
             >
               <Image
                 src={WALLPAPER}
@@ -558,7 +664,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               />
 
               <HomeScreen
-                inert={locked || app !== null || spotlight}
+                inert={locked || (app !== null && !closingApp) || spotlight}
                 searchRef={searchButton}
                 onSearch={openSpotlight}
                 calendar={calendar}
@@ -572,8 +678,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 bottomOpacity={bottomOpacity}
               />
 
-              {spotlight ? (
+              {spotlight || spotlightLeaving ? (
                 <Spotlight
+                  leaving={!spotlight}
+                  onLeft={() => setSpotlightLeaving(false)}
                   calendar={calendar}
                   inputRef={spotlightInput}
                   onClose={closeSpotlight}
@@ -607,6 +715,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               {app === null ? null : (
                 <AppWindow
                   key={app}
+                  leaving={closingApp}
                   launch={launch}
                   id={app}
                   calendar={calendar}

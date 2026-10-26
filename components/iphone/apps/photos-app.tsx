@@ -15,9 +15,12 @@ import type { AppProps } from "../apps";
 import { useIphoneData } from "../data";
 import {
   BackChevron,
+  CollectionsGlyph,
   Ellipsis,
+  FilterGlyph,
   Heart,
   InfoGlyph,
+  LibraryGlyph,
   Magnifier,
   Share,
   Sliders,
@@ -33,6 +36,15 @@ const THUMB_SIZES = "(min-width: 640px) and (min-height: 640px) 134px, 34vw";
 const FULL_SIZES = "(min-width: 640px) and (min-height: 640px) 402px, 100vw";
 /** iOS's photo zoom: quick out of the gate, long soft landing. */
 const ZOOM = { duration: 420, easing: "cubic-bezier(0.2, 0.9, 0.25, 1)" };
+/** The scrubber's geometry, matching .scrubberThumb in the stylesheet. */
+const SCRUB_THUMB = 28;
+const SCRUB_GAP = 2;
+const SCRUB_MARGIN = 4;
+const SCRUB_HEIGHT = 44;
+/** The current thumbnail widens to its photo's shape, up to 3:2. */
+const currentThumbWidth = (photo: { width: number; height: number }) =>
+  SCRUB_HEIGHT * Math.min(1.5, photo.width / photo.height);
+
 /** How much of the viewer the info panel covers when it is all the way up. */
 const SHEET = 0.46;
 
@@ -57,8 +69,7 @@ function settle(frame: HTMLElement) {
 /** Fly the photo to `to` (its thumbnail), or fade it if there is none. */
 function putBack(
   frame: HTMLElement,
-  rest: Pose,
-  to: Pose | null,
+  { rest, to, duration }: { rest: Pose; to: Pose | null; duration: number },
   done: () => void,
 ) {
   if (to) {
@@ -66,7 +77,11 @@ function putBack(
       transform: frame.style.transform || rest.transform,
       clipPath: rest.clipPath,
     };
-    frame.animate([from, to], { ...ZOOM, fill: "forwards" }).onfinish = done;
+    frame.animate([from, to], {
+      ...ZOOM,
+      duration,
+      fill: "forwards",
+    }).onfinish = done;
   } else {
     frame.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: 200,
@@ -107,6 +122,11 @@ export default function PhotosApp(_: AppProps) {
   /** How far the photo slides up to sit on the panel, in pixels. */
   const shift = useRef(0);
   const stripY = useTransform(progress, (p) => -p * shift.current);
+  // An opaque panel slides; it only fades in its first stretch, to soften
+  // the edge, or entirely in place of the slide with reduced motion.
+  const panelOpacity = useTransform(progress, (p) =>
+    reduced ? p : clamp(p / 0.25, 0, 1),
+  );
   const panelY = useTransform(progress, (p) =>
     reduced ? "0%" : `${(1 - p) * 100}%`,
   );
@@ -129,6 +149,8 @@ export default function PhotosApp(_: AppProps) {
     base: number;
   } | null>(null);
   const velocity = useRef(new VelocityTracker());
+  /** The viewer is closing from a fast downward flick. */
+  const flicked = useRef(false);
 
   /**
    * The photo's pose sitting on its thumbnail, in the viewer's unscaled
@@ -214,10 +236,15 @@ export default function PhotosApp(_: AppProps) {
       return;
     }
     const scrubber = scrubberRef.current;
-    const item = scrubber?.children[current] as HTMLElement | undefined;
-    if (scrubber && item) {
+    const photo = PHOTOS[current];
+    if (scrubber && photo) {
+      // From the layout it is about to have, not the one it has: the
+      // thumbnail is still widening when this runs. Thumbnails before it
+      // are SCRUB_THUMB wide with SCRUB_GAP between; it has SCRUB_MARGIN on
+      // each side. The strip's 50% padding cancels the half-width offset.
+      const width = currentThumbWidth(photo);
       scrubber.scrollTo({
-        left: item.offsetLeft - scrubber.clientWidth / 2 + item.offsetWidth / 2,
+        left: current * (SCRUB_THUMB + SCRUB_GAP) + SCRUB_MARGIN + width / 2,
         behavior: reduced ? "auto" : "smooth",
       });
     }
@@ -346,6 +373,10 @@ export default function PhotosApp(_: AppProps) {
       return;
     }
     setClosing(true);
+    const fast = flicked.current;
+    flicked.current = false;
+    // The bars go first, so they don't sit over the grid as the photo flies.
+    setChrome(false);
     const frame = frames.current[current];
     lowerOnto(frame);
     // Bring its thumbnail into view first, as Photos keeps the grid in step.
@@ -366,7 +397,16 @@ export default function PhotosApp(_: AppProps) {
       fill: "forwards",
     });
     if (frame) {
-      putBack(frame, restPose(current), to, done);
+      putBack(
+        frame,
+        {
+          rest: restPose(current),
+          to,
+          // Shorter after a fast flick, so it doesn't brake into the curve.
+          duration: fast ? ZOOM.duration * 0.8 : ZOOM.duration,
+        },
+        done,
+      );
     } else {
       done();
     }
@@ -479,6 +519,7 @@ export default function PhotosApp(_: AppProps) {
     // Downward flick speed: the tracker reports upward as positive.
     const v = -velocity.current.velocity();
     if (dy > 90 || v > 0.5) {
+      flicked.current = v > 0.5;
       close();
     } else {
       settleBack();
@@ -491,8 +532,15 @@ export default function PhotosApp(_: AppProps) {
     if (frame) {
       settle(frame);
     }
-    if (backdropRef.current) {
-      backdropRef.current.style.opacity = "";
+    // The black comes back with the photo, not in one frame.
+    const backdrop = backdropRef.current;
+    if (backdrop) {
+      const from = backdrop.style.opacity || "1";
+      backdrop.style.opacity = "";
+      backdrop.animate([{ opacity: from }, { opacity: 1 }], {
+        duration: 300,
+        easing: ZOOM.easing,
+      });
     }
     setChrome(true);
   };
@@ -558,10 +606,10 @@ export default function PhotosApp(_: AppProps) {
             <p className={styles.photosCount}>{PHOTOS.length} Items</p>
           </div>
           <div className={styles.photosButtons} aria-hidden>
-            <span className={styles.pill}>Select</span>
             <span className={styles.pill}>
-              <Magnifier />
+              <FilterGlyph />
             </span>
+            <span className={styles.pill}>Select</span>
           </div>
         </header>
 
@@ -595,6 +643,25 @@ export default function PhotosApp(_: AppProps) {
           ))}
         </ul>
         <p className={styles.photosFooter}>{PHOTOS.length} Photos</p>
+      </div>
+
+      {/* iOS 26 Photos: a floating glass tab bar, Library and Collections,
+          with search in its own circle beside it. Library is the only tab
+          here, so the bar is drawn, not driven. */}
+      <div className={cn(styles.floatingBar, styles.photosTabs)} aria-hidden>
+        <div className={styles.tabBar}>
+          <span className={styles.tabActive}>
+            <LibraryGlyph />
+            Library
+          </span>
+          <span>
+            <CollectionsGlyph />
+            Collections
+          </span>
+        </div>
+        <span className={cn(styles.glassButton, styles.tabSearch)}>
+          <Magnifier />
+        </span>
       </div>
 
       {viewing !== null && (
@@ -678,7 +745,7 @@ export default function PhotosApp(_: AppProps) {
                 setCaptions((all) => ({ ...all, [current]: caption }))
               }
               open={info}
-              progress={progress}
+              progress={panelOpacity}
               y={panelY}
               height={`${SHEET * 100}%`}
               panelRef={panelRef}
@@ -711,7 +778,7 @@ export default function PhotosApp(_: AppProps) {
                 )}
                 style={
                   index === current
-                    ? { width: 44 * Math.min(1.5, photo.width / photo.height) }
+                    ? { width: currentThumbWidth(photo) }
                     : undefined
                 }
                 onClick={() =>

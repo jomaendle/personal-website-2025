@@ -3,7 +3,13 @@
 import type { MotionValue } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { NoteBlock, NoteDocument, NoteInline } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
 import { fetchAllViews, incrementView } from "@/lib/views";
@@ -41,7 +47,9 @@ function useNote(slug: string) {
     let live = true;
     prefetchNote(slug).then((note) => {
       if (live) {
-        setState({ note, failed: note === null });
+        // A transition, so rendering a long note yields to the frames of
+        // the push it usually lands in the middle of.
+        startTransition(() => setState({ note, failed: note === null }));
       }
     });
     return () => {

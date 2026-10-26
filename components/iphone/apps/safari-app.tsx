@@ -5,14 +5,14 @@ import type { AppProps } from "../apps";
 import { BackChevron, Ellipsis, Reload } from "../glyphs";
 import styles from "../iphone.module.css";
 
-/** Tile colours for Favourites, picked per project rather than by hash so
+/** Tile colours for Favorites, picked per project rather than by hash so
  * they never collide. */
 const TILE_COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#bf5af2", "#ff375f"];
 
 const WWW = /^www\./;
 const host = (url: string) => new URL(url).host.replace(WWW, "");
 
-/** Safari's start page: my projects as Favourites, then as cards with what
+/** Safari's start page: my projects as Favorites, then as cards with what
  * each one is. The address bar leads back to the regular site. */
 export default function SafariApp(_: AppProps) {
   return (
@@ -20,7 +20,7 @@ export default function SafariApp(_: AppProps) {
       <div className={cn(styles.scroll, styles.scrollWithBar)}>
         <div style={{ height: "var(--top-inset)" }} />
         <h1 className={cn(styles.sectionHeader, styles.sectionHeaderLarge)}>
-          Favourites
+          Favorites
         </h1>
         <ul className={styles.favorites}>
           {PROJECTS.map((project, index) => (

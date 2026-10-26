@@ -1,5 +1,5 @@
 /* =============================================================
-   /iphone: the site as an iPhone (iOS 18, dark appearance).
+   /iphone: the site as an iPhone (iOS 26, dark appearance).
 
    Two presentations from one tree:
    - Phones and short windows: the screen IS the viewport. No frame, no fake
@@ -469,7 +469,9 @@
    runs on the compositor. A return visit straight to the home screen skips
    it, and reduced motion shortens it to a fade (globals.css). */
 
-:global(html:not([data-iphone="home"])) .screen::after {
+/* Only a fresh page wakes: a re-lock marks the page "locked" and slides the
+   lock screen down without replaying any of this. */
+:global(html:not([data-iphone])) .screen::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -479,24 +481,24 @@
   animation: wake-screen 0.7s ease-out 0.05s both;
 }
 
-:global(html:not([data-iphone="home"])) .wallpaper {
+:global(html:not([data-iphone])) .wallpaper {
   animation: wake-wallpaper 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.lock > :first-child {
+:global(html:not([data-iphone])) .lock > :first-child {
   animation: wake-clock 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
 }
 
-.notification {
+:global(html:not([data-iphone])) .notification {
   animation: wake-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1)
-    calc(0.45s + var(--i, 0) * 0.09s) both;
+    calc(0.42s + var(--i, 0) * 0.06s) both;
 }
 
-.lockPlayer {
+:global(html:not([data-iphone])) .lockPlayer {
   animation: wake-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) 0.35s both;
 }
 
-.lockFooter {
+:global(html:not([data-iphone])) .lockFooter {
   animation: wake-fade 0.6s ease-out 0.6s both;
 }
 
@@ -647,7 +649,13 @@
 .widgetNotes {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   padding: 14px 14px 16px;
+}
+
+/* The second note gets one line, so its date fits inside the widget. */
+.widgetNote + .widgetNote .widgetNoteTitle {
+  -webkit-line-clamp: 1;
 }
 
 .widgetNotesHead,
@@ -681,7 +689,8 @@
   border-top: 0.5px solid var(--separator) !important;
 }
 
-.widgetNote:first-of-type {
+/* The header is a button too, so :first-of-type would never match. */
+.widgetNotesHead + .widgetNote {
   border-top: 0 !important;
   margin-top: 6px;
   padding-top: 0;
@@ -748,7 +757,7 @@
   max-width: 420px;
   padding: 16px 10px;
   border-radius: 36px;
-  /* iOS 18's dock glass: a light frosted plate, plainly visible over a dark
+  /* The dock's glass: a light frosted plate, plainly visible over a dark
      wallpaper, with a hairline edge catching the light. */
   background: rgb(255 255 255 / 0.1);
   box-shadow:
@@ -764,15 +773,28 @@
   position: absolute;
   inset: 0;
   z-index: 15;
+  outline: none;
   /* iOS 26's Spotlight: a thick, dark frosting that keeps only the
      wallpaper's colour, so results read at a glance. */
-  background: rgb(16 16 18 / 0.62);
-  backdrop-filter: blur(48px) saturate(1.7);
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(60px) saturate(1.5) brightness(0.7);
   animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
 @keyframes spotlight-in {
   from {
+    opacity: 0;
+  }
+}
+
+/* Out faster than in, as an exit should be. */
+.spotlightLeaving {
+  pointer-events: none;
+  animation: spotlight-out 0.18s ease-out both;
+}
+
+@keyframes spotlight-out {
+  to {
     opacity: 0;
   }
 }
@@ -808,16 +830,32 @@
 }
 
 .spotlightHeader {
-  margin: 14px 6px 8px;
-  font-size: 13px;
+  margin: 16px 6px 8px;
+  font-size: 15px;
   font-weight: 600;
-  color: rgb(255 255 255 / 0.65);
+  color: rgb(235 235 245 / 0.7);
+}
+
+/* While Spotlight is up the home screen steps back: the icons and widgets
+   fade and shrink a touch, so only the wallpaper's colour is left under the
+   frosting and the results read cleanly, as in iOS 26. Important, to win
+   over the inline opacity the unlock drives. The fade runs only on the way
+   in and out, so it never lags a gesture. */
+.screen[data-spotlight] :is(.homeGrid, .homeBottom) {
+  transition:
+    opacity 0.25s ease-out,
+    scale 0.25s ease-out;
+}
+
+.screen[data-spotlight="open"] :is(.homeGrid, .homeBottom) {
+  opacity: 0 !important;
+  scale: 0.96;
 }
 
 .spotlightCard {
   overflow: hidden;
-  border-radius: 24px;
-  background: rgb(40 40 40 / 0.5);
+  border-radius: 26px;
+  background: rgb(118 118 128 / 0.24);
   box-shadow:
     inset 0 1px 0.5px rgb(255 255 255 / 0.2),
     inset 0 0 0 0.5px rgb(255 255 255 / 0.08);
@@ -1368,6 +1406,12 @@
 
 .miniPlayerBar {
   z-index: 5;
+  transition: opacity 0.15s ease-out;
+}
+
+.miniPlayerHidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .miniPlayer {
@@ -1395,7 +1439,7 @@
   flex: none;
   width: 36px;
   height: 36px;
-  border-radius: 999px;
+  border-radius: 7px;
 }
 
 .miniPlayerTitle {
@@ -1410,8 +1454,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: none;
   color: var(--label);
   cursor: pointer;
@@ -1460,20 +1504,34 @@
   padding: calc(var(--top-inset) + 4px) 28px calc(var(--bottom-inset) + 20px);
 }
 
+/* The sheet's grabber: a short capsule in a 44pt-tall target. */
 .nowPlayingGrabber {
   align-self: center;
   display: grid;
   place-items: center;
-  width: 60px;
-  height: 32px;
+  width: 72px;
+  height: 44px;
+  margin-top: -6px;
   background: none;
-  color: rgb(255 255 255 / 0.7);
   cursor: pointer;
 }
 
+.nowPlayingGrabber::before {
+  content: "";
+  width: 36px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* The artwork takes the room the controls leave, centred in it, so the
+   sheet has no dead gap where a phone's volume slider would be. */
 .nowPlayingArt {
   display: flex;
+  flex: 1;
+  align-items: center;
   justify-content: center;
+  min-height: 0;
   margin: 18px 0 0;
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
@@ -1482,8 +1540,10 @@
   width: min(100%, 340px);
 }
 
+/* Play springs the artwork up; pause just eases it back, no bounce. */
 .nowPlayingArtPaused {
   transform: scale(0.82);
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .nowPlayingMeta {
@@ -1553,6 +1613,19 @@
   border: 0;
 }
 
+/* Volume: the scrubber's track between two speakers. */
+.seek.volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.seek.volume svg {
+  flex: none;
+}
+
 .seekTimes {
   display: flex;
   justify-content: space-between;
@@ -1596,6 +1669,7 @@
 
 .nowPlayingSource {
   align-self: center;
+  padding: 13px 8px;
   font-size: 13px;
   color: rgb(255 255 255 / 0.6);
   text-decoration: none;
@@ -1657,8 +1731,24 @@
   outline: none;
 }
 
-.app[data-moving] * {
+/* Glass inside a moving window drops its blur for the motion. Named, not
+   `*`: a universal selector restyles every node in the app on the first
+   frame of the zoom and again when it settles. The blur fades back in at
+   rest rather than popping. */
+.app[data-moving]
+  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule, .tabBar, .hud, .alert, .noteBar > *),
+.app[data-moving] .navBar::before,
+.app[data-moving] .noteBar::before,
+.app[data-moving] .photosHeader::before,
+.app[data-moving] .floatingBar::before {
   backdrop-filter: none !important;
+}
+
+.app:not([data-moving])
+  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule, .noteBar > *) {
+  transition-property: backdrop-filter, scale, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
 }
 
 .appIconOverlay {
@@ -1800,6 +1890,7 @@
 
 .sectionHeaderLarge {
   padding: 16px 16px 8px;
+  color: var(--label);
   text-transform: none;
   font-size: 22px;
   font-weight: 700;
@@ -1809,7 +1900,7 @@
 .group {
   margin: 0 16px;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 26px;
   background: var(--grouped);
 }
 
@@ -2172,7 +2263,7 @@ ol.noteList {
   gap: 12px;
   margin: 4px 0 16px;
   padding: 10px 14px 10px 10px;
-  border-radius: 14px;
+  border-radius: 20px;
   background: var(--grouped);
   color: inherit;
   text-decoration: none;
@@ -2362,6 +2453,57 @@ ol.noteList {
   text-align: center;
   font-size: 15px;
   font-weight: 600;
+}
+
+/* The footer clears the floating tab bar. */
+.photos {
+  padding-bottom: calc(max(var(--bottom-inset), 28px) + 84px);
+}
+
+.photosTabs {
+  justify-content: space-between;
+}
+
+/* iOS 26's tab bar: a glass capsule, each tab an icon over a small label,
+   the selected one sitting in a lighter inner capsule. */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 62px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.tabBar > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 92px;
+  height: 100%;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--label);
+}
+
+.tabBar > .tabActive {
+  background: rgb(255 255 255 / 0.12);
+  color: var(--ios-blue);
+}
+
+.glassButton.tabSearch {
+  width: 62px;
+  height: 62px;
 }
 
 .viewer {
@@ -2649,6 +2791,16 @@ ol.noteList {
   pointer-events: none;
 }
 
+/* The viewer's bars fade in as the photo zooms out of its thumbnail rather
+   than arriving at full strength over it. */
+@starting-style {
+  .viewerBar,
+  .viewerTools,
+  .scrubber {
+    opacity: 0;
+  }
+}
+
 /* Photos' scrubber: narrow thumbnails, the current one widened to its own
    shape, centred as you swipe. */
 .scrubber {
@@ -2680,7 +2832,10 @@ ol.noteList {
   overflow: hidden;
   border-radius: 2px;
   background: var(--grouped);
-  transition: width 0.25s ease, margin 0.25s ease;
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    margin 0.25s ease;
   cursor: pointer;
 }
 
@@ -2709,11 +2864,12 @@ ol.noteList {
   color: #fff;
 }
 
+/* 44pt: iOS 26's glass bar buttons, and the HIG's minimum hit target. */
 .glassButton {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   transition: scale 0.2s ease;
@@ -2830,6 +2986,30 @@ ol.noteList {
   font-weight: 600;
 }
 
+/* A 34pt capsule with a 44pt target. */
+.pill,
+.sendButton {
+  position: relative;
+}
+
+.pill::after,
+.sendButton::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+/* Calendar's "‹ October": iOS 26 sets nav controls in glass. */
+.pill.calendarBack {
+  display: inline-flex;
+  gap: 4px;
+  justify-self: start;
+  width: max-content;
+  height: 44px;
+  padding: 0 16px 0 12px;
+  color: var(--tint, var(--ios-red));
+}
+
 .pill:has(svg) {
   width: 34px;
   padding: 0;
@@ -2884,7 +3064,7 @@ ol.noteList {
   display: block;
   margin: 0 16px 10px;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 20px;
   background: var(--grouped-2);
   color: inherit;
   text-decoration: none;
@@ -3007,8 +3187,7 @@ ol.noteList {
 .sheet {
   transition:
     transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
-    border-radius 0.5s cubic-bezier(0.32, 0.72, 0, 1),
-    filter 0.5s ease;
+    border-radius 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .mailbox {
@@ -3019,13 +3198,29 @@ ol.noteList {
   transform-origin: 50% 0;
 }
 
+/* The dim behind a sheet: a black layer's opacity, which the compositor
+   animates, rather than a filter repainting the whole mailbox each frame. */
+.mailbox::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mailboxBehind::after {
+  opacity: 0.4;
+}
+
 /* Presented under a sheet, the parent steps back: smaller, dimmer, with
    rounded top corners showing above the sheet. */
 .mailboxBehind {
   transform: translateY(calc(var(--top-inset) - 8px)) scale(0.92);
   border-radius: 28px;
   background: #111;
-  filter: brightness(0.6);
 }
 
 .sheetAway {
@@ -3141,18 +3336,24 @@ ol.noteList {
   animation: alert-fade 0.2s ease-out both;
 }
 
+/* iOS 26's alert: a larger Liquid Glass card, text set to the leading
+   edge, and capsule buttons in place of the old hairline row. */
 .alert {
-  width: 270px;
-  overflow: hidden;
-  border-radius: 14px;
-  background: rgb(44 44 46 / 0.86);
-  backdrop-filter: blur(30px) saturate(1.8);
-  text-align: center;
-  animation: alert-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  width: min(300px, calc(100% - 64px));
+  padding: 22px 20px 16px;
+  border-radius: 34px;
+  background: rgb(44 44 46 / 0.78);
+  backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.25),
+    0 20px 60px rgb(0 0 0 / 0.4);
+  text-align: start;
+  /* Settles from a touch large without undershooting, as UIKit's does. */
+  animation: alert-pop 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .alertBody {
-  padding: 19px 16px 18px;
+  padding: 0 2px;
 }
 
 .alertTitle {
@@ -3162,25 +3363,34 @@ ol.noteList {
 }
 
 .alertMessage {
-  margin-top: 3px;
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: 15px;
   line-height: 1.35;
+  color: var(--label-2);
 }
 
 .alertButton {
   display: block;
   width: 100%;
-  height: 44px;
-  border-top: 0.5px solid var(--separator) !important;
-  background: none;
-  color: var(--ios-blue);
+  height: 48px;
+  margin-top: 18px;
+  border-radius: 999px;
+  background: var(--ios-blue);
+  color: #fff;
   font: inherit;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
+  transition: scale 0.15s ease-out;
 }
 
 .alertButton:active {
-  background: rgb(255 255 255 / 0.08);
+  scale: 0.97;
+}
+
+.alertButton:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 @keyframes alert-fade {
@@ -3192,7 +3402,7 @@ ol.noteList {
 @keyframes alert-pop {
   from {
     opacity: 0;
-    transform: scale(1.15);
+    transform: scale(1.1);
   }
 }
 
@@ -3226,8 +3436,9 @@ ol.noteList {
   justify-self: end;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  position: relative;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--ios-blue);
   color: #fff;
@@ -3364,5 +3575,72 @@ ol.noteList {
 @media (prefers-reduced-motion: reduce) {
   .unlockHint {
     animation: none;
+  }
+
+  /* Reduced motion is gentler, not a cut: the global rule zeroes durations
+     but keeps delays, which would hold these invisible, then pop them in.
+     A short cross-fade instead, and sheets fade rather than slide. */
+  :global(html:not([data-iphone])) :is(.lock > :first-child, .notification, .lockPlayer, .lockFooter) {
+    animation: wake-fade 0.25s ease-out both !important;
+    animation-delay: 0s !important;
+  }
+
+  :global(html:not([data-iphone])) .wallpaper {
+    animation: none !important;
+  }
+
+  .nowPlaying,
+  .sheet {
+    transition: opacity 0.2s ease !important;
+  }
+
+  .nowPlaying:not(.nowPlayingOpen),
+  .sheetAway {
+    transform: none;
+    opacity: 0;
+  }
+
+  .mailboxBehind {
+    transform: none;
+  }
+}
+
+/* ---- Accessibility: Reduce Transparency, Increase Contrast -------------
+   iOS swaps its glass for solid, near-opaque fills when transparency is
+   reduced, and darkens secondary text and separators for more contrast. */
+
+@media (prefers-reduced-transparency: reduce) {
+  .spotlight {
+    background: #1c1c1e;
+    backdrop-filter: none;
+  }
+
+  :is(
+      .notification,
+      .lockPlayer,
+      .quickAction,
+      .search,
+      .glassButton,
+      .glassField,
+      .pill,
+      .toolCapsule,
+      .viewerCapsule,
+      .alert,
+      .hud
+    ) {
+    background: rgb(44 44 46 / 0.96);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .root {
+    --label-2: rgb(235 235 245 / 0.8);
+    --label-3: rgb(235 235 245 / 0.55);
+    --separator: rgb(84 84 88);
+  }
+
+  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule) {
+    outline: 1px solid rgb(255 255 255 / 0.3);
   }
 }

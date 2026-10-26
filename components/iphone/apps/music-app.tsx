@@ -24,14 +24,14 @@ import type { AppProps } from "../apps";
 import {
   BackChevron,
   BackwardGlyph,
-  ChevronDown,
   ForwardGlyph,
   PauseGlyph,
   PlayGlyph,
   ShuffleGlyph,
+  SpeakerGlyph,
 } from "../glyphs";
 import styles from "../iphone.module.css";
-import { FADE, SPRING_PUSH } from "../motion";
+import { FADE, rubberband, SPRING_PUSH, VelocityTracker } from "../motion";
 import { useMusic, useMusicControls, useMusicTime } from "../music/player";
 import { useSwipeBack } from "../use-swipe-back";
 
@@ -96,7 +96,27 @@ export default function MusicApp({ launch }: AppProps) {
   );
   const albumOpacity = useTransform(nav, (n) => (reduced ? n : 1));
 
+  /** What opened the album and the sheet, for focus to return to. */
+  const albumOpener = useRef<HTMLElement | null>(null);
+  const sheetOpener = useRef<HTMLElement | null>(null);
+  const focusBack = (el: HTMLElement | null) =>
+    requestAnimationFrame(() => {
+      if (el?.isConnected) {
+        el.focus({ preventScroll: true });
+      }
+    });
+
+  const openSheet = () => {
+    sheetOpener.current = document.activeElement as HTMLElement | null;
+    setNowPlaying(true);
+  };
+  const closeSheet = () => {
+    setNowPlaying(false);
+    focusBack(sheetOpener.current);
+  };
+
   const push = (next: Album) => {
+    albumOpener.current = document.activeElement as HTMLElement | null;
     popping.current = false;
     setAlbum(next);
     animate(nav, 1, reduced ? FADE : SPRING_PUSH);
@@ -111,11 +131,14 @@ export default function MusicApp({ launch }: AppProps) {
       if (popping.current) {
         popping.current = false;
         flushSync(() => setAlbum(null));
+        focusBack(albumOpener.current);
       }
     });
   };
   const popRef = useRef(pop);
   popRef.current = pop;
+  const closeSheetRef = useRef(closeSheet);
+  closeSheetRef.current = closeSheet;
 
   // Escape closes Now Playing, then the album, then (the phone's own
   // handler) the app.
@@ -129,7 +152,7 @@ export default function MusicApp({ launch }: AppProps) {
         event.preventDefault();
         event.stopPropagation();
         if (open.nowPlaying) {
-          setNowPlaying(false);
+          closeSheetRef.current();
         } else {
           popRef.current();
         }
@@ -164,13 +187,11 @@ export default function MusicApp({ launch }: AppProps) {
         </m.div>
       ) : null}
 
-      {track && !nowPlaying ? (
-        <MiniPlayer onOpen={() => setNowPlaying(true)} />
-      ) : null}
+      {/* Stays mounted under the sheet, fading, so it doesn't vanish the
+          moment the sheet starts to rise or pop back as it goes down. */}
+      {track ? <MiniPlayer hidden={nowPlaying} onOpen={openSheet} /> : null}
 
-      {track ? (
-        <NowPlaying open={nowPlaying} onClose={() => setNowPlaying(false)} />
-      ) : null}
+      {track ? <NowPlaying open={nowPlaying} onClose={closeSheet} /> : null}
     </div>
   );
 }
@@ -418,7 +439,13 @@ function AlbumPage({
 // ---- Mini player --------------------------------------------------------------
 
 /** iOS 26's floating mini player: a glass capsule above the content. */
-function MiniPlayer({ onOpen }: { onOpen: () => void }) {
+function MiniPlayer({
+  hidden,
+  onOpen,
+}: {
+  hidden: boolean;
+  onOpen: () => void;
+}) {
   const { track, playing } = useMusic();
   const { toggle, next } = useMusicControls();
   const { time, duration } = useMusicTime();
@@ -426,7 +453,14 @@ function MiniPlayer({ onOpen }: { onOpen: () => void }) {
     return null;
   }
   return (
-    <div className={cn(styles.floatingBar, styles.miniPlayerBar)}>
+    <div
+      className={cn(
+        styles.floatingBar,
+        styles.miniPlayerBar,
+        hidden && styles.miniPlayerHidden,
+      )}
+      inert={hidden}
+    >
       <div className={cn(styles.glassField, styles.miniPlayer)}>
         <button
           type="button"
@@ -462,6 +496,7 @@ function MiniPlayer({ onOpen }: { onOpen: () => void }) {
           <ForwardGlyph width={24} height={18} />
         </button>
         <span
+          key={track.id}
           className={styles.miniPlayerProgress}
           style={{ transform: `scaleX(${duration ? time / duration : 0})` }}
           aria-hidden
@@ -483,7 +518,15 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { track, playing, waiting, queue, index } = useMusic();
   const { toggle, next, previous } = useMusicControls();
   const sheet = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ id: number; y: number; dy: number } | null>(null);
+  const drag = useRef<{
+    id: number;
+    y: number;
+    dy: number;
+    /** On-screen pixels per sheet pixel: the device frame may be scaled. */
+    k: number;
+    active: boolean;
+  } | null>(null);
+  const velocity = useRef(new VelocityTracker());
 
   useEffect(() => {
     if (open) {
@@ -504,7 +547,8 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     }
     el.style.transition = "";
     el.style.transform = "";
-    if (d.dy > 120) {
+    // Far enough, or flicked down: the tracker reports upward as positive.
+    if (d.active && (d.dy > 120 || -velocity.current.velocity() > 0.3)) {
       onClose();
     }
   };
@@ -522,7 +566,16 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         if ((event.target as HTMLElement).closest("button, input, a")) {
           return;
         }
-        drag.current = { id: event.pointerId, y: event.clientY, dy: 0 };
+        const el = event.currentTarget;
+        drag.current = {
+          id: event.pointerId,
+          y: event.clientY,
+          dy: 0,
+          k: el.getBoundingClientRect().height / (el.offsetHeight || 1) || 1,
+          active: false,
+        };
+        velocity.current.reset();
+        velocity.current.add(event.clientY / drag.current.k, event.timeStamp);
       }}
       onPointerMove={(event) => {
         const d = drag.current;
@@ -530,12 +583,23 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         if (!(d && el) || d.id !== event.pointerId) {
           return;
         }
-        d.dy = Math.max(0, event.clientY - d.y);
-        if (d.dy > 6) {
+        const travel = (event.clientY - d.y) / d.k;
+        if (!d.active) {
+          if (Math.abs(travel) < 6) {
+            return;
+          }
+          // Follow from here, without jumping by the slop.
+          d.active = true;
+          d.y = event.clientY;
           event.currentTarget.setPointerCapture(event.pointerId);
           el.style.transition = "none";
-          el.style.transform = `translateY(${d.dy}px)`;
+          return;
         }
+        velocity.current.add(event.clientY / d.k, event.timeStamp);
+        // Down follows the finger; up gives a little, as a rubber band.
+        d.dy =
+          travel >= 0 ? travel : -rubberband(-travel, el.offsetHeight || 800);
+        el.style.transform = `translateY(${d.dy}px)`;
       }}
       onPointerUp={release}
       onPointerCancel={release}
@@ -553,9 +617,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
           className={styles.nowPlayingGrabber}
           onClick={onClose}
           aria-label="Close Now Playing"
-        >
-          <ChevronDown />
-        </button>
+        />
 
         <div
           className={cn(
@@ -606,6 +668,8 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
           </button>
         </div>
 
+        <Volume />
+
         <a
           className={styles.nowPlayingSource}
           href={CAR_KIDS.site}
@@ -655,6 +719,54 @@ function Scrubber() {
         <span>{clock(shown)}</span>
         <span>-{clock(duration - shown)}</span>
       </div>
+    </div>
+  );
+}
+
+/** Can this browser set an audio element's volume? iOS keeps volume for the
+ * hardware buttons and ignores the property, so there it would be a slider
+ * that moves nothing. */
+function volumeSettable() {
+  try {
+    const probe = new Audio();
+    probe.volume = 0.5;
+    return probe.volume === 0.5;
+  } catch {
+    return false;
+  }
+}
+
+/** The volume slider under the transport, between the speaker glyphs. */
+function Volume() {
+  const controls = useMusicControls();
+  const [volume, setVolume] = useState<number | null>(null);
+  useEffect(() => {
+    if (volumeSettable()) {
+      setVolume(controls.volume());
+    }
+  }, [controls]);
+  if (volume === null) {
+    return null;
+  }
+  return (
+    <div className={cn(styles.seek, styles.volume)}>
+      <SpeakerGlyph />
+      <input
+        type="range"
+        min={0}
+        max={1}
+        step={0.01}
+        value={volume}
+        onChange={(event) => {
+          const next = Number(event.target.value);
+          setVolume(next);
+          controls.setVolume(next);
+        }}
+        aria-label="Volume"
+        aria-valuetext={`${Math.round(volume * 100)}%`}
+        style={{ "--progress": `${volume * 100}%` } as React.CSSProperties}
+      />
+      <SpeakerGlyph loud />
     </div>
   );
 }

@@ -56,9 +56,13 @@ export function LockNowPlaying({ onOpen }: { onOpen: () => void }) {
 
 function LockProgress() {
   const { time, duration } = useMusicTime();
+  const { track } = useMusic();
   return (
     <span className={styles.lockPlayerTrack} aria-hidden>
+      {/* A new song gets a new bar, so it starts empty rather than sweeping
+          back from where the last one ended. */}
       <span
+        key={track?.id}
         style={{ transform: `scaleX(${duration ? time / duration : 0})` }}
       />
     </span>

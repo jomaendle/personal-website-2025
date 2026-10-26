@@ -32,6 +32,8 @@ interface PlayerControls {
   next: () => void;
   previous: () => void;
   seek: (seconds: number) => void;
+  volume: () => number;
+  setVolume: (volume: number) => void;
 }
 
 interface PlayerTime {
@@ -133,6 +135,12 @@ export function MusicProvider({ children }: { children: ReactNode }) {
           el.currentTime = 0;
         } else {
           load(queue, index - 1, true);
+        }
+      },
+      volume: () => audio.current?.volume ?? 1,
+      setVolume: (volume) => {
+        if (audio.current) {
+          audio.current.volume = volume;
         }
       },
       seek: (seconds) => {
