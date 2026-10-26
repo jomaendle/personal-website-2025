@@ -46,6 +46,7 @@ import { MusicProvider } from "./music/player";
 import { DynamicIsland } from "./music/system-ui";
 import { APP_KEY, SEEN_KEY, store, UNLOCKED_KEY } from "./persist";
 import { Spotlight } from "./spotlight";
+import { useBattery } from "./use-battery";
 import { formatClock, formatWeekday, useMinute } from "./use-clock";
 
 /** An app icon (on the home screen, or a Spotlight app result), as opposed
@@ -164,6 +165,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   // Stable, so a clock tick doesn't re-render every app reading it.
   const data = useMemo(() => ({ notes, photoBytes }), [notes, photoBytes]);
   const now = useMinute();
+  const battery = useBattery();
   const calendar = now
     ? { weekday: formatWeekday(now), day: now.getDate() }
     : null;
@@ -837,6 +839,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 notifications={lockNotifications(
                   notes[0],
                   PHOTOS.length,
+                  now,
                 ).filter((notification) => !seen.includes(notification.app))}
                 unlock={unlock}
                 lockY={lockY}
@@ -888,7 +891,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 <span className={styles.statusIcons}>
                   <Signal />
                   <Wifi />
-                  <Battery />
+                  <Battery
+                    level={battery?.level}
+                    charging={battery?.charging}
+                  />
                 </span>
               </div>
               <DynamicIsland

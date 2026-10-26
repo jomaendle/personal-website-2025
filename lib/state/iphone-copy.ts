@@ -72,9 +72,49 @@ export const MAIL_ALERTS = {
 } as const;
 
 /** Notifications waiting on the lock screen. Tapping one opens its app. */
+/** How long ago, the way a lock-screen notification says it: "now", "5m
+ * ago", "2h ago", then "Yesterday", the weekday within a week, then the
+ * date. Empty before the visitor's clock is known (on the server). */
+export function notificationAge(date: string, now: Date | null): string {
+  if (!now) {
+    return "";
+  }
+  const then = new Date(date);
+  if (Number.isNaN(then.getTime())) {
+    return "";
+  }
+  const minutes = Math.round((now.getTime() - then.getTime()) / 60_000);
+  if (minutes < 1) {
+    return "now";
+  }
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  if (minutes < 24 * 60 && now.getDate() === then.getDate()) {
+    return `${Math.floor(minutes / 60)}h ago`;
+  }
+  const days = Math.round(
+    (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() -
+      new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime()) /
+      86_400_000,
+  );
+  if (days === 1) {
+    return "Yesterday";
+  }
+  if (days < 7) {
+    return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(then);
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    ...(then.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+  }).format(then);
+}
+
 export function lockNotifications(
-  latestPost: { title: string; slug: string } | undefined,
+  latestPost: { title: string; slug: string; date: string } | undefined,
   photoCount: number,
+  now: Date | null = null,
 ): LockNotification[] {
   return [
     ...(latestPost
@@ -82,9 +122,15 @@ export function lockNotifications(
           {
             app: "notes" as const,
             note: latestPost.slug,
-            title: "New article",
+            // "New" only while it is: an older post is the latest one.
+            title:
+              now &&
+              now.getTime() - new Date(latestPost.date).getTime() >
+                14 * 86_400_000
+                ? "Latest article"
+                : "New article",
             body: latestPost.title,
-            time: "now",
+            time: notificationAge(latestPost.date, now),
           },
         ]
       : []),

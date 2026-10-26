@@ -127,7 +127,13 @@ export const Wifi = (props: GlyphProps) => (
   </svg>
 );
 
-export const Battery = (props: GlyphProps) => (
+/** The status bar battery. `level` 0 to 1 fills it (about 0.8 when the
+ * browser doesn't say); green while charging, red when low, as on iOS. */
+export const Battery = ({
+  level = 0.8,
+  charging = false,
+  ...props
+}: GlyphProps & { level?: number; charging?: boolean }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 28 13"
@@ -146,7 +152,14 @@ export const Battery = (props: GlyphProps) => (
       stroke="currentColor"
       strokeOpacity="0.4"
     />
-    <rect x="2" y="2" width="17" height="9" rx="2.4" fill="currentColor" />
+    <rect
+      x="2"
+      y="2"
+      width={Math.max(2, 21 * Math.min(1, level))}
+      height="9"
+      rx="2.4"
+      fill={charging ? "#34c759" : level <= 0.2 ? "#ff3b30" : "currentColor"}
+    />
     <path
       d="M26 4.5 v4 a2 2 0 0 0 0 -4 Z"
       fill="currentColor"
