@@ -28,10 +28,13 @@ import {
 } from "../glyphs";
 import styles from "../iphone.module.css";
 import {
+  bezierProgress,
   clamp,
   FADE,
+  lerp,
   SPRING_PUSH,
   springEasing,
+  springProgress,
   useVelocityTracker,
 } from "../motion";
 import { useShare } from "../use-share";
@@ -62,13 +65,86 @@ const SHEET = 0.46;
 const sheetFor = (index: number) =>
   PHOTO_LIBRARY[index]?.about ? 0.64 : SHEET;
 
-/** A type alias, not an interface, so it satisfies WAAPI's Keyframe. */
-type Pose = {
-  transform: string;
-  clipPath: string;
-};
+/**
+ * Where the photo is: moved by `tx`, `ty` and scaled by `u`, showing a
+ * `rx` × `ry` window of the viewer's pixels around its centre. At rest
+ * that window is the whole viewer (a contained photo's letterbox is
+ * transparent, so it needs no clip); on a thumbnail, the square it crops.
+ */
+type Shot = { tx: number; ty: number; u: number; rx: number; ry: number };
 
 const REST_TRANSFORM = "translate(0px, 0px) scale(1)";
+const ZOOM_CURVE: [number, number, number, number] = [0.2, 0.9, 0.25, 1];
+
+/**
+ * A move from one shot to another as Web Animation keyframes, one per
+ * `progress` sample. The frame is squashed to the window's shape, which
+ * clips the photo, and the photo inside is stretched back by as much, so
+ * it only ever scales evenly: transforms the compositor runs alone, where
+ * an animated clip-path is redrawn on the main thread every frame.
+ */
+function shotKeyframes(
+  from: Shot,
+  to: Shot,
+  progress: number[],
+  [W, H]: [number, number],
+) {
+  const outer: Keyframe[] = [];
+  const inner: Keyframe[] = [];
+  for (const e of progress) {
+    const s = {
+      tx: lerp(from.tx, to.tx, e),
+      ty: lerp(from.ty, to.ty, e),
+      u: lerp(from.u, to.u, e),
+      rx: Math.max(1, lerp(from.rx, to.rx, e)),
+      ry: Math.max(1, lerp(from.ry, to.ry, e)),
+    };
+    outer.push({
+      transform: `translate(${s.tx}px, ${s.ty}px) scale(${(s.rx * s.u) / W}, ${(s.ry * s.u) / H})`,
+    });
+    inner.push({ transform: `scale(${W / s.rx}, ${H / s.ry})` });
+  }
+  return { outer, inner };
+}
+
+/** Run a move on the frame and the photo inside it; `done` once it ends. */
+function playShot(
+  els: { frame: HTMLElement; photo: HTMLElement | null | undefined },
+  move: { from: Shot; to: Shot; progress: number[]; size: [number, number] },
+  done?: () => void,
+) {
+  const { outer, inner } = shotKeyframes(
+    move.from,
+    move.to,
+    move.progress,
+    move.size,
+  );
+  const timing: KeyframeAnimationOptions = {
+    duration: ((move.progress.length - 1) * 1000) / 60,
+    easing: "linear",
+    fill: done ? "forwards" : "none",
+  };
+  els.photo?.animate(inner, timing);
+  const animation = els.frame.animate(outer, timing);
+  if (done) {
+    animation.onfinish = done;
+  }
+}
+
+const DRAGGED = /translate\((-?[\d.]+)px, (-?[\d.]+)px\) scale\((-?[\d.]+)\)/;
+
+/** The shot a finger (or the info sheet) left the frame in: its inline
+ * translate and scale, the whole viewer showing. */
+function shotOf(frame: HTMLElement, W: number, H: number): Shot {
+  const m = frame.style.transform.match(DRAGGED);
+  return {
+    tx: Number(m?.[1] ?? 0),
+    ty: Number(m?.[2] ?? 0),
+    u: Number(m?.[3] ?? 1),
+    rx: W,
+    ry: H,
+  };
+}
 
 /** Animate the photo back from a finger-dragged transform to rest, on a
  * spring that starts at the finger's speed (`velocity`, progress per
@@ -86,19 +162,29 @@ function settle(frame: HTMLElement, velocity: number) {
  * After a flick it leaves at the flick's speed (`velocity`, progress per
  * second), rather than braking into a fixed curve. */
 function putBack(
-  frame: HTMLElement,
-  { rest, to, velocity }: { rest: Pose; to: Pose | null; velocity: number },
+  els: { frame: HTMLElement; photo: HTMLElement | null | undefined },
+  {
+    to,
+    velocity,
+    size: [W, H],
+  }: { to: Shot | null; velocity: number; size: [number, number] },
   done: () => void,
 ) {
+  const { frame } = els;
   if (to) {
-    const from = {
-      transform: frame.style.transform || rest.transform,
-      clipPath: rest.clipPath,
-    };
-    frame.animate([from, to], {
-      ...(velocity > 0 ? springEasing(velocity, { stiffness: 260 }) : ZOOM),
-      fill: "forwards",
-    }).onfinish = done;
+    playShot(
+      els,
+      {
+        from: shotOf(frame, W, H),
+        to,
+        progress:
+          velocity > 0
+            ? springProgress(velocity, { stiffness: 260 })
+            : bezierProgress(ZOOM_CURVE, ZOOM.duration),
+        size: [W, H],
+      },
+      done,
+    );
   } else {
     frame.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: 200,
@@ -110,7 +196,7 @@ function putBack(
 /**
  * My photographs as Photos' library grid, under a progressive blur. A photo
  * zooms out of its thumbnail into a viewer and back into it on the way out,
- * the iOS hero transition, run as a Web Animation on transform and clip-path
+ * the iOS hero transition, run as a Web Animation on transforms alone
  * so it stays on the compositor. In the viewer: swipe sideways between photos
  * (a native scroll-snap strip), swipe down to put one back, tap to hide the
  * chrome, or scrub the thumbnail strip along the bottom. Swipe up (or
@@ -172,13 +258,16 @@ export default function PhotosApp(_: AppProps) {
   /** The flick that closed the viewer, as progress per second toward the
    * thumbnail; 0 for a close by button or a slow drag. */
   const flicked = useRef(0);
+  /** Each slide's photo, inside its frame: stretched back while the frame
+   * is squashed to a thumbnail's shape. */
+  const photos = useRef<(HTMLDivElement | null)[]>([]);
 
   /**
    * The photo's pose sitting on its thumbnail, in the viewer's unscaled
    * pixels: the contained image scaled until its short side matches the
    * square thumbnail, moved onto it, and clipped to that square.
    */
-  const thumbPose = (index: number): Pose | null => {
+  const thumbPose = (index: number): Shot | null => {
     const viewer = viewerRef.current;
     const thumb = thumbs.current[index];
     const photo = PHOTOS[index];
@@ -213,25 +302,14 @@ export default function PhotosApp(_: AppProps) {
     const s = side / crop;
     const tx = (t.left - v.left) / k + side / 2 - W / 2;
     const ty = (t.top - v.top) / k + side / 2 - H / 2;
-    return {
-      transform: `translate(${tx}px, ${ty}px) scale(${s})`,
-      clipPath: `inset(${(H - crop) / 2}px ${(W - crop) / 2}px round ${2 / s}px)`,
-    };
+    return { tx, ty, u: s, rx: crop, ry: crop };
   };
 
-  /** The photo at rest in the viewer, clipped to exactly its own box. */
-  const restPose = (index: number): Pose => {
-    const viewer = viewerRef.current;
-    const photo = PHOTOS[index];
-    const W = viewer?.offsetWidth ?? 0;
-    const H = viewer?.offsetHeight ?? 0;
-    const aspect = photo ? photo.width / photo.height : 1;
-    const [dw, dh] = aspect > W / H ? [W, W / aspect] : [H * aspect, H];
-    return {
-      transform: REST_TRANSFORM,
-      clipPath: `inset(${(H - dh) / 2}px ${(W - dw) / 2}px round 0px)`,
-    };
-  };
+  /** The viewer's size, unscaled. */
+  const viewerBox = (): [number, number] => [
+    viewerRef.current?.offsetWidth ?? 0,
+    viewerRef.current?.offsetHeight ?? 0,
+  ];
 
   // Open: jump the strip to the photo, then zoom it out of its thumbnail.
   // Only on open; the pose helpers read refs, not state.
@@ -250,7 +328,16 @@ export default function PhotosApp(_: AppProps) {
       easing: "ease-out",
     });
     if (frame && from) {
-      frame.animate([from, restPose(viewing)], ZOOM);
+      const [W, H] = viewerBox();
+      playShot(
+        { frame, photo: photos.current[viewing] },
+        {
+          from,
+          to: { tx: 0, ty: 0, u: 1, rx: W, ry: H },
+          progress: bezierProgress(ZOOM_CURVE, ZOOM.duration),
+          size: [W, H],
+        },
+      );
     } else if (frame) {
       // No thumbnail to come out of: settle in from a touch small, rather
       // than appear at full size in one frame.
@@ -421,12 +508,8 @@ export default function PhotosApp(_: AppProps) {
     });
     if (frame) {
       putBack(
-        frame,
-        {
-          rest: restPose(current),
-          to,
-          velocity: flick,
-        },
+        { frame, photo: photos.current[current] },
+        { to, velocity: flick, size: viewerBox() },
         done,
       );
     } else {
@@ -789,23 +872,30 @@ export default function PhotosApp(_: AppProps) {
                   }}
                   className={styles.viewerFrame}
                 >
-                  {/* Only the photos a swipe can reach next: building all of
+                  <div
+                    ref={(el) => {
+                      photos.current[index] = el;
+                    }}
+                    className={styles.viewerPhoto}
+                  >
+                    {/* Only the photos a swipe can reach next: building all of
                       them made the tap that opens the viewer a long task.
                       The thumbnail, already in the cache from the grid, is
                       sharp enough to zoom with and covers the full image's
                       load. */}
-                  {Math.abs(index - current) <= 2 ? (
-                    <>
-                      <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
-                      <Image
-                        src={photo}
-                        alt={`Photograph ${index + 1}`}
-                        fill
-                        sizes={FULL_SIZES}
-                        loading="eager"
-                      />
-                    </>
-                  ) : null}
+                    {Math.abs(index - current) <= 2 ? (
+                      <>
+                        <Image src={photo} alt="" fill sizes={THUMB_SIZES} />
+                        <Image
+                          src={photo}
+                          alt={`Photograph ${index + 1}`}
+                          fill
+                          sizes={FULL_SIZES}
+                          loading="eager"
+                        />
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))}

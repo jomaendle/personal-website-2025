@@ -101,10 +101,7 @@ export class VelocityTracker {
  */
 export function springEasing(
   velocity: number,
-  {
-    stiffness = 280,
-    damping = 1,
-  }: { stiffness?: number; damping?: number } = {},
+  options: { stiffness?: number; damping?: number } = {},
 ): { easing: string; duration: number } {
   if (
     typeof CSS === "undefined" ||
@@ -112,6 +109,22 @@ export function springEasing(
   ) {
     return { easing: "cubic-bezier(0.2, 0.9, 0.25, 1)", duration: 420 };
   }
+  const points = springProgress(velocity, options);
+  return {
+    easing: `linear(${points.map((p) => Number(p.toFixed(4))).join(", ")})`,
+    duration: Math.round(((points.length - 1) * 1000) / 60),
+  };
+}
+
+/** The same spring from 0 to 1, as its progress every 1/60 s: for motions
+ * built frame by frame (a photo's nested transforms). */
+export function springProgress(
+  velocity: number,
+  {
+    stiffness = 280,
+    damping = 1,
+  }: { stiffness?: number; damping?: number } = {},
+): number[] {
   const c = 2 * damping * Math.sqrt(stiffness);
   const step = 1 / 240;
   let x = 0;
@@ -122,7 +135,7 @@ export function springEasing(
     v += (stiffness * (1 - x) - c * v) * step;
     x += v * step;
     t += step;
-    // A point every 1/60 s is smooth enough for linear() to interpolate.
+    // A point every 1/60 s is smooth enough to interpolate between.
     if (Math.round(t * 240) % 4 === 0) {
       points.push(x);
     }
@@ -131,10 +144,32 @@ export function springEasing(
     }
   }
   points.push(1);
-  return {
-    easing: `linear(${points.map((p) => Number(p.toFixed(4))).join(", ")})`,
-    duration: Math.round(t * 1000),
-  };
+  return points;
+}
+
+/** A CSS cubic-bezier easing as progress every 1/60 s over `duration` ms. */
+export function bezierProgress(
+  [x1, y1, x2, y2]: [number, number, number, number],
+  duration: number,
+): number[] {
+  const at = (a: number, b: number, t: number) =>
+    3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  const frames = Math.max(1, Math.round((duration * 60) / 1000));
+  return Array.from({ length: frames + 1 }, (_, i) => {
+    const x = i / frames;
+    // Solve the curve's x for t by bisection, then read its y.
+    let lo = 0;
+    let hi = 1;
+    for (let k = 0; k < 24; k++) {
+      const mid = (lo + hi) / 2;
+      if (at(x1, x2, mid) < x) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return at(y1, y2, (lo + hi) / 2);
+  });
 }
 
 /** One tracker for the component's lifetime, built once rather than on

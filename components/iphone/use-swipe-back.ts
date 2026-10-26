@@ -1,5 +1,6 @@
-import { animate, type MotionValue } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import { useRef } from "react";
+import { halt, springTo } from "./compositor-spring";
 import { clamp, rubberband, SPRING_PUSH } from "./motion";
 
 /**
@@ -106,7 +107,7 @@ export function useSwipeBack(
     if ((nav.get() < 0.65 && vx > -0.1) || vx > 0.15) {
       onBack(velocity);
     } else {
-      animate(nav, 1, { ...SPRING_PUSH, velocity });
+      springTo(nav, { to: 1, transition: SPRING_PUSH, velocity });
     }
   };
 
@@ -115,13 +116,14 @@ export function useSwipeBack(
       if (swipe.current || !swipeable(event)) {
         return;
       }
-      nav.stop();
+      // Catch a slide in flight, where it is on screen.
+      const caught = halt(nav);
       swipe.current = {
         id: event.pointerId,
         x: event.clientX,
         y: event.clientY,
         width: event.currentTarget.getBoundingClientRect().width || 1,
-        base: nav.get(),
+        base: caught,
         active: false,
         samples: [{ x: event.clientX, t: event.timeStamp }],
       };

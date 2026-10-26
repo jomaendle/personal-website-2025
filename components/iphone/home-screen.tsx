@@ -29,6 +29,10 @@ interface HomeScreenProps {
   /** The grid's wrapper, which leans in as an app opens over it (moved by
    * the launch scene, apart from the unlock's zoom on the grid itself). */
   zoomRef: (el: HTMLDivElement | null) => void;
+  /** The grid and the dock, which the unlock's spring moves on the
+   * compositor (compositor-spring). */
+  gridRef: React.RefObject<HTMLElement | null>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
   gridOpacity: MotionValue<number>;
   bottomY: MotionValue<number>;
   bottomOpacity: MotionValue<number>;
@@ -51,6 +55,8 @@ export function HomeScreen({
   onOpen,
   scale,
   zoomRef,
+  gridRef,
+  bottomRef,
   gridOpacity,
   bottomY,
   bottomOpacity,
@@ -172,6 +178,7 @@ export function HomeScreen({
     >
       <div ref={zoomRef} className={styles.homeZoom}>
         <m.nav
+          ref={gridRef}
           className={styles.homeGrid}
           style={{ opacity: gridOpacity, scale }}
           aria-label="Apps"
@@ -264,6 +271,7 @@ export function HomeScreen({
       </div>
 
       <m.div
+        ref={bottomRef}
         className={styles.homeBottom}
         style={{ y: bottomY, opacity: bottomOpacity }}
       >

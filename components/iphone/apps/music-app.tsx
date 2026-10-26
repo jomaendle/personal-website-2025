@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  animate,
-  type MotionValue,
-  m,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
+import { type MotionValue, m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -21,6 +14,7 @@ import {
 } from "@/lib/state/car-kids";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
+import { springTo } from "../compositor-spring";
 import {
   BackChevron,
   BackwardGlyph,
@@ -34,6 +28,7 @@ import styles from "../iphone.module.css";
 import { FADE, rubberband, SPRING_PUSH, useVelocityTracker } from "../motion";
 import { useMusic, useMusicControls, useMusicTime } from "../music/player";
 import { useLatest } from "../use-latest";
+import { usePushStack } from "../use-push-stack";
 import { useSwipeBack } from "../use-swipe-back";
 
 const YEARS = ALBUMS.map((album) => album.year);
@@ -88,13 +83,8 @@ export default function MusicApp({ launch }: AppProps) {
   const popping = useRef(false);
   const sheetRef = useLatest({ nowPlaying, album });
 
-  const nav = useMotionValue(0);
-  const rootX = useTransform(nav, (n) => (reduced ? "0%" : `${-30 * n}%`));
-  const rootDim = useTransform(nav, [0, 1], [0, 0.35]);
-  const albumX = useTransform(nav, (n) =>
-    reduced ? "0%" : `${(1 - n) * 100}%`,
-  );
-  const albumOpacity = useTransform(nav, (n) => (reduced ? n : 1));
+  const stack = usePushStack(0);
+  const { nav } = stack;
 
   /** What opened the album and the sheet, for focus to return to. */
   const albumOpener = useRef<HTMLElement | null>(null);
@@ -122,7 +112,12 @@ export default function MusicApp({ launch }: AppProps) {
     albumOpener.current = document.activeElement as HTMLElement | null;
     popping.current = false;
     setAlbum(next);
-    animate(nav, 1, reduced ? FADE : SPRING_PUSH);
+    // On the next frame, once the album has mounted to be slid in.
+    requestAnimationFrame(() => {
+      if (!popping.current) {
+        springTo(nav, { to: 1, transition: reduced ? FADE : SPRING_PUSH });
+      }
+    });
   };
 
   const pop = (velocity = 0) => {
@@ -130,7 +125,16 @@ export default function MusicApp({ launch }: AppProps) {
       return;
     }
     popping.current = true;
-    animate(nav, 0, reduced ? FADE : { ...SPRING_PUSH, velocity }).then(() => {
+    springTo(nav, {
+      to: 0,
+      transition: reduced ? FADE : SPRING_PUSH,
+      velocity,
+    }).then((completed) => {
+      if (popping.current && !completed) {
+        // Caught by a finger on its way out: the finger decides again.
+        popping.current = false;
+        return;
+      }
       if (popping.current) {
         popping.current = false;
         flushSync(() => setAlbum(null));
@@ -166,22 +170,25 @@ export default function MusicApp({ launch }: AppProps) {
   return (
     <div className={styles.music}>
       <m.div
+        ref={stack.backRef}
         className={styles.navLayer}
-        style={{ x: rootX }}
+        style={{ x: stack.backX }}
         inert={album !== null || nowPlaying}
       >
         <ArtistPage onOpenAlbum={push} />
         <m.div
+          ref={stack.dimRef}
           className={styles.navDim}
-          style={{ opacity: rootDim }}
+          style={{ opacity: stack.dim }}
           aria-hidden
         />
       </m.div>
 
       {album ? (
         <m.div
+          ref={stack.frontRef}
           className={cn(styles.navLayer, styles.navTop)}
-          style={{ x: albumX, opacity: albumOpacity }}
+          style={{ x: stack.frontX, opacity: stack.frontOpacity }}
           inert={nowPlaying}
         >
           <AlbumPage album={album} nav={nav} onBack={pop} />

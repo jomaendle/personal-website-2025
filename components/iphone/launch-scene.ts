@@ -56,7 +56,7 @@ const KEYS: Key[] = ["a", "p", "dx", "dy", "k"];
 
 /** What the scene reads of a framer-motion transition (motion.ts): a
  * spring's visual duration and bounce, or a tween's duration in seconds. */
-interface SceneTransition {
+export interface SceneTransition {
   type?: string;
   visualDuration?: number;
   bounce?: number;
@@ -76,7 +76,7 @@ type Motion =
   | { kind: "tween"; t0: number; from: number; to: number; duration: number };
 
 /** Simulation step, and keyframe spacing: 60 per second. */
-const STEP = 1000 / 60;
+export const STEP = 1000 / 60;
 /** At most this long, whatever the springs do. */
 const LONGEST = 2500;
 /** Rest thresholds, per value: within this much, moving this slowly (per
@@ -103,7 +103,7 @@ function springConstants({
 
 /** A spring from `from` to `to` starting at `velocity` (per second),
  * sampled every STEP until it rests. */
-function simulate({
+export function simulate({
   from,
   to,
   velocity,
@@ -137,7 +137,7 @@ function simulate({
   return samples;
 }
 
-const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
+export const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 
 /** A motion's value `t` ms after it started, and whether it has finished. */
 function valueAt(
@@ -383,53 +383,51 @@ export class LaunchScene {
    */
   animate(targets: Partial<Record<Key, Target>>): Promise<boolean> {
     const now = performance.now();
-    const reduced = this.reduced();
     for (const key of KEYS) {
-      const target = targets[key];
-      const current = this.motions[key];
-      const from = target?.from ?? valueAt(current, now).value;
-      const velocity =
-        target?.velocity ??
-        (target?.from === undefined ? velocityAt(current, now) : 0);
-      const to = target
-        ? target.to
-        : current.kind === "still"
-          ? from
-          : current.to;
-      const transition = target?.transition as SceneTransition | undefined;
-      if (!(target || valueAt(current, now).done === false)) {
-        this.motions[key] = { kind: "still", value: from };
-      } else if (reduced || transition?.type === "tween") {
-        this.motions[key] = {
-          kind: "tween",
-          t0: now,
-          from,
-          to,
-          duration: (transition?.duration ?? 0.2) * 1000,
-        };
-      } else if (target && transition) {
-        this.motions[key] = {
-          kind: "spring",
-          t0: now,
-          to,
-          samples: simulate({
-            from,
-            to,
-            velocity,
-            transition,
-            rest: REST[key],
-          }),
-        };
-      }
-      // A value already moving with no new target keeps its own spring.
+      this.motions[key] = this.next(key, targets[key], now);
     }
     return this.play(now);
   }
 
-  /** Sample every motion from `now` until all rest, and run it. */
-  private play(now: number): Promise<boolean> {
-    const g = this.geometry();
-    const reduced = this.reduced();
+  /** A value's motion from `now`: a new spring (or tween) toward its
+   * target, carrying on from where and how fast it's going; its own motion
+   * if it has no new target and is still moving; or still. */
+  private next(key: Key, target: Target | undefined, now: number): Motion {
+    const current = this.motions[key];
+    const here = valueAt(current, now);
+    if (!target) {
+      return here.done ? { kind: "still", value: here.value } : current;
+    }
+    const from = target.from ?? here.value;
+    const transition = target.transition as SceneTransition;
+    if (this.reduced() || transition.type === "tween") {
+      return {
+        kind: "tween",
+        t0: now,
+        from,
+        to: target.to,
+        duration: (transition.duration ?? 0.2) * 1000,
+      };
+    }
+    const velocity =
+      target.velocity ??
+      (target.from === undefined ? velocityAt(current, now) : 0);
+    return {
+      kind: "spring",
+      t0: now,
+      to: target.to,
+      samples: simulate({
+        from,
+        to: target.to,
+        velocity,
+        transition,
+        rest: REST[key],
+      }),
+    };
+  }
+
+  /** Every motion's state each STEP from `now` until all rest. */
+  private sample(now: number): LaunchState[] {
     const frames: LaunchState[] = [];
     for (let t = now; ; t += STEP) {
       const state = {} as LaunchState;
@@ -441,9 +439,16 @@ export class LaunchScene {
       }
       frames.push(state);
       if (done || t - now > LONGEST) {
-        break;
+        return frames;
       }
     }
+  }
+
+  /** Sample every motion from `now` until all rest, and run it. */
+  private play(now: number): Promise<boolean> {
+    const g = this.geometry();
+    const reduced = this.reduced();
+    const frames = this.sample(now);
     const previous = this.running;
     const resolvePrevious = this.finish;
     this.finish = null;
@@ -474,6 +479,11 @@ export class LaunchScene {
     // The final pose as the element's own style, under the animation, so
     // it stays put once the animation is dropped.
     this.write(final, undefined, false);
+    return this.whenDone(final, duration);
+  }
+
+  /** Settles once the animations end; false if they're superseded. */
+  private whenDone(final: LaunchState, duration: number): Promise<boolean> {
     return new Promise((resolve) => {
       this.finish = resolve;
       // When the animations themselves end (they run on their own clock,

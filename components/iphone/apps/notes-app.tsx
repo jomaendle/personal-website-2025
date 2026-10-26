@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  animate,
-  m,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import type { NoteSummary } from "@/lib/iphone-notes";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
+import { springTo } from "../compositor-spring";
 import { useIphoneData } from "../data";
 import { Compose, Magnifier } from "../glyphs";
 import styles from "../iphone.module.css";
@@ -19,6 +14,7 @@ import { FADE, SPRING_PUSH } from "../motion";
 import { store } from "../persist";
 import { useKeyboardInset } from "../use-keyboard-inset";
 import { useLatest } from "../use-latest";
+import { usePushStack } from "../use-push-stack";
 import { NoteView, prefetchNote } from "./note-view";
 import { Group, NavBar } from "./ui";
 
@@ -57,13 +53,8 @@ export default function NotesApp({ launch }: AppProps) {
   const [leaving, setLeaving] = useState(false);
 
   /** 0 shows the list, 1 the note. */
-  const nav = useMotionValue(open ? 1 : 0);
-  const listX = useTransform(nav, (n) => (reduced ? "0%" : `${-30 * n}%`));
-  const listDim = useTransform(nav, [0, 1], [0, 0.35]);
-  const noteX = useTransform(nav, (n) =>
-    reduced ? "0%" : `${(1 - n) * 100}%`,
-  );
-  const noteOpacity = useTransform(nav, (n) => (reduced ? n : 1));
+  const stack = usePushStack(open ? 1 : 0);
+  const { nav } = stack;
 
   useEffect(() => {
     // The first note is the likeliest tap: have it ready.
@@ -83,7 +74,7 @@ export default function NotesApp({ launch }: AppProps) {
     // would already be well into the slide.
     requestAnimationFrame(() => {
       if (!popping.current) {
-        animate(nav, 1, reduced ? FADE : SPRING_PUSH);
+        springTo(nav, { to: 1, transition: reduced ? FADE : SPRING_PUSH });
       }
     });
   };
@@ -97,8 +88,19 @@ export default function NotesApp({ launch }: AppProps) {
     popping.current = true;
     setLeaving(true);
     store.set(NOTE_KEY, null);
-    animate(nav, 0, reduced ? FADE : { ...SPRING_PUSH, velocity }).then(() => {
+    springTo(nav, {
+      to: 0,
+      transition: reduced ? FADE : SPRING_PUSH,
+      velocity,
+    }).then((completed) => {
       if (!popping.current) {
+        return;
+      }
+      if (!completed) {
+        // A finger caught the note on its way out: it's the finger's now,
+        // and its let-go decides again.
+        popping.current = false;
+        setLeaving(false);
         return;
       }
       popping.current = false;
@@ -151,7 +153,8 @@ export default function NotesApp({ launch }: AppProps) {
     <div className={styles.notes}>
       <m.div
         className={styles.navLayer}
-        style={{ x: listX }}
+        ref={stack.backRef}
+        style={{ x: stack.backX }}
         inert={open !== null && !leaving}
       >
         <div className={cn(styles.scroll, styles.scrollWithBar)}>
@@ -225,16 +228,18 @@ export default function NotesApp({ launch }: AppProps) {
           </button>
         </div>
         <m.div
+          ref={stack.dimRef}
           className={styles.navDim}
-          style={{ opacity: listDim }}
+          style={{ opacity: stack.dim }}
           aria-hidden
         />
       </m.div>
 
       {open ? (
         <m.div
+          ref={stack.frontRef}
           className={cn(styles.navLayer, styles.navTop)}
-          style={{ x: noteX, opacity: noteOpacity }}
+          style={{ x: stack.frontX, opacity: stack.frontOpacity }}
         >
           <NoteView
             key={open}

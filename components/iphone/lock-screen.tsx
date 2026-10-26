@@ -12,6 +12,7 @@ import { WALLPAPER } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import { AppIcon } from "./app-icons";
 import { APPS, type AppLaunch } from "./apps";
+import { current, halt } from "./compositor-spring";
 import { Camera, Flashlight, Padlock } from "./glyphs";
 import styles from "./iphone.module.css";
 import { rubberband, useVelocityTracker } from "./motion";
@@ -35,6 +36,10 @@ interface LockScreenProps {
   /** Open an app out of `from`: the banner, card or button tapped. */
   onOpenApp: (id: IphoneAppId, launch?: AppLaunch, from?: HTMLElement) => void;
   unlockButtonRef: React.RefObject<HTMLButtonElement | null>;
+  /** The sliding layer and its clock, which the unlock's spring moves on
+   * the compositor (compositor-spring). */
+  rootRef: React.RefObject<HTMLDivElement | null>;
+  faceRef: React.RefObject<HTMLDivElement | null>;
 }
 
 /** Past this much travel a press is a swipe, and no longer a tap. */
@@ -52,6 +57,8 @@ export function LockScreen({
   onSettle,
   onOpenApp,
   unlockButtonRef,
+  rootRef,
+  faceRef,
 }: LockScreenProps) {
   const [torch, setTorch] = useState(false);
   const drag = useRef<{
@@ -76,14 +83,14 @@ export function LockScreen({
       return;
     }
     const { h, scale } = measure();
-    // Catch a spring-back in flight; set() alone doesn't stop it.
-    unlock.stop();
+    // Catch a spring-back in flight, where it is on screen.
+    const caught = halt(unlock);
     drag.current = {
       id: event.pointerId,
       startY: event.clientY,
       h: h * scale,
       active: false,
-      base: Math.max(0, unlock.get()),
+      base: Math.max(0, caught),
     };
     tracker.reset();
     tracker.add(event.clientY, event.timeStamp);
@@ -139,7 +146,7 @@ export function LockScreen({
 
   const onWheel = (event: React.WheelEvent) => {
     // A trackpad or wheel scrolling "up the page" is the desktop swipe.
-    if (locked && event.deltaY > 12 && unlock.get() === 0) {
+    if (locked && event.deltaY > 12 && current(unlock).value === 0) {
       onSettle(1);
     }
   };
@@ -149,6 +156,7 @@ export function LockScreen({
     // a real button (unlock, each notification), so the gesture is never the
     // only way through.
     <m.div
+      ref={rootRef}
       className={styles.lock}
       style={{ y: lockY, opacity: lockOpacity }}
       inert={!locked}
@@ -160,6 +168,7 @@ export function LockScreen({
       onWheel={onWheel}
     >
       <m.div
+        ref={faceRef}
         style={{ opacity: lockFade }}
         className="flex flex-col items-center"
       >

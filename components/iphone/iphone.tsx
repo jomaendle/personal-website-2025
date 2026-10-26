@@ -28,6 +28,7 @@ import { PHOTOS, WALLPAPER } from "@/lib/state/photos";
 import { AppWindow } from "./app-window";
 import { APPS, type AppLaunch, preloadAllApps } from "./apps";
 import { BannerHost } from "./banner";
+import { type Binding, halt, springTo } from "./compositor-spring";
 import { IphoneDataProvider } from "./data";
 import { Battery, Signal, Wifi } from "./glyphs";
 import { HomeScreen } from "./home-screen";
@@ -215,6 +216,55 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
   // ---- Lock and unlock --------------------------------------------------
 
+  // What the unlock moves once a finger lets go, on the compositor: the
+  // same styles the motion values above give each element, value by value.
+  const lockRoot = useRef<HTMLDivElement>(null);
+  const lockFace = useRef<HTMLDivElement>(null);
+  const homeGrid = useRef<HTMLElement>(null);
+  const homeBottom = useRef<HTMLDivElement>(null);
+  const statusTime = useRef<HTMLSpanElement>(null);
+  const wallDim = useRef<HTMLDivElement>(null);
+  const unlockBindings = useCallback((): Binding[] => {
+    const reduced = reducedRef.current;
+    const { h } = geometry.current;
+    const rise = (u: number) => clamp(u * 1.4 - 0.2, 0, 1);
+    return [
+      {
+        el: lockRoot.current,
+        style: (u) => ({
+          transform: `translateY(${reduced ? 0 : -u * h}px)`,
+          opacity: reduced ? clamp(1 - u, 0, 1) : 1,
+        }),
+      },
+      {
+        el: lockFace.current,
+        style: (u) => ({ opacity: reduced ? 1 - u : clamp(1 - u * 1.6, 0, 1) }),
+      },
+      {
+        el: homeGrid.current,
+        style: (u) => ({
+          transform: `scale(${reduced ? 1 : 1 + 0.16 * (1 - u)})`,
+          opacity: rise(u),
+        }),
+      },
+      {
+        el: homeBottom.current,
+        style: (u) => ({
+          transform: `translateY(${reduced ? 0 : (1 - u) * 60}px)`,
+          opacity: reduced ? u : rise(u),
+        }),
+      },
+      {
+        el: statusTime.current,
+        style: (u) => ({ opacity: clamp((u - 0.4) / 0.6, 0, 1) }),
+      },
+      {
+        el: wallDim.current,
+        style: (u) => ({ opacity: 0.14 * clamp(u, 0, 1) }),
+      },
+    ];
+  }, []);
+
   const settleLock = useCallback(
     (to: 0 | 1, velocity = 0, fromKeyboard = false) => {
       const root = document.documentElement;
@@ -246,17 +296,18 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
           }),
         );
       }
-      animate(
-        unlock,
+      springTo(unlock, {
         to,
-        reducedRef.current ? FADE : { ...SPRING_UNLOCK, velocity },
-      ).then(() => {
-        if (to === 1 && !lockedRef.current) {
+        transition: reducedRef.current ? FADE : SPRING_UNLOCK,
+        bindings: unlockBindings(),
+        velocity,
+      }).then((completed) => {
+        if (completed && to === 1 && !lockedRef.current) {
           root.dataset.iphone = "home";
         }
       });
     },
-    [unlock],
+    [unlock, unlockBindings],
   );
 
   // ---- Apps --------------------------------------------------------------
@@ -464,6 +515,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         }
         done();
         store.set(UNLOCKED_KEY, "1");
+        halt(unlock);
         unlock.jump(1);
         setLocked(false);
         document.documentElement.dataset.iphone = "home";
@@ -658,6 +710,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                     setSpotlightLeaving(false);
                     // detail is 0 for Enter or Space, the clicks a keyboard makes.
                     settleLock(0, 0, fromKeyboard);
+                    // At once, under the black.
+                    halt(unlock);
                     unlock.jump(0);
                     setScreenOff(false);
                   },
@@ -691,6 +745,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 className={styles.wallpaper}
               />
               <m.div
+                ref={wallDim}
                 className={styles.dim}
                 style={{ opacity: wallpaperDim }}
                 aria-hidden
@@ -709,6 +764,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 onOpen={openApp}
                 scale={homeScale}
                 zoomRef={(el) => scene.register("homeZoom", el)}
+                gridRef={homeGrid}
+                bottomRef={homeBottom}
                 gridOpacity={gridOpacity}
                 bottomY={bottomY}
                 bottomOpacity={bottomOpacity}
@@ -744,6 +801,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 onSettle={settleLock}
                 onOpenApp={openFromLock}
                 unlockButtonRef={unlockButtonRef}
+                rootRef={lockRoot}
+                faceRef={lockFace}
               />
 
               <div
@@ -786,6 +845,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
               <div className={styles.statusBar} aria-hidden>
                 <m.span
+                  ref={statusTime}
                   className={styles.statusTime}
                   style={{ opacity: statusTimeOpacity }}
                 >
