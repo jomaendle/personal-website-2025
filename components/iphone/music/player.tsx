@@ -22,6 +22,8 @@ interface PlayerState {
   playing: boolean;
   /** Buffering after play was pressed. */
   waiting: boolean;
+  /** The song couldn't be loaded (offline, or the file is gone). */
+  failed: boolean;
 }
 
 interface PlayerControls {
@@ -47,6 +49,7 @@ const EMPTY: PlayerState = {
   index: 0,
   playing: false,
   waiting: false,
+  failed: false,
 };
 
 const StateContext = createContext<PlayerState>(EMPTY);
@@ -97,7 +100,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         el.src = track.src;
         setTime({ time: 0, duration: 0 });
       }
-      setState({ track, queue, index, playing: autoplay, waiting: autoplay });
+      setState({
+        track,
+        queue,
+        index,
+        playing: autoplay,
+        waiting: autoplay,
+        failed: false,
+      });
       store.set(
         PLAYER_KEY,
         JSON.stringify({ queue: queue.map((t) => t.id), index }),
@@ -116,6 +126,11 @@ export function MusicProvider({ children }: { children: ReactNode }) {
           return;
         }
         if (el.paused) {
+          // After a failed load, try the file again.
+          if (stateRef.current.failed) {
+            el.load();
+            setState((s) => ({ ...s, failed: false }));
+          }
           el.play().catch(() => undefined);
         } else {
           el.pause();
@@ -168,7 +183,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       const track = queue[index];
       if (track && audio.current) {
         audio.current.src = track.src;
-        setState({ track, queue, index, playing: false, waiting: false });
+        setState({
+          track,
+          queue,
+          index,
+          playing: false,
+          waiting: false,
+          failed: false,
+        });
       }
     } catch {
       // Unreadable: start with nothing playing.
@@ -220,7 +242,17 @@ export function MusicProvider({ children }: { children: ReactNode }) {
             ref={audio}
             preload="metadata"
             onPlay={() => setState((s) => ({ ...s, playing: true }))}
-            onPlaying={() => setState((s) => ({ ...s, waiting: false }))}
+            onPlaying={() =>
+              setState((s) => ({ ...s, waiting: false, failed: false }))
+            }
+            onError={() =>
+              setState((s) => ({
+                ...s,
+                playing: false,
+                waiting: false,
+                failed: true,
+              }))
+            }
             onWaiting={() => setState((s) => ({ ...s, waiting: true }))}
             onPause={() =>
               setState((s) => ({ ...s, playing: false, waiting: false }))

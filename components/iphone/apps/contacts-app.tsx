@@ -83,7 +83,14 @@ export default function ContactsApp(_: AppProps) {
           <Row
             key={`${job.company}-${job.role}`}
             title={job.company}
-            detail={`${job.role} · ${job.startDate} – ${job.endDate}`}
+            // Role and dates on their own lines: dates are never cut off.
+            detail={
+              <span className={styles.rowDetailWrap}>
+                {job.role}
+                <br />
+                {job.startDate} – {job.endDate}
+              </span>
+            }
           />
         ))}
       </Group>

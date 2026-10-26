@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { CAR_KIDS } from "@/lib/state/car-kids";
 import { cn } from "@/lib/utils";
-import { BackwardGlyph, ForwardGlyph, PauseGlyph, PlayGlyph } from "../glyphs";
+import { BackwardGlyph, ForwardGlyph, PlayPauseGlyph } from "../glyphs";
 import styles from "../iphone.module.css";
 import { useMusic, useMusicControls, useMusicTime } from "./player";
 
@@ -18,7 +18,7 @@ export function LockNowPlaying({
   /** Opens Music out of the card's cover. */
   onOpen: (from: HTMLElement) => void;
 }) {
-  const { track, playing } = useMusic();
+  const { track, playing, queue, index } = useMusic();
   const { toggle, next, previous } = useMusicControls();
   if (!track) {
     return null;
@@ -55,13 +55,14 @@ export function LockNowPlaying({
           onClick={toggle}
           aria-label={playing ? "Pause" : "Play"}
         >
-          {playing ? (
-            <PauseGlyph width={30} height={30} />
-          ) : (
-            <PlayGlyph width={30} height={30} />
-          )}
+          <PlayPauseGlyph playing={playing} size={30} />
         </button>
-        <button type="button" onClick={next} aria-label="Next song">
+        <button
+          type="button"
+          onClick={next}
+          disabled={index + 1 >= queue.length}
+          aria-label="Next song"
+        >
           <ForwardGlyph width={30} height={22} />
         </button>
       </div>
@@ -89,11 +90,26 @@ function LockProgress() {
  * live activity: the artwork on the left, a moving waveform on the right.
  * Only drawn in the desktop frame; on a phone the real island is above.
  */
-export function DynamicIsland() {
+export function DynamicIsland({
+  onOpen,
+}: {
+  /** Opens Now Playing out of the island, while a song plays. */
+  onOpen: (from: HTMLElement) => void;
+}) {
   const { track, playing } = useMusic();
   const live = Boolean(track && playing);
   return (
-    <div className={cn(styles.island, live && styles.islandLive)} aria-hidden>
+    // A pointer shortcut: the Music app and the lock screen card are the
+    // accessible way in.
+    <div
+      className={cn(styles.island, live && styles.islandLive)}
+      aria-hidden
+      onClick={(event) => {
+        if (live) {
+          onOpen(event.currentTarget);
+        }
+      }}
+    >
       {track ? (
         <>
           <span className={styles.islandCover}>

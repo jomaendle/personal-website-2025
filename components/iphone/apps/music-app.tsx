@@ -25,8 +25,8 @@ import {
   BackChevron,
   BackwardGlyph,
   ForwardGlyph,
-  PauseGlyph,
   PlayGlyph,
+  PlayPauseGlyph,
   ShuffleGlyph,
   SpeakerGlyph,
 } from "../glyphs";
@@ -241,11 +241,7 @@ function ArtistPage({ onOpenAlbum }: { onOpenAlbum: (album: Album) => void }) {
             playing ? `Pause ${CAR_KIDS.name}` : `Play ${CAR_KIDS.name}`
           }
         >
-          {playing ? (
-            <PauseGlyph width={22} height={22} />
-          ) : (
-            <PlayGlyph width={22} height={22} />
-          )}
+          <PlayPauseGlyph playing={playing} size={22} />
         </button>
       </header>
 
@@ -387,7 +383,14 @@ function AlbumPage({
           <h1 ref={titleRef} className={styles.albumTitle} tabIndex={-1}>
             {album.title}
           </h1>
-          <p className={styles.albumArtist}>{CAR_KIDS.name}</p>
+          {/* The artist's name goes back to the artist, as in Music. */}
+          <button
+            type="button"
+            className={styles.albumArtist}
+            onClick={() => onBack()}
+          >
+            {CAR_KIDS.name}
+          </button>
           <p className={styles.albumMeta}>
             {kind(album)} · {album.year}
           </p>
@@ -463,7 +466,7 @@ function MiniPlayer({
   onOpen: () => void;
   openRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  const { track, playing } = useMusic();
+  const { track, playing, queue, index } = useMusic();
   const { toggle, next } = useMusicControls();
   const { time, duration } = useMusicTime();
   if (!track) {
@@ -499,16 +502,13 @@ function MiniPlayer({
           onClick={toggle}
           aria-label={playing ? "Pause" : "Play"}
         >
-          {playing ? (
-            <PauseGlyph width={20} height={20} />
-          ) : (
-            <PlayGlyph width={20} height={20} />
-          )}
+          <PlayPauseGlyph playing={playing} size={20} />
         </button>
         <button
           type="button"
           className={styles.miniPlayerButton}
           onClick={next}
+          disabled={index + 1 >= queue.length}
           aria-label="Next song"
         >
           <ForwardGlyph width={24} height={18} />
@@ -533,7 +533,7 @@ function MiniPlayer({
  * chevron or press Escape to close it.
  */
 function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { track, playing, waiting, queue, index } = useMusic();
+  const { track, playing, waiting, failed, queue, index } = useMusic();
   const { toggle, next, previous } = useMusicControls();
   const sheet = useRef<HTMLDivElement>(null);
   const drag = useRef<{
@@ -649,6 +649,11 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         <div className={styles.nowPlayingMeta}>
           <h2 className={styles.nowPlayingTitle}>{track.title}</h2>
           <p className={styles.nowPlayingArtist}>{CAR_KIDS.name}</p>
+          {failed ? (
+            <p className={styles.nowPlayingError} role="status">
+              Couldn’t load this song. Press play to try again.
+            </p>
+          ) : null}
         </div>
 
         <Scrubber />
@@ -669,11 +674,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
             aria-label={playing ? "Pause" : "Play"}
             aria-busy={waiting}
           >
-            {playing ? (
-              <PauseGlyph width={44} height={44} />
-            ) : (
-              <PlayGlyph width={44} height={44} />
-            )}
+            <PlayPauseGlyph playing={playing} size={44} />
           </button>
           <button
             type="button"
@@ -735,7 +736,8 @@ function Scrubber() {
       />
       <div className={styles.seekTimes} aria-hidden>
         <span>{clock(shown)}</span>
-        <span>-{clock(duration - shown)}</span>
+        {/* Not known yet (loading, or failed): dashes, not a false 0:00. */}
+        <span>{duration ? `-${clock(duration - shown)}` : "--:--"}</span>
       </div>
     </div>
   );

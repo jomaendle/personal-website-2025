@@ -948,7 +948,21 @@ function ViewerTools({
         <button
           type="button"
           className={cn(favorite && styles.toolFavorite)}
-          onClick={onFavorite}
+          onClick={(event) => {
+            // Made a favourite, the heart gives a little bounce, as the
+            // symbol does on iOS; taking it away just empties it.
+            if (!favorite) {
+              const heart = event.currentTarget.querySelector("svg");
+              for (const running of heart?.getAnimations() ?? []) {
+                running.cancel();
+              }
+              heart?.animate([{ scale: 1 }, { scale: 1.25 }, { scale: 1 }], {
+                duration: 320,
+                easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+              });
+            }
+            onFavorite();
+          }}
           aria-label="Favorite"
           aria-pressed={favorite}
         >

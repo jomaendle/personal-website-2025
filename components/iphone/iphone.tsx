@@ -138,6 +138,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const [spotlight, setSpotlight] = useState(false);
   /** Spotlight fading out: still drawn, no longer taking input. */
   const [spotlightLeaving, setSpotlightLeaving] = useState(false);
+  const spotlightLeavingRef = useRef(spotlightLeaving);
+  spotlightLeavingRef.current = spotlightLeaving;
+  /** The side button: the display goes dark for a moment while the phone
+   * locks under it, as iOS turns the screen off rather than sliding. */
+  const [screenOff, setScreenOff] = useState(false);
   /** A fresh Spotlight each time, even reopened mid-fade: a new query and
    * its own focus, not the fading one's. */
   const [spotlightKey, setSpotlightKey] = useState(0);
@@ -570,8 +575,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   const openSpotlight = useCallback((focus: boolean) => {
     // Flushed and focused inside the tap, or iOS won't raise the keyboard.
     flushSync(() => {
+      // Reopened while still fading out: carry on from where it is rather
+      // than start a fresh one from nothing.
+      if (!spotlightLeavingRef.current) {
+        setSpotlightKey((key) => key + 1);
+      }
       setSpotlightLeaving(false);
-      setSpotlightKey((key) => key + 1);
       setSpotlight(true);
     });
     if (focus) {
@@ -690,24 +699,35 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               className={styles.sideButton}
               aria-label={IPHONE_COPY.lockLabel}
               onClick={(event) => {
-                if (appRef.current) {
-                  closing.current = false;
-                  // jump() stops an opening spring; set() would let it finish,
-                  // leaving the dim layer over the lock screen.
-                  open.jump(0);
-                  pull.jump(0);
-                  dragX.jump(0);
-                  dragY.jump(0);
-                  setApp(null);
-                  setClosingApp(false);
-                  hideSource(null);
-                  store.set(APP_KEY, null);
-                }
-                // Locking dismisses Spotlight, as on iOS.
-                setSpotlight(false);
-                setSpotlightLeaving(false);
-                // detail is 0 for Enter or Space, the clicks a keyboard makes.
-                settleLock(0, 0, event.detail === 0);
+                const fromKeyboard = event.detail === 0;
+                setScreenOff(true);
+                // Under the black: put everything away and lock, then let
+                // the lock screen come up.
+                setTimeout(
+                  () => {
+                    if (appRef.current) {
+                      closing.current = false;
+                      // jump() stops an opening spring; set() would let it finish,
+                      // leaving the dim layer over the lock screen.
+                      open.jump(0);
+                      pull.jump(0);
+                      dragX.jump(0);
+                      dragY.jump(0);
+                      setApp(null);
+                      setClosingApp(false);
+                      hideSource(null);
+                      store.set(APP_KEY, null);
+                    }
+                    // Locking dismisses Spotlight, as on iOS.
+                    setSpotlight(false);
+                    setSpotlightLeaving(false);
+                    // detail is 0 for Enter or Space, the clicks a keyboard makes.
+                    settleLock(0, 0, fromKeyboard);
+                    unlock.jump(0);
+                    setScreenOff(false);
+                  },
+                  reducedRef.current ? 0 : 140,
+                );
               }}
             />
 
@@ -721,6 +741,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 spotlight ? "open" : spotlightLeaving ? "leaving" : undefined
               }
             >
+              <div
+                className={styles.screenOff}
+                data-on={screenOff || undefined}
+                aria-hidden
+              />
               <Image
                 src={WALLPAPER}
                 alt=""
@@ -823,7 +848,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   <Battery />
                 </span>
               </div>
-              <DynamicIsland />
+              <DynamicIsland
+                onOpen={(from) => {
+                  if (!(appRef.current || lockedRef.current)) {
+                    openApp("music", { from, launch: { nowPlaying: true } });
+                  }
+                }}
+              />
             </main>
           </div>
         </div>

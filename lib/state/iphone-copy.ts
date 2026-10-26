@@ -66,6 +66,8 @@ export const MAIL_ALERTS = {
     title: "Cannot Send Mail",
     offline: "You seem to be offline. Your message is still here.",
     fallback: "Something went wrong on my end. Your message is still here.",
+    rateLimited:
+      "You’ve sent a few already. Try again in a minute; your message is still here.",
   },
 } as const;
 

@@ -21,6 +21,8 @@ import { useSwipeBack } from "../use-swipe-back";
 // ---- Fetching ---------------------------------------------------------------
 
 const cache = new Map<string, Promise<NoteDocument | null>>();
+/** Notes whose body has arrived: they open with it already there. */
+const loaded = new Set<string>();
 
 /** Each note is a small static JSON file built from the article's MDX. One
  * request per note per visit, started as early as a finger lands on a row. */
@@ -29,6 +31,12 @@ export function prefetchNote(slug: string): Promise<NoteDocument | null> {
   if (!pending) {
     pending = fetch(`/iphone/notes/${slug}`)
       .then((res) => (res.ok ? (res.json() as Promise<NoteDocument>) : null))
+      .then((note) => {
+        if (note) {
+          loaded.add(slug);
+        }
+        return note;
+      })
       .catch(() => {
         // Let the next open try again rather than cache the failure.
         cache.delete(slug);
@@ -103,6 +111,7 @@ export function NoteView({
   onOpenNote,
 }: NoteViewProps) {
   const { note, failed } = useNote(slug);
+  const arrivedLoaded = useRef(loaded.has(slug));
   const titleRef = useRef<HTMLHeadingElement>(null);
   const { share: shareLink, hud } = useShare();
   const swipeBack = useSwipeBack(nav, onBack);
@@ -132,7 +141,15 @@ export function NoteView({
             {title}
           </h1>
           {note ? (
-            <Blocks blocks={note.blocks} slug={slug} onOpenNote={onOpenNote} />
+            // A body that arrives after the note opened fades up into place;
+            // one already loaded is simply there.
+            <div className={cn(!arrivedLoaded.current && styles.noteArrive)}>
+              <Blocks
+                blocks={note.blocks}
+                slug={slug}
+                onOpenNote={onOpenNote}
+              />
+            </div>
           ) : null}
           {failed ? (
             <p className={styles.noteFailed}>

@@ -1,6 +1,6 @@
 import { animate, type MotionValue } from "framer-motion";
 import { useRef } from "react";
-import { clamp, SPRING_PUSH } from "./motion";
+import { clamp, rubberband, SPRING_PUSH } from "./motion";
 
 /**
  * The interactive back swipe of a navigation stack. iOS 26 takes it from
@@ -75,7 +75,10 @@ function follow(
     ...s.samples.slice(-3),
     { x: event.clientX, t: event.timeStamp },
   ];
-  nav.set(clamp(s.base - dx / s.width, 0, 1));
+  // Past the start (dragging the note further left), it gives like a
+  // rubber band instead of stopping dead.
+  const next = s.base - dx / s.width;
+  nav.set(next > 1 ? 1 + rubberband(next - 1, 1) : clamp(next, 0, 1));
   return s;
 }
 
@@ -98,7 +101,7 @@ export function useSwipeBack(
     // px/ms rightwards to stack units per second.
     const velocity = (-vx * 1000) / s.width;
     // A flick decides by its direction; failing one, how far it went.
-    if ((nav.get() < 0.65 && vx > -0.1) || vx > 0.3) {
+    if ((nav.get() < 0.65 && vx > -0.1) || vx > 0.15) {
       onBack(velocity);
     } else {
       animate(nav, 1, { ...SPRING_PUSH, velocity });

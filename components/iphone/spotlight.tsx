@@ -105,6 +105,7 @@ export function Spotlight({
   const keyboard = useKeyboardInset();
   const controls = useMusicControls();
   const rootRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Opened by a swipe, nothing has focus (the home screen went inert under
   // it): take it on the dialog itself, without raising the keyboard.
@@ -175,6 +176,7 @@ export function Spotlight({
       />
 
       <div
+        ref={resultsRef}
         className={styles.spotlightResults}
         style={keyboard ? { paddingBottom: keyboard + 90 } : undefined}
       >
@@ -317,8 +319,17 @@ export function Spotlight({
             placeholder="Search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              // Return opens the top hit, as in Spotlight.
+              if (event.key === "Enter" && q) {
+                event.preventDefault();
+                resultsRef.current
+                  ?.querySelector<HTMLElement>("button, a[href]")
+                  ?.click();
+              }
+            }}
             autoComplete="off"
-            enterKeyHint="search"
+            enterKeyHint="go"
           />
         </label>
         <button

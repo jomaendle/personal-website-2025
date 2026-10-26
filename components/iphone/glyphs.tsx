@@ -3,6 +3,7 @@
  * accessible name.
  */
 import type { SVGProps } from "react";
+import styles from "./iphone.module.css";
 
 type GlyphProps = SVGProps<SVGSVGElement>;
 
@@ -535,4 +536,22 @@ export const PlusGlyph = (props: GlyphProps) => (
   >
     <path d="M12 5 V19 M5 12 H19" />
   </svg>
+);
+
+/**
+ * Play and pause in one place, swapped the way SF Symbols' replace effect
+ * does: the outgoing symbol shrinks and blurs away as the other grows in.
+ * Both stay mounted, so a quick double tap reverses mid-swap.
+ */
+export const PlayPauseGlyph = ({
+  playing,
+  size,
+}: {
+  playing: boolean;
+  size: number;
+}) => (
+  <span className={styles.symbolSwap} data-playing={playing || undefined}>
+    <PlayGlyph width={size} height={size} />
+    <PauseGlyph width={size} height={size} />
+  </span>
 );

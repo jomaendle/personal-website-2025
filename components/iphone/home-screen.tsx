@@ -192,7 +192,18 @@ export function HomeScreen({
               </button>
             ))}
           </div>
-          <span className={styles.cellLabel}>Notes</span>
+          {/* The label opens Notes too, as the Photos widget's does. The
+              header is the keyboard's and screen reader's way in, so this
+              stays out of both. */}
+          <button
+            type="button"
+            className={cn(styles.cellLabel, styles.cellLabelButton)}
+            onClick={() => openNotes()}
+            tabIndex={-1}
+            aria-hidden
+          >
+            Notes
+          </button>
         </div>
 
         {GRID_APPS.map((id) => appButton(id, true))}

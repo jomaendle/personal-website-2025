@@ -253,6 +253,24 @@
   pointer-events: none;
 }
 
+/* The display going dark under the side button: quickly off, then the
+   lock screen fades up out of the black. */
+.screenOff {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease-out;
+}
+
+.screenOff[data-on] {
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: 0.12s;
+}
+
 .dim {
   position: absolute;
   inset: 0;
@@ -305,6 +323,11 @@
 
 :global(html[data-iphone="home"]) .lock {
   visibility: hidden;
+}
+
+/* Nothing on a hidden lock screen keeps animating. */
+:global(html[data-iphone="home"]) .lock * {
+  animation-play-state: paused;
 }
 
 .lockGlyph {
@@ -504,7 +527,7 @@
   animation: wake-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) 0.35s both;
 }
 
-:global(html:not([data-iphone])) .lockFooter {
+:global(html:not([data-iphone])) :is(.lockFooter, .lock > .homeIndicator) {
   animation: wake-fade 0.6s ease-out 0.6s both;
 }
 
@@ -1024,6 +1047,7 @@
 }
 
 .islandLive {
+  cursor: pointer;
   width: 196px;
 }
 
@@ -1299,8 +1323,39 @@
 }
 
 .albumArtist {
+  background: none;
+  font: inherit;
   font-size: 20px;
   color: var(--tint);
+  cursor: pointer;
+  transition: opacity 0.16s ease-out;
+}
+
+.albumArtist:active {
+  opacity: 0.6;
+}
+
+.nowPlayingError {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.7);
+}
+
+/* Buffering: the play button breathes until the song starts. */
+.transportPlay[aria-busy="true"] {
+  animation: buffering 1s ease-in-out infinite alternate;
+}
+
+@keyframes buffering {
+  to {
+    opacity: 0.45;
+  }
+}
+
+.miniPlayerButton:disabled,
+.lockPlayerControls button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .albumMeta {
@@ -1410,9 +1465,19 @@
   animation-play-state: paused;
 }
 
+/* Rises in from the bottom edge when a song starts, as iOS 26's does. */
 .miniPlayerBar {
   z-index: 5;
-  transition: opacity 0.15s ease-out;
+  transition:
+    opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    translate 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .miniPlayerBar {
+    opacity: 0;
+    translate: 0 16px;
+  }
 }
 
 .miniPlayerHidden {
@@ -2028,6 +2093,10 @@ button.row:active {
   color: var(--label-2);
 }
 
+.rowDetailWrap {
+  white-space: normal;
+}
+
 .rowValue {
   flex: 0 1 auto;
   min-width: 0;
@@ -2124,6 +2193,17 @@ button.row:active {
   text-align: center;
   font-size: 13px;
   color: var(--label-2);
+}
+
+.noteArrive {
+  animation: note-arrive 0.24s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes note-arrive {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
 }
 
 .noteViews {
@@ -4047,7 +4127,7 @@ ol.noteList {
   /* Reduced motion is gentler, not a cut: the global rule zeroes durations
      but keeps delays, which would hold these invisible, then pop them in.
      A short cross-fade instead, and sheets fade rather than slide. */
-  :global(html:not([data-iphone])) :is(.lock > :first-child, .notification, .lockPlayer, .lockFooter) {
+  :global(html:not([data-iphone])) :is(.lock > :first-child, .notification, .lockPlayer, .lockFooter, .lock > .homeIndicator) {
     animation: wake-fade 0.25s ease-out both !important;
     animation-delay: 0s !important;
   }
@@ -4070,6 +4150,38 @@ ol.noteList {
   .mailboxBehind {
     transform: none;
   }
+}
+
+.cellLabelButton {
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* SF Symbols' replace effect, for play and pause. */
+.symbolSwap {
+  display: grid;
+}
+
+.symbolSwap > svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.16s cubic-bezier(0.23, 1, 0.32, 1),
+    scale 0.16s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.symbolSwap > svg:last-child,
+.symbolSwap[data-playing] > svg:first-child {
+  opacity: 0;
+  scale: 0.6;
+  filter: blur(2px);
+}
+
+.symbolSwap[data-playing] > svg:last-child {
+  opacity: 1;
+  scale: 1;
+  filter: none;
 }
 
 /* ---- Press and hover ------------------------------------------------
@@ -4172,12 +4284,34 @@ button.row:active {
 }
 
 /* Long text never reflows the chrome: one line, ending in an ellipsis. */
+.mailRow {
+  transition: opacity 0.25s ease-out;
+}
+
 .sheetTitle,
 .mailRowSubject {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* A phone turned sideways: the iPhone's home screen and lock screen don't
+   rotate, and this one doesn't fit, so it asks to be turned back. */
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  .root::after {
+    content: "Turn your phone upright to use it";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #000;
+    color: var(--label-2);
+    font: 600 17px/1.3 var(--ios-font);
+    text-align: center;
+  }
 }
 
 /* ---- Accessibility: Reduce Transparency, Increase Contrast -------------

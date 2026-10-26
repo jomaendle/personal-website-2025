@@ -65,7 +65,6 @@ export default function SettingsApp(_: AppProps) {
             </Tile>
           }
           title="Email"
-          value={SITE.contact.email}
           chevron
         />
         <Row

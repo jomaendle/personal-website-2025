@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { SITE } from "@/lib/config/site";
 import { IPHONE_COPY, MAIL_ALERTS } from "@/lib/state/iphone-copy";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
 import { ArrowUp, Close, Compose } from "../glyphs";
 import styles from "../iphone.module.css";
+import { store } from "../persist";
 import { useKeyboardInset } from "../use-keyboard-inset";
 import { IosAlert } from "./alert";
 
@@ -64,15 +65,36 @@ function findProblem(name: string, email: string, topic: string): Alert | null {
  * the message lands in the list. If it fails, the sheet comes back up with
  * the draft intact.
  */
+const DRAFT_KEY = "iphone:mail";
+
+const readDraft = () => {
+  const empty = { name: "", email: "", subject: "", body: "" };
+  try {
+    return { ...empty, ...JSON.parse(store.get(DRAFT_KEY) ?? "{}") };
+  } catch {
+    return empty;
+  }
+};
+
 export default function MailApp({ close }: AppProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  // The draft outlives the app, as Mail keeps an unsent message: closed
+  // mid-way (or by accident), it's all still here when Mail opens again.
+  const [draft] = useState(readDraft);
+  const [name, setName] = useState(draft.name);
+  const [email, setEmail] = useState(draft.email);
+  const [subject, setSubject] = useState(draft.subject);
+  const [body, setBody] = useState(draft.body);
+  /** The message being sent: its row keeps this id when it lands in Sent,
+   * so it is one row that finishes sending, not one swapped for another. */
+  const [outgoingId, setOutgoingId] = useState(0);
   const [phase, setPhase] = useState<Phase>("composing");
   const [alert, setAlert] = useState<Alert | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
   const [sent, setSent] = useState<SentMessage[]>([]);
+
+  useEffect(() => {
+    store.set(DRAFT_KEY, JSON.stringify({ name, email, subject, body }));
+  }, [name, email, subject, body]);
 
   const sendRef = useRef<HTMLButtonElement>(null);
   const keyboard = useKeyboardInset();
@@ -102,6 +124,8 @@ export default function MailApp({ close }: AppProps) {
       return;
     }
     (document.activeElement as HTMLElement | null)?.blur();
+    const id = Date.now();
+    setOutgoingId(id);
     setPhase("sending");
     try {
       const res = await fetch("/api/contact", {
@@ -111,7 +135,7 @@ export default function MailApp({ close }: AppProps) {
       });
       if (res.ok) {
         setSent((list) => [
-          { id: Date.now(), subject: subject.trim(), body: body.trim() },
+          { id, subject: subject.trim(), body: body.trim() },
           ...list,
         ]);
         setSubject("");
@@ -123,7 +147,10 @@ export default function MailApp({ close }: AppProps) {
       setPhase("composing");
       setAlert({
         title: MAIL_ALERTS.failed.title,
-        message: data.details || MAIL_ALERTS.failed.fallback,
+        message:
+          res.status === 429
+            ? MAIL_ALERTS.failed.rateLimited
+            : data.details || MAIL_ALERTS.failed.fallback,
       });
     } catch {
       setPhase("composing");
@@ -151,7 +178,11 @@ export default function MailApp({ close }: AppProps) {
       <SentMailbox
         phase={phase}
         sent={sent}
-        outgoing={{ subject: subject.trim(), body: body.trim() }}
+        outgoing={{
+          id: outgoingId,
+          subject: subject.trim(),
+          body: body.trim(),
+        }}
         onCompose={() => {
           // Focus inside the tap, or iOS won't raise the keyboard; flush
           // first so the sheet is no longer inert.
@@ -309,7 +340,7 @@ function SentMailbox({
 }: {
   phase: Phase;
   sent: SentMessage[];
-  outgoing: Omit<SentMessage, "id">;
+  outgoing: SentMessage;
   onCompose: () => void;
 }) {
   return (
@@ -327,20 +358,18 @@ function SentMailbox({
           <p className={styles.empty}>No Mail</p>
         ) : (
           <ul className={styles.mailList}>
-            {phase === "sending" ? (
-              <MailRow
-                subject={outgoing.subject}
-                body={outgoing.body}
-                time="Sending"
-                pending
-              />
-            ) : null}
-            {sent.map((message) => (
+            {/* One list, so the sending row and the sent one it becomes are
+                the same element (same key), fading up rather than swapped. */}
+            {[
+              ...(phase === "sending" ? [{ ...outgoing, pending: true }] : []),
+              ...sent.map((message) => ({ ...message, pending: false })),
+            ].map((message) => (
               <MailRow
                 key={message.id}
                 subject={message.subject}
                 body={message.body}
-                time="Now"
+                time={message.pending ? "Sending" : "Now"}
+                pending={message.pending}
               />
             ))}
           </ul>
