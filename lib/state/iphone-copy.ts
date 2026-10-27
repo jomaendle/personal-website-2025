@@ -33,6 +33,9 @@ export const ARTICLE_TITLES = {
   latest: "Latest article",
 } as const;
 
+/** Where the iOS mode lives. /iphone redirects here (next.config.mjs). */
+export const IOS_PATH = "/ios";
+
 export const IPHONE_COPY = {
   metaTitle: "iOS",
   metaDescription:

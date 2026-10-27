@@ -2,6 +2,7 @@ import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/state/blog";
+import { IOS_PATH } from "@/lib/state/iphone-copy";
 
 const baseUrl = "https://www.jomaendle.com";
 
@@ -55,7 +56,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/ios`,
+      url: `${baseUrl}${IOS_PATH}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.6,

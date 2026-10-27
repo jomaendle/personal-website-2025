@@ -21,7 +21,7 @@ const nextConfig = {
   },
   images: {
     formats: ["image/webp", "image/avif"],
-    // Car Kids cover art for the /iphone Music app, from the radio site's
+    // Car Kids cover art for the /ios Music app, from the radio site's
     // Vercel Blob store. Only the covers folder: the songs are streamed as
     // media, never through the optimiser.
     remotePatterns: [
@@ -52,11 +52,11 @@ const nextConfig = {
   generateEtags: true,
   trailingSlash: false,
   async redirects() {
-    // /about folded into the homepage; the iPhone mode became /ios, and
-    // links to /iphone were already shared.
+    // /about folded into the homepage; the iPhone mode became /ios
+    // (IOS_PATH), and links to /iphone were already shared. `:path*` also
+    // matches /iphone itself.
     return [
       { source: "/about", destination: "/", permanent: true },
-      { source: "/iphone", destination: "/ios", permanent: true },
       { source: "/iphone/:path*", destination: "/ios/:path*", permanent: true },
     ];
   },
@@ -78,7 +78,7 @@ const nextConfig = {
       "form-action 'self'",
       "manifest-src 'self'",
       "img-src 'self' data: blob: https:",
-      // The /iphone Music app streams Car Kids songs from the radio site's
+      // The /ios Music app streams Car Kids songs from the radio site's
       // Blob store. Without this, media falls back to default-src and the
       // browser refuses to play them.
       "media-src 'self' https://07jxyxihso69c0vd.public.blob.vercel-storage.com",

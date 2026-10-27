@@ -70,15 +70,7 @@ const SETTINGS = [
   {
     title: "iOS Version",
     detail: "Settings · Back to the website",
-    terms: [
-      "ios",
-      "iphone",
-      "website",
-      "web version",
-      "normal",
-      "classic",
-      "exit",
-    ],
+    terms: ["iphone", "website", "web version", "normal", "classic", "exit"],
     launch: undefined,
   },
 ];
