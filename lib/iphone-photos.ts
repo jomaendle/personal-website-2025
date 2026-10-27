@@ -1,6 +1,6 @@
 /**
  * Server-only: the size on disk of each photo in the library, for the info
- * panel in the /iphone Photos app. Read once when the static page is built.
+ * panel in the /ios Photos app. Read once when the static page is built.
  */
 
 import { statSync } from "node:fs";

@@ -68,7 +68,7 @@ const SETTINGS = [
     launch: { settings: "wallpaper" } as AppLaunch,
   },
   {
-    title: "iPhone Version",
+    title: "iOS Version",
     detail: "Settings · Back to the website",
     terms: ["iphone", "website", "web version", "normal", "classic", "exit"],
     launch: undefined,

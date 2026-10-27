@@ -22,7 +22,7 @@ tags:
 
 # Running spring animations on the compositor, for Safari
 
-The /iphone page's app launch looked smooth in desktop Chrome and ran at
+The /ios page's (then /iphone) app launch looked smooth in desktop Chrome and ran at
 about 25fps on an iPhone, stalling for its first three frames. A screen
 recording settled it: during the zoom the phone only recorded a new frame
 every 30 to 65ms. Static stretches recorded at 60.

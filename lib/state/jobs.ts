@@ -1,5 +1,5 @@
 /** Past and present roles, newest first. Read by the homepage Experience
- * section and by the /iphone page's Contacts card. */
+ * section and by the /ios page's Contacts card. */
 export interface JobPosition {
   company: string;
   role: string;

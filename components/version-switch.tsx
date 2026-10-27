@@ -1,16 +1,17 @@
 import { Link } from "next-view-transitions";
+import { IOS_PATH } from "@/lib/state/iphone-copy";
 
 /**
- * The masthead's switch between the site and its iPhone version: a small
+ * The masthead's switch between the site and its iOS version: a small
  * segmented control in the mono eyebrow style, with the side you're on
- * filled in. On the site it's a link to /iphone; the phone has its own way
+ * filled in. On the site it's a link to IOS_PATH; the phone has its own way
  * back (the jomaendle.com link in its frame).
  */
 export function VersionSwitch() {
   return (
     <Link
-      href="/iphone"
-      aria-label="Open the iPhone version of this site"
+      href={IOS_PATH}
+      aria-label="Open the iOS version of this site"
       // The visual pill is 28px tall; the `after` pseudo-element extends the
       // pointer target to 44px (WCAG 2.5.8), as the theme toggle does.
       className="group relative inline-flex items-center rounded-full border border-border p-0.5 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-[''] hover:border-brand/60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -25,7 +26,7 @@ export function VersionSwitch() {
         aria-hidden="true"
         className="px-2.5 py-1 text-muted-foreground transition-colors group-hover:text-brand"
       >
-        iPhone
+        iOS
       </span>
     </Link>
   );

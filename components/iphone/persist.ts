@@ -11,7 +11,7 @@ export const SEEN_KEY = "iphone:seen";
  * visits). Unset means the default. */
 export const WALLPAPER_KEY = "iphone:wallpaper";
 
-/** Runs before first paint (see app/iphone/page.tsx). Marks the document so
+/** Runs before first paint (see app/ios/page.tsx). Marks the document so
  * the stylesheet can show the home screen straight away on a return visit,
  * instead of flashing the lock screen until hydration. A plain module, not
  * the client component: a server component importing a constant from a

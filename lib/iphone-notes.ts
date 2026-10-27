@@ -1,6 +1,6 @@
 /**
  * The articles as Apple Notes: each post's page.mdx parsed at build time into
- * a small document of note blocks, so the /iphone Notes app can show the
+ * a small document of note blocks, so the /ios Notes app can show the
  * article itself instead of leaving for the blog.
  *
  * Server-only. Runs inside a statically generated route, so the MDX parser

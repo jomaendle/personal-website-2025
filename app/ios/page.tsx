@@ -4,14 +4,14 @@ import { NOW_SCRIPT } from "@/components/iphone/now-script";
 import { PREPAINT_SCRIPT } from "@/components/iphone/persist";
 import { getNoteSummaries } from "@/lib/iphone-notes";
 import { getPhotoBytes } from "@/lib/iphone-photos";
-import { IPHONE_COPY } from "@/lib/state/iphone-copy";
+import { IOS_PATH, IPHONE_COPY } from "@/lib/state/iphone-copy";
 
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: IPHONE_COPY.metaTitle,
   description: IPHONE_COPY.metaDescription,
-  alternates: { canonical: "/iphone" },
+  alternates: { canonical: IOS_PATH },
   // Added to the Home Screen, it opens full-screen with the status bar over
   // the wallpaper, like a real home screen.
   appleWebApp: {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${IPHONE_COPY.metaTitle} | Jo Mändle`,
     description: IPHONE_COPY.metaDescription,
-    url: "https://www.jomaendle.com/iphone",
+    url: `https://www.jomaendle.com${IOS_PATH}`,
     type: "website",
     siteName: "Jo Mändle",
     // The image is the phone itself: opengraph-image.png and twitter-image.png
@@ -39,7 +39,7 @@ export const viewport: Viewport = {
 };
 
 /**
- * Reached from the masthead's Web | iPhone switch, not the site's nav; in
+ * Reached from the masthead's Web | iOS switch, not the site's nav; in
  * the sitemap, with its own share card.
  */
 export default function IphonePage() {

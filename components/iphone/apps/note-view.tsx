@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import type { NoteBlock, NoteDocument, NoteInline } from "@/lib/iphone-notes";
+import { IOS_PATH } from "@/lib/state/iphone-copy";
 import { cn } from "@/lib/utils";
 import { useViewCount } from "@/lib/views";
 import { BackChevron, Share } from "../glyphs";
@@ -29,7 +30,7 @@ const loaded = new Set<string>();
 export function prefetchNote(slug: string): Promise<NoteDocument | null> {
   let pending = cache.get(slug);
   if (!pending) {
-    pending = fetch(`/iphone/notes/${slug}`)
+    pending = fetch(`${IOS_PATH}/notes/${slug}`)
       .then((res) => {
         if (res.ok) {
           return res.json() as Promise<NoteDocument>;

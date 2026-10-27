@@ -480,7 +480,7 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
   { image: photo6554107, file: "Photo_6554107.webp" },
 ];
 
-/** Every photo, for the /iphone Photos app. */
+/** Every photo, for the /ios Photos app. */
 export const PHOTOS: StaticImageData[] = PHOTO_LIBRARY.map((p) => p.image);
 
 /** The homepage pile: the prints it was laid out for, in its order. */
@@ -504,10 +504,10 @@ export const PILE_PHOTOS: StaticImageData[] = [
  * the date Photos shows for a photo that has no capture date of its own. */
 export const PHOTOS_ADDED = "2026-09-13T10:22:02+02:00";
 
-/** The /iphone Photos widget: a surfer against the sunset. */
+/** The /ios Photos widget: a surfer against the sunset. */
 export const FEATURED_PHOTO = dsc00535;
 
-/** The /iphone wallpaper: cherry blossom against a blue spring sky, in
+/** The /ios wallpaper: cherry blossom against a blue spring sky, in
  * Böblingen. Portrait, with sky where the clock sits. */
 export const WALLPAPER = earthLookingUp;
 

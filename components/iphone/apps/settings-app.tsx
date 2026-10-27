@@ -157,7 +157,7 @@ function SettingsRoot({
 }) {
   const router = useTransitionRouter();
   const wallpaper = useWallpaper();
-  /** The "iPhone" switch: off means the plain site, which it then opens. */
+  /** The "iOS" switch: off means the plain site, which it then opens. */
   const [phone, setPhone] = useState(true);
 
   const leave = () => {
@@ -252,9 +252,9 @@ function SettingsRoot({
 
       <Group footer="Off shows the same site without the phone.">
         <Row
-          title="iPhone Version"
+          title="iOS Version"
           value={
-            <Switch checked={phone} onChange={leave} label="iPhone Version" />
+            <Switch checked={phone} onChange={leave} label="iOS Version" />
           }
         />
       </Group>
