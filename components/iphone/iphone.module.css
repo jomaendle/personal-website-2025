@@ -1,0 +1,4863 @@
+/* =============================================================
+   /iphone: the site as an iPhone (iOS 26, dark appearance).
+
+   Two presentations from one tree:
+   - Phones and short windows: the screen IS the viewport. No frame, no fake
+     status bar (the real one is right above it), safe-area insets respected.
+   - Wider, taller windows: an iPhone 16 Pro (402 × 874 pt) in a CSS bezel,
+     scaled down to fit the window's height.
+
+   backdrop-filter is written unprefixed only: Lightning CSS adds the -webkit-
+   prefix for the Safari versions that need it. Writing both by hand made it
+   keep only the prefixed one, which left Chrome with no blur at all.
+
+   Everything that moves is driven from framer-motion motion values as
+   `transform`, `opacity` or `clip-path` on a handful of layers. Nothing here
+   animates layout.
+   ============================================================= */
+
+.root {
+  --ios-font:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-sans),
+    system-ui, sans-serif;
+  --ios-rounded: ui-rounded, "SF Pro Rounded", var(--ios-font);
+  --ios-blue: #0a84ff;
+  --ios-red: #ff453a;
+  --ios-yellow: #ffd60a;
+  --ios-green: #30d158;
+  --label: #fff;
+  --label-2: rgb(235 235 245 / 0.6);
+  --label-3: rgb(235 235 245 / 0.3);
+  --separator: rgb(84 84 88 / 0.6);
+  --bg: #000;
+  --grouped: #1c1c1e;
+  --grouped-2: #2c2c2e;
+  --fill: rgb(118 118 128 / 0.24);
+  --material: rgb(37 37 37 / 0.55);
+
+  /* The screen's own box: the real viewport, or the 402 × 874 device. */
+  --top-inset: max(env(safe-area-inset-top), 12px);
+  --bottom-inset: max(env(safe-area-inset-bottom), 8px);
+  --icon: 62px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  color: var(--label);
+  font-family: var(--ios-font);
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  /* No double-tap zoom delay; pinch zoom stays available. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  border-color: transparent;
+}
+
+/* The page sits on top of the site's ambient light field, which is an
+   infinite animation on two fixed layers. Nobody can see it here, so stop
+   paying for it, and drop the scrollbar gutter the document reserves. */
+:global(html):has(.root) {
+  scrollbar-gutter: auto;
+  overflow: hidden;
+  background: #000;
+}
+
+:global(body):has(.root)::before,
+:global(body):has(.root)::after {
+  display: none;
+}
+
+.root ::selection {
+  background: rgb(10 132 255 / 0.5);
+  color: inherit;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--ios-blue);
+  outline-offset: 2px;
+}
+
+/* The app window takes focus when it opens, for the keyboard: a ring round
+   the whole screen would say nothing, and would grow with the zoom. */
+.root .app:focus-visible {
+  outline: none;
+}
+
+/* Safari on iOS 26 fills the bands behind its status bar and toolbar with
+   the plain background colour of the full-width fixed box it finds at each
+   edge; without these, that box is the black root. Kept invisible and out
+   of the way of touches: Safari still reads them. Over 10px tall and the
+   full width, or it skips them. */
+.edgeTop,
+.edgeBottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 16px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.edgeTop {
+  top: 0;
+}
+
+.edgeBottom {
+  bottom: 0;
+}
+
+/* ---- Desktop staging ------------------------------------------------- */
+
+.ambient,
+.exit,
+.sideButton,
+.statusBar,
+.island {
+  display: none;
+}
+
+.device {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000;
+  /* The skip link lands here. */
+  outline: none;
+}
+
+@media (min-width: 640px) and (min-height: 500px) {
+  .root {
+    --top-inset: 54px;
+    --bottom-inset: 34px;
+    /* The track too, not just the device in it: in a window shorter than
+       the frame the row would start at the top, and the frame's scale,
+       which shrinks it about its own centre, would leave it hanging off
+       the bottom. (On a phone the device fills a stretched track.) */
+    place-content: center;
+  }
+
+  /* The wallpaper's own 8px blur placeholder, stretched over the window:
+     an ambient glow that costs no request. Stretched that far it's soft
+     already; a runtime blur over the whole window would be redrawn under
+     every frame of every animation on the phone. The dimming is a static
+     layer for the same reason. */
+  /* Around the frame the page is dark: Safari's bars stay the root's black. */
+  .edgeTop,
+  .edgeBottom {
+    display: none;
+  }
+
+  .ambient {
+    display: block;
+    position: absolute;
+    inset: -10%;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .ambientIn {
+    animation: ambient-in 0.6s ease both;
+  }
+
+  @keyframes ambient-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .ambient::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.45);
+  }
+
+  .exit {
+    display: block;
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    z-index: 1;
+    color: rgb(255 255 255 / 0.85);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+
+  .exit:hover {
+    color: #fff;
+  }
+
+  .device {
+    --bezel: 12px;
+    width: calc(402px + var(--bezel) * 2);
+    height: calc(874px + var(--bezel) * 2);
+    flex: none;
+    padding: var(--bezel);
+    border-radius: calc(55px + var(--bezel));
+    background: #050505;
+    box-shadow:
+      0 0 0 1.5px #3b3a38,
+      0 0 0 3px #1a1a19,
+      0 0 0 4px #6d6a66,
+      0 40px 80px -20px rgb(0 0 0 / 0.8),
+      0 20px 140px rgb(0 0 0 / 0.5);
+    /* Fit the window's height: 874 + bezels + 48px of air. tan(atan2())
+       divides two lengths to a plain number, so this needs no script and
+       never flashes at the wrong size. */
+    scale: min(1, tan(atan2(100dvh - 48px, 946px)));
+  }
+
+  .screen {
+    border-radius: 55px;
+  }
+
+  .sideButton {
+    display: block;
+    position: absolute;
+    right: -6px;
+    top: 220px;
+    width: 4px;
+    height: 100px;
+    border-radius: 0 3px 3px 0;
+    background: linear-gradient(90deg, #4a4845, #77736e);
+    cursor: pointer;
+  }
+
+  .sideButton::before {
+    /* A bigger, invisible hit area. */
+    content: "";
+    position: absolute;
+    inset: -8px -10px -8px -4px;
+  }
+
+  .device::before,
+  .device::after {
+    /* Action button and volume rocker, purely decorative. */
+    content: "";
+    position: absolute;
+    left: -6px;
+    width: 4px;
+    border-radius: 3px 0 0 3px;
+    background: linear-gradient(270deg, #4a4845, #77736e);
+  }
+
+  .device::before {
+    top: 150px;
+    height: 34px;
+  }
+
+  .device::after {
+    top: 210px;
+    height: 130px;
+    /* Two keys out of one bar. */
+    mask: linear-gradient(
+      #000 0 46%,
+      transparent 46% 54%,
+      #000 54% 100%
+    );
+  }
+
+  .statusBar {
+    display: flex;
+  }
+
+  .island {
+    display: flex;
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    z-index: 40;
+    width: 125px;
+    height: 37px;
+    translate: -50% 0;
+    border-radius: 20px;
+    background: #000;
+    pointer-events: none;
+  }
+}
+
+/* ---- Wallpaper and dimmers ------------------------------------------- */
+
+.wallpaper {
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.lockWallpaper {
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* What iOS does under the clock and along the bottom so white text reads on
+   any photo: a soft shade at the top and the foot of the wallpaper, too
+   faint to notice on a dark one. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    rgb(0 0 0 / 0.3),
+    rgb(0 0 0 / 0) 34%,
+    rgb(0 0 0 / 0) 68%,
+    rgb(0 0 0 / 0.32)
+  );
+}
+
+.lockScrim {
+  z-index: -1;
+}
+
+/* A stored wallpaper choice, before the client has rendered it: nothing,
+   rather than the default for a frame (see wallpapers.ts). */
+:global(html[data-wallpaper-pending]) .wallpaper,
+:global(html[data-wallpaper-pending]) .ambient {
+  visibility: hidden;
+}
+
+/* The display going dark under the side button: quickly off, then the
+   lock screen fades up out of the black. */
+.screenOff {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease-out;
+}
+
+.screenOff[data-on] {
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: 0.12s;
+}
+
+.dim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+}
+
+/* ---- Status bar ------------------------------------------------------ */
+
+.statusBar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 40;
+  height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 34px 0 52px;
+  pointer-events: none;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.statusTime {
+  font-variant-numeric: tabular-nums;
+  min-width: 54px;
+  text-align: center;
+}
+
+.statusIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- Lock screen ----------------------------------------------------- */
+
+.lock {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--top-inset) + 4px) 10px calc(var(--bottom-inset) + 8px);
+  touch-action: none;
+  cursor: grab;
+}
+
+:global(html[data-iphone="home"]) .lock {
+  visibility: hidden;
+}
+
+/* Nothing on a hidden lock screen keeps animating. */
+:global(html[data-iphone="home"]) .lock * {
+  animation-play-state: paused;
+}
+
+.lockGlyph {
+  width: 14px;
+  height: 18px;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.lockDate {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.3);
+  min-height: 1.3em;
+}
+
+.lockTime {
+  margin-top: -6px;
+  font-family: var(--ios-font);
+  font-size: 104px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 0.92);
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.12);
+}
+
+.lockStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  column-gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 24px;
+  background: rgb(40 40 40 / 0.42);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.28),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(24px) saturate(1.9) brightness(1.05);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.notification:active {
+  scale: 0.97;
+}
+
+/* A banner over whatever is on screen, below the island: drops in on a
+   spring's curve and slides back up when it goes. */
+.bannerHost {
+  position: absolute;
+  top: calc(var(--top-inset) - 4px);
+  left: 8px;
+  right: 8px;
+  z-index: 38;
+  pointer-events: none;
+}
+
+.banner {
+  pointer-events: auto;
+  touch-action: none;
+  background: rgb(40 40 40 / 0.72);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.28),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.1),
+    0 8px 30px rgb(0 0 0 / 0.35);
+  animation: banner-in 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+.bannerLeaving {
+  pointer-events: none;
+  animation: banner-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes banner-in {
+  from {
+    transform: translateY(calc(-100% - var(--top-inset)));
+  }
+}
+
+@keyframes banner-out {
+  to {
+    transform: translateY(calc(-100% - var(--top-inset)));
+    opacity: 0;
+  }
+}
+
+.notificationIcon {
+  --icon: 38px;
+  grid-row: span 2;
+  align-self: start;
+}
+
+.notificationTitle {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notificationTime {
+  font-size: 13px;
+  color: var(--label-2);
+  align-self: start;
+  padding-top: 1px;
+}
+
+.notificationBody {
+  grid-column: 2 / span 2;
+  font-size: 15px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lockFooter {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 36px;
+}
+
+.quickAction {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.32);
+  backdrop-filter: blur(24px) saturate(1.8);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    scale 0.25s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.quickAction:active {
+  scale: 1.15;
+}
+
+.quickAction[aria-pressed="true"] {
+  background: #fff;
+  color: #000;
+}
+
+.unlockHint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  text-shadow:
+    0 0 1px rgb(0 0 0 / 0.5),
+    0 1px 6px rgb(0 0 0 / 0.45);
+  white-space: nowrap;
+  background: none;
+  cursor: pointer;
+  animation: hint-bob 2.4s ease-in-out infinite;
+}
+
+/* Hidden behind the home screen, it would keep restyling for nothing. */
+:global(html[data-iphone="home"]) .unlockHint {
+  animation: none;
+}
+
+@keyframes hint-bob {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0);
+  }
+  85% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ---- Waking up -------------------------------------------------------------
+   Opening the page is pressing the side button: the screen comes up from
+   black, the wallpaper settles from a touch of zoom, the clock arrives,
+   then the notifications rise in one after another. Pure CSS on transform
+   and opacity, so it starts with the server's HTML, before any script, and
+   runs on the compositor. A return visit straight to the home screen skips
+   it, and reduced motion shortens it to a fade (globals.css). */
+
+/* Only a fresh page wakes: a re-lock marks the page "locked" and slides the
+   lock screen down without replaying any of this. */
+:global(html:not([data-iphone])) .screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: #000;
+  pointer-events: none;
+  animation: wake-screen 0.7s ease-out 0.05s both;
+}
+
+:global(html:not([data-iphone])) .wallpaper {
+  animation: wake-wallpaper 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+:global(html:not([data-iphone])) .lock > :first-child {
+  animation: wake-clock 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+:global(html:not([data-iphone])) .notification {
+  animation: wake-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1)
+    calc(0.42s + var(--i, 0) * 0.06s) both;
+}
+
+:global(html:not([data-iphone])) .lockPlayer {
+  animation: wake-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) 0.35s both;
+}
+
+:global(html:not([data-iphone])) :is(.lockFooter, .lock > .homeIndicator) {
+  animation: wake-fade 0.6s ease-out 0.6s both;
+}
+
+@keyframes wake-screen {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes wake-wallpaper {
+  from {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes wake-clock {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(1.04);
+  }
+}
+
+@keyframes wake-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+  }
+}
+
+@keyframes wake-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---- Home indicator -------------------------------------------------- */
+
+.homeIndicator {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 140px;
+  height: 5px;
+  translate: -50% 0;
+  border-radius: 3px;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* ---- Home screen ----------------------------------------------------- */
+
+.home {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  /* Vertical drags are the Spotlight swipe, not a page scroll or a pull to
+     refresh; pinch zoom stays available. */
+  touch-action: pan-x pinch-zoom;
+  transform-origin: 50% 45%;
+}
+
+/* Leans in as an app opens over the home screen, about the same point the
+   grid zooms around on unlock. Its own layer from the start, not from the
+   first frame of each launch, so promotion never costs a frame or nudges
+   it by a pixel as an animation begins and ends. */
+.homeZoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 45%;
+  will-change: transform;
+}
+
+.homeGrid {
+  /* Fills the screen so it zooms about the same point the whole home screen
+     used to; the dock, a later sibling, sits above its empty lower half. */
+  position: absolute;
+  inset: 0;
+  align-content: start;
+  transform-origin: 50% 45%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 96px;
+  padding: calc(var(--top-inset) + 14px) 18px 0;
+}
+
+:global(html[data-iphone="home"]) .homeGrid {
+  opacity: 1 !important;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  background: none;
+}
+
+.cell:focus-visible {
+  outline: none;
+}
+
+.cell:focus-visible .icon,
+.cell:focus-visible .widget {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.cellLabel {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  /* A tight edge and a soft halo: readable on white flowers or pale sky. */
+  text-shadow:
+    0 0 1px rgb(0 0 0 / 0.55),
+    0 1px 4px rgb(0 0 0 / 0.45);
+}
+
+.cell:active .icon,
+.cell:active .widget {
+  filter: brightness(0.65);
+}
+
+.widgetCell {
+  grid-column: span 2;
+  grid-row: span 2;
+  padding: 0 12px;
+}
+
+.widget {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--grouped);
+  text-align: left;
+  transition: filter 0.15s ease;
+}
+
+.widgetPhoto {
+  object-fit: cover;
+}
+
+.widgetCaption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 28px 14px 12px;
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.55));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.widgetNotes {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 14px 14px 16px;
+}
+
+/* The second note gets one line, so its date fits inside the widget. */
+.widgetNote + .widgetNote .widgetNoteTitle {
+  -webkit-line-clamp: 1;
+}
+
+.widgetNotesHead,
+.widgetNote {
+  width: 100%;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.widgetNotesHead:active,
+.widgetNote:active {
+  opacity: 0.6;
+}
+
+.widgetNotesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ios-yellow);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.widgetNote {
+  display: block;
+  color: var(--label);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--separator) !important;
+}
+
+/* The header is a button too, so :first-of-type would never match. */
+.widgetNotesHead + .widgetNote {
+  border-top: 0 !important;
+  margin-top: 6px;
+  padding-top: 0;
+}
+
+.widgetNoteTitle,
+.widgetNoteDate {
+  display: block;
+}
+
+.widgetNoteTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.widgetNoteDate {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--label-2);
+}
+
+.homeBottom {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px max(var(--bottom-inset) - 14px, 10px);
+}
+
+:global(html[data-iphone="home"]) .homeBottom {
+  transform: none !important;
+}
+
+.search {
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.3),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(20px) saturate(1.8) brightness(1.08);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dock {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 16px 10px;
+  border-radius: 36px;
+  /* The dock's glass: a light frosted plate, plainly visible over a dark
+     wallpaper, with a hairline edge catching the light. */
+  background: rgb(255 255 255 / 0.1);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.35),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.14),
+    0 10px 30px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(24px) saturate(1.9) brightness(1.08);
+}
+
+/* ---- Spotlight ---------------------------------------------------------- */
+
+.spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  outline: none;
+  /* iOS 26's Spotlight: a thick, dark frosting that keeps only the
+     wallpaper's colour, so results read at a glance. On from the first
+     frame and through the fade either way, as on iOS: the fade is the
+     element's opacity, which the compositor applies over the blur without
+     a repaint. */
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(60px) saturate(1.5) brightness(0.7);
+  animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes spotlight-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Pulled in by a swipe, the finger sets its opacity, not the entrance. */
+.spotlightPulled {
+  animation: none;
+}
+
+/* Out faster than in, as an exit should be. */
+.spotlightLeaving {
+  pointer-events: none;
+  animation: spotlight-out 0.18s ease-out both;
+}
+
+@keyframes spotlight-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.spotlightDismiss {
+  position: absolute;
+  inset: 0;
+  background: none;
+  cursor: default;
+}
+
+/* The scroller lets taps through to the dismiss layer; its content takes
+   them, and still scrolls it. */
+.spotlightResults {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: calc(var(--top-inset) + 8px) 14px calc(max(var(--bottom-inset), 28px) + 80px);
+  scrollbar-width: none;
+  pointer-events: none;
+  animation: spotlight-results 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.spotlightResults > * {
+  pointer-events: auto;
+}
+
+@keyframes spotlight-results {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.spotlightHeader {
+  margin: 16px 6px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(235 235 245 / 0.7);
+}
+
+/* While Spotlight is up the home screen steps back: the icons and widgets
+   fade and shrink a touch, so only the wallpaper's colour is left under the
+   frosting and the results read cleanly, as in iOS 26. On the grid's
+   wrapper and the dock's own children, which carry no inline opacity from
+   the unlock: overriding that would take `!important`, and a transition of
+   an important property can't run on the compositor. The fade runs only on
+   the way in and out, so it never lags a gesture. */
+.screen[data-spotlight] :is(.homeZoom, .homeBottom > *) {
+  transition:
+    opacity 0.25s ease-out,
+    scale 0.25s ease-out;
+}
+
+.screen[data-spotlight="open"] :is(.homeZoom, .homeBottom > *) {
+  opacity: 0;
+  scale: 0.96;
+}
+
+.spotlightCard {
+  overflow: hidden;
+  border-radius: 26px;
+  background: rgb(118 118 128 / 0.24);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.2),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.08);
+}
+
+.spotlightApps {
+  --icon: 58px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 14px;
+  padding: 16px 6px 14px;
+}
+
+.spotlightRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px 10px 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spotlightRow:active {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.spotlightRow + .spotlightRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.spotlightRowIcon {
+  --icon: 36px;
+}
+
+.spotlightMonogram {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(#a5a5aa, #6e6e73);
+  font-family: var(--ios-rounded);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.spotlightEmpty {
+  margin-top: 40px;
+  text-align: center;
+  color: rgb(255 255 255 / 0.65);
+}
+
+/* ---- Music: lock screen and Dynamic Island ------------------------------ */
+
+.lockPlayer {
+  padding: 12px 14px 8px;
+  border-radius: 24px;
+  background: rgb(40 40 40 / 0.42);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.28),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(24px) saturate(1.9) brightness(1.05);
+}
+
+.lockPlayerOpen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lockPlayerCover {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--grouped-2);
+}
+
+.lockPlayerCover img {
+  object-fit: cover;
+}
+
+.lockPlayerTitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lockPlayerArtist {
+  display: block;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.lockPlayerTrack {
+  display: block;
+  height: 4px;
+  margin: 12px 2px 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.2);
+}
+
+.lockPlayerTrack > span {
+  display: block;
+  height: 100%;
+  background: rgb(255 255 255 / 0.85);
+  transform-origin: left;
+  transition: transform 0.25s linear;
+}
+
+.lockPlayerControls {
+  display: flex;
+  justify-content: space-around;
+}
+
+.lockPlayerControls button {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 44px;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+.lockPlayerControls button:active {
+  opacity: 0.5;
+}
+
+/* The island grows sideways into Music's compact live activity: drawn at
+   its widest and revealed by a clip, which only repaints, where animating
+   the width laid it out again every frame. 4px spare each side leave room
+   for the overshoot. */
+.island {
+  width: 204px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  clip-path: inset(0 39.5px round 20px);
+  transition: clip-path 0.45s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+
+.islandLive {
+  cursor: pointer;
+  clip-path: inset(0 4px round 20px);
+}
+
+.islandCover,
+.islandWave {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.islandLive .islandCover,
+.islandLive .islandWave {
+  opacity: 1;
+  transition-delay: 0.18s;
+}
+
+.islandCover {
+  position: relative;
+  width: 25px;
+  height: 25px;
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+.islandCover img {
+  object-fit: cover;
+}
+
+.islandWave {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+.islandWave span,
+.playingBars span {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: #ff375f;
+  transform-origin: center;
+  animation: eq 0.9s ease-in-out infinite alternate;
+}
+
+.islandWave span:nth-child(2),
+.playingBars span:nth-child(2) {
+  animation-duration: 0.7s;
+  animation-delay: -0.2s;
+}
+
+.islandWave span:nth-child(3),
+.playingBars span:nth-child(3) {
+  animation-duration: 1s;
+  animation-delay: -0.5s;
+}
+
+.islandWave span:nth-child(4),
+.playingBars span:nth-child(4) {
+  animation-duration: 0.8s;
+  animation-delay: -0.35s;
+}
+
+@keyframes eq {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.spotlightSongCover {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.spotlightSongCover img {
+  object-fit: cover;
+}
+
+/* ---- Music app ------------------------------------------------------------ */
+
+.music {
+  --tint: #ff375f;
+  position: absolute;
+  inset: 0;
+}
+
+.musicScroll {
+  padding-bottom: calc(var(--bottom-inset) + 40px);
+}
+
+.cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--grouped-2);
+}
+
+.cover img {
+  object-fit: cover;
+}
+
+.artistHero {
+  position: relative;
+  height: 400px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 16px 18px;
+}
+
+.artistHeroImage {
+  object-fit: cover;
+}
+
+.artistHeroShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgb(0 0 0 / 0.25), transparent 30%, transparent 55%, var(--bg));
+}
+
+.artistName {
+  position: relative;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.artistPlay {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: #fff;
+  box-shadow: 0 6px 18px rgb(255 55 95 / 0.4);
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.artistPlay:active {
+  scale: 0.92;
+}
+
+.musicSection {
+  padding: 22px 16px 10px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.latest {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 0 16px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.latestCover {
+  flex: none;
+  width: 108px;
+  height: 108px;
+}
+
+.latestTitle {
+  display: block;
+  margin: 2px 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.latestMeta {
+  display: block;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.shelf {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 16px;
+  scrollbar-width: none;
+}
+
+.shelf::-webkit-scrollbar {
+  display: none;
+}
+
+.shelfItem {
+  flex: 0 0 158px;
+  scroll-snap-align: start;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shelfCover {
+  width: 158px;
+  height: 158px;
+  margin-bottom: 6px;
+}
+
+.shelfItem:active .shelfCover {
+  filter: brightness(0.7);
+}
+
+.shelfTitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.shelfMeta {
+  display: block;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.musicAbout {
+  padding: 0 16px;
+  color: var(--label-2);
+}
+
+.musicElsewhere {
+  padding-bottom: 8px;
+}
+
+.musicLink {
+  color: var(--tint);
+}
+
+.albumHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--top-inset) + 60px) 24px 8px;
+  text-align: center;
+}
+
+.albumCover {
+  width: min(250px, 66vw);
+  aspect-ratio: 1;
+  border-radius: 10px;
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+}
+
+.albumTitle {
+  margin-top: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  outline: none;
+}
+
+.albumArtist {
+  background: none;
+  font: inherit;
+  font-size: 20px;
+  color: var(--tint);
+  cursor: pointer;
+  transition: opacity 0.16s ease-out;
+}
+
+.albumArtist:active {
+  opacity: 0.6;
+}
+
+.nowPlayingError {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.7);
+}
+
+/* Buffering: the play button breathes until the song starts. */
+.transportPlay[aria-busy="true"] {
+  animation: buffering 1s ease-in-out infinite alternate;
+}
+
+@keyframes buffering {
+  to {
+    opacity: 0.45;
+  }
+}
+
+.miniPlayerButton:disabled,
+.lockPlayerControls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.albumMeta {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.albumActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.albumAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--grouped);
+  color: var(--tint);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.albumAction:active {
+  background: var(--grouped-2);
+}
+
+.trackList {
+  margin: 16px 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.trackRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding-right: 16px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trackList li + li .trackRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 34px;
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.trackRow:active {
+  background: var(--grouped);
+}
+
+.trackRowCurrent .trackTitle {
+  color: var(--tint);
+}
+
+.trackNumber {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.trackTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackFooter {
+  padding: 14px 16px 0;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.playingBars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+}
+
+.playingBars span {
+  width: 2.5px;
+}
+
+.playingBarsPaused span {
+  animation-play-state: paused;
+}
+
+/* Rises in from the bottom edge when a song starts, as iOS 26's does. */
+.miniPlayerBar {
+  z-index: 5;
+  transition:
+    opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    translate 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .miniPlayerBar {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+.miniPlayerHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.miniPlayer {
+  position: relative;
+  gap: 4px;
+  padding: 0 8px 0 6px;
+  overflow: hidden;
+}
+
+.miniPlayerOpen {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: 100%;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.miniPlayerCover {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+}
+
+.miniPlayerTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.miniPlayerButton {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: none;
+  color: var(--label);
+  cursor: pointer;
+}
+
+.miniPlayerProgress {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgb(255 255 255 / 0.5);
+  transform-origin: left;
+  transition: transform 0.25s linear;
+}
+
+/* Now Playing: a sheet that slides over the app on the artwork's colours. */
+.nowPlaying {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow: hidden;
+  background: #111;
+  transform: translateY(102%);
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  outline: none;
+  touch-action: pan-x;
+}
+
+.nowPlayingOpen {
+  transform: none;
+}
+
+.nowPlayingBackdrop {
+  object-fit: cover;
+  filter: blur(40px) saturate(1.6) brightness(0.55);
+  transform: scale(1.4);
+}
+
+.nowPlayingInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: calc(var(--top-inset) + 4px) 28px calc(var(--bottom-inset) + 20px);
+}
+
+/* The sheet's grabber: a short capsule in a 44pt-tall target. */
+.nowPlayingGrabber {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 44px;
+  margin-top: -6px;
+  background: none;
+  cursor: pointer;
+}
+
+.nowPlayingGrabber::before {
+  content: "";
+  width: 36px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* The artwork takes the room the controls leave, centred in it, so the
+   sheet has no dead gap where a phone's volume slider would be. */
+.nowPlayingArt {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  margin: 18px 0 0;
+  transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+
+.nowPlayingArt .albumCover {
+  width: min(100%, 340px);
+}
+
+/* Play springs the artwork up; pause just eases it back, no bounce. */
+.nowPlayingArtPaused {
+  transform: scale(0.82);
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.nowPlayingMeta {
+  margin-top: auto;
+}
+
+.nowPlayingTitle {
+  overflow: hidden;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.marquee {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marquee > span {
+  display: inline-block;
+}
+
+/* Faded at the edges while it scrolls, as iOS does, so the line slides out
+   of view rather than being cut. */
+.marqueeRunning {
+  text-overflow: clip;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent
+  );
+}
+
+.marqueeRunning > span {
+  padding-right: var(--marquee-gap);
+  animation: marquee var(--marquee-duration) linear infinite;
+}
+
+@keyframes marquee {
+  0%,
+  33% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(var(--marquee-shift));
+  }
+}
+
+.nowPlayingArtist {
+  font-size: 20px;
+  color: rgb(255 255 255 / 0.65);
+}
+
+.seek {
+  margin-top: 22px;
+}
+
+.seek input {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  appearance: none;
+  background: none;
+  cursor: pointer;
+}
+
+.seek input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.9) var(--progress),
+    rgb(255 255 255 / 0.25) var(--progress)
+  );
+  transition: height 0.2s ease;
+}
+
+.seek input:active::-webkit-slider-runnable-track {
+  height: 10px;
+}
+
+.seek input::-webkit-slider-thumb {
+  width: 0;
+  height: 0;
+  appearance: none;
+}
+
+.seek input::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.9) var(--progress),
+    rgb(255 255 255 / 0.25) var(--progress)
+  );
+}
+
+.seek input::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border: 0;
+}
+
+/* Volume: the scrubber's track between two speakers. */
+.seek.volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.seek.volume svg {
+  flex: none;
+}
+
+.seekTimes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 22px 0 18px;
+}
+
+.transportButton {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    scale 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.transportButton:active {
+  scale: 0.88;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.transportButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nowPlayingSource {
+  align-self: center;
+  padding: 13px 8px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.6);
+  text-decoration: none;
+}
+
+/* ---- App icons ------------------------------------------------------- */
+
+.icon {
+  position: relative;
+  display: block;
+  width: var(--icon);
+  height: var(--icon);
+  flex: none;
+  overflow: hidden;
+  border-radius: 22.5%;
+  transition: filter 0.15s ease;
+}
+
+/* The Calendar icon's weekday and date, sized off the icon itself (the
+   container), so a zoom scales them like the art, without re-laying out
+   text. Placed as on the 60-unit grid the art is drawn on. */
+.icon:has(> .calendarFace) {
+  container-type: size;
+}
+
+.calendarFace {
+  position: absolute;
+  inset: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.calendarFace > * {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.calendarFace > :first-child {
+  top: 17.5cqh;
+  color: #ff453a;
+  font-size: 14.2cqw;
+  font-weight: 600;
+}
+
+.calendarFace > :last-child {
+  top: 32.5cqh;
+  color: #fff;
+  font-size: 55cqw;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+
+/* iOS 26's lit edge: a hairline catching light along the top, fading down
+   the sides, drawn over the artwork. */
+.icon::after,
+.widget::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.22),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  pointer-events: none;
+}
+
+.icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* iOS draws continuous corners, which a circular arc cannot. Where the
+   browser can draw a superellipse, use one. */
+@supports (corner-shape: superellipse(2)) {
+  .icon {
+    border-radius: 32%;
+    corner-shape: superellipse(1.8);
+  }
+}
+
+/* ---- App window ------------------------------------------------------ */
+
+.app {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  background: var(--bg);
+  transform-origin: 50% 50%;
+  will-change: transform;
+  outline: none;
+}
+
+/* The app inside the window, stretched back by however much the window is
+   squashed into its icon's shape, so it only ever scales evenly. */
+.appContent {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* Glass inside a moving window drops its blur for the motion (re-blurring
+   every frame of a zoom is the costliest thing on the page), with an opaque
+   tint standing in so nothing reads through it. The bottom search field and
+   its scroll-edge strip keep their real blur: a small static strip, cheap,
+   and where a tint still let a year heading show through the field. At
+   rest the blur fades back with its clear tint instead of popping. Named,
+   not `*`: a universal selector restyles every node in the app twice. */
+.app[data-moving]
+  :is(.glassButton, .pill, .toolCapsule, .viewerCapsule, .tabBar, .hud, .alert) {
+  backdrop-filter: none !important;
+  background-color: rgb(44 44 46 / 0.94) !important;
+}
+
+.app[data-moving] :is(.navBar, .noteBar, .photosHeader)::before {
+  backdrop-filter: none !important;
+  background: linear-gradient(#000, rgb(0 0 0 / 0.85) 60%, transparent);
+}
+
+.app:not([data-moving])
+  :is(.glassButton, .pill, .toolCapsule, .viewerCapsule, .tabBar) {
+  transition-property: backdrop-filter, background-color, scale, opacity;
+  transition-duration: 0.25s;
+  transition-timing-function: ease-out;
+}
+
+.appIconOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.appIconOverlay .icon::after {
+  display: none;
+}
+
+/* The launch screen under the icon art: the app's background with its icon
+   in the middle, as an app's launch image, for as long as its code is still
+   on its way. */
+.appSplash {
+  --icon: 96px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+/* A widget's copy, centred in the window at the widget's own size and
+   scaled up to fill what the window shows of itself. Its corners are the
+   window's clip, and its lit edge would be drawn at the wrong scale. */
+.widgetSnapshot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.widgetSnapshot > * {
+  translate: -50% -50%;
+  border-radius: 0;
+  aspect-ratio: auto;
+  transition: none;
+}
+
+.widgetSnapshot > *::after {
+  display: none;
+}
+
+.appIconOverlay .icon {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  corner-shape: round;
+}
+
+/* At screen level, over the app window (z-index 30), so the home gesture
+   works from the first frame of a launch. It fades in with the app and out
+   as the app goes home. */
+.homeIndicatorHit {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 35;
+  height: max(var(--bottom-inset), 28px);
+  background: none;
+  touch-action: none;
+  cursor: grab;
+  transition: opacity 0.2s ease-out;
+  animation: cal-fade 0.3s ease-out both;
+}
+
+.homeIndicatorHit:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.homeIndicatorHit .homeIndicator {
+  background: rgb(255 255 255 / 0.85);
+}
+
+/* ---- Shared app chrome ----------------------------------------------- */
+
+.scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--bottom-inset) + 24px);
+  scrollbar-width: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.navBar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: calc(var(--top-inset) + 44px);
+  padding: var(--top-inset) 16px 0;
+  isolation: isolate;
+}
+
+/* iOS 26's scroll edge effect: no bar fill and no hairline, just content
+   dissolving under a progressive blur as it passes beneath the bar. */
+.navBar::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -20px;
+  z-index: -1;
+  background: linear-gradient(rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.4) 60%, transparent);
+  backdrop-filter: blur(10px);
+  mask-image: linear-gradient(#000 50%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.navInlineTitle {
+  font-size: 17px;
+  font-weight: 600;
+  opacity: 0;
+}
+
+.navLeading,
+.navTrailing {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--tint, var(--ios-blue));
+}
+
+.navTrailing {
+  justify-content: flex-end;
+}
+
+/* The compact title, bar fill and hairline arrive as the large title scrolls
+   under the bar, on the compositor and without a scroll listener. Browsers
+   without scroll timelines keep a large title that scrolls away. */
+@supports (animation-timeline: scroll()) {
+  .navBar::before,
+  .navInlineTitle {
+    animation: nav-collapse linear both;
+    animation-timeline: scroll(nearest block);
+    animation-range: 20px 52px;
+  }
+}
+
+@keyframes nav-collapse {
+  to {
+    opacity: 1;
+  }
+}
+
+.largeTitle {
+  padding: 2px 16px 8px;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.subtitle {
+  margin-top: -6px;
+  padding: 0 16px 12px;
+  color: var(--label-2);
+  font-size: 15px;
+}
+
+.sectionHeader {
+  padding: 18px 32px 6px;
+  font-size: 13px;
+  color: var(--label-2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sectionHeaderLarge {
+  padding: 16px 16px 8px;
+  color: var(--label);
+  text-transform: none;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.group {
+  margin: 0 16px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--grouped);
+}
+
+.groupIconInset {
+  --separator-inset: 58px;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  color: #fff;
+}
+
+.rowAppIcon {
+  --icon: 29px;
+}
+
+.profileMonogram {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 60px;
+  height: 60px;
+  margin: -2px 2px -2px 0;
+  border-radius: 50%;
+  background: linear-gradient(#a5a5aa, #6e6e73);
+  font-family: var(--ios-rounded);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.profileName {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.groupSpacer {
+  height: 24px;
+}
+
+.groupFooter {
+  padding: 8px 32px 0;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 16px;
+  color: inherit;
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  background: none;
+}
+
+a.row:active,
+button.row:active {
+  background: var(--grouped-2);
+}
+
+.row + .row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--separator-inset, 16px);
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowTitleBold {
+  font-weight: 600;
+}
+
+.rowDetail {
+  display: block;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.rowDetailWrap {
+  white-space: normal;
+}
+
+.rowValue {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--label-2);
+}
+
+.rowLabel {
+  font-size: 13px;
+  color: var(--label);
+}
+
+.rowLink {
+  color: var(--ios-blue);
+}
+
+/* UISwitch: 51×31, the knob 27pt with a soft shadow. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 51px;
+  height: 31px;
+  border-radius: 16px;
+  background: rgb(120 120 128 / 0.32);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--ios-green);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 3px 8px rgb(0 0 0 / 0.15),
+    0 3px 1px rgb(0 0 0 / 0.06);
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.switch[aria-checked="true"] .switchKnob {
+  transform: translateX(20px);
+}
+
+/* Settings → Wallpaper: each choice as a small lock screen. */
+.wallpaperLead {
+  padding: 0 16px 16px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+
+.wallpaperGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 14px;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.wallpaperOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.wallpaperOption:active {
+  scale: 0.96;
+}
+
+.wallpaperFrame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 19.5;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--grouped);
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  transition: outline-color 0.2s ease;
+}
+
+.wallpaperChosen .wallpaperFrame {
+  outline-color: var(--ios-blue);
+}
+
+.wallpaperClock {
+  position: absolute;
+  pointer-events: none;
+  top: 14%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+
+.wallpaperTitle {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.wallpaperPlace {
+  font-size: 12px;
+  color: var(--label-2);
+}
+
+.chevron {
+  flex: none;
+  width: 8px;
+  height: 14px;
+  color: var(--label-3);
+}
+
+/* Bottom bars sit beside the scroller, not in it: sticky positioning is
+   inset by the scroller's padding, which left them floating above the edge. */
+.scrollWithBar {
+  padding-bottom: calc(var(--bottom-inset) + 112px);
+}
+
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--label-2);
+}
+
+/* ---- Notes ----------------------------------------------------------- */
+
+.notes {
+  --tint: var(--ios-yellow);
+  position: absolute;
+  inset: 0;
+}
+
+/* A navigation stack: each level is a full-screen layer. The one being
+   pushed carries the shadow UIKit casts on the level beneath. */
+/* Each page of a navigation stack slides on every push and pop: layered
+   from the start, for the same reason as the home screen's zoom. */
+.navLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  will-change: transform;
+}
+
+.navTop {
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.55);
+}
+
+.navDim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #000;
+  pointer-events: none;
+}
+
+.noteRowDate {
+  margin-right: 0.5em;
+  color: var(--label);
+}
+
+.noteView {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+
+/* Vertical scrolling stays the browser's; horizontal drags reach the back
+   swipe. */
+.noteScroll {
+  touch-action: pan-y;
+}
+
+.noteBody {
+  padding: calc(var(--top-inset) + 58px) 20px calc(var(--bottom-inset) + 40px);
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+}
+
+.noteDate {
+  margin-bottom: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.noteArrive {
+  animation: note-arrive 0.24s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes note-arrive {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+.noteViews {
+  display: block;
+  margin-top: 1px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.noteViews[data-ready="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noteViews {
+    transition: none;
+  }
+}
+
+/* Notes' paragraph styles: Title, Heading, Subheading, Body, Monostyled. */
+.noteTitle {
+  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: 0.002em;
+  outline: none;
+}
+
+.noteHeading {
+  margin: 26px 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.noteSubheading {
+  margin: 20px 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.noteP {
+  margin: 0 0 12px;
+}
+
+.noteList {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.noteList ul,
+.noteList ol {
+  margin: 4px 0 0;
+}
+
+ul.noteList {
+  list-style: disc;
+}
+
+ol.noteList {
+  list-style: decimal;
+}
+
+.noteList li {
+  padding-left: 2px;
+}
+
+.noteList li > .noteP {
+  margin-bottom: 4px;
+}
+
+.noteList li::marker {
+  color: var(--label-2);
+}
+
+.noteQuote {
+  margin: 0 0 12px;
+  padding-left: 12px;
+  border-left: 3px solid var(--label-3) !important;
+  color: var(--label-2);
+}
+
+.noteMono {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: var(--grouped);
+  font-family: ui-monospace, "SF Mono", var(--font-mono), monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
+  /* Notes wraps monostyled text to the width of the note. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+}
+
+.noteInlineCode {
+  padding: 0.1em 0.3em;
+  border-radius: 5px;
+  background: var(--grouped-2);
+  font-family: ui-monospace, "SF Mono", var(--font-mono), monospace;
+  font-size: 0.86em;
+}
+
+.noteLink {
+  padding: 0;
+  background: none;
+  color: var(--tint);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--tint) 45%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Attachments sit inline at full width with rounded corners, as in Notes. */
+.noteAttachment {
+  margin: 4px 0 16px;
+}
+
+.noteAttachment img,
+.noteAttachment video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: var(--grouped);
+}
+
+.noteAttachment figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+
+.noteRule {
+  margin: 20px 0;
+  border: 0;
+  border-top: 0.5px solid var(--separator) !important;
+}
+
+.noteFailed {
+  color: var(--label-2);
+}
+
+.noteFailed a {
+  color: var(--tint);
+}
+
+.linkCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 16px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 20px;
+  background: var(--grouped);
+  color: inherit;
+  text-decoration: none;
+}
+
+.linkCard:active {
+  background: var(--grouped-2);
+}
+
+.linkCardTile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(#c84b31, #9e2f1b);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.linkCardTileBaseline {
+  background: linear-gradient(#34c759, #248a3d);
+  font-family: var(--ios-font);
+  font-size: 20px;
+}
+
+.linkCardTitle {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.linkCardDetail {
+  display: block;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+/* The note's floating controls, over iOS 26's top scroll edge effect. */
+.noteBar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  isolation: isolate;
+  display: flex;
+  justify-content: space-between;
+  padding: calc(var(--top-inset) + 4px) 14px 0;
+  pointer-events: none;
+}
+
+.noteBar > * {
+  pointer-events: auto;
+}
+
+.noteBar::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -24px;
+  z-index: -1;
+  background: linear-gradient(rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.4) 60%, transparent);
+  backdrop-filter: blur(10px);
+  mask-image: linear-gradient(#000 50%, transparent);
+}
+
+/* The system HUD: a frosted square that confirms and fades. */
+.hud {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  translate: -50% -50%;
+  min-width: 150px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: rgb(44 44 46 / 0.82);
+  backdrop-filter: blur(24px) saturate(1.8);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  animation: hud 1.4s ease both;
+  pointer-events: none;
+}
+
+@keyframes hud-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  80% {
+    opacity: 1;
+  }
+}
+
+@keyframes hud {
+  0% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  12%,
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---- Photos ---------------------------------------------------------- */
+
+.photos {
+  --ph-header: calc(var(--top-inset) + 64px);
+}
+
+/* The title floats over the library under a progressive blur: strongest at
+   the top edge, gone by the bottom of the header, as in iOS 18 and later.
+   The grid starts below it at rest and scrolls up underneath. */
+.photosHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--ph-header);
+  padding: calc(var(--top-inset) + 6px) 16px 0;
+}
+
+.photosHeader::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -28px;
+  z-index: -1;
+  background: linear-gradient(rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.35) 60%, transparent);
+  backdrop-filter: blur(14px);
+  mask-image: linear-gradient(#000 45%, transparent);
+  pointer-events: none;
+}
+
+.photosTitle {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+
+.photosCount {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.photosButtons {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photoTile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  /* Tiles below the fold skip layout and paint until scrolled to; their
+     width gives their height, so the grid's size is known regardless. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100%;
+  background: var(--grouped);
+  cursor: zoom-in;
+}
+
+.photoTile img {
+  object-fit: cover;
+}
+
+.photosFooter {
+  padding: 20px 16px 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* The footer clears the floating tab bar. */
+.photos {
+  padding-bottom: calc(max(var(--bottom-inset), 28px) + 84px);
+  /* What the header and the tab bar cover: scrollIntoView and the hero
+     zoom treat only the clear area between them as visible. */
+  scroll-padding-top: var(--ph-header);
+  scroll-padding-bottom: calc(max(var(--bottom-inset), 28px) + 84px);
+}
+
+.photosTabs {
+  justify-content: space-between;
+}
+
+/* iOS 26's tab bar: a glass capsule, each tab an icon over a small label,
+   the selected one sitting in a lighter inner capsule. */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 62px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.tabBar > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 92px;
+  height: 100%;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--label);
+}
+
+.tabBar > .tabActive {
+  background: rgb(255 255 255 / 0.12);
+  color: var(--ios-blue);
+}
+
+.glassButton.tabSearch {
+  width: 62px;
+  height: 62px;
+}
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.viewerBackdrop {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+.viewerStrip {
+  position: relative;
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* Sideways is the browser's; vertical drags come to the dismiss handler. */
+  touch-action: pan-x;
+  outline: none;
+}
+
+.viewerStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.viewerSlide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.viewerFrame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 50%;
+}
+
+.viewerPhoto {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.viewerFrame img {
+  object-fit: contain;
+  /* The strip owns every gesture. Without this a mouse drag starts the
+     browser's image drag-and-drop (a pointercancel), and a long press on
+     iOS opens the image menu. */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.viewerBar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: calc(var(--top-inset) + 4px) 12px 0;
+  transition: opacity 0.2s ease;
+}
+
+/* With the info up the photo stays put: no swiping to the next one. */
+.viewerStripLocked {
+  overflow-x: hidden;
+  touch-action: none;
+}
+
+/* iOS 26's title: a glass capsule with the place or day over the time. */
+.viewerCapsule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  max-width: 220px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.viewerCapsuleTitle,
+.viewerCapsuleDetail {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewerCapsuleTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.viewerCapsuleDetail {
+  font-size: 12px;
+  color: var(--label-2);
+}
+
+.viewerMore {
+  justify-self: end;
+}
+
+/* The bottom toolbar: share, a capsule of favourite, info and edit, and
+   delete, all floating glass. */
+.viewerTools {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(max(var(--bottom-inset), 28px) + 6px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity 0.2s ease;
+}
+
+.toolCapsule {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.toolCapsule > * {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.toolCapsule > span {
+  cursor: default;
+}
+
+.toolCapsule > button:active {
+  scale: 0.9;
+}
+
+.toolCapsule > button:focus-visible {
+  outline: 2px solid var(--ios-blue);
+  outline-offset: -2px;
+}
+
+.toolFavorite {
+  color: var(--ios-red);
+}
+
+/* ---- Photos: Info ------------------------------------------------------
+   The details under a photo swiped up: a sheet over the bottom of the
+   viewer, scrolling on its own, its foot kept clear of the toolbar. */
+.photoInfo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 16px calc(max(var(--bottom-inset), 28px) + 76px);
+  border-radius: 28px 28px 0 0;
+  background: var(--grouped);
+  scrollbar-width: none;
+  /* The scroll edge effect: content dissolves before it reaches the
+     floating toolbar instead of running hard under it. */
+  mask-image: linear-gradient(
+    #000 calc(100% - max(var(--bottom-inset), 28px) - 92px),
+    transparent calc(100% - max(var(--bottom-inset), 28px) - 30px)
+  );
+}
+
+.photoInfo::-webkit-scrollbar {
+  display: none;
+}
+
+.photoCaption input {
+  width: 100%;
+  padding: 2px 0 14px;
+  border-bottom: 0.5px solid var(--separator);
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+}
+
+.photoCaption input::placeholder {
+  color: var(--label-3);
+}
+
+.photoInfoWhen {
+  padding: 14px 0 16px;
+}
+
+.photoInfoDate {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.photoInfoFile {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.cameraCard {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--grouped-2);
+  font-size: 15px;
+}
+
+.cameraHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: rgb(255 255 255 / 0.05);
+  font-weight: 600;
+}
+
+.cameraBadge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--fill);
+  color: var(--label-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cameraBody {
+  padding: 11px 14px 12px;
+  color: var(--label-2);
+}
+
+.cameraLens {
+  margin-bottom: 2px;
+  color: var(--label);
+}
+
+.cameraExposure {
+  display: flex;
+  border-top: 0.5px solid var(--separator);
+  color: var(--label-2);
+  font-size: 12px;
+}
+
+.cameraExposure li {
+  flex: 1;
+  padding: 9px 2px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cameraExposure li + li {
+  border-left: 0.5px solid var(--separator);
+}
+
+.photoInfoAbout {
+  padding-top: 12px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--label-2);
+}
+
+/* The location card: the map, the photo as its pin, the place below. */
+.mapCard {
+  margin-top: 16px;
+}
+
+.mapLink {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--grouped-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.mapLink:active {
+  opacity: 0.8;
+}
+
+.mapImage {
+  position: relative;
+  display: block;
+  aspect-ratio: 2;
+}
+
+.mapImage img {
+  object-fit: cover;
+}
+
+.mapPin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  translate: -50% -50%;
+  border: 2.5px solid #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.45);
+}
+
+.mapPin img {
+  object-fit: cover;
+}
+
+.mapCredit {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font-size: 9px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.mapPlace {
+  display: block;
+  padding: 11px 14px 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mapSource {
+  display: block;
+  padding: 14px 4px 4px;
+  font-size: 13px;
+  color: var(--label-2);
+  text-decoration: none;
+  text-align: center;
+}
+
+.chromeHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Closing, the bars get out of the way at once, before the photo is home. */
+.viewer[data-closing] .chromeHidden {
+  transition-duration: 0.1s;
+}
+
+/* The viewer's bars fade in as the photo zooms out of its thumbnail rather
+   than arriving at full strength over it. */
+@starting-style {
+  .viewerBar,
+  .viewerTools,
+  .scrubber {
+    opacity: 0;
+  }
+}
+
+/* Photos' scrubber: narrow thumbnails, the current one widened to its own
+   shape, centred as you swipe. */
+/* The current thumbnail widens, a layout change: kept inside the strip. */
+.scrubber {
+  contain: layout;
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Above the toolbar, as in iOS 26. */
+  bottom: calc(max(var(--bottom-inset), 28px) + 66px);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding: 0 50%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  transition: opacity 0.2s ease;
+}
+
+.scrubber::-webkit-scrollbar {
+  display: none;
+}
+
+.scrubberThumb {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--grouped);
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    margin 0.25s ease;
+  cursor: pointer;
+}
+
+.scrubberThumb img {
+  object-fit: cover;
+}
+
+.scrubberThumbCurrent {
+  height: 44px;
+  margin: 0 4px;
+}
+
+/* ---- Liquid Glass ------------------------------------------------------
+   iOS 26's floating material: clear glass that blurs and brightens what is
+   behind it, with a lit top edge and a soft drop shadow. */
+
+.glassButton,
+.glassField,
+.pill {
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(16px) saturate(1.8) brightness(1.1);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 4px 16px rgb(0 0 0 / 0.25);
+  color: #fff;
+}
+
+/* 44pt: iOS 26's glass bar buttons, and the HIG's minimum hit target. */
+.glassButton {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: scale 0.2s ease;
+}
+
+.glassButton:active {
+  scale: 0.92;
+}
+
+.glassButtonLarge {
+  width: 48px;
+  height: 48px;
+}
+
+/* An accent-tinted glass control: Notes' compose, Mail's new message. */
+.tinted {
+  color: var(--tint, var(--ios-blue));
+}
+
+/* Unavailable here: dimmed, no press feedback, as iOS draws an action that
+   can't be taken. */
+.glassButton:disabled,
+.pill:disabled,
+.unavailable {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+.pill.pillOn {
+  background-color: var(--label);
+  color: #000;
+}
+
+.photosEmpty {
+  display: grid;
+  gap: 4px;
+  padding: 72px 24px 24px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.photosEmpty span {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--label-2);
+}
+
+.photoGrid li[hidden] {
+  display: none;
+}
+
+/* Bars float above content in iOS 26, clear of the home indicator. */
+.floatingBar {
+  isolation: isolate;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(max(var(--bottom-inset), 28px) + 6px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* A floating bar over the on-screen keyboard: lifted by --keyboard (the
+   height it covers, set from useKeyboardInset) less the gap it already
+   keeps, eased so it rises with the keys instead of jumping. translate
+   stacks on whatever transform the bar has. */
+.keyboardLift {
+  translate: 0 calc(-1 * max(0px, var(--keyboard, 0px) + 2px - max(var(--bottom-inset), 28px)));
+  transition: translate 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The bottom scroll edge effect: content dissolves under a progressive blur
+   before it reaches the floating controls, so text never reads through them. */
+.floatingBar::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  right: -14px;
+  top: -28px;
+  bottom: calc((max(var(--bottom-inset), 28px) + 6px) * -1);
+  z-index: -1;
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.55) 45%, rgb(0 0 0 / 0.85));
+  backdrop-filter: blur(8px);
+  mask-image: linear-gradient(transparent, #000 40%);
+  pointer-events: none;
+}
+
+.glassField {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--label-2);
+  text-decoration: none;
+}
+
+.glassField {
+  background: rgb(58 58 60 / 0.5);
+  backdrop-filter: blur(20px) saturate(1.8);
+}
+
+.glassField input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  outline: none;
+}
+
+/* The caret is the focus indicator in an iOS text field. */
+.glassField input:focus-visible {
+  outline: none;
+}
+
+.glassField input::placeholder {
+  color: var(--label-2);
+}
+
+.addressPill {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  justify-items: center;
+  padding: 0 10px;
+  color: var(--label);
+}
+
+.mailStatusPill {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  color: var(--label);
+  font-size: 12px;
+}
+
+.pill {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  padding: 0 15px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* A 34pt capsule with a 44pt target. */
+.pill,
+.sendButton {
+  position: relative;
+}
+
+.pill::after,
+.sendButton::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+/* Calendar's "‹ October": iOS 26 sets nav controls in glass. */
+.pill.calendarBack {
+  display: inline-flex;
+  gap: 4px;
+  justify-self: start;
+  width: max-content;
+  height: 44px;
+  padding: 0 16px 0 12px;
+  color: var(--tint, var(--ios-red));
+}
+
+.pill:has(svg) {
+  width: 34px;
+  padding: 0;
+}
+
+/* ---- Safari ---------------------------------------------------------- */
+
+.safari {
+  position: absolute;
+  inset: 0;
+  background: var(--grouped);
+}
+
+.favorites {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px 8px;
+  padding: 4px 16px 8px;
+}
+
+.favorite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+}
+
+.favoriteTile {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: var(--grouped-2);
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.favoriteLabel {
+  font-size: 11px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card {
+  display: block;
+  margin: 0 16px 10px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--grouped-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.card:active {
+  filter: brightness(1.2);
+}
+
+/* The card a Spotlight result opened on: a tinted ring that fades out, on
+   a layer of its own so only its opacity animates. */
+.cardFound {
+  position: relative;
+}
+
+.cardFound::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px #0a84ff;
+  background: rgb(10 132 255 / 0.12);
+  pointer-events: none;
+  animation: card-found 1.6s 0.45s ease-out both;
+}
+
+@keyframes card-found {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.cardHost {
+  font-size: 12px;
+  color: var(--label-2);
+}
+
+.cardTitle {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cardBody {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.addressAa {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.addressAa small {
+  font-size: 11px;
+}
+
+.addressReload {
+  width: 17px;
+  height: 17px;
+}
+
+/* ---- Contacts -------------------------------------------------------- */
+
+.contactHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--top-inset) + 24px) 16px 20px;
+  background: linear-gradient(#3a3a3c, var(--bg));
+  text-align: center;
+}
+
+.monogram {
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: linear-gradient(#a5a5aa, #6e6e73);
+  font-family: var(--ios-rounded);
+  font-size: 46px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.contactName {
+  margin-top: 14px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.contactRole {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--label-2);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px 7px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.action svg {
+  width: 22px;
+  height: 22px;
+}
+
+.action:active {
+  background: rgb(255 255 255 / 0.2);
+}
+
+/* ---- Mail ------------------------------------------------------------ */
+
+.mail {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+/* iOS's sheet curve: a fast start that settles without overshoot. */
+.mailbox,
+.sheet {
+  transition:
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    border-radius 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mailbox {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  transform-origin: 50% 0;
+}
+
+/* The dim behind a sheet: a black layer's opacity, which the compositor
+   animates, rather than a filter repainting the whole mailbox each frame. */
+.mailbox::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mailboxBehind::after {
+  opacity: 0.4;
+}
+
+/* Presented under a sheet, the parent steps back: smaller, dimmer, with
+   rounded top corners showing above the sheet. */
+.mailboxBehind {
+  transform: translateY(calc(var(--top-inset) - 8px)) scale(0.92);
+  border-radius: 28px;
+  background: #111;
+}
+
+.sheetAway {
+  transform: translateY(105%);
+}
+
+.mailList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mailRow {
+  position: relative;
+  padding: 10px 16px 12px 32px;
+}
+
+.mailRow::after {
+  content: "";
+  position: absolute;
+  left: 32px;
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.mailRowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mailRowFrom {
+  font-weight: 600;
+}
+
+.mailRowTime,
+.mailRowPreview,
+.mailRowMuted {
+  color: var(--label-2);
+}
+
+.mailRowTime {
+  font-size: 15px;
+}
+
+.mailRowSubject {
+  font-size: 15px;
+}
+
+.mailRowPreview {
+  font-size: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mail's indeterminate send bar. */
+.sendProgress {
+  position: relative;
+  width: 120px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--fill);
+}
+
+.sendProgress::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--ios-blue);
+  animation: send-progress 1.1s ease-in-out infinite;
+}
+
+@keyframes send-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.mailRowPending {
+  opacity: 0.55;
+}
+
+/* iOS text fields show the caret and nothing else. */
+.field input:focus-visible,
+.body:focus-visible {
+  outline: none;
+}
+
+.fieldInvalid {
+  color: var(--ios-red) !important;
+}
+
+/* ---- Alert ----------------------------------------------------------- */
+
+.alertBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+  animation: alert-fade 0.2s ease-out both;
+}
+
+/* iOS 26's alert: a larger Liquid Glass card, text set to the leading
+   edge, and capsule buttons in place of the old hairline row. */
+.alert {
+  width: min(300px, calc(100% - 64px));
+  padding: 22px 20px 16px;
+  border-radius: 34px;
+  background: rgb(44 44 46 / 0.78);
+  backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.25),
+    0 20px 60px rgb(0 0 0 / 0.4);
+  text-align: start;
+  /* Settles from a touch large without undershooting, as UIKit's does. */
+  animation: alert-pop 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.alertBody {
+  padding: 0 2px;
+}
+
+.alertTitle {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.alertMessage {
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--label-2);
+}
+
+.alertButton {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin-top: 18px;
+  border-radius: 999px;
+  background: var(--ios-blue);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: scale 0.15s ease-out;
+}
+
+.alertButton:active {
+  scale: 0.97;
+}
+
+.alertButton:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Out quicker than in, and without the scale, as UIKit's alert leaves. */
+.alertLeaving {
+  pointer-events: none;
+}
+
+.alertLeaving,
+.alertLeaving .alert {
+  animation: alert-out 0.15s ease-out both;
+}
+
+@keyframes alert-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes alert-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes alert-pop {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+.sheet {
+  position: absolute;
+  inset: calc(var(--top-inset) + 10px) 0 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+  background: var(--grouped);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.sheetHead {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 14px 16px 10px;
+}
+
+.sheetTitle {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.sendButton {
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.35),
+    0 4px 14px rgb(10 132 255 / 0.35);
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ios-blue);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sendButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: 16px;
+  padding-right: 16px;
+  border-bottom: 0.5px solid var(--separator) !important;
+  color: var(--label-2);
+  font-size: 15px;
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+}
+
+.token {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgb(10 132 255 / 0.2);
+  color: var(--ios-blue);
+  font-size: 17px;
+}
+
+.body {
+  flex: 1;
+  width: 100%;
+  padding: 12px 16px;
+  resize: none;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  outline: none;
+}
+
+.body::placeholder {
+  color: var(--label-3);
+}
+
+.formStatus {
+  padding: 12px 16px calc(var(--bottom-inset) + 12px);
+  font-size: 15px;
+}
+
+.formError {
+  color: var(--ios-red);
+}
+
+.formSuccess {
+  color: var(--ios-green);
+}
+
+/* ---- Calendar -------------------------------------------------------- */
+
+/* ---- Calendar -------------------------------------------------------
+   Month, year and day levels, each zooming out of what opened it. */
+.calendar {
+  --tint: var(--ios-red);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.calView {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+}
+
+/* Into a month or a day: the level grows out of the cell that was tapped.
+   Back out: it settles from slightly large, as the level in front recedes
+   into it. */
+.calZoomIn {
+  animation: cal-zoom-in 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calZoomOut {
+  animation: cal-zoom-out 0.38s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calFade {
+  animation: cal-fade 0.2s ease-out both;
+}
+
+@keyframes cal-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Coming back out, the level settles from slightly large under the one
+   leaving, which covers it as it goes: no fade of its own over black. */
+@keyframes cal-zoom-out {
+  from {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes cal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.calBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--top-inset) + 4px) 16px 6px;
+}
+
+.glassButton.calAdd {
+  color: var(--label);
+}
+
+.calTitle {
+  flex: none;
+  padding: 4px 18px 6px;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.calWeekdays {
+  display: grid;
+  flex: none;
+  grid-template-columns: 28px repeat(7, 1fr);
+  padding: 4px 8px 6px 0;
+  border-bottom: 0.5px solid var(--separator);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--label);
+}
+
+.calWeekdays::before {
+  content: "";
+}
+
+.calMonths {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(max(var(--bottom-inset), 28px) + 80px);
+  scrollbar-width: none;
+}
+
+.calMonths::-webkit-scrollbar {
+  display: none;
+}
+
+.calWeek {
+  display: grid;
+  grid-template-columns: 28px repeat(7, 1fr);
+  padding-right: 8px;
+}
+
+/* A shadow, not a border: the hairline takes no height, which would round
+   differently on every screen and leave the months' sizes unknowable. */
+.calWeek + .calWeek {
+  box-shadow: inset 0 0.5px var(--separator);
+}
+
+/* Nineteen months of day buttons: those off screen skip style and layout,
+   which otherwise all ran inside the tap that opens Calendar. */
+.calMonth {
+  content-visibility: auto;
+}
+
+.calMonthName {
+  box-sizing: border-box;
+  height: 48px;
+  padding: 18px 0 2px;
+  line-height: 28px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.calMonthNow {
+  color: var(--ios-red);
+}
+
+.calWeekNumber {
+  padding: 4px 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--label-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.calDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 64px;
+  padding-top: 8px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calDayNumber {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s ease-out;
+}
+
+.calDay:active .calDayNumber {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.calDayWeekend {
+  color: var(--label-2);
+}
+
+.calDayToday .calDayNumber,
+.calDayToday:active .calDayNumber {
+  background: var(--ios-red);
+  color: #fff;
+  font-weight: 600;
+}
+
+.calDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--label-3);
+}
+
+.calToolbar {
+  justify-content: flex-start;
+}
+
+.pill.calToday {
+  height: 48px;
+  padding: 0 22px;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--label);
+  cursor: pointer;
+  transition: scale 0.15s ease-out;
+}
+
+.pill.calToday:active {
+  scale: 0.95;
+}
+
+/* Year: two years of mini months. */
+.calYears {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--top-inset) + 8px) 12px
+    calc(max(var(--bottom-inset), 28px) + 24px);
+  scrollbar-width: none;
+}
+
+.calYears::-webkit-scrollbar {
+  display: none;
+}
+
+.calYearTitle {
+  padding: 8px 6px 10px;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.calYearNow {
+  color: var(--ios-red);
+}
+
+.calMinis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 12px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid var(--separator);
+  margin-bottom: 8px;
+}
+
+.calMini {
+  display: block;
+  /* A button centres its content in a stretched cell; a five-week month
+     would sit lower than a six-week one beside it. */
+  align-self: start;
+  padding: 4px;
+  border-radius: 10px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.calMini:active {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.calMiniName {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.calMiniNow .calMiniName {
+  color: var(--ios-red);
+}
+
+.calMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.calMiniToday {
+  border-radius: 50%;
+  background: var(--ios-red);
+}
+
+/* Day: the week strip and the day's events. */
+.calStrip {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 6px 8px 10px;
+  border-bottom: 0.5px solid var(--separator);
+  touch-action: pan-y;
+}
+
+.calStripNext {
+  animation: cal-week-next 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.calStripPrev {
+  animation: cal-week-prev 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes cal-week-next {
+  from {
+    opacity: 0;
+    transform: translateX(30%);
+  }
+}
+
+@keyframes cal-week-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-30%);
+  }
+}
+
+.calStripDay {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background 0.2s ease-out,
+    color 0.2s ease-out;
+}
+
+.calStripToday {
+  color: var(--ios-red);
+  font-weight: 600;
+}
+
+.calStripSelected {
+  background: var(--label);
+  color: #000;
+  font-weight: 600;
+}
+
+.calStripToday.calStripSelected {
+  background: var(--ios-red);
+  color: #fff;
+}
+
+.calDayBody {
+  animation: cal-fade 0.2s ease-out both;
+}
+
+.calEmpty {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 17px;
+  color: var(--label-2);
+}
+
+.dayTitle {
+  padding: 14px 16px 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.event {
+  display: block;
+  margin: 0 16px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--ios-blue) !important;
+  border-radius: 6px;
+  background: rgb(10 132 255 / 0.22);
+  color: inherit;
+  text-decoration: none;
+}
+
+.eventTitle {
+  font-weight: 600;
+}
+
+.eventDetail {
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+/* ---- Reduced motion -------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .unlockHint {
+    animation: none;
+  }
+
+  /* The global rule would jump the HUD to its last keyframe (invisible):
+     fade it in and out, without the scale. */
+  .hud {
+    animation: hud-fade 1.4s ease-out both !important;
+  }
+
+  /* Reduced motion is gentler, not a cut: the global rule zeroes durations
+     but keeps delays, which would hold these invisible, then pop them in.
+     A short cross-fade instead, and sheets fade rather than slide. */
+  :global(html:not([data-iphone])) :is(.lock > :first-child, .notification, .lockPlayer, .lockFooter, .lock > .homeIndicator) {
+    animation: wake-fade 0.25s ease-out both !important;
+    animation-delay: 0s !important;
+  }
+
+  :global(html:not([data-iphone])) .wallpaper {
+    animation: none !important;
+  }
+
+  .nowPlaying,
+  .sheet {
+    transition: opacity 0.2s ease !important;
+  }
+
+  .nowPlaying:not(.nowPlayingOpen),
+  .sheetAway {
+    transform: none;
+    opacity: 0;
+  }
+
+  .mailboxBehind {
+    transform: none;
+  }
+
+  .banner {
+    animation: wake-fade 0.2s ease-out both !important;
+  }
+
+  .bannerLeaving {
+    animation: wake-fade 0.2s ease-in reverse both !important;
+  }
+}
+
+.cellLabelButton {
+  background: none;
+  /* The family and line height only: the `font` shorthand here would also
+     reset the label's 12px size to the widget's. */
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+/* SF Symbols' replace effect, for play and pause. */
+.symbolSwap {
+  display: grid;
+}
+
+.symbolSwap > svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.16s cubic-bezier(0.23, 1, 0.32, 1),
+    scale 0.16s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.symbolSwap > svg:last-child,
+.symbolSwap[data-playing] > svg:first-child {
+  opacity: 0;
+  scale: 0.6;
+  filter: blur(2px);
+}
+
+.symbolSwap[data-playing] > svg:last-child {
+  opacity: 1;
+  scale: 1;
+  filter: none;
+}
+
+/* ---- Press and hover ------------------------------------------------
+   Every control answers a press: a small scale on buttons and cards, a
+   tint on rows, a dim on text links, quick to go in and easing out. On a
+   desktop, a hover lifts the same things a touch. */
+
+.latest,
+.miniPlayerOpen,
+.miniPlayerButton,
+.search,
+.favorite,
+.addressPill,
+.unlockHint,
+.lockPlayerOpen,
+.event,
+.photoTile,
+.shelfItem {
+  transition: scale 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:is(.latest, .favorite, .event, .photoTile, .lockPlayerOpen):active {
+  scale: 0.97;
+}
+
+:is(.miniPlayerOpen, .search, .addressPill, .unlockHint):active {
+  scale: 0.96;
+}
+
+.miniPlayerButton:active {
+  scale: 0.88;
+}
+
+.sendButton:active {
+  scale: 0.9;
+}
+
+:is(.noteLink, .mapSource, .nowPlayingSource, .rowLink) {
+  transition: opacity 0.16s ease-out;
+}
+
+:is(.noteLink, .mapSource, .nowPlayingSource, .rowLink):active {
+  opacity: 0.6;
+}
+
+/* Rows clear their highlight with a fade, as UIKit's do; it goes on at once. */
+a.row,
+button.row {
+  transition: background-color 0.25s ease-out;
+}
+
+a.row:active,
+button.row:active {
+  transition: none;
+}
+
+/* The mini player's capsule clips: keep its focus rings inside it. */
+.miniPlayerOpen:focus-visible,
+.miniPlayerButton:focus-visible {
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.row:hover,
+  button.row:hover {
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  :is(.glassButton, .pill, .glassField, .tabBar):not(:disabled):hover {
+    filter: brightness(1.15);
+  }
+
+  :is(.cell, .shelfItem, .latest, .favorite, .photoTile, .calMini):hover {
+    filter: brightness(1.08);
+  }
+
+  :is(.transportButton, .miniPlayerButton):not(:disabled):hover {
+    background: rgb(255 255 255 / 0.08);
+    border-radius: 999px;
+  }
+}
+
+/* A song's cover holds a plate while it loads. */
+.spotlightSongCover {
+  background: var(--grouped-2);
+}
+
+/* iOS's clear button: a grey circled ✕, not the browser's blue one. */
+.root input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M5.5 5.5l6 6m0-6l-6 6' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / 17px no-repeat,
+    rgb(235 235 245 / 0.45);
+  cursor: pointer;
+}
+
+/* Long text never reflows the chrome: one line, ending in an ellipsis. */
+.mailRow {
+  transition: opacity 0.25s ease-out;
+}
+
+.sheetTitle,
+.mailRowSubject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A phone turned sideways: the iPhone's home screen and lock screen don't
+   rotate, and this one doesn't fit, so it asks to be turned back. */
+/* 499.98px, not 500px: at exactly 500 the framed desktop layout
+   (min-height: 500px) takes over instead of both applying. */
+@media (orientation: landscape) and (max-height: 499.98px) and (pointer: coarse) {
+  /* The notice is black edge to edge: so are Safari's bars. */
+  .edgeTop,
+  .edgeBottom {
+    display: none;
+  }
+
+  .root::after {
+    content: "Turn your phone upright to use it";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #000;
+    color: var(--label-2);
+    font: 600 17px/1.3 var(--ios-font);
+    text-align: center;
+  }
+}
+
+/* ---- Accessibility: Reduce Transparency, Increase Contrast -------------
+   iOS swaps its glass for solid, near-opaque fills when transparency is
+   reduced, and darkens secondary text and separators for more contrast. */
+
+@media (prefers-reduced-transparency: reduce) {
+  .spotlight {
+    background: #1c1c1e;
+    backdrop-filter: none;
+  }
+
+  :is(
+      .notification,
+      .lockPlayer,
+      .quickAction,
+      .dock,
+      .mailStatusPill,
+      .search,
+      .glassButton,
+      .glassField,
+      .pill,
+      .toolCapsule,
+      .viewerCapsule,
+      .alert,
+      .hud
+    ) {
+    background: rgb(44 44 46 / 0.96);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .root {
+    --label-2: rgb(235 235 245 / 0.8);
+    --label-3: rgb(235 235 245 / 0.55);
+    --separator: rgb(84 84 88);
+  }
+
+  :is(.glassButton, .glassField, .pill, .toolCapsule, .viewerCapsule) {
+    outline: 1px solid rgb(255 255 255 / 0.3);
+  }
+}
+
+/* The unlock hint names what works with the pointer in use. */
+.hintFine {
+  display: none;
+}
+
+@media (pointer: fine) {
+  .hintCoarse {
+    display: none;
+  }
+
+  .hintFine {
+    display: inline;
+  }
+}
+
+/* An icon held down lifts a little, as iOS does before its menu. */
+.cell[data-held] > :first-child {
+  scale: 1.08;
+  transition: scale 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}

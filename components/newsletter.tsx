@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { H2 } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 
@@ -11,9 +11,14 @@ export default function NewsletterForm() {
     "idle" | "loading" | "success" | "error" | "finished"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  // Synchronous re-entry guard: `disabled={isLoading}` only applies after a
+  // re-render, so a double Enter could otherwise post twice.
+  const inFlight = useRef(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
     setStatus("loading");
     setErrorMessage("");
 
@@ -26,7 +31,9 @@ export default function NewsletterForm() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
+      // An error response may not be JSON (a proxy 502, say); don't let that
+      // masquerade as a network error.
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         setStatus("success");
@@ -42,6 +49,8 @@ export default function NewsletterForm() {
       setErrorMessage(
         `Network error. Please check your connection and try again: ${errorMessage}`,
       );
+    } finally {
+      inFlight.current = false;
     }
   };
 

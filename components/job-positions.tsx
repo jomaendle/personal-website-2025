@@ -1,36 +1,10 @@
 import { H3 } from "@/components/ui/heading";
-
-const jobPositions = [
-  {
-    company: "E.ON Digital Technology",
-    role: "Principal Solution Architect",
-    startDate: "Sep 2024",
-    endDate: "present",
-  },
-  {
-    company: "Memberspot",
-    role: "Frontend Engineer",
-    startDate: "Aug 2023",
-    endDate: "Jul 2024",
-  },
-  {
-    company: "StudySmarter",
-    role: "Frontend Engineer",
-    startDate: "Oct 2021",
-    endDate: "Jul 2023",
-  },
-  {
-    company: "Micro Focus",
-    role: "Frontend Engineer",
-    startDate: "Oct 2019",
-    endDate: "Nov 2021",
-  },
-];
+import { JOB_POSITIONS } from "@/lib/state/jobs";
 
 export const JobPositions = () => {
   return (
     <div className="flex flex-col gap-6">
-      {jobPositions.map((position) => (
+      {JOB_POSITIONS.map((position) => (
         <article
           key={`${position.company}-${position.role}`}
           className="flex items-center"

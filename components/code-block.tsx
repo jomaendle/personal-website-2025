@@ -92,22 +92,25 @@ export function CodeBlock({
 
   // Lazy load syntax highlighter themes based on current theme. Import the
   // concrete theme modules — the styles/prism barrel bundles all ~50 themes.
+  // `cancelled` drops a stale import that resolves after a quick theme flip.
   useEffect(() => {
+    let cancelled = false;
     const loadTheme = async () => {
-      if (resolvedTheme === "light") {
-        const { default: oneLight } = await import(
-          "react-syntax-highlighter/dist/esm/styles/prism/one-light"
-        );
-        setSyntaxTheme(readable(oneLight));
-      } else {
-        const { default: oneDark } = await import(
-          "react-syntax-highlighter/dist/esm/styles/prism/one-dark"
-        );
-        setSyntaxTheme(readable(oneDark));
-      }
+      const { default: theme } =
+        resolvedTheme === "light"
+          ? await import(
+              "react-syntax-highlighter/dist/esm/styles/prism/one-light"
+            )
+          : await import(
+              "react-syntax-highlighter/dist/esm/styles/prism/one-dark"
+            );
+      if (!cancelled) setSyntaxTheme(readable(theme));
     };
 
     loadTheme();
+    return () => {
+      cancelled = true;
+    };
   }, [resolvedTheme]);
 
   const copyToClipboard = async () => {

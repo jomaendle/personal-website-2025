@@ -2,15 +2,26 @@ import fs from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 
+// Read once at module load rather than on every request; the file only
+// changes on deploy. A failed read is kept and reported per request below.
+function loadThemeCss(): string | Error {
+  try {
+    return fs.readFileSync(
+      path.join(process.cwd(), "public", "giscus-custom-theme.css"),
+      "utf8",
+    );
+  } catch (error) {
+    return error instanceof Error ? error : new Error(String(error));
+  }
+}
+
+const themeCss = loadThemeCss();
+
 export async function GET() {
   try {
-    // Read the static CSS file with both light and dark theme definitions
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "giscus-custom-theme.css",
-    );
-    const css = fs.readFileSync(filePath, "utf8");
+    // Static CSS file with both light and dark theme definitions
+    if (themeCss instanceof Error) throw themeCss;
+    const css = themeCss;
 
     // Return CSS with CORS headers
     // Note: Headers are also set in next.config.mjs for consistency

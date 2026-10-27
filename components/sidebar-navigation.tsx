@@ -1,9 +1,10 @@
 "use client";
 
-import { AnimatePresence, m } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { useEffect, useMemo, useState } from "react";
+import { CollapsiblePanel } from "@/components/ui/collapsible-panel";
 import {
   useDomHeadings,
   useIsMounted,
@@ -100,7 +101,7 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
       {tocItems.length > 0 && (
         <div className="relative">
           {/* A plain button, not a Radix CollapsibleTrigger. The body here is a
-              framer `motion.div`, never a `CollapsibleContent`, so Radix emitted
+              local `CollapsiblePanel`, never a `CollapsibleContent`, so Radix emitted
               an `aria-controls` pointing at an ID that never existed in the
               document. The panel wrapper below is always mounted and owns the
               ID, so the reference resolves open or closed. */}
@@ -118,51 +119,37 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
               }`}
             />
           </button>
-          <div id="sidebar-toc-panel">
-            <AnimatePresence>
-              {isOnThisPageOpen ? (
-                <m.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-2 pt-2">
-                    <div className="flex flex-col space-y-1">
-                      {tocItems.map((item, index) => (
-                        <m.div
-                          key={item.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{
-                            delay: index * 0.05,
-                            type: "tween",
-                          }}
-                          className="flex w-full items-center"
-                        >
-                          <Link
-                            href={`#${item.id}`}
-                            className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-colors duration-200 hover:bg-accent hover:text-accent-foreground ${
-                              item.level === 3
-                                ? "ml-4 text-muted-foreground"
-                                : ""
-                            } ${
-                              activeId === item.id
-                                ? "border-primary border-l-2 bg-accent/50 font-medium text-primary"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            {item.title}
-                          </Link>
-                        </m.div>
-                      ))}
-                    </div>
-                  </div>
-                </m.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
+          <CollapsiblePanel id="sidebar-toc-panel" open={isOnThisPageOpen}>
+            <div className="space-y-2 pt-2">
+              <div className="flex flex-col space-y-1">
+                {tocItems.map((item, index) => (
+                  <m.div
+                    key={item.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isOnThisPageOpen ? 1 : 0 }}
+                    transition={{
+                      delay: isOnThisPageOpen ? index * 0.05 : 0,
+                      type: "tween",
+                    }}
+                    className="flex w-full items-center"
+                  >
+                    <Link
+                      href={`#${item.id}`}
+                      className={`block w-full whitespace-pre-wrap rounded-md px-2 py-1 text-left transition-colors duration-200 hover:bg-accent hover:text-accent-foreground ${
+                        item.level === 3 ? "ml-4 text-muted-foreground" : ""
+                      } ${
+                        activeId === item.id
+                          ? "border-primary border-l-2 bg-accent/50 font-medium text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {item.title}
+                    </Link>
+                  </m.div>
+                ))}
+              </div>
+            </div>
+          </CollapsiblePanel>
         </div>
       )}
 
@@ -182,54 +169,42 @@ export function SidebarNavigation({ currentSlug }: SidebarNavigationProps) {
             }`}
           />
         </button>
-        <div id="sidebar-more-posts-panel">
-          <AnimatePresence>
-            {isMorePostsOpen ? (
-              <m.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="space-y-2 pt-2">
-                  <div className="flex flex-col gap-3">
-                    {currentBlogPosts.map((post, index) => (
-                      <m.article
-                        key={post.slug}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{
-                          delay: index * 0.05,
-                          type: "tween",
-                        }}
-                      >
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          className="group block w-full rounded-lg border border-transparent p-3 transition-colors duration-200 hover:border-border hover:bg-accent/50"
-                          prefetch={false}
-                        >
-                          {/* Deliberately a span, not a heading. These are nav
-                            links, and the sidebar precedes the article in the
-                            DOM — as headings they put eight h3s ahead of the
-                            article's own h1 in the outline. */}
-                          <span className="line-clamp-2 block whitespace-pre-wrap font-medium font-serif text-foreground text-sm leading-[1.15] tracking-[-0.01em] transition-colors duration-200 group-hover:text-brand">
-                            {post.title}
-                          </span>
-                          <div className="mt-1 flex items-center justify-between">
-                            <p className="text-muted-foreground text-xs transition-colors duration-200 group-hover:text-muted-foreground/80">
-                              {post.date}
-                            </p>
-                          </div>
-                        </Link>
-                      </m.article>
-                    ))}
-                  </div>
-                </div>
-              </m.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
+        <CollapsiblePanel id="sidebar-more-posts-panel" open={isMorePostsOpen}>
+          <div className="space-y-2 pt-2">
+            <div className="flex flex-col gap-3">
+              {currentBlogPosts.map((post, index) => (
+                <m.article
+                  key={post.slug}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isMorePostsOpen ? 1 : 0 }}
+                  transition={{
+                    delay: isMorePostsOpen ? index * 0.05 : 0,
+                    type: "tween",
+                  }}
+                >
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="group block w-full rounded-lg border border-transparent p-3 transition-colors duration-200 hover:border-border hover:bg-accent/50"
+                    prefetch={false}
+                  >
+                    {/* Deliberately a span, not a heading. These are nav
+                      links, and the sidebar precedes the article in the
+                      DOM — as headings they put eight h3s ahead of the
+                      article's own h1 in the outline. */}
+                    <span className="line-clamp-2 block whitespace-pre-wrap font-medium font-serif text-foreground text-sm leading-[1.15] tracking-[-0.01em] transition-colors duration-200 group-hover:text-brand">
+                      {post.title}
+                    </span>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-muted-foreground text-xs transition-colors duration-200 group-hover:text-muted-foreground/80">
+                        {post.date}
+                      </p>
+                    </div>
+                  </Link>
+                </m.article>
+              ))}
+            </div>
+          </div>
+        </CollapsiblePanel>
       </div>
     </m.aside>
   );

@@ -42,3 +42,9 @@ export const SITE: SiteConfig = {
     booking: "https://calendar.app.google/jpSRhy2ekZWZEv3W7",
   },
 };
+
+/** The monogram shown where iOS would show a contact photo. */
+export const SITE_INITIALS = SITE.name
+  .split(" ")
+  .map((part) => part.charAt(0))
+  .join("");

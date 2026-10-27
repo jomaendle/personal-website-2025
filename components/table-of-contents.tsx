@@ -1,9 +1,10 @@
 "use client";
 
-import { AnimatePresence, m } from "framer-motion";
+import { m } from "framer-motion";
 import { Link } from "next-view-transitions";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CollapsiblePanel } from "@/components/ui/collapsible-panel";
 import { useDomHeadings } from "@/lib/hooks";
 
 export function MobileTableOfContents() {
@@ -32,33 +33,23 @@ export function MobileTableOfContents() {
             </m.span>
           </Button>
 
-          <AnimatePresence>
-            {isOpen ? (
-              <m.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-3 rounded-lg border border-border bg-card p-4">
-                  <div className="space-y-2 text-sm">
-                    {tocItems.map((item) => (
-                      <div key={item.id} className="flex w-full items-center">
-                        <Link
-                          href={`#${item.id}`}
-                          onClick={handleTocClick}
-                          className={`block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-accent hover:text-accent-foreground ${item.level === 3 ? "ml-4 text-muted-foreground" : "text-foreground"} `}
-                        >
-                          {item.title}
-                        </Link>
-                      </div>
-                    ))}
+          <CollapsiblePanel open={isOpen}>
+            <div className="mt-3 rounded-lg border border-border bg-card p-4">
+              <div className="space-y-2 text-sm">
+                {tocItems.map((item) => (
+                  <div key={item.id} className="flex w-full items-center">
+                    <Link
+                      href={`#${item.id}`}
+                      onClick={handleTocClick}
+                      className={`block w-full rounded-md px-2 py-1 text-left transition-colors hover:bg-accent hover:text-accent-foreground ${item.level === 3 ? "ml-4 text-muted-foreground" : "text-foreground"} `}
+                    >
+                      {item.title}
+                    </Link>
                   </div>
-                </div>
-              </m.div>
-            ) : null}
-          </AnimatePresence>
+                ))}
+              </div>
+            </div>
+          </CollapsiblePanel>
         </>
       )}
     </div>

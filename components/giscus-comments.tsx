@@ -1,7 +1,13 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import { GiscusSkeleton } from "@/components/ui/skeleton";
 
 interface GiscusCommentsProps {
@@ -32,11 +38,6 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   const { resolvedTheme } = useTheme();
 
   const giscusTheme = resolvedTheme === "light" ? "light" : "dark";
-  // The message listener has to post the *current* theme, but re-subscribing on
-  // every theme change would drop messages during the swap. A ref keeps the
-  // listener stable and still current.
-  const themeRef = useRef(giscusTheme);
-  themeRef.current = giscusTheme;
 
   // Reset load/error state when the post changes. Done during render rather
   // than inside the effect below — React's documented pattern for deriving
@@ -81,6 +82,15 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
   // the reloaded document falls back to the `data-theme` stylesheet — a config
   // sent only on the first message never reaches it, and the frame reverts to
   // whichever theme that stylesheet describes.
+  //
+  // The listener has to post the *current* theme, but re-subscribing on every
+  // theme change would drop messages during the swap. An Effect Event keeps
+  // the listener stable and still reads the latest theme.
+  const onGiscusMessage = useEffectEvent(() => {
+    setStatus("ready");
+    postTheme(giscusTheme);
+  });
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== GISCUS_ORIGIN) return;
@@ -93,13 +103,12 @@ export function GiscusComments({ slug }: GiscusCommentsProps) {
       const frame = currentFrame();
       if (!frame || event.source !== frame.contentWindow) return;
 
-      setStatus("ready");
-      postTheme(themeRef.current);
+      onGiscusMessage();
     };
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [currentFrame, postTheme]);
+  }, [currentFrame]);
 
   // Initialize Giscus (only once per slug)
   useEffect(() => {

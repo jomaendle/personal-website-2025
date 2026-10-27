@@ -8,13 +8,19 @@ const BaselineStatus = ({ featureId }: { featureId: string }) => {
   useEffect(() => {
     // Dynamically import and define the custom element
     // @ts-expect-error - baseline-status module doesn't have proper type definitions
-    import("baseline-status").then((module) => {
-      // Ensure the component is defined only once
-      if (!customElements.get("baseline-status")) {
-        customElements.define("baseline-status", module.default);
-      }
-      setIsLoaded(true);
-    });
+    import("baseline-status")
+      .then((module) => {
+        // Ensure the component is defined only once
+        if (!customElements.get("baseline-status")) {
+          customElements.define("baseline-status", module.default);
+        }
+        setIsLoaded(true);
+      })
+      .catch((error) => {
+        // A failed chunk load leaves the skeleton up rather than an
+        // unhandled rejection.
+        console.error("Failed to load baseline-status:", error);
+      });
   }, []);
 
   if (!isLoaded) {

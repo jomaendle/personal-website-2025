@@ -43,7 +43,12 @@
       "a11y": "on",
       "complexity": "on",
       "correctness": {
-        "useExhaustiveDependencies": "error",
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": {
+            "hooks": [{ "name": "useLatest", "stableResult": true }]
+          }
+        },
         "useHookAtTopLevel": "error",
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
