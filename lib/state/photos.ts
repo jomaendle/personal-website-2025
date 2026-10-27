@@ -517,11 +517,20 @@ export interface WallpaperChoice {
   image: StaticImageData;
   title: string;
   place: string;
+  /** The average colour along its top and bottom edges as it covers a
+   * phone screen. Safari on iOS 26 fills the bands behind the clock and its
+   * toolbar with one colour it reads off the page; these continue the photo
+   * there, instead of black. */
+  edges: { top: string; bottom: string };
 }
 
 /** A wallpaper's caption, from what the library says about the photo, so
  * the two can't disagree: its title, and the place without the country. */
-function wallpaper(key: string, image: StaticImageData): WallpaperChoice {
+function wallpaper(
+  key: string,
+  image: StaticImageData,
+  edges: WallpaperChoice["edges"],
+): WallpaperChoice {
   const about = PHOTO_LIBRARY.find((p) => p.image === image)?.about;
   if (!about) {
     throw new Error(`Wallpaper ${key} has no place in the library`);
@@ -531,17 +540,38 @@ function wallpaper(key: string, image: StaticImageData): WallpaperChoice {
     image,
     title: about.title,
     place: about.place.split(",")[0] ?? about.place,
+    edges,
   };
 }
 
 /** The wallpapers Settings offers: portraits, with quiet space at the top
  * for the clock. The first is the default. Keys are stored as the reader's
- * choice, so they never change; an unknown one falls back to the default. */
+ * choice, so they never change; an unknown one falls back to the default.
+ * Edge colours are measured from each photo drawn as it covers a 393 × 852
+ * screen: its top and bottom 12px, averaged. */
 export const WALLPAPERS: WallpaperChoice[] = [
-  wallpaper("looking-up", earthLookingUp),
-  wallpaper("palms-at-dusk", earthPalmsAtDusk),
-  wallpaper("palm-fronds", earthPalmFronds),
-  wallpaper("white-frangipani", earthWhiteFrangipani),
-  wallpaper("distant-tower", earthDistantTower),
-  wallpaper("palms-in-the-breeze", earthPalmsInTheBreeze),
+  wallpaper("looking-up", earthLookingUp, {
+    top: "#005b92",
+    bottom: "#553a49",
+  }),
+  wallpaper("palms-at-dusk", earthPalmsAtDusk, {
+    top: "#404b4c",
+    bottom: "#070706",
+  }),
+  wallpaper("palm-fronds", earthPalmFronds, {
+    top: "#181e1b",
+    bottom: "#242f17",
+  }),
+  wallpaper("white-frangipani", earthWhiteFrangipani, {
+    top: "#2c88a4",
+    bottom: "#395e5c",
+  }),
+  wallpaper("distant-tower", earthDistantTower, {
+    top: "#cecaca",
+    bottom: "#213125",
+  }),
+  wallpaper("palms-in-the-breeze", earthPalmsInTheBreeze, {
+    top: "#35231b",
+    bottom: "#d4c0b0",
+  }),
 ];

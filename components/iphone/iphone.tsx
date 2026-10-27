@@ -731,6 +731,25 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       <MusicProvider>
         <div className={styles.root}>
           <AmbientGlow wallpaper={wallpaper} />
+          {/* What Safari on iOS 26 reads to fill the bands behind its status
+              bar and toolbar (see `edges` in photos.ts): the wallpaper's
+              edges, or an open app's black. Invisible on the page. */}
+          <span
+            className={styles.edgeTop}
+            style={{
+              backgroundColor:
+                app && !closingApp ? "#000" : wallpaper.edges.top,
+            }}
+            aria-hidden
+          />
+          <span
+            className={styles.edgeBottom}
+            style={{
+              backgroundColor:
+                app && !closingApp ? "#000" : wallpaper.edges.bottom,
+            }}
+            aria-hidden
+          />
           <Link href="/" className={styles.exit}>
             ← {IPHONE_COPY.exitLabel}
           </Link>

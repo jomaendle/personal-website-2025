@@ -97,6 +97,30 @@
   outline: none;
 }
 
+/* Safari on iOS 26 fills the bands behind its status bar and toolbar with
+   the plain background colour of the full-width fixed box it finds at each
+   edge; without these, that box is the black root. Kept invisible and out
+   of the way of touches: Safari still reads them. Over 10px tall and the
+   full width, or it skips them. */
+.edgeTop,
+.edgeBottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 16px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.edgeTop {
+  top: 0;
+}
+
+.edgeBottom {
+  bottom: 0;
+}
+
 /* ---- Desktop staging ------------------------------------------------- */
 
 .ambient,
@@ -140,6 +164,12 @@
      already; a runtime blur over the whole window would be redrawn under
      every frame of every animation on the phone. The dimming is a static
      layer for the same reason. */
+  /* Around the frame the page is dark: Safari's bars stay the root's black. */
+  .edgeTop,
+  .edgeBottom {
+    display: none;
+  }
+
   .ambient {
     display: block;
     position: absolute;
