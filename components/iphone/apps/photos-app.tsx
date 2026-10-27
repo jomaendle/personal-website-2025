@@ -28,7 +28,6 @@ import {
 } from "../glyphs";
 import styles from "../iphone.module.css";
 import {
-  bezierProgress,
   clamp,
   FADE,
   FPS,
@@ -44,8 +43,8 @@ import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
 
 /** Grid thumbnails ask for this; the viewer asks for the same, underneath the
  * full image, so it shows the cached thumbnail at once instead of a blur. */
-const THUMB_SIZES = "(min-width: 640px) and (min-height: 640px) 134px, 34vw";
-const FULL_SIZES = "(min-width: 640px) and (min-height: 640px) 402px, 100vw";
+const THUMB_SIZES = "(min-width: 640px) and (min-height: 500px) 134px, 34vw";
+const FULL_SIZES = "(min-width: 640px) and (min-height: 500px) 402px, 100vw";
 
 /** The library's first screen of thumbnails, fetched and decoded at the
  * size the grid will ask for (the same srcset and sizes), while the phone
@@ -95,7 +94,6 @@ const sheetFor = (index: number) =>
 type Shot = { tx: number; ty: number; u: number; rx: number; ry: number };
 
 const REST_TRANSFORM = "translate(0px, 0px) scale(1)";
-const ZOOM_CURVE: [number, number, number, number] = [0.2, 0.9, 0.25, 1];
 
 /**
  * A move from one shot to another as Web Animation keyframes, one per
@@ -249,10 +247,10 @@ function putBack(
       {
         from: catchZoom(frame) ?? shotOf(frame, W, H),
         to,
-        progress:
-          velocity > 0
-            ? springProgress(velocity, { stiffness: 260 })
-            : bezierProgress(ZOOM_CURVE, ZOOM.duration),
+        // Critically damped: it lands in its cell without overshooting.
+        progress: springProgress(Math.max(velocity, 0), {
+          stiffness: velocity > 0 ? 260 : 340,
+        }),
         size: [W, H],
       },
       done,
@@ -443,7 +441,8 @@ export default function PhotosApp({ launch }: AppProps) {
         {
           from,
           to: { tx: 0, ty: 0, u: 1, rx: W, ry: H },
-          progress: bezierProgress(ZOOM_CURVE, ZOOM.duration),
+          // A touch of settle as it fills the screen.
+          progress: springProgress(0, { stiffness: 340, damping: 0.86 }),
           size: [W, H],
         },
       );

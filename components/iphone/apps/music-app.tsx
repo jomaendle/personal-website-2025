@@ -68,8 +68,8 @@ const clock = (seconds: number) => {
 };
 
 const COVER_SIZES = {
-  hero: "(min-width: 640px) and (min-height: 640px) 402px, 100vw",
-  large: "(min-width: 640px) and (min-height: 640px) 340px, 86vw",
+  hero: "(min-width: 640px) and (min-height: 500px) 402px, 100vw",
+  large: "(min-width: 640px) and (min-height: 500px) 340px, 86vw",
   tile: "160px",
   row: "64px",
 };

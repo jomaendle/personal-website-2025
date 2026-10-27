@@ -296,8 +296,9 @@ export function AppWindow({
       <div
         ref={windowEl}
         className={styles.app}
+        // Not aria-modal: the home screen under it is inert already, and the
+        // side button and the way back to the site stay usable, as on a phone.
         role="dialog"
-        aria-modal="true"
         aria-label={APPS[id].name}
         tabIndex={-1}
         inert={leaving}

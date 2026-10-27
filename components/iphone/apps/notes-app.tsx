@@ -192,8 +192,8 @@ export default function NotesApp({ launch, openApp }: AppProps) {
 
         {/* iOS 26 moved search to the bottom, in a floating glass field. */}
         <div
-          className={styles.floatingBar}
-          style={keyboard ? { bottom: keyboard + 8 } : undefined}
+          className={cn(styles.floatingBar, styles.keyboardLift)}
+          style={{ "--keyboard": `${keyboard}px` } as React.CSSProperties}
         >
           <label className={styles.glassField}>
             <Magnifier />

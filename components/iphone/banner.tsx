@@ -42,7 +42,17 @@ export function BannerHost({
 }) {
   const [banner, setBanner] = useState<Banner | null>(null);
   const [leaving, setLeaving] = useState(false);
-  const swipe = useRef<{ id: number; y: number } | null>(null);
+  const [held, setHeld] = useState(false);
+  const swipe = useRef<{
+    id: number;
+    y: number;
+    dy: number;
+    t: number;
+    v: number;
+    moved: boolean;
+  } | null>(null);
+  /** A drag just ended: the click it makes doesn't open the app. */
+  const dragged = useRef(false);
 
   useEffect(() => {
     const listener = (next: Banner) => {
@@ -56,12 +66,13 @@ export function BannerHost({
   }, []);
 
   useEffect(() => {
-    if (!banner || leaving) {
+    // Held under a finger, it stays.
+    if (!banner || leaving || held) {
       return;
     }
     const timer = setTimeout(() => setLeaving(true), SHOWN);
     return () => clearTimeout(timer);
-  }, [banner, leaving]);
+  }, [banner, leaving, held]);
 
   if (!banner) {
     return null;
@@ -77,21 +88,71 @@ export function BannerHost({
           leaving && styles.bannerLeaving,
         )}
         onClick={(event) => {
+          if (dragged.current) {
+            dragged.current = false;
+            return;
+          }
           if (onOpen(banner.app, event.currentTarget)) {
             setBanner(null);
           } else {
             setLeaving(true);
           }
         }}
+        // It follows the finger: up freely, down only a little, as on iOS.
+        // Let go far enough up, or flicked up, it goes; otherwise it springs
+        // back. `translate` stacks on the in and out keyframes' transform.
         onPointerDown={(event) => {
-          swipe.current = { id: event.pointerId, y: event.clientY };
+          event.currentTarget.setPointerCapture(event.pointerId);
+          event.currentTarget.style.transition = "none";
+          swipe.current = {
+            id: event.pointerId,
+            y: event.clientY,
+            dy: 0,
+            t: event.timeStamp,
+            v: 0,
+            moved: false,
+          };
+          dragged.current = false;
+          setHeld(true);
         }}
         onPointerMove={(event) => {
-          const start = swipe.current;
-          if (start?.id === event.pointerId && start.y - event.clientY > 12) {
-            swipe.current = null;
-            setLeaving(true);
+          const s = swipe.current;
+          if (s?.id !== event.pointerId) {
+            return;
           }
+          const raw = event.clientY - s.y;
+          const dy = raw < 0 ? raw : raw * 0.2;
+          const dt = event.timeStamp - s.t;
+          if (dt > 0) {
+            s.v = (dy - s.dy) / dt;
+          }
+          s.dy = dy;
+          s.t = event.timeStamp;
+          s.moved ||= Math.abs(raw) > 6;
+          event.currentTarget.style.translate = `0 ${dy}px`;
+        }}
+        onPointerUp={(event) => {
+          const s = swipe.current;
+          if (s?.id !== event.pointerId) {
+            return;
+          }
+          swipe.current = null;
+          setHeld(false);
+          dragged.current = s.moved;
+          if (s.dy < -30 || s.v < -0.3) {
+            setLeaving(true);
+          } else {
+            const el = event.currentTarget;
+            el.style.transition =
+              "translate 0.35s cubic-bezier(0.2, 1.1, 0.3, 1)";
+            el.style.translate = "";
+          }
+        }}
+        onPointerCancel={(event) => {
+          swipe.current = null;
+          setHeld(false);
+          event.currentTarget.style.transition = "";
+          event.currentTarget.style.translate = "";
         }}
         onAnimationEnd={(event) => {
           if (leaving && event.target === event.currentTarget) {

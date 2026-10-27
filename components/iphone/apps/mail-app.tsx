@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { SITE } from "@/lib/config/site";
 import { IPHONE_COPY, MAIL_ALERTS } from "@/lib/state/iphone-copy";
+import { clockText } from "@/lib/state/now-format";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
 import { showBanner } from "../banner";
@@ -481,7 +482,10 @@ function SentMailbox({
                 key={message.id}
                 subject={message.subject}
                 body={message.body}
-                time={message.pending ? "Sending" : "Now"}
+                // The time it went, as Mail lists today's messages.
+                time={
+                  message.pending ? "Sending" : clockText(new Date(message.id))
+                }
                 pending={message.pending}
               />
             ))}

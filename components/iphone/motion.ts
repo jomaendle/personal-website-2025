@@ -158,32 +158,6 @@ export function springProgress(
   return points;
 }
 
-/** A CSS cubic-bezier easing as progress every 1/FPS s over `duration`
- * ms. */
-export function bezierProgress(
-  [x1, y1, x2, y2]: [number, number, number, number],
-  duration: number,
-): number[] {
-  const at = (a: number, b: number, t: number) =>
-    3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
-  const frames = Math.max(1, Math.round((duration * FPS) / 1000));
-  return Array.from({ length: frames + 1 }, (_, i) => {
-    const x = i / frames;
-    // Solve the curve's x for t by bisection, then read its y.
-    let lo = 0;
-    let hi = 1;
-    for (let k = 0; k < 24; k++) {
-      const mid = (lo + hi) / 2;
-      if (at(x1, x2, mid) < x) {
-        lo = mid;
-      } else {
-        hi = mid;
-      }
-    }
-    return at(y1, y2, (lo + hi) / 2);
-  });
-}
-
 /** One tracker for the component's lifetime, built once rather than on
  * every render. */
 export function useVelocityTracker() {

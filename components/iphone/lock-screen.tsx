@@ -301,7 +301,7 @@ export function LockScreen({
         alt=""
         fill
         placeholder="blur"
-        sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
+        sizes="(min-width: 640px) and (min-height: 500px) 402px, 100vw"
         className={cn(styles.wallpaper, styles.lockWallpaper)}
       />
       <span className={cn(styles.scrim, styles.lockScrim)} aria-hidden />

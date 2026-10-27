@@ -15,6 +15,8 @@ export interface AppLaunch {
   photo?: number;
   /** Settings: open on this page. */
   settings?: "wallpaper";
+  /** Safari: open on this project's card (its id), found and lit. */
+  project?: string;
 }
 
 export interface AppProps {

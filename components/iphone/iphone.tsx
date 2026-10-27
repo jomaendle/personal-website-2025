@@ -2,7 +2,7 @@
 
 import { m, useMotionValue, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import {
   useCallback,
   useEffect,
@@ -10,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
 import type { NoteSummary } from "@/lib/iphone-notes";
@@ -19,6 +20,7 @@ import {
   lockNotifications,
 } from "@/lib/state/iphone-copy";
 import { PHOTOS } from "@/lib/state/photos";
+import { cn } from "@/lib/utils";
 import { AppWindow } from "./app-window";
 import { APPS, type AppLaunch, preloadAllApps } from "./apps";
 import { BannerHost } from "./banner";
@@ -728,11 +730,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     <IphoneDataProvider value={data}>
       <MusicProvider>
         <div className={styles.root}>
-          <div
-            className={styles.ambient}
-            style={{ backgroundImage: `url(${wallpaper.image.blurDataURL})` }}
-            aria-hidden
-          />
+          <AmbientGlow wallpaper={wallpaper} />
           <Link href="/" className={styles.exit}>
             ← {IPHONE_COPY.exitLabel}
           </Link>
@@ -799,7 +797,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                 fill
                 preload
                 placeholder="blur"
-                sizes="(min-width: 640px) and (min-height: 640px) 402px, 100vw"
+                sizes="(min-width: 640px) and (min-height: 500px) 402px, 100vw"
                 className={styles.wallpaper}
               />
               <div className={styles.scrim} aria-hidden />
@@ -933,5 +931,51 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         </div>
       </MusicProvider>
     </IphoneDataProvider>
+  );
+}
+
+const noSubscription = () => () => {};
+
+/** The wallpaper's glow behind the phone on desktop. A new choice fades in
+ * over the old one; the swap to a stored choice during hydration doesn't,
+ * since the glow is still hidden then (see wallpapers.ts). */
+function AmbientGlow({
+  wallpaper,
+}: {
+  wallpaper: ReturnType<typeof useWallpaper>;
+}) {
+  const client = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
+  const [glow, setGlow] = useState({
+    now: wallpaper,
+    before: null as typeof wallpaper | null,
+    client,
+  });
+  if (glow.now.key !== wallpaper.key || glow.client !== client) {
+    setGlow({
+      now: wallpaper,
+      before: glow.client && glow.now.key !== wallpaper.key ? glow.now : null,
+      client,
+    });
+  }
+  const layer = (choice: typeof wallpaper, fading: boolean) => (
+    <div
+      key={choice.key}
+      className={cn(styles.ambient, fading && styles.ambientIn)}
+      style={{ backgroundImage: `url(${choice.image.blurDataURL})` }}
+      onAnimationEnd={
+        fading ? () => setGlow((g) => ({ ...g, before: null })) : undefined
+      }
+      aria-hidden
+    />
+  );
+  return (
+    <>
+      {glow.before ? layer(glow.before, false) : null}
+      {layer(glow.now, glow.before !== null)}
+    </>
   );
 }

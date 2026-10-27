@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { useEffect, useRef, useState } from "react";
 import { SITE, SITE_INITIALS } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/state/blog";
@@ -155,7 +155,7 @@ function SettingsRoot({
   onWallpaper: () => void;
   openApp: AppProps["openApp"];
 }) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const wallpaper = useWallpaper();
   /** The "iPhone" switch: off means the plain site, which it then opens. */
   const [phone, setPhone] = useState(true);

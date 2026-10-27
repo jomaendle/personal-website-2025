@@ -210,7 +210,7 @@ function MapCard({
             src={about.map}
             alt=""
             fill
-            sizes="(min-width: 640px) and (min-height: 640px) 370px, 92vw"
+            sizes="(min-width: 640px) and (min-height: 500px) 370px, 92vw"
           />
           <span className={styles.mapPin} aria-hidden>
             <Image src={thumb} alt="" fill sizes="44px" />

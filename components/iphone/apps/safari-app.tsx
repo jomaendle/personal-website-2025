@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLayoutEffect, useRef } from "react";
 import { PROJECTS } from "@/lib/state/projects";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
@@ -17,8 +18,21 @@ const host = (url: string) => new URL(url).host.replace(WWW, "");
 
 /** Safari's start page: my projects as Favorites, then as cards with what
  * each one is. The address bar leads back to the regular site. */
-export default function SafariApp(_: AppProps) {
+export default function SafariApp({ launch }: AppProps) {
   const { share, hud } = useShare();
+  const found = useRef<HTMLAnchorElement>(null);
+  // Opened from a Spotlight result: its card, in view before the first
+  // frame, lit once the way Safari marks a match.
+  useLayoutEffect(() => {
+    // The scroller itself, not scrollIntoView, which would also scroll the
+    // screen and the page around it.
+    const card = found.current;
+    const scroller = card?.parentElement;
+    if (card && scroller) {
+      scroller.scrollTop =
+        card.offsetTop - (scroller.clientHeight - card.offsetHeight) / 2;
+    }
+  }, []);
   return (
     <div className={styles.safari}>
       <div className={cn(styles.scroll, styles.scrollWithBar)}>
@@ -54,10 +68,14 @@ export default function SafariApp(_: AppProps) {
         {PROJECTS.map((project) => (
           <a
             key={project.id}
+            ref={project.id === launch?.project ? found : undefined}
             href={project.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.card}
+            className={cn(
+              styles.card,
+              project.id === launch?.project && styles.cardFound,
+            )}
           >
             <span className={cn(styles.cardHost, "block")}>
               {host(project.link)}

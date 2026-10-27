@@ -203,7 +203,7 @@ export function NoteView({
 // ---- Blocks -----------------------------------------------------------------
 
 const ATTACHMENT_SIZES =
-  "(min-width: 640px) and (min-height: 640px) 370px, 92vw";
+  "(min-width: 640px) and (min-height: 500px) 370px, 92vw";
 
 function Blocks({
   blocks,

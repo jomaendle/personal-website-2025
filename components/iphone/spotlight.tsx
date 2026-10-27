@@ -283,8 +283,8 @@ export function Spotlight({
         settled && !leaving && !pulling && styles.spotlightSettled,
       )}
       style={pull ? { opacity: pull } : undefined}
+      // Not aria-modal, like an app window (app-window.tsx).
       role="dialog"
-      aria-modal="true"
       aria-label="Search"
       inert={leaving || pulling}
       aria-hidden={leaving || pulling || undefined}
@@ -403,7 +403,7 @@ export function Spotlight({
                   type="button"
                   className={styles.spotlightRow}
                   onPointerDown={() => APPS.safari.load()}
-                  onClick={launchFrom("safari")}
+                  onClick={launchFrom("safari", { project: project.id })}
                 >
                   <AppIcon art="safari" className={styles.spotlightRowIcon} />
                   <span className={styles.rowMain}>
@@ -507,8 +507,8 @@ export function Spotlight({
       </div>
 
       <div
-        className={styles.floatingBar}
-        style={keyboard ? { bottom: keyboard + 8 } : undefined}
+        className={cn(styles.floatingBar, styles.keyboardLift)}
+        style={{ "--keyboard": `${keyboard}px` } as React.CSSProperties}
       >
         <label className={styles.glassField}>
           <Magnifier />
