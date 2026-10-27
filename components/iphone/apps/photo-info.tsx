@@ -16,9 +16,10 @@ let clock: Intl.DateTimeFormat | undefined;
 
 const DAY = 86_400_000;
 
-/** When the photo was taken, or, without a capture date, when it was added. */
+/** When the photo was taken, or, without a capture date, when it was
+ * exported, or else when it was added. */
 export const photoDate = (photo: LibraryPhoto | undefined) =>
-  new Date(photo?.exif?.taken ?? PHOTOS_ADDED);
+  new Date(photo?.exif?.taken ?? photo?.exported ?? PHOTOS_ADDED);
 
 /** The viewer's title, Photos' way: Today, Yesterday, a weekday this week,
  * then the date, with the year only when it isn't this year's. */
@@ -161,6 +162,9 @@ export function PhotoInfo({
       <div className={styles.photoInfoWhen}>
         <p className={styles.photoInfoDate}>{fullDate.format(date)}</p>
         <p className={styles.photoInfoFile}>{baseName(file)}</p>
+        {photo.place ? (
+          <p className={styles.photoInfoFile}>{photo.place}</p>
+        ) : null}
       </div>
 
       <section className={styles.cameraCard} aria-label="Camera">

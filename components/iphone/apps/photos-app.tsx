@@ -266,14 +266,18 @@ function putBack(
 let labelDate: Intl.DateTimeFormat | undefined;
 
 /** What a screen reader hears for a photo: what it shows, where and when,
- * from the library; a print with nothing written about it is numbered. */
+ * from the library; a print with nothing written about it is numbered, with
+ * its country and date when it has them. */
 function photoLabel(index: number) {
   const photo = PHOTO_LIBRARY[index];
   const about = photo?.about;
-  if (!(photo && about)) {
-    return `Photo ${index + 1} of ${PHOTOS.length}`;
-  }
   labelDate ??= new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+  if (!(photo && about)) {
+    const numbered = `Photo ${index + 1} of ${PHOTOS.length}`;
+    return photo?.place
+      ? `${numbered}, ${photo.place}, ${labelDate.format(photoDate(photo))}`
+      : numbered;
+  }
   return `${about.title}, ${about.place.split(",")[0]}, ${labelDate.format(photoDate(photo))}`;
 }
 
@@ -830,7 +834,7 @@ export default function PhotosApp({ launch }: AppProps) {
   const library = PHOTO_LIBRARY[current];
   const date = photoDate(library);
   // The capsule names the town, as Photos does: "Sagres", not the region.
-  const place = library?.about?.place.split(",")[0];
+  const place = (library?.about?.place ?? library?.place)?.split(",")[0];
   const favorite = favorites.has(current);
 
   return (

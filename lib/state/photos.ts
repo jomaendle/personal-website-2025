@@ -92,6 +92,15 @@ export interface LibraryPhoto {
   /** The file under public/assets. */
   file: string;
   exif?: PhotoExif;
+  /** When I exported the file from Photoshop, for a photo whose export kept
+   * no capture date. It is read from the export's XMP (its document ID
+   * carries the time), or for the two files that couldn't be read, from
+   * their upload to Drive, which matches the XMP time on every file checked.
+   * In UTC; the photo was taken some days or weeks before. */
+  exported?: string;
+  /** Where a photo with nothing written about it was taken: the country of
+   * the trip folder it was filed in. */
+  place?: string;
   about?: PhotoAbout;
 }
 
@@ -107,7 +116,8 @@ const BEAUTY_OF_EARTH_PHOTO = "https://thebeautyof.earth/photo/";
  * site holds for it), then the prints the homepage pile was laid out for.
  * Static imports carry each image's dimensions (for orientation) and a
  * build-time blur placeholder. Ordered as Photos orders a library: by when
- * each was taken, oldest first, with the undated ones after.
+ * each was taken (or exported, where that's all the file says), oldest
+ * first, with the undated ones after.
  */
 export const PHOTO_LIBRARY: LibraryPhoto[] = [
   {
@@ -175,6 +185,108 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       map: mapKohSamui,
       href: `${BEAUTY_OF_EARTH_PHOTO}9`,
     },
+  },
+  {
+    image: dsc09908,
+    file: "DSC09908.webp",
+    exported: "2019-10-27T18:52:53Z",
+    about: {
+      title: "Batok at Sunrise",
+      description:
+        "Sunrise light rakes the volcanic cones of the Tengger caldera at Bromo, Java, with the conical peak of Mount Semeru rising in the distance.",
+      place: "Bromo, Java, Indonesia",
+      pin: { lat: -7.9258, lng: 112.9438 },
+      map: mapBromo,
+      href: `${BEAUTY_OF_EARTH_PHOTO}4`,
+    },
+  },
+  {
+    image: dsc00535,
+    file: "DSC00535.webp",
+    exported: "2019-11-03T21:05:49Z",
+    place: "Indonesia",
+  },
+  {
+    image: dsc00645,
+    file: "DSC00645.webp",
+    exported: "2019-11-10T20:36:39Z",
+    place: "Indonesia",
+  },
+  {
+    image: dsc00929,
+    file: "DSC00929.webp",
+    exported: "2019-11-11T21:11:05Z",
+    place: "Indonesia",
+  },
+  {
+    image: dsc00465,
+    file: "DSC00465.webp",
+    exported: "2019-11-21T21:33:17Z",
+    place: "Indonesia",
+  },
+  {
+    image: dsc00483,
+    file: "DSC00483-web.webp",
+    exported: "2019-11-21T21:52:17Z",
+    about: {
+      title: "Pink Frangipani",
+      description:
+        "A cluster of pink frangipani flowers with green leaves against a clear blue sky in Bali, Indonesia.",
+      place: "Bali, Indonesia",
+      pin: { lat: -8.5097, lng: 115.2618 },
+      map: mapBali,
+      href: `${BEAUTY_OF_EARTH_PHOTO}3`,
+    },
+  },
+  {
+    image: dsc00911,
+    file: "DSC00911.webp",
+    exported: "2019-12-02T20:41:50Z",
+    place: "Indonesia",
+  },
+  {
+    image: dsc05383,
+    file: "DSC05383.webp",
+    exported: "2020-11-02T17:50:57Z",
+    about: {
+      title: "Last Light",
+      description:
+        "A lone figure stands on the wet sand as the sun sets low over the ocean at Sagres, Portugal, its light forming a bright path across rows of incoming waves.",
+      place: "Sagres, Portugal",
+      pin: { lat: 37.0257, lng: -9.0008 },
+      map: mapSagres,
+      href: `${BEAUTY_OF_EARTH_PHOTO}7`,
+    },
+  },
+  {
+    image: photo6554107,
+    file: "Photo_6554107.webp",
+    exported: "2020-11-04T19:17:36Z",
+    place: "Portugal",
+  },
+  {
+    image: dsc05480,
+    file: "DSC05480.webp",
+    exported: "2020-11-22T10:52:55Z",
+    place: "Portugal",
+  },
+  {
+    image: dsc04938,
+    file: "DSC04938.webp",
+    exported: "2020-11-22T13:52:20Z",
+    place: "Portugal",
+  },
+  {
+    image: dsc04861,
+    file: "DSC04861.webp",
+    exported: "2021-07-21T19:08:19Z",
+    place: "Spain",
+  },
+  {
+    image: dsc04499,
+    file: "DSC04499.webp",
+    exported: "2021-07-28T06:56:23Z",
+    place: "Spain",
   },
   {
     image: earthStraightDesertRoad,
@@ -352,32 +464,6 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
     },
   },
   {
-    image: dsc00483,
-    file: "DSC00483-web.webp",
-    about: {
-      title: "Pink Frangipani",
-      description:
-        "A cluster of pink frangipani flowers with green leaves against a clear blue sky in Bali, Indonesia.",
-      place: "Bali, Indonesia",
-      pin: { lat: -8.5097, lng: 115.2618 },
-      map: mapBali,
-      href: `${BEAUTY_OF_EARTH_PHOTO}3`,
-    },
-  },
-  {
-    image: dsc09908,
-    file: "DSC09908.webp",
-    about: {
-      title: "Batok at Sunrise",
-      description:
-        "Sunrise light rakes the volcanic cones of the Tengger caldera at Bromo, Java, with the conical peak of Mount Semeru rising in the distance.",
-      place: "Bromo, Java, Indonesia",
-      pin: { lat: -7.9258, lng: 112.9438 },
-      map: mapBromo,
-      href: `${BEAUTY_OF_EARTH_PHOTO}4`,
-    },
-  },
-  {
     image: earthOneBranch,
     file: "earth/one-branch.webp",
     about: {
@@ -401,19 +487,6 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       pin: { lat: -8.8331, lng: 115.088 },
       map: mapUluwatu,
       href: `${BEAUTY_OF_EARTH_PHOTO}6`,
-    },
-  },
-  {
-    image: dsc05383,
-    file: "DSC05383.webp",
-    about: {
-      title: "Last Light",
-      description:
-        "A lone figure stands on the wet sand as the sun sets low over the ocean at Sagres, Portugal, its light forming a bright path across rows of incoming waves.",
-      place: "Sagres, Portugal",
-      pin: { lat: 37.0257, lng: -9.0008 },
-      map: mapSagres,
-      href: `${BEAUTY_OF_EARTH_PHOTO}7`,
     },
   },
   {
@@ -468,16 +541,6 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       href: `${BEAUTY_OF_EARTH_PHOTO}12`,
     },
   },
-  { image: dsc00465, file: "DSC00465.webp" },
-  { image: dsc00645, file: "DSC00645.webp" },
-  { image: dsc00929, file: "DSC00929.webp" },
-  { image: dsc00535, file: "DSC00535.webp" },
-  { image: dsc04861, file: "DSC04861.webp" },
-  { image: dsc04938, file: "DSC04938.webp" },
-  { image: dsc00911, file: "DSC00911.webp" },
-  { image: dsc05480, file: "DSC05480.webp" },
-  { image: dsc04499, file: "DSC04499.webp" },
-  { image: photo6554107, file: "Photo_6554107.webp" },
 ];
 
 /** Every photo, for the /ios Photos app. */
@@ -501,7 +564,7 @@ export const PILE_PHOTOS: StaticImageData[] = [
 ];
 
 /** When the prints were added to the site (the commit that brought them in):
- * the date Photos shows for a photo that has no capture date of its own. */
+ * the date Photos shows for a photo with no capture or export date. */
 export const PHOTOS_ADDED = "2026-09-13T10:22:02+02:00";
 
 /** The /ios Photos widget: a surfer against the sunset. */
