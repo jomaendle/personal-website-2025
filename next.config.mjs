@@ -53,10 +53,12 @@ const nextConfig = {
   trailingSlash: false,
   async redirects() {
     // /about folded into the homepage; the iPhone mode became /ios
-    // (IOS_PATH), and links to /iphone were already shared. `:path*` also
-    // matches /iphone itself.
+    // (IOS_PATH), and links to /iphone were already shared. /iphone gets its
+    // own rule although `:path*` matches it too: on Vercel the empty match
+    // leaves a trailing slash (/ios/), which costs a second redirect.
     return [
       { source: "/about", destination: "/", permanent: true },
+      { source: "/iphone", destination: "/ios", permanent: true },
       { source: "/iphone/:path*", destination: "/ios/:path*", permanent: true },
     ];
   },
