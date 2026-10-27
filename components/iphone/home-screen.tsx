@@ -103,6 +103,16 @@ export function HomeScreen({
           cell.setAttribute("data-held", "");
         }, 500),
       };
+      // Let go anywhere, even off the phone: the icon settles, and a click
+      // that never comes (released elsewhere) isn't left to be swallowed.
+      const letGo = () => {
+        endPress();
+        setTimeout(() => {
+          swallowClick.current = false;
+        }, 0);
+      };
+      window.addEventListener("pointerup", letGo, { once: true });
+      window.addEventListener("pointercancel", letGo, { once: true });
     }
     if (event.button === 0) {
       pull.current = {

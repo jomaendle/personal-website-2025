@@ -600,6 +600,7 @@ function Marquee({ text, active }: { text: string; active: boolean }) {
 }
 
 function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const reduced = useReducedMotion() ?? false;
   const { track, playing, waiting, failed, queue, index } = useMusic();
   const { toggle, next, previous } = useMusicControls();
   const sheet = useRef<HTMLDivElement>(null);
@@ -610,7 +611,11 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     /** On-screen pixels per sheet pixel: the device frame may be scaled. */
     k: number;
     active: boolean;
+    /** Where a release spring had the sheet when the finger caught it. */
+    base: number;
   } | null>(null);
+  /** The spring a release left running, for a new grab to catch. */
+  const releaseSpring = useRef<Animation | null>(null);
   const tracker = useVelocityTracker();
 
   useEffect(() => {
@@ -634,7 +639,7 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
     const vy = -tracker.velocity();
     // Far enough, or flicked down.
     const closing = d.active && (d.dy > 120 || vy > 0.3);
-    if (d.active) {
+    if (d.active && !reduced) {
       // From where the finger left it, at the finger's speed, on a spring:
       // the sheet's own transition would start from rest and run its fixed
       // half second whatever the flick. The class change it goes to happens
@@ -651,8 +656,12 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         springEasing(Math.max(0, speed), { stiffness: 300, damping: 1 }),
       );
       el.style.transform = "";
+      releaseSpring.current = spring;
       spring.onfinish = () => {
-        el.style.transition = "";
+        releaseSpring.current = null;
+        if (!drag.current?.active) {
+          el.style.transition = "";
+        }
       };
     } else {
       el.style.transition = "";
@@ -678,12 +687,23 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
           return;
         }
         const el = event.currentTarget;
+        // Caught on its release spring: from where it is on screen.
+        let base = 0;
+        const running = releaseSpring.current;
+        if (running) {
+          base = new DOMMatrix(getComputedStyle(el).transform).m42;
+          running.cancel();
+          releaseSpring.current = null;
+          el.style.transition = "none";
+          el.style.transform = `translateY(${base}px)`;
+        }
         drag.current = {
           id: event.pointerId,
           y: event.clientY,
-          dy: 0,
+          dy: base,
           k: el.getBoundingClientRect().height / (el.offsetHeight || 1) || 1,
           active: false,
+          base,
         };
         tracker.reset();
         tracker.add(event.clientY / drag.current.k, event.timeStamp);
@@ -694,9 +714,9 @@ function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
         if (!(d && el) || d.id !== event.pointerId) {
           return;
         }
-        const travel = (event.clientY - d.y) / d.k;
+        const travel = d.base + (event.clientY - d.y) / d.k;
         if (!d.active) {
-          if (Math.abs(travel) < 6) {
+          if (Math.abs(travel - d.base) < 6) {
             return;
           }
           // Follow from here, without jumping by the slop.

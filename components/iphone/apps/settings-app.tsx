@@ -85,7 +85,14 @@ export default function SettingsApp({ launch, openApp }: AppProps) {
       if (completed) {
         setPage(null);
         popping.current = false;
-        const el = opener.current;
+        // Opened straight onto the page (from Spotlight), nothing opened it
+        // here: the row that would have.
+        const el =
+          opener.current ??
+          [...(stack.backRef.current?.querySelectorAll("button") ?? [])].find(
+            (button) => button.textContent?.startsWith("Wallpaper"),
+          ) ??
+          null;
         requestAnimationFrame(() => {
           if (el?.isConnected) {
             el.focus({ preventScroll: true });

@@ -137,7 +137,9 @@ const zooms = new WeakMap<
     from: Shot;
     to: Shot;
     progress: number[];
-    t0: number;
+    /** The frame's animation, whose own clock says how far it has got: it
+     * starts a frame or two after it's created. */
+    animation: Animation;
     photo: HTMLElement | null | undefined;
   }
 >();
@@ -150,7 +152,8 @@ function catchZoom(frame: HTMLElement): Shot | null {
   if (!zoom) {
     return null;
   }
-  const i = ((performance.now() - zoom.t0) / 1000) * FPS;
+  const elapsed = Number(zoom.animation.currentTime ?? 0);
+  const i = (elapsed / 1000) * FPS;
   const last = zoom.progress.length - 1;
   for (const animation of [
     ...frame.getAnimations(),
@@ -196,7 +199,7 @@ function playShot(
     zooms.delete(els.frame);
     animation.onfinish = done;
   } else {
-    zooms.set(els.frame, { ...move, t0: performance.now(), photo: els.photo });
+    zooms.set(els.frame, { ...move, animation, photo: els.photo });
   }
 }
 

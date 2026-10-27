@@ -203,10 +203,13 @@ export function springTo(
     // so it can't take the transform and opacity off the compositor.
     for (const keyframes of split(samples.map(style))) {
       if (keyframes) {
+        // "both": a hand-off starts at t0, which can be just after the
+        // frame being painted; filling backwards, that frame shows the first
+        // keyframe rather than the destination already written underneath.
         const animation = el.animate(keyframes, {
           duration,
           easing: "linear",
-          fill: "forwards",
+          fill: "both",
         });
         if (handOff) {
           animation.startTime = t0;

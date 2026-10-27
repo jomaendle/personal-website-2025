@@ -357,8 +357,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       { from, instant = false, launch, opener: openedBy }: OpenOptions = {},
     ) => {
       // Tapped again on its way home: it turns round from where it is, at
-      // the speed it's going, rather than start over from the icon.
-      if (appRef.current === id && closing.current) {
+      // the speed it's going, rather than start over from the icon. Asked
+      // to land somewhere else (another note), it's a new launch instead.
+      if (appRef.current === id && closing.current && !launch) {
+        if (openedBy ?? from) {
+          opener.current = openedBy ?? from?.closest("button") ?? null;
+        }
         closing.current = false;
         setClosingApp(false);
         store.set(APP_KEY, id);
@@ -399,6 +403,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       store.set(APP_KEY, id);
       setLaunch(launch);
       setApp(id);
+      // A fresh window for every launch, even of the app still closing.
+      setWindowKey((key) => key + 1);
       // The window starts the launch from its mount commit (onMounted).
       pendingLaunch.current = instant ? null : id;
     },
@@ -473,6 +479,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * it, with the window already in the scene, and handed to the compositor
    * at once, so it runs at full rate however busy the page is from there.
    * A frame sooner than waiting for the next animation frame to start it. */
+  /** Changes with each launch, so a launch of an app still on its way
+   * home gets a window of its own, which reports its first commit again. */
+  const [windowKey, setWindowKey] = useState(0);
   const pendingLaunch = useRef<IphoneAppId | null>(null);
   const onWindowMounted = useCallback(
     (id: IphoneAppId) => {
@@ -862,7 +871,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
               {app === null ? null : (
                 <AppWindow
-                  key={app}
+                  key={`${app}-${windowKey}`}
                   leaving={closingApp}
                   launch={launch}
                   id={app}

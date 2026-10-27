@@ -152,7 +152,10 @@ export default function CalendarApp(_: AppProps) {
    * the zoom would come in over black. */
   const leave = (origin: { x: number; y: number }, out: boolean) => {
     const root = rootRef.current;
-    const level = root?.querySelector<HTMLElement>(`.${styles.calView}`);
+    // The live level: not a copy from a navigation still fading out.
+    const level = root?.querySelector<HTMLElement>(
+      `:scope > .${styles.calView}:not([aria-hidden])`,
+    );
     if (!(root && level) || reducedMotion()) {
       return;
     }
@@ -162,11 +165,10 @@ export default function CalendarApp(_: AppProps) {
     copy.inert = true;
     copy.style.pointerEvents = "none";
     copy.style.transformOrigin = `${origin.x}px ${origin.y}px`;
-    if (out) {
-      root.append(copy);
-    } else {
-      root.prepend(copy);
-    }
+    // In front on the way out (React adds the new level after it, so DOM
+    // order alone would put it behind), behind on the way in.
+    copy.style.zIndex = out ? "1" : "0";
+    root.prepend(copy);
     // A copy starts at the top of every scroller; put each where it was.
     const scrolled = [...level.querySelectorAll<HTMLElement>("*")];
     const copies = [...copy.querySelectorAll<HTMLElement>("*")];

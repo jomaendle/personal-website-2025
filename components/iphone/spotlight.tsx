@@ -122,9 +122,14 @@ function search(q: string, notes: NoteSummary[]) {
       ? [{ index, photo, about: photo.about }]
       : [],
   ).slice(0, 6);
+  // By name, what it is and its domain; not the scheme, which every link
+  // shares ("http" isn't a search for all of them).
   const projectHits = PROJECTS.filter((project) =>
-    matches(`${project.title} ${project.description} ${project.link}`, q),
-  );
+    matches(
+      `${project.title} ${project.description} ${new URL(project.link).hostname}`,
+      q,
+    ),
+  ).slice(0, 4);
   const settingHits = SETTINGS.filter((setting) =>
     [setting.title, ...setting.terms].some((term) => matches(term, q)),
   );
