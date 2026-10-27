@@ -4775,7 +4775,15 @@ button.row:active {
 
 /* A phone turned sideways: the iPhone's home screen and lock screen don't
    rotate, and this one doesn't fit, so it asks to be turned back. */
-@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+/* 499.98px, not 500px: at exactly 500 the framed desktop layout
+   (min-height: 500px) takes over instead of both applying. */
+@media (orientation: landscape) and (max-height: 499.98px) and (pointer: coarse) {
+  /* The notice is black edge to edge: so are Safari's bars. */
+  .edgeTop,
+  .edgeBottom {
+    display: none;
+  }
+
   .root::after {
     content: "Turn your phone upright to use it";
     position: fixed;

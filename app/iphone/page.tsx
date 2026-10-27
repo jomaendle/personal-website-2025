@@ -39,7 +39,8 @@ export const viewport: Viewport = {
 };
 
 /**
- * Unlisted, like /business: reachable by URL, not from the site's nav.
+ * Reached from the masthead's Web | iPhone switch, not the site's nav; in
+ * the sitemap, with its own share card.
  */
 export default function IphonePage() {
   return (

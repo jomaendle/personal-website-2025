@@ -722,28 +722,35 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     wallpaperShown(wallpaper.key);
   }, [wallpaper]);
 
+  /** The colour at a screen edge: black with an app open (apps are dark),
+   * the wallpaper dimmed under Spotlight's frosting, else the wallpaper's
+   * own. (The side button's dark display is desktop-only, where the strips
+   * are hidden.) */
+  const edgeColor = (wallpaperEdge: string) => {
+    if (app && !closingApp) {
+      return "#000";
+    }
+    return spotlight
+      ? `color-mix(in srgb, ${wallpaperEdge} 35%, #000)`
+      : wallpaperEdge;
+  };
+
   return (
     <IphoneDataProvider value={data}>
       <MusicProvider>
         <div className={styles.root}>
           <AmbientGlow wallpaper={wallpaper} />
           {/* What Safari on iOS 26 reads to fill the bands behind its status
-              bar and toolbar (see `edges` in photos.ts): the wallpaper's
-              edges, or an open app's black. Invisible on the page. */}
+              bar and toolbar (see `edges` in photos.ts): whatever meets the
+              screen's edges. Invisible on the page. */}
           <span
             className={styles.edgeTop}
-            style={{
-              backgroundColor:
-                app && !closingApp ? "#000" : wallpaper.edges.top,
-            }}
+            style={{ backgroundColor: edgeColor(wallpaper.edges.top) }}
             aria-hidden
           />
           <span
             className={styles.edgeBottom}
-            style={{
-              backgroundColor:
-                app && !closingApp ? "#000" : wallpaper.edges.bottom,
-            }}
+            style={{ backgroundColor: edgeColor(wallpaper.edges.bottom) }}
             aria-hidden
           />
           <Link href="/" className={styles.exit}>

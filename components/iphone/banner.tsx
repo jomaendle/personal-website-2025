@@ -56,6 +56,9 @@ export function BannerHost({
 
   useEffect(() => {
     const listener = (next: Banner) => {
+      // A new banner is a new element: a drag on the old one is over.
+      swipe.current = null;
+      setHeld(false);
       setLeaving(false);
       setBanner(next);
     };
@@ -73,6 +76,14 @@ export function BannerHost({
     const timer = setTimeout(() => setLeaving(true), SHOWN);
     return () => clearTimeout(timer);
   }, [banner, leaving, held]);
+
+  /** A drag that ends without a let-go: back where it was, still shown. */
+  const release = (el: HTMLElement) => {
+    swipe.current = null;
+    setHeld(false);
+    el.style.transition = "";
+    el.style.translate = "";
+  };
 
   if (!banner) {
     return null;
@@ -102,6 +113,11 @@ export function BannerHost({
         // Let go far enough up, or flicked up, it goes; otherwise it springs
         // back. `translate` stacks on the in and out keyframes' transform.
         onPointerDown={(event) => {
+          // The primary button only: a right click's menu would swallow
+          // the pointerup and leave the banner held.
+          if (event.button !== 0) {
+            return;
+          }
           event.currentTarget.setPointerCapture(event.pointerId);
           event.currentTarget.style.transition = "none";
           swipe.current = {
@@ -117,7 +133,7 @@ export function BannerHost({
         }}
         onPointerMove={(event) => {
           const s = swipe.current;
-          if (s?.id !== event.pointerId) {
+          if (s?.id !== event.pointerId || event.buttons === 0) {
             return;
           }
           const raw = event.clientY - s.y;
@@ -139,7 +155,9 @@ export function BannerHost({
           swipe.current = null;
           setHeld(false);
           dragged.current = s.moved;
-          if (s.dy < -30 || s.v < -0.3) {
+          // A finger that stopped before letting go has no speed left.
+          const v = event.timeStamp - s.t > 60 ? 0 : s.v;
+          if (s.dy < -30 || v < -0.3) {
             setLeaving(true);
           } else {
             const el = event.currentTarget;
@@ -149,10 +167,15 @@ export function BannerHost({
           }
         }}
         onPointerCancel={(event) => {
-          swipe.current = null;
-          setHeld(false);
-          event.currentTarget.style.transition = "";
-          event.currentTarget.style.translate = "";
+          release(event.currentTarget);
+        }}
+        // Capture lost without a pointerup (the window lost focus, say):
+        // put it back, as a cancel would. After a pointerup there's no
+        // drag left, so this does nothing.
+        onLostPointerCapture={(event) => {
+          if (swipe.current?.id === event.pointerId) {
+            release(event.currentTarget);
+          }
         }}
         onAnimationEnd={(event) => {
           if (leaving && event.target === event.currentTarget) {
