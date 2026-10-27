@@ -952,28 +952,13 @@
   z-index: 15;
   outline: none;
   /* iOS 26's Spotlight: a thick, dark frosting that keeps only the
-     wallpaper's colour, so results read at a glance. */
+     wallpaper's colour, so results read at a glance. On from the first
+     frame and through the fade either way, as on iOS: the fade is the
+     element's opacity, which the compositor applies over the blur without
+     a repaint. */
   background: rgb(0 0 0 / 0.5);
-  animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-}
-
-/* In motion, a darker tint stands in for the frosting (0.72 black in all,
-   with the base). It fades out by opacity once the blur is on, which the
-   compositor runs, where a fading background colour repaints the screen. */
-.spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgb(0 0 0 / 0.44);
-  pointer-events: none;
-}
-
-.spotlightSettled {
   backdrop-filter: blur(60px) saturate(1.5) brightness(0.7);
-}
-
-.spotlightSettled::before {
-  opacity: 0;
+  animation: spotlight-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
 @keyframes spotlight-in {

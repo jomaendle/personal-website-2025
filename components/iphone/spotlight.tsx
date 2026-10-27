@@ -44,8 +44,6 @@ interface SpotlightProps {
   /** For a Spotlight brought in by a pull: its opacity, following the
    * finger, in place of the CSS entrance. */
   pull?: MotionValue<number>;
-  /** That pull's spring has landed. */
-  pullLanded: boolean;
   /** The fade-out finished. */
   onLeft: () => void;
   calendar: CalendarFace | null;
@@ -170,7 +168,6 @@ export function Spotlight({
   leaving,
   pulling,
   pull,
-  pullLanded,
   onLeft,
   calendar,
   inputRef,
@@ -216,11 +213,6 @@ export function Spotlight({
     nothing,
   } = search(q, notes);
 
-  // The frosting goes on once Spotlight is at rest: blurring the backdrop
-  // under a changing opacity redraws the whole blur every frame. In motion
-  // it's a darker tint instead, which reads the same at a glance.
-  const [entered, setEntered] = useState(false);
-  const settled = pull ? pullLanded && !pulling : entered;
   // Brought in by a pull, the pull's spring fades it in on the compositor.
   useEffect(() => {
     if (pull) {
@@ -235,13 +227,6 @@ export function Spotlight({
       if (leaving) {
         onLeft();
       }
-      return;
-    }
-    // The frosting goes on once the last thing has stopped moving: the
-    // results, which arrive a little after the dialog itself. Blurring
-    // under motion would redraw the whole blur every frame.
-    if (event.target === resultsRef.current && !leaving) {
-      setEntered(true);
     }
   };
 
@@ -280,7 +265,6 @@ export function Spotlight({
         styles.spotlight,
         pull && styles.spotlightPulled,
         leaving && styles.spotlightLeaving,
-        settled && !leaving && !pulling && styles.spotlightSettled,
       )}
       style={pull ? { opacity: pull } : undefined}
       // Not aria-modal, like an app window (app-window.tsx).

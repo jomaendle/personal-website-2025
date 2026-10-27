@@ -116,7 +116,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * motion value, not the CSS entrance). */
   const [pulled, setPulled] = useState(false);
   /** A pulled-in Spotlight has come to rest, and takes its frosting. */
-  const [pullLanded, setPullLanded] = useState(false);
   const spotlightLeavingRef = useLatest(spotlightLeaving);
   /** The side button: the display goes dark for a moment while the phone
    * locks under it, as iOS turns the screen off rather than sliding. */
@@ -601,7 +600,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       if (phase === "start") {
         halt(searchPull);
         searchPull.jump(0);
-        setPullLanded(false);
         setSpotlightKey((key) => key + 1);
         setSpotlightLeaving(false);
         setPulled(true);
@@ -617,9 +615,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       if (commit) {
         setSearchPulling(false);
         setSpotlight(true);
-        springTo(searchPull, { to: 1, transition, velocity: speed }).then(
-          (completed) => setPullLanded(completed),
-        );
+        springTo(searchPull, { to: 1, transition, velocity: speed });
       } else {
         springTo(searchPull, { to: 0, transition, velocity: speed }).then(
           () => {
@@ -851,7 +847,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   leaving={!(spotlight || searchPulling)}
                   pulling={searchPulling}
                   pull={pulled ? searchPull : undefined}
-                  pullLanded={pullLanded}
                   onLeft={() => setSpotlightLeaving(false)}
                   calendar={calendar}
                   inputRef={spotlightInput}
