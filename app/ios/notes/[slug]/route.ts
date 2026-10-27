@@ -1,7 +1,7 @@
 import { getNote, NOTE_SLUGS } from "@/lib/iphone-notes";
 
 /**
- * One article as a note, for the /iphone Notes app. Every published post is
+ * One article as a note, for the /ios Notes app. Every published post is
  * generated at build time, so the MDX parser never runs per request and the
  * app fetches a small static JSON file only when a note is opened.
  */
@@ -15,7 +15,7 @@ export function generateStaticParams() {
 
 export async function GET(
   _request: Request,
-  { params }: RouteContext<"/iphone/notes/[slug]">,
+  { params }: RouteContext<"/ios/notes/[slug]">,
 ) {
   const { slug } = await params;
   const note = getNote(slug);

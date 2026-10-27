@@ -1,6 +1,6 @@
 import { ageText, isRecent } from "./now-format";
 /**
- * Copy for the /iphone page: an iOS-style way into the site. Everything the
+ * Copy for the /ios page: an iOS-style way into the site. Everything the
  * apps list (articles, projects, photos, roles) is read from the same
  * `lib/state` modules the homepage uses; only the system chrome lives here.
  */
@@ -34,9 +34,9 @@ export const ARTICLE_TITLES = {
 } as const;
 
 export const IPHONE_COPY = {
-  metaTitle: "iPhone",
+  metaTitle: "iOS",
   metaDescription:
-    "My site as an iPhone. Articles in Notes, photographs in Photos, projects in Safari.",
+    "My site in iOS. Articles in Notes, photographs in Photos, projects in Safari.",
   deviceName: "Jo’s iPhone",
   unlockHint: "Swipe up to open",
   /** With a mouse or trackpad, where a click, a scroll or a drag opens it. */

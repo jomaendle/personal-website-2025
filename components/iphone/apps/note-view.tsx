@@ -29,7 +29,7 @@ const loaded = new Set<string>();
 export function prefetchNote(slug: string): Promise<NoteDocument | null> {
   let pending = cache.get(slug);
   if (!pending) {
-    pending = fetch(`/iphone/notes/${slug}`)
+    pending = fetch(`/ios/notes/${slug}`)
       .then((res) => {
         if (res.ok) {
           return res.json() as Promise<NoteDocument>;

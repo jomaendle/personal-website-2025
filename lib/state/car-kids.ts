@@ -1,5 +1,5 @@
 /**
- * Car Kids, my band, for the /iphone Music app: a snapshot of the catalogue
+ * Car Kids, my band, for the /ios Music app: a snapshot of the catalogue
  * the radio site serves (radio.jomaendle.com). Songs stream and covers load
  * straight from that site's Blob store, so the phone plays the same files.
  *

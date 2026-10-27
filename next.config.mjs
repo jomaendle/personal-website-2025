@@ -52,8 +52,13 @@ const nextConfig = {
   generateEtags: true,
   trailingSlash: false,
   async redirects() {
-    // /about folded into the homepage.
-    return [{ source: "/about", destination: "/", permanent: true }];
+    // /about folded into the homepage; the iPhone mode became /ios, and
+    // links to /iphone were already shared.
+    return [
+      { source: "/about", destination: "/", permanent: true },
+      { source: "/iphone", destination: "/ios", permanent: true },
+      { source: "/iphone/:path*", destination: "/ios/:path*", permanent: true },
+    ];
   },
   async headers() {
     // Content-Security-Policy. Kept deliberately explicit about the third

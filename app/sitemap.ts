@@ -55,7 +55,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/iphone`,
+      url: `${baseUrl}/ios`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.6,

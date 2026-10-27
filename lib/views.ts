@@ -1,6 +1,6 @@
 /**
  * Article view counts, read from and written to Supabase through the API
- * routes. Shared by the blog's ViewCounter and the /iphone Notes app.
+ * routes. Shared by the blog's ViewCounter and the /ios Notes app.
  */
 
 import { useEffect, useState } from "react";

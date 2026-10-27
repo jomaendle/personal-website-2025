@@ -7,7 +7,7 @@ import { PRIMARY_NAV } from "@/lib/config/navigation";
 import { SITE } from "@/lib/config/site";
 
 /**
- * Homepage masthead: nav, the switch to the iPhone version and the theme
+ * Homepage masthead: nav, the switch to the iOS version and the theme
  * toggle, then avatar, name and role. The nav stays inline at every width;
  * two links, the switch and a toggle fit at 320px.
  */
