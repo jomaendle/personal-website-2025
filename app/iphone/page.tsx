@@ -8,10 +8,6 @@ import { IPHONE_COPY } from "@/lib/state/iphone-copy";
 
 export const dynamic = "force-static";
 
-const ogImage = `/api/og-image?title=${encodeURIComponent(
-  "Jo’s iPhone",
-)}&description=${encodeURIComponent(IPHONE_COPY.metaDescription)}`;
-
 export const metadata: Metadata = {
   title: IPHONE_COPY.metaTitle,
   description: IPHONE_COPY.metaDescription,
@@ -27,7 +23,10 @@ export const metadata: Metadata = {
     title: `${IPHONE_COPY.metaTitle} | Jo Mändle`,
     description: IPHONE_COPY.metaDescription,
     url: "https://www.jomaendle.com/iphone",
-    images: [{ url: ogImage }],
+    type: "website",
+    siteName: "Jo Mändle",
+    // The image is the phone itself: opengraph-image.png and twitter-image.png
+    // beside this page, a capture of its home screen.
   },
 };
 
