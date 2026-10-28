@@ -138,6 +138,8 @@
 }
 
 .screen {
+  /* The corner radius the app window opens to and closes from. */
+  --screen-radius: 0px;
   position: relative;
   width: 100%;
   height: 100%;
@@ -146,6 +148,10 @@
   background: #000;
   /* The skip link lands here. */
   outline: none;
+}
+
+.screenCorners {
+  display: none;
 }
 
 @media (min-width: 640px) and (min-height: 500px) {
@@ -232,8 +238,22 @@
     scale: min(1, tan(atan2(100dvh - 48px, 946px)));
   }
 
+  /* The screen clips square, and its round corners are the bezel drawn
+     over it. A round clip on the screen itself would wrap every moving
+     layer inside it in a mask, redrawn on every frame of every animation:
+     on desktop, the costliest thing the compositor did. */
   .screen {
-    border-radius: 55px;
+    --screen-radius: 55px;
+  }
+
+  .screenCorners {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 90;
+    border-radius: var(--screen-radius);
+    box-shadow: 0 0 0 40px #050505;
+    pointer-events: none;
   }
 
   .sideButton {
@@ -2119,6 +2139,21 @@
   transition-timing-function: ease-out;
 }
 
+/* The home screen's glass under the window does the same while the scene
+   moves: anything moving over or under a backdrop blur makes the browser
+   blur it again, every frame. The stand-in takes the wallpaper's colour
+   where the dock sits, lifted as the frosting lifts it. */
+.screen[data-moving] :is(.dock, .search) {
+  backdrop-filter: none;
+  background-color: color-mix(in srgb, var(--wall-bottom, #1c1c1e) 82%, #fff);
+}
+
+.screen:not([data-moving]) :is(.dock, .search) {
+  transition-property: backdrop-filter, background-color;
+  transition-duration: 0.25s;
+  transition-timing-function: ease-out;
+}
+
 .appIconOverlay {
   position: absolute;
   left: 0;
@@ -2188,6 +2223,10 @@
   cursor: grab;
   transition: opacity 0.2s ease-out;
   animation: cal-fade 0.3s ease-out both;
+}
+
+.homeIndicatorHit:active {
+  cursor: grabbing;
 }
 
 .homeIndicatorHit:disabled {
@@ -4780,6 +4819,24 @@ button.row:active {
 
   :is(.cell, .shelfItem, .latest, .favorite, .photoTile, .calMini):hover {
     filter: brightness(1.08);
+  }
+
+  /* Not while the scene moves: a closing card leaves the pointer over an
+     icon, and a filter appearing mid-animation repaints its layer. */
+  .screen[data-moving]
+    :is(
+      .glassButton,
+      .pill,
+      .glassField,
+      .tabBar,
+      .cell,
+      .shelfItem,
+      .latest,
+      .favorite,
+      .photoTile,
+      .calMini
+    ):hover {
+    filter: none;
   }
 
   :is(.transportButton, .miniPlayerButton):not(:disabled):hover {

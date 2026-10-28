@@ -13,7 +13,7 @@ import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
-import type { LaunchScene } from "./launch-scene";
+import { cardScale, type LaunchScene } from "./launch-scene";
 import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
@@ -28,7 +28,7 @@ interface AppWindowProps {
   /** The home-screen widget it opened out of, if it did: a snapshot of it
    * grows with the window and fades into the app. */
   widget: HTMLElement | null;
-  measure: () => { h: number; scale: number };
+  measure: () => { w: number; h: number; scale: number };
   /** The phone's screen: the home indicator lives there, not in the
    * window, so it can be swiped from the first frame of a launch. */
   screen: HTMLElement | null;
@@ -75,13 +75,21 @@ export function AppWindow({
     id: number;
     x: number;
     y: number;
+    w: number;
     h: number;
     scale: number;
     moved: boolean;
-    /** The card's pose when the finger landed, if it was still springing
-     * back from an earlier drag: the new drag carries on from there. */
+    /** Where the pointer landed on the screen, in the app's pixels. */
+    gx: number;
+    gy: number;
+    /** The point of the card it took hold of, in the card's own pixels:
+     * that point stays under the pointer as the card shrinks. */
+    lx: number;
+    ly: number;
+    /** How far the card had risen when the finger landed, if it was still
+     * springing back from an earlier drag: the new drag carries on from
+     * there. */
     baseRise: number;
-    baseX: number;
   } | null>(null);
   const tracker = useVelocityTracker();
   const trackerX = useVelocityTracker();
@@ -200,19 +208,27 @@ export function AppWindow({
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
-    const { h, scale } = measure();
+    const { w, h, scale } = measure();
+    const rect = screen?.getBoundingClientRect();
+    const gx = rect ? (event.clientX - rect.left) / scale : w / 2;
+    const gy = rect ? (event.clientY - rect.top) / scale : h;
     // Take hold wherever it is, mid-launch or still springing back.
     scene.hold();
     const held = scene.get();
+    const s0 = cardScale(held.p);
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      w,
       h,
       scale,
       moved: false,
+      gx,
+      gy,
+      lx: clamp(w / 2 + (gx - w / 2 - held.dx) / s0, 0, w),
+      ly: clamp(h / 2 + (gy - h / 2 - held.dy) / s0, 0, h),
       baseRise: held.p * h * 0.5,
-      baseX: held.dx,
     };
     tracker.reset();
     tracker.add(event.clientY / scale, event.timeStamp);
@@ -242,14 +258,21 @@ export function AppWindow({
     const up = (current.y - event.clientY) / current.scale;
     tracker.add(event.clientY / current.scale, event.timeStamp);
     trackerX.add(event.clientX / current.scale, event.timeStamp);
-    const rise = Math.max(0, current.baseRise + up);
-    scene.jump({
-      p: clamp(rise / (current.h * 0.5), 0, 1),
-      dx: current.baseX + dx,
-      // Rising a little slower than the finger keeps the card's bottom edge
-      // under it while the card shrinks.
-      dy: -rise * 0.55,
-    });
+    const { w, h, gx, gy, lx, ly, baseRise } = current;
+    const rise = Math.max(0, baseRise + up);
+    const p = clamp(rise / (h * 0.5), 0, 1);
+    const s = cardScale(p);
+    // The card shrinks about its centre; offset it so the point it was
+    // taken by stays under the pointer, as a finger would cover it. (The
+    // rise stops at the bottom, so the pointer's height does too.)
+    scene.jump(
+      {
+        p,
+        dx: gx + dx - w / 2 - (lx - w / 2) * s,
+        dy: gy - (rise - baseRise) - h / 2 - (ly - h / 2) * s,
+      },
+      true,
+    );
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -284,6 +307,9 @@ export function AppWindow({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      // A release the page never hears (the button let go outside the
+      // window) would leave the card hanging mid-air.
+      onLostPointerCapture={onPointerEnd}
       // Pointer input is handled above; this is Enter and Space.
       onClick={(event) => event.detail === 0 && onClose()}
     >

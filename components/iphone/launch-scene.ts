@@ -226,6 +226,9 @@ export interface SceneElements {
 type ElementKey = keyof SceneElements;
 type Styles = Partial<Record<ElementKey, Keyframe>>;
 
+/** How small a dragged card gets as it's pulled, `p` from 0 to 1. */
+export const cardScale = (p: number) => 1 - 0.45 * clamp(p, 0, 1);
+
 /** The window's frame for one state, in the app's pixels. */
 function frameOf(state: LaunchState, g: Geometry) {
   const { w, h, radius } = g;
@@ -236,7 +239,7 @@ function frameOf(state: LaunchState, g: Geometry) {
   const p = clamp(state.p, 0, 1) * ac;
   const origin = originAt(g, state.k);
   const s0 = Math.max(origin.size, 1) / w;
-  const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
+  const scale = lerp(s0, 1, a) * cardScale(p);
   const cx = lerp(origin.x + origin.size / 2, w / 2, a) + state.dx * ac;
   const cy = lerp(origin.y + origin.height / 2, h / 2, a) + state.dy * ac;
   /** How far the window is clipped top and bottom at the start. */
@@ -275,7 +278,11 @@ export function pose(
   if (reduced) {
     const ac = clamp(state.a, 0, 1);
     return {
-      window: { transform: "none", opacity: ac, borderRadius: `${radius}px` },
+      window: {
+        transform: "none",
+        opacity: ac,
+        borderRadius: `${ac >= 0.999 ? 0 : radius}px`,
+      },
       content: { transform: "none" },
       icon: { opacity: 0 },
       widget: { opacity: 0 },
@@ -286,6 +293,10 @@ export function pose(
   }
   const { ac, p, origin, scale, cx, cy, shown, r } = frameOf(state, g);
   const squash = shown / h;
+  // Open and still, the window fills the screen, whose own corners are
+  // drawn over everything: a round clip there would only cost a masked
+  // pass on every frame of whatever moves inside the app.
+  const corner = ac >= 0.999 && p <= 0.001 ? 0 : r;
   return {
     window: {
       transform: `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale}, ${scale * squash})`,
@@ -296,7 +307,7 @@ export function pose(
         g.fromIcon || g.fromWidget
           ? 1
           : clamp(state.a / 0.3, 0, 1) * (1 - clamp(state.c, 0, 1)),
-      borderRadius: `${r}px / ${r / squash}px`,
+      borderRadius: `${corner}px / ${corner / squash}px`,
     },
     content: { transform: `scale(1, ${1 / squash})` },
     icon: {
@@ -398,6 +409,7 @@ export class LaunchScene {
     homeZoom: null,
     dim: null,
   };
+  private stage: HTMLElement | null = null;
   private settleListeners = new Set<(state: LaunchState) => void>();
 
   constructor(
@@ -433,9 +445,17 @@ export class LaunchScene {
   }
 
   /** Set values outright, no motion: a finger's drag, a restore, a reset.
-   * The keys named stop there; any other motion carries on. */
-  jump(values: Partial<LaunchState>) {
-    this.freeze(Object.keys(values) as Key[], values);
+   * The keys named stop there; any other motion carries on. A drag passes
+   * `held`: once the window has moved, it counts as moving until it rests,
+   * so wiggling near the start doesn't swap its glass back and forth. */
+  jump(values: Partial<LaunchState>, held = false) {
+    this.freeze(Object.keys(values) as Key[], values, held);
+  }
+
+  /** The screen the scene plays on: it carries the moving flag too, for
+   * the home screen's glass under the window. */
+  setStage(el: HTMLElement | null) {
+    this.stage = el;
   }
 
   /**
@@ -494,7 +514,7 @@ export class LaunchScene {
     this.freeze(GRASPABLE, {});
   }
 
-  private freeze(keys: Key[], values: Partial<LaunchState>) {
+  private freeze(keys: Key[], values: Partial<LaunchState>, held = false) {
     const now = performance.now();
     const state = { ...this.get(), ...values };
     const stillMoving = KEYS.some(
@@ -509,7 +529,7 @@ export class LaunchScene {
     if (stillMoving) {
       this.play(now);
     } else {
-      this.write(state);
+      this.write(state, undefined, held ? "held" : true);
     }
   }
 
@@ -609,7 +629,7 @@ export class LaunchScene {
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
-    this.elements.window?.toggleAttribute("data-moving", frames.some(moving));
+    this.flag(frames.some(moving));
     const poses = frames.map((state) => pose(state, g, reduced));
     // Taking over from motion (an interruption, a finger's release), the new
     // animations start now, where the samples start. Left to start on their
@@ -703,7 +723,11 @@ export class LaunchScene {
   }
 
   /** Put elements in a state's pose as their own style. */
-  private write(state: LaunchState, only?: ElementKey, flagMoving = true) {
+  private write(
+    state: LaunchState,
+    only?: ElementKey,
+    flagMoving: boolean | "held" = true,
+  ) {
     const styles = pose(state, this.geometry(), this.reduced());
     for (const key of Object.keys(this.elements) as ElementKey[]) {
       const el = this.elements[key];
@@ -712,8 +736,18 @@ export class LaunchScene {
       }
       Object.assign(el.style, styles[key]);
     }
-    if (flagMoving) {
-      this.elements.window?.toggleAttribute("data-moving", moving(state));
+    if (flagMoving === "held") {
+      if (moving(state)) {
+        this.flag(true);
+      }
+    } else if (flagMoving) {
+      this.flag(moving(state));
     }
+  }
+
+  /** Mark the window and the screen as moving: glass drops its blur. */
+  private flag(on: boolean) {
+    this.elements.window?.toggleAttribute("data-moving", on);
+    this.stage?.toggleAttribute("data-moving", on);
   }
 }

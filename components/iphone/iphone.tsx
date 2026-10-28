@@ -4,6 +4,7 @@ import { m, useMotionValue, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { Link } from "next-view-transitions";
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -163,6 +164,11 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       ),
   );
 
+  useEffect(() => {
+    scene.setStage(screenRef.current);
+    return () => scene.setStage(null);
+  }, [scene]);
+
   // ---- Geometry ----------------------------------------------------------
 
   const measure = useCallback(() => {
@@ -172,8 +178,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       g.w = screen.clientWidth;
       g.h = screen.clientHeight;
       g.scale = screen.getBoundingClientRect().height / g.h || 1;
+      // The screen's corners are drawn over it (see .screenCorners), not
+      // clipped, so their radius is a variable rather than its own.
       g.radius =
-        Number.parseFloat(getComputedStyle(screen).borderTopLeftRadius) || 0;
+        Number.parseFloat(
+          getComputedStyle(screen).getPropertyValue("--screen-radius"),
+        ) || 0;
     }
     return g;
   }, []);
@@ -417,15 +427,28 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * button using this as its handler) counts as none. */
   const closeApp = useCallback(
     (velocity?: unknown, velocityX?: number) => {
-      const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
-      const vx = typeof velocityX === "number" ? velocityX : 0;
+      // A mouse flicks far faster than a finger; uncapped, the throw
+      // carries the card past its smallest and it hangs there before
+      // turning for home.
+      const v = typeof velocity === "number" ? clamp(velocity, 0, 3) : 0;
+      const vx = typeof velocityX === "number" ? clamp(velocityX, -3, 3) : 0;
       const id = appRef.current;
       if (!id || closing.current) {
         return;
       }
       closing.current = true;
-      setClosingApp(true);
-      store.set(APP_KEY, null);
+      // The re-render this sets off (the home screen waking, the window
+      // going inert) is the heaviest of the gesture. Run in this task it
+      // holds back the close's first frames, which have already started:
+      // the card jumps on release. Two frames on, the compositor has it.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          if (closing.current && appRef.current === id) {
+            setClosingApp(true);
+            store.set(APP_KEY, null);
+          }
+        }),
+      );
       const retargeted = retarget(id);
       const { h } = geometry.current;
       // The flick's speed goes on what the finger was driving: the pull into a
@@ -803,6 +826,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               id="main-content"
               tabIndex={-1}
               className={styles.screen}
+              // The glass's stand-in while the scene moves takes its colour.
+              style={
+                {
+                  "--wall-bottom": wallpaper.edges.bottom,
+                } as CSSProperties
+              }
               aria-label={IPHONE_COPY.deviceName}
               data-spotlight={
                 spotlight ? "open" : spotlightLeaving ? "leaving" : undefined
@@ -884,7 +913,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               <div
                 ref={(el) => scene.register("dim", el)}
                 className={styles.dim}
-                style={{ zIndex: 25 }}
+                // Its own layer: a drag sets its opacity every move.
+                style={{ zIndex: 25, willChange: "opacity" }}
                 aria-hidden
               />
 
@@ -947,6 +977,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   }
                 }}
               />
+              <div className={styles.screenCorners} aria-hidden />
             </main>
           </div>
         </div>
