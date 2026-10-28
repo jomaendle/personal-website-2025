@@ -2149,9 +2149,10 @@
 }
 
 .screen:not([data-moving]) :is(.dock, .search) {
-  transition-property: backdrop-filter, background-color;
-  transition-duration: 0.25s;
-  transition-timing-function: ease-out;
+  transition:
+    backdrop-filter 0.25s ease-out,
+    background-color 0.25s ease-out,
+    scale 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .appIconOverlay {
@@ -4929,6 +4930,11 @@ button.row:active {
     ) {
     background: rgb(44 44 46 / 0.96);
     backdrop-filter: none;
+  }
+
+  /* The same fill while the scene moves: no stand-in colour to flash. */
+  .screen[data-moving] :is(.dock, .search) {
+    background-color: rgb(44 44 46 / 0.96);
   }
 }
 

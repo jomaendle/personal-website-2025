@@ -248,10 +248,17 @@ function frameOf(state: LaunchState, g: Geometry) {
   const shown = Math.max(1, h - 2 * startInset * (1 - ac));
   // Radii in the app's pixels: the icon's radius at 0, the screen's at 1,
   // and a card's ~40pt while dragged.
-  const r = Math.max(
+  const round = Math.max(
     lerp(origin.radius / s0, radius, ac),
     (Math.min(1, p * 5) * 40) / Math.max(scale, 0.01),
   );
+  // Open, full size and in place, the window fills the screen, whose own
+  // corners are drawn over everything: a round clip there would only cost
+  // a masked pass on every frame of whatever moves inside the app. Pushed
+  // aside at full size, its corners show, and round.
+  const inPlace =
+    Math.abs(state.dx * ac) < 0.5 && Math.abs(state.dy * ac) < 0.5;
+  const r = ac >= 0.999 && p <= 0.001 && inPlace ? 0 : round;
   return { ac, p, origin, scale, cx, cy, shown, r };
 }
 
@@ -293,10 +300,6 @@ export function pose(
   }
   const { ac, p, origin, scale, cx, cy, shown, r } = frameOf(state, g);
   const squash = shown / h;
-  // Open and still, the window fills the screen, whose own corners are
-  // drawn over everything: a round clip there would only cost a masked
-  // pass on every frame of whatever moves inside the app.
-  const corner = ac >= 0.999 && p <= 0.001 ? 0 : r;
   return {
     window: {
       transform: `translate3d(${cx - w / 2}px, ${cy - h / 2}px, 0) scale(${scale}, ${scale * squash})`,
@@ -307,7 +310,7 @@ export function pose(
         g.fromIcon || g.fromWidget
           ? 1
           : clamp(state.a / 0.3, 0, 1) * (1 - clamp(state.c, 0, 1)),
-      borderRadius: `${corner}px / ${corner / squash}px`,
+      borderRadius: `${r}px / ${r / squash}px`,
     },
     content: { transform: `scale(1, ${1 / squash})` },
     icon: {

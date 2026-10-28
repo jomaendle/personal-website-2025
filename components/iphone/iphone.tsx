@@ -422,30 +422,30 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     [measure, hideSource, scene],
   );
 
+  const isClosing = useCallback(() => closing.current, []);
+
   /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
    * which the springs carry on from; anything else (a click event, from a
    * button using this as its handler) counts as none. */
   const closeApp = useCallback(
     (velocity?: unknown, velocityX?: number) => {
-      // A mouse flicks far faster than a finger; uncapped, the throw
-      // carries the card past its smallest and it hangs there before
-      // turning for home.
-      const v = typeof velocity === "number" ? clamp(velocity, 0, 3) : 0;
-      const vx = typeof velocityX === "number" ? clamp(velocityX, -3, 3) : 0;
+      const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
+      const vx = typeof velocityX === "number" ? velocityX : 0;
       const id = appRef.current;
       if (!id || closing.current) {
         return;
       }
       closing.current = true;
+      store.set(APP_KEY, null);
       // The re-render this sets off (the home screen waking, the window
       // going inert) is the heaviest of the gesture. Run in this task it
       // holds back the close's first frames, which have already started:
       // the card jumps on release. Two frames on, the compositor has it.
+      // (The window turns away a new grab meanwhile: see isClosing.)
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           if (closing.current && appRef.current === id) {
             setClosingApp(true);
-            store.set(APP_KEY, null);
           }
         }),
       );
@@ -928,6 +928,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   scene={scene}
                   widget={geometry.current.fromWidget ? originEl.current : null}
                   measure={measure}
+                  isClosing={isClosing}
                   screen={screenRef.current}
                   onClose={closeApp}
                   onCancelDrag={cancelDrag}

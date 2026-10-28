@@ -29,6 +29,8 @@ interface AppWindowProps {
    * grows with the window and fades into the app. */
   widget: HTMLElement | null;
   measure: () => { w: number; h: number; scale: number };
+  /** On its way home, before `leaving` has caught up: not to be grabbed. */
+  isClosing: () => boolean;
   /** The phone's screen: the home indicator lives there, not in the
    * window, so it can be swiped from the first frame of a launch. */
   screen: HTMLElement | null;
@@ -63,6 +65,7 @@ export function AppWindow({
   scene,
   widget,
   measure,
+  isClosing,
   screen,
   onClose,
   onCancelDrag,
@@ -204,7 +207,7 @@ export function AppWindow({
 
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     // One finger at a time: a second one must not take the drag over.
-    if (event.button !== 0 || drag.current) {
+    if (event.button !== 0 || drag.current || isClosing()) {
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -226,8 +229,10 @@ export function AppWindow({
       moved: false,
       gx,
       gy,
-      lx: clamp(w / 2 + (gx - w / 2 - held.dx) / s0, 0, w),
-      ly: clamp(h / 2 + (gy - h / 2 - held.dy) / s0, 0, h),
+      // Off the card (under a card still springing back) is fine: that
+      // point follows the pointer just the same, so nothing jumps.
+      lx: w / 2 + (gx - w / 2 - held.dx) / s0,
+      ly: h / 2 + (gy - h / 2 - held.dy) / s0,
       baseRise: held.p * h * 0.5,
     };
     tracker.reset();
@@ -285,13 +290,36 @@ export function AppWindow({
       onClose();
       return;
     }
-    const v = tracker.velocity();
-    // The tracker reports toward smaller values as positive: leftward.
-    const vx = -trackerX.velocity();
+    // A mouse flicks far faster than a finger; uncapped, the throw carries
+    // the card past its smallest (or back past full size) and it hangs
+    // there before turning.
+    const v = clamp(tracker.velocity(), -3, 3);
+    // The tracker reports toward smaller values as positive: leftward. The
+    // card was also sliding sideways as it shrank about its centre, to
+    // keep the grabbed point under the pointer; the throw carries that on.
+    const shrinking = scene.get().p < 1;
+    const slide = shrinking
+      ? ((current.lx - current.w / 2) * 0.9 * v) / current.h
+      : 0;
+    const vx = clamp(-trackerX.velocity() + slide, -3, 3);
     if ((scene.get().p > 0.16 || v > 0.35) && v > -0.2) {
       onClose(v, vx);
     } else {
       onCancelDrag(v, vx);
+    }
+  };
+
+  // A release the page never hears (the button let go outside the window)
+  // would leave a dragged card hanging mid-air: finish the drag. Before the
+  // drag has started, it's no tap either: just let go.
+  const onLostCapture = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.id !== event.pointerId) {
+      return;
+    }
+    if (drag.current.moved) {
+      onPointerEnd(event);
+    } else {
+      drag.current = null;
     }
   };
 
@@ -307,9 +335,7 @@ export function AppWindow({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
-      // A release the page never hears (the button let go outside the
-      // window) would leave the card hanging mid-air.
-      onLostPointerCapture={onPointerEnd}
+      onLostPointerCapture={onLostCapture}
       // Pointer input is handled above; this is Enter and Space.
       onClick={(event) => event.detail === 0 && onClose()}
     >
