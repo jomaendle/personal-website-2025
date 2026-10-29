@@ -9,6 +9,8 @@ import styles from "../iphone.module.css";
 // ---- Formatting -------------------------------------------------------------
 
 let fullDate: Intl.DateTimeFormat | undefined;
+let fullDay: Intl.DateTimeFormat | undefined;
+let monthYear: Intl.DateTimeFormat | undefined;
 let dayMonth: Intl.DateTimeFormat | undefined;
 let longDate: Intl.DateTimeFormat | undefined;
 let weekday: Intl.DateTimeFormat | undefined;
@@ -16,10 +18,56 @@ let clock: Intl.DateTimeFormat | undefined;
 
 const DAY = 86_400_000;
 
-/** When the photo was taken, or, without a capture date, when it was
- * exported, or else when it was added. */
-export const photoDate = (photo: LibraryPhoto | undefined) =>
-  new Date(photo?.exif?.taken ?? photo?.exported ?? PHOTOS_ADDED);
+/** When the photo was taken: by the camera's clock, or the day or month I
+ * remember, or, with neither, when it was exported, or else when it was
+ * added. A remembered date is local midnight on that day (the 1st for a
+ * month), not UTC's. */
+export function photoDate(photo: LibraryPhoto | undefined) {
+  if (photo?.exif?.taken) {
+    return new Date(photo.exif.taken);
+  }
+  if (photo?.recalled) {
+    const [year, month, day = 1] = photo.recalled.split("-").map(Number);
+    return new Date(year ?? 0, (month ?? 1) - 1, day);
+  }
+  return new Date(photo?.exported ?? PHOTOS_ADDED);
+}
+
+/** How much of its date a photo knows: a clock's time, or only the day or
+ * month I remember. Photos shows no more than that. */
+export type DateDetail = "time" | "day" | "month";
+
+export function dateDetail(photo: LibraryPhoto | undefined): DateDetail {
+  if (photo?.exif?.taken || !photo?.recalled) {
+    return "time";
+  }
+  return photo.recalled.length > 7 ? "day" : "month";
+}
+
+/** "May 2023". */
+export function monthOf(date: Date) {
+  monthYear ??= new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+  return monthYear.format(date);
+}
+
+/** The info panel's date line, as much of it as the photo knows. */
+function dateLine(date: Date, detail: DateDetail) {
+  if (detail === "month") {
+    return monthOf(date);
+  }
+  if (detail === "day") {
+    fullDay ??= new Intl.DateTimeFormat(undefined, { dateStyle: "full" });
+    return fullDay.format(date);
+  }
+  fullDate ??= new Intl.DateTimeFormat(undefined, {
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+  return fullDate.format(date);
+}
 
 /** The viewer's title, Photos' way: Today, Yesterday, a weekday this week,
  * then the date, with the year only when it isn't this year's. */
@@ -122,10 +170,6 @@ export function PhotoInfo({
 }: PhotoInfoProps) {
   const { image, file, exif } = photo;
   const date = photoDate(photo);
-  fullDate ??= new Intl.DateTimeFormat(undefined, {
-    dateStyle: "full",
-    timeStyle: "short",
-  });
   const cells = exposure(exif);
   const specs = [
     megapixels(image.width, image.height),
@@ -160,7 +204,9 @@ export function PhotoInfo({
       ) : null}
 
       <div className={styles.photoInfoWhen}>
-        <p className={styles.photoInfoDate}>{fullDate.format(date)}</p>
+        <p className={styles.photoInfoDate}>
+          {dateLine(date, dateDetail(photo))}
+        </p>
         <p className={styles.photoInfoFile}>{baseName(file)}</p>
         {photo.place ? (
           <p className={styles.photoInfoFile}>{photo.place}</p>

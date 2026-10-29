@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
+import { type LibraryPhoto, PHOTO_LIBRARY, PHOTOS } from "@/lib/state/photos";
 import { cn } from "@/lib/utils";
 import type { AppProps } from "../apps";
 import { halt, motionNow, springTo, useDrive } from "../compositor-spring";
@@ -39,7 +39,15 @@ import {
 } from "../motion";
 import { useLatest } from "../use-latest";
 import { useShare } from "../use-share";
-import { PhotoInfo, photoDate, relativeDay, timeOf } from "./photo-info";
+import {
+  type DateDetail,
+  dateDetail,
+  monthOf,
+  PhotoInfo,
+  photoDate,
+  relativeDay,
+  timeOf,
+} from "./photo-info";
 
 /** Grid thumbnails ask for this; the viewer asks for the same, underneath the
  * full image, so it shows the cached thumbnail at once instead of a blur. */
@@ -272,13 +280,17 @@ function photoLabel(index: number) {
   const photo = PHOTO_LIBRARY[index];
   const about = photo?.about;
   labelDate ??= new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+  const when = (p: LibraryPhoto) =>
+    dateDetail(p) === "month"
+      ? monthOf(photoDate(p))
+      : labelDate?.format(photoDate(p));
   if (!(photo && about)) {
     const numbered = `Photo ${index + 1} of ${PHOTOS.length}`;
     return photo?.place
-      ? `${numbered}, ${photo.place}, ${labelDate.format(photoDate(photo))}`
+      ? `${numbered}, ${photo.place}, ${when(photo)}`
       : numbered;
   }
-  return `${about.title}, ${about.place.split(",")[0]}, ${labelDate.format(photoDate(photo))}`;
+  return `${about.title}, ${about.place.split(",")[0]}, ${when(photo)}`;
 }
 
 /**
@@ -833,6 +845,7 @@ export default function PhotosApp({ launch }: AppProps) {
 
   const library = PHOTO_LIBRARY[current];
   const date = photoDate(library);
+  const detail = dateDetail(library);
   // The capsule names the town, as Photos does: "Sagres", not the region.
   const place = (library?.about?.place ?? library?.place)?.split(",")[0];
   const favorite = favorites.has(current);
@@ -1050,6 +1063,7 @@ export default function PhotosApp({ launch }: AppProps) {
           <ViewerBar
             hidden={!chrome}
             date={date}
+            detail={detail}
             place={place}
             position={`Photo ${current + 1} of ${PHOTOS.length}`}
             onBack={close}
@@ -1119,17 +1133,21 @@ export default function PhotosApp({ launch }: AppProps) {
 function ViewerBar({
   hidden,
   date,
+  detail,
   place,
   position,
   onBack,
 }: {
   hidden: boolean;
   date: Date;
+  /** How much of its date the photo knows: no time for a remembered day. */
+  detail: DateDetail;
   place: string | undefined;
   position: string;
   onBack: () => void;
 }) {
-  const day = relativeDay(date);
+  const day = detail === "month" ? monthOf(date) : relativeDay(date);
+  const when = detail === "time" ? `${day} ${timeOf(date)}` : day;
   return (
     <div className={cn(styles.viewerBar, hidden && styles.chromeHidden)}>
       <button
@@ -1142,9 +1160,11 @@ function ViewerBar({
       </button>
       <div className={styles.viewerCapsule}>
         <span className={styles.viewerCapsuleTitle}>{place ?? day}</span>
-        <span className={styles.viewerCapsuleDetail}>
-          {place ? `${day} ${timeOf(date)}` : timeOf(date)}
-        </span>
+        {place || detail === "time" ? (
+          <span className={styles.viewerCapsuleDetail}>
+            {place ? when : timeOf(date)}
+          </span>
+        ) : null}
       </div>
       <span
         className={cn(

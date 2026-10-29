@@ -98,8 +98,13 @@ export interface LibraryPhoto {
    * their upload to Drive, which matches the XMP time on every file checked.
    * In UTC; the photo was taken some days or weeks before. */
   exported?: string;
-  /** Where a photo with nothing written about it was taken: the country of
-   * the trip folder it was filed in. */
+  /** When I remember taking it, for a photo whose files kept no date: a day
+   * ("2024-03-16") or a month ("2023-05"), no time. Photos shows no more
+   * than that. */
+  recalled?: string;
+  /** Where a photo with nothing written about it was taken: where I tagged
+   * it on Unsplash, or else the country of the trip folder it was filed
+   * in. */
   place?: string;
   about?: PhotoAbout;
 }
@@ -116,10 +121,24 @@ const BEAUTY_OF_EARTH_PHOTO = "https://thebeautyof.earth/photo/";
  * site holds for it), then the prints the homepage pile was laid out for.
  * Static imports carry each image's dimensions (for orientation) and a
  * build-time blur placeholder. Ordered as Photos orders a library: by when
- * each was taken (or exported, where that's all the file says), oldest
- * first, with the undated ones after.
+ * each was taken (or as I remember it, or exported, where that's all
+ * there is), oldest first, with the undated ones after.
  */
 export const PHOTO_LIBRARY: LibraryPhoto[] = [
+  {
+    image: earthTheQuiraing,
+    file: "earth/the-quiraing.webp",
+    recalled: "2017-08-07",
+    about: {
+      title: "The Quiraing",
+      description:
+        "An aerial view of the jagged green peaks of the Quiraing on the Isle of Skye, with a narrow road winding through the hills below a heavy, rain-laden sky.",
+      place: "The Quiraing, Isle of Skye, Scotland",
+      pin: { lat: 57.624, lng: -6.265 },
+      map: mapTheQuiraing,
+      href: `${BEAUTY_OF_EARTH_PHOTO}lMdB3obo91Dq`,
+    },
+  },
   {
     image: earthPalmsAtDusk,
     file: "earth/palms-at-dusk.webp",
@@ -245,6 +264,34 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
     place: "Indonesia",
   },
   {
+    image: earthLowTide,
+    file: "earth/low-tide.webp",
+    recalled: "2020-10-16",
+    about: {
+      title: "Low Tide",
+      description:
+        "The sun sets over the Atlantic at Vila Nova de Milfontes, Portugal, its light spreading orange across the sky and reflecting on wet rock pools and exposed reef in the foreground, with birds gathered along the shoreline.",
+      place: "Vila Nova de Milfontes, Portugal",
+      pin: { lat: 37.7174, lng: -8.7891 },
+      map: mapVilaNovaDeMilfontes,
+      href: `${BEAUTY_OF_EARTH_PHOTO}2`,
+    },
+  },
+  {
+    image: earthScallopedShore,
+    file: "earth/scalloped-shore.webp",
+    recalled: "2020-10-24",
+    about: {
+      title: "Scalloped Shore",
+      description:
+        "An elevated view of Praia do Norte in Nazaré, Portugal, where white waves fold onto a wide stretch of pale sand and two small figures walk near the water's edge.",
+      place: "Praia do Norte, Nazaré, Portugal",
+      pin: { lat: 39.6128, lng: -9.0714 },
+      map: mapPraiaDoNorte,
+      href: `${BEAUTY_OF_EARTH_PHOTO}iRyViqwhaauX`,
+    },
+  },
+  {
     image: dsc05383,
     file: "DSC05383.webp",
     exported: "2020-11-02T17:50:57Z",
@@ -280,13 +327,12 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
     image: dsc04861,
     file: "DSC04861.webp",
     exported: "2021-07-21T19:08:19Z",
-    place: "Spain",
   },
   {
     image: dsc04499,
     file: "DSC04499.webp",
     exported: "2021-07-28T06:56:23Z",
-    place: "Spain",
+    place: "Sagres, Portugal",
   },
   {
     image: earthStraightDesertRoad,
@@ -330,6 +376,48 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       pin: { lat: -13.9625, lng: -38.9278 },
       map: mapBahia,
       href: `${BEAUTY_OF_EARTH_PHOTO}mO6slOnuL1Cv`,
+    },
+  },
+  {
+    image: earthTideLines,
+    file: "earth/tide-lines.webp",
+    recalled: "2023-05",
+    about: {
+      title: "Tide Lines",
+      description:
+        "An aerial view of a wave breaking, white foam streaking across the teal ocean surface off Bali, Indonesia.",
+      place: "Bali, Indonesia",
+      pin: { lat: -8.8241, lng: 115.0896 },
+      map: mapBali2,
+      href: `${BEAUTY_OF_EARTH_PHOTO}1`,
+    },
+  },
+  {
+    image: earthLookingUp,
+    file: "earth/looking-up.webp",
+    recalled: "2024-03-16",
+    about: {
+      title: "Looking Up",
+      description:
+        "Cherry blossom branches in full pink bloom against a clear blue sky in Böblingen, Germany.",
+      place: "Böblingen, Germany",
+      pin: { lat: 48.6858, lng: 9.0136 },
+      map: mapBoblingen,
+      href: `${BEAUTY_OF_EARTH_PHOTO}13`,
+    },
+  },
+  {
+    image: earthOneBranch,
+    file: "earth/one-branch.webp",
+    recalled: "2024-03-16",
+    about: {
+      title: "One Branch",
+      description:
+        "Pale pink cherry blossoms open along a dark branch, photographed close up in Böblingen, Germany, with more blossoms and buds blurred behind.",
+      place: "Böblingen, Germany",
+      pin: { lat: 48.6858, lng: 9.0136 },
+      map: mapBoblingen,
+      href: `${BEAUTY_OF_EARTH_PHOTO}5`,
     },
   },
   {
@@ -396,84 +484,6 @@ export const PHOTO_LIBRARY: LibraryPhoto[] = [
       pin: { lat: 25.0782, lng: 121.5306 },
       map: mapTaipei,
       href: `${BEAUTY_OF_EARTH_PHOTO}hnbSFpi3sFiB`,
-    },
-  },
-  {
-    image: earthTideLines,
-    file: "earth/tide-lines.webp",
-    about: {
-      title: "Tide Lines",
-      description:
-        "An aerial view of a wave breaking, white foam streaking across the teal ocean surface off Bali, Indonesia.",
-      place: "Bali, Indonesia",
-      pin: { lat: -8.8241, lng: 115.0896 },
-      map: mapBali2,
-      href: `${BEAUTY_OF_EARTH_PHOTO}1`,
-    },
-  },
-  {
-    image: earthTheQuiraing,
-    file: "earth/the-quiraing.webp",
-    about: {
-      title: "The Quiraing",
-      description:
-        "An aerial view of the jagged green peaks of the Quiraing on the Isle of Skye, with a narrow road winding through the hills below a heavy, rain-laden sky.",
-      place: "The Quiraing, Isle of Skye, Scotland",
-      pin: { lat: 57.624, lng: -6.265 },
-      map: mapTheQuiraing,
-      href: `${BEAUTY_OF_EARTH_PHOTO}lMdB3obo91Dq`,
-    },
-  },
-  {
-    image: earthScallopedShore,
-    file: "earth/scalloped-shore.webp",
-    about: {
-      title: "Scalloped Shore",
-      description:
-        "An elevated view of Praia do Norte in Nazaré, Portugal, where white waves fold onto a wide stretch of pale sand and two small figures walk near the water's edge.",
-      place: "Praia do Norte, Nazaré, Portugal",
-      pin: { lat: 39.6128, lng: -9.0714 },
-      map: mapPraiaDoNorte,
-      href: `${BEAUTY_OF_EARTH_PHOTO}iRyViqwhaauX`,
-    },
-  },
-  {
-    image: earthLookingUp,
-    file: "earth/looking-up.webp",
-    about: {
-      title: "Looking Up",
-      description:
-        "Cherry blossom branches in full pink bloom against a clear blue sky in Böblingen, Germany.",
-      place: "Böblingen, Germany",
-      pin: { lat: 48.6858, lng: 9.0136 },
-      map: mapBoblingen,
-      href: `${BEAUTY_OF_EARTH_PHOTO}13`,
-    },
-  },
-  {
-    image: earthLowTide,
-    file: "earth/low-tide.webp",
-    about: {
-      title: "Low Tide",
-      description:
-        "The sun sets over the Atlantic at Vila Nova de Milfontes, Portugal, its light spreading orange across the sky and reflecting on wet rock pools and exposed reef in the foreground, with birds gathered along the shoreline.",
-      place: "Vila Nova de Milfontes, Portugal",
-      pin: { lat: 37.7174, lng: -8.7891 },
-      map: mapVilaNovaDeMilfontes,
-      href: `${BEAUTY_OF_EARTH_PHOTO}2`,
-    },
-  },
-  {
-    image: earthOneBranch,
-    file: "earth/one-branch.webp",
-    about: {
-      title: "One Branch",
-      description:
-        "Pale pink cherry blossoms open along a dark branch, photographed close up in Böblingen, Germany, with more blossoms and buds blurred behind.",
-      place: "Böblingen, Germany",
-      pin: { lat: 48.6858, lng: 9.0136 },
-      map: mapBoblingen,
-      href: `${BEAUTY_OF_EARTH_PHOTO}5`,
     },
   },
   {
