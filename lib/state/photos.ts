@@ -1,4 +1,5 @@
 import type { StaticImageData } from "next/image";
+import { GLASS_PLATES } from "@/lib/state/glass-plates";
 import dsc00465 from "@/public/assets/DSC00465.webp";
 import dsc00483 from "@/public/assets/DSC00483-web.webp";
 import dsc00535 from "@/public/assets/DSC00535.webp";
@@ -522,11 +523,12 @@ export interface WallpaperChoice {
    * toolbar with one colour it reads off the page; these continue the photo
    * there, instead of black. */
   edges: { top: string; bottom: string };
-  /** The dock's and the search pill's frosted glass over it, at rest: the
-   * flat colour that stands in for the blur while the scene moves. The
-   * framed desktop phone and a full-screen one crop the photo differently,
-   * so each has its own. */
-  glass: Record<"desktop" | "phone", { dock: string; search: string }>;
+  /** The dock's and the search pill's frosted glass over it at rest, on
+   * the framed desktop phone, as small images (see GLASS_PLATES): what
+   * stands in for the blur there while the scene moves. (A phone's screen
+   * crops the photo by its own shape, so no one image fits there; it keeps
+   * the blur.) */
+  glass: { dock: string; search: string };
 }
 
 /** A wallpaper's caption, from what the library says about the photo, so
@@ -535,8 +537,11 @@ function wallpaper(
   key: string,
   image: StaticImageData,
   edges: WallpaperChoice["edges"],
-  glass: WallpaperChoice["glass"],
 ): WallpaperChoice {
+  const glass = GLASS_PLATES[key];
+  if (!glass) {
+    throw new Error(`Wallpaper ${key} has no measured glass`);
+  }
   const about = PHOTO_LIBRARY.find((p) => p.image === image)?.about;
   if (!about) {
     throw new Error(`Wallpaper ${key} has no place in the library`);
@@ -555,62 +560,30 @@ function wallpaper(
  * for the clock. The first is the default. Keys are stored as the reader's
  * choice, so they never change; an unknown one falls back to the default.
  * Edge colours are measured from each photo drawn as it covers a 393 × 852
- * screen: its top and bottom 12px, averaged. Glass colours are the dock's
- * and the search pill's plate as drawn at rest, a strip of each averaged:
- * on the 402 × 874 desktop phone and on a 393 × 852 screen. */
+ * screen: its top and bottom 12px, averaged. */
 export const WALLPAPERS: WallpaperChoice[] = [
-  wallpaper(
-    "looking-up",
-    earthLookingUp,
-    { top: "#005b92", bottom: "#553a49" },
-    {
-      desktop: { dock: "#567087", search: "#584654" },
-      phone: { dock: "#4d6a82", search: "#594a57" },
-    },
-  ),
-  wallpaper(
-    "palms-at-dusk",
-    earthPalmsAtDusk,
-    { top: "#404b4c", bottom: "#070706" },
-    {
-      desktop: { dock: "#262320", search: "#a37a5e" },
-      phone: { dock: "#21201e", search: "#a7846a" },
-    },
-  ),
-  wallpaper(
-    "palm-fronds",
-    earthPalmFronds,
-    { top: "#181e1b", bottom: "#242f17" },
-    {
-      desktop: { dock: "#252525", search: "#3c4a2d" },
-      phone: { dock: "#242525", search: "#333c2c" },
-    },
-  ),
-  wallpaper(
-    "white-frangipani",
-    earthWhiteFrangipani,
-    { top: "#2c88a4", bottom: "#395e5c" },
-    {
-      desktop: { dock: "#33503e", search: "#313027" },
-      phone: { dock: "#364d3c", search: "#2e2d27" },
-    },
-  ),
-  wallpaper(
-    "distant-tower",
-    earthDistantTower,
-    { top: "#cecaca", bottom: "#213125" },
-    {
-      desktop: { dock: "#2a312f", search: "#a7a075" },
-      phone: { dock: "#2a312e", search: "#999c6d" },
-    },
-  ),
-  wallpaper(
-    "palms-in-the-breeze",
-    earthPalmsInTheBreeze,
-    { top: "#35231b", bottom: "#d4c0b0" },
-    {
-      desktop: { dock: "#908c7c", search: "#8b9a8c" },
-      phone: { dock: "#8f8a7c", search: "#89988a" },
-    },
-  ),
+  wallpaper("looking-up", earthLookingUp, {
+    top: "#005b92",
+    bottom: "#553a49",
+  }),
+  wallpaper("palms-at-dusk", earthPalmsAtDusk, {
+    top: "#404b4c",
+    bottom: "#070706",
+  }),
+  wallpaper("palm-fronds", earthPalmFronds, {
+    top: "#181e1b",
+    bottom: "#242f17",
+  }),
+  wallpaper("white-frangipani", earthWhiteFrangipani, {
+    top: "#2c88a4",
+    bottom: "#395e5c",
+  }),
+  wallpaper("distant-tower", earthDistantTower, {
+    top: "#cecaca",
+    bottom: "#213125",
+  }),
+  wallpaper("palms-in-the-breeze", earthPalmsInTheBreeze, {
+    top: "#35231b",
+    bottom: "#d4c0b0",
+  }),
 ];

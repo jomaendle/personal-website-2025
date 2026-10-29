@@ -26,7 +26,8 @@ The phone felt smooth on an iPhone and sluggish in desktop Chrome,
 worst when dragging an app closed. The main thread wasn't the problem:
 about 2.6ms a frame during the drag on both. The time went to the
 compositor, drawing each frame: 12 to 17ms on a 1512 × 945 window at 2x,
-against 9ms on a phone-sized one. A 120Hz MacBook has 8.3ms.
+against 9ms on a phone-sized one. A 120Hz MacBook has 8.3ms. After the
+fix a drag draws in 7.5 to 8ms there.
 
 ## How it was measured
 
@@ -43,25 +44,34 @@ clip alone was another 2ms.
 1. **Backdrop blurs under moving things.** The dock and search pill blur
    the wallpaper. Anything changing over or under a backdrop blur makes
    the browser blur it again, every frame. During a drag the home grid
-   scales and the dim fades over them. They now drop the blur while the
-   scene moves, as the window's own glass already did, for an opaque fill.
-   The fill is the colour the glass shows at rest over that wallpaper,
-   measured once per wallpaper on the desktop phone and on a phone screen
-   (`glass` in `WALLPAPERS`), so nothing jumps as the blur goes and comes
-   back. A guess (the wallpaper's bottom edge lifted with white) was up to
-   76 levels off per channel: a visible pop on every animation. The flag
-   that swaps it sits on the home screen (`.home[data-moving]`), not the
-   whole screen, so switching it doesn't restyle an open app.
-2. **A rounded clip around moving layers.** On desktop `.screen` had
-   `border-radius: 55px` with `overflow: hidden`, and the open window kept
-   a 55px radius of its own. A rounded clip over composited layers (and
-   over backdrop blurs) is a masked pass per frame. The screen now clips
-   square and `.screenCorners` draws the round corners over everything as
-   bezel (a transparent box with a 40px bezel-coloured spread shadow). The
-   window's radius is 0 when it is open and still. `measure()` reads the
-   radius from `--screen-radius`.
-3. **The dim's opacity, set inline on every move,** now has its own layer
-   (`will-change: opacity`).
+   scales and the dim fades over them. On the desktop phone they now drop
+   the blur while the scene moves, as the window's own glass already did,
+   for a stand-in: the plate as it looks at rest over that wallpaper,
+   measured into a 32 × 8 (pill: 24 × 6) image and stretched smoothly
+   over it (`lib/state/glass-plates.ts`). A frosted plate is all low
+   detail, so that matches it to about 1.5 levels on average (the pill, a
+   lighter blur, to 2–6), and the swap needs no fade either way. Two
+   tries before it didn't hold: one flat colour per plate was up to 70
+   levels off, because the photo changes across the plate, and even a
+   left-to-right gradient missed its changes top to bottom. Phones keep
+   the blur: a phone's own screen crops the photo by its shape, so one
+   measured image can't fit them all, and the framed desktop phone is
+   always the same 402 × 874. The flag that swaps it sits on the home
+   screen (`.home[data-moving]`), not the whole screen, so switching it
+   doesn't restyle an open app.
+2. **Two rounded clips around moving layers.** On desktop `.screen`
+   clips to a 55px radius, and the open window kept a 55px radius of its
+   own inside it. A rounded clip over composited layers is a masked pass
+   per frame. The window's radius is now 0 when it's open and still, so
+   only the screen's mask is left. (Clipping the screen square too, with
+   the corners drawn on top as bezel, saved another millisecond a frame,
+   but the frame's corners aren't concentric with the screen's: the
+   square corners stuck out past them.) `measure()` reads the radius
+   from `--screen-radius`.
+3. **The dim's opacity, set inline on every move,** gets its own layer
+   while the scene moves (`will-change: opacity` under the home screen's
+   flag), not at rest, where it would hold a screen-sized layer for
+   nothing.
 
 ## Why it felt worse than it measured
 
@@ -99,11 +109,11 @@ drawn on top, with no lag, so every mismatch shows.
 
 ## Guardrails
 
-- Don't put a rounded `overflow: hidden` around layers that move. Clip
-  square and draw the corners on top.
+- Keep rounded clips around moving layers to one, and check any overlay
+  that fakes a shape against the edges around it at full zoom.
 - Every `backdrop-filter` near an animation needs a still stand-in while
-  it moves, and the stand-in's colour should be measured from the real
-  blur, not guessed.
+  it moves, measured from the real blur, not guessed, and compared
+  pixel for pixel against it at rest.
 - Put a flag that restyles on the smallest element that holds what it
   styles.
 - When something under a pointer scales, solve for the grabbed point,

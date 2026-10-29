@@ -91,6 +91,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     fromWidget: false,
   });
   const closing = useRef(false);
+  /** The window was put away without a close (locking with an app open):
+   * until it unmounts, it's not to be grabbed either. */
+  const dropped = useRef(false);
   /** What opened the current app (an icon, a widget), to focus on close. */
   const opener = useRef<HTMLElement | null>(null);
   /** What the app zoomed out of (an icon, a widget), to zoom back into. */
@@ -412,6 +415,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       // The cover stays up until the window reports its app rendered.
       scene.jump({ a: instant ? 1 : 0, p: 0, dx: 0, dy: 0, k: 1, c: 1 });
       closing.current = false;
+      dropped.current = false;
       setClosingApp(false);
       store.set(APP_KEY, id);
       setLaunch(launch);
@@ -424,7 +428,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     [measure, hideSource, scene],
   );
 
-  const isClosing = useCallback(() => closing.current, []);
+  const isClosing = useCallback(() => closing.current || dropped.current, []);
 
   /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
    * which the springs carry on from; anything else (a click event, from a
@@ -801,6 +805,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                     lockTimer.current = undefined;
                     if (appRef.current) {
                       closing.current = false;
+                      dropped.current = true;
                       // Stops an opening spring, which would otherwise finish
                       // and leave the dim layer over the lock screen.
                       scene.jump({ a: 0, p: 0, dx: 0, dy: 0, k: 1, c: 0 });
@@ -832,10 +837,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               // The glass's stand-ins while the scene moves.
               style={
                 {
-                  "--glass-dock-phone": wallpaper.glass.phone.dock,
-                  "--glass-search-phone": wallpaper.glass.phone.search,
-                  "--glass-dock-desktop": wallpaper.glass.desktop.dock,
-                  "--glass-search-desktop": wallpaper.glass.desktop.search,
+                  "--glass-dock": `url("${wallpaper.glass.dock}")`,
+                  "--glass-search": `url("${wallpaper.glass.search}")`,
                 } as CSSProperties
               }
               aria-label={IPHONE_COPY.deviceName}
@@ -918,9 +921,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
               <div
                 ref={(el) => scene.register("dim", el)}
-                className={styles.dim}
-                // Its own layer: a drag sets its opacity every move.
-                style={{ zIndex: 25, willChange: "opacity" }}
+                className={cn(styles.dim, styles.sceneDim)}
+                style={{ zIndex: 25 }}
                 aria-hidden
               />
 

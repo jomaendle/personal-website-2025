@@ -1,0 +1,46 @@
+/**
+ * The home screen's glass plates as each wallpaper shows them at rest on the
+ * framed desktop phone (402 × 874): the dock and the search pill, each a small
+ * image stretched over the plate. The frosted blur behind them is all low
+ * detail, so a 32 × 8 (or 24 × 6) grid of its colours, smoothly scaled up,
+ * stands in for it while the scene moves and the live blur would be redrawn
+ * every frame.
+ *
+ * Measured from screenshots of the plates at rest at 2x: each cell averages
+ * the plate's pixels in it, leaving out the icons and the label (and a few
+ * pixels around them) and the hairline edge; cells under an icon take their
+ * neighbours' colour. Measure again if a wallpaper, the dock, the pill or
+ * their glass changes.
+ */
+export const GLASS_PLATES: Record<string, { dock: string; search: string }> = {
+  "looking-up": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABmUlEQVR42k2STYpUQRCEv6yq192jwoCiK3HpSvB0gifwgIIrLyAy4Izdbb1+VRXhonp0cplfEEH+xKfPXw7b+Knb+3qptaqecj3ut9OuX4p6whFEpIgUJBM2lqwhD7AwBCn5SmXJ6mGd+vnr92/px3k5cjukgITDDpw08CzZxsYIbFuybQwYgw2WbRnbnqoxxk0+fHz/obzc3TSrpOCxlrYmKzyNIh6JNeMc/7Vc/QLbT9qTeZ93pZowRByWvFYO9eHQ6sTYAhwpGJKGAUtApABky8wIg9EE1phD9qFydmQFsKi97ffH7XS1tcQA2vCfpuxUIgOSgNbasHIumZhzCAP1Ukdru1KWvAA5p3IWxai3N60Cadn1voawJUsgAwxG761EsTQ8RihIsmQnAhDUbV23dZ9K75thyUtAuTs+3N48X0b7v7pAHsICAnztd3XH/CHzeAc9Ofi6rf9M2mi5LGu/5MPrd8/25dWuvPAWl1rPx75tvbdhSTLGYVvzUdA2VoMjOZgxfTSCplHbJSJyJNLi4Pd6vjv++gtljnznmX4Z/gAAAABJRU5ErkJggg==",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAAA50lEQVR42n2QS0oEYQyEq5L03yPKOCriebyBV/D86iCONNOPpFx0K240kEUoknxVfH586vvd4eY2hcokCQFrSxK2AZBUKtUmjfPULnr3eHs/fgxj7K8PXfSn05CV4W5GSRA83N3xd5Vq+BxAXl3ud/0c7u08TklTeEG2PkbWMmcFaKpfON+Qi2rJGQC9TZnWtZjGaamFZm5e0pQiC0rBlkwgUatHZaUkrNZp1nYgYQFjqmKoufNORv2EQRe2dPCvN7iBEJSVfn/34K216FQllChsN7ktSABJgBsa6RZBD5IwnMfzy/H1C4xpqdzM5/1IAAAAAElFTkSuQmCC",
+  },
+  "palms-at-dusk": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABf0lEQVR42k2Sy25UMRBET7XvYyYskhXKJiCB4P8/DEaJCLkPX3ex8ExCy6v2UbncXTpN48+vjw/nOWhjaCqMoSEoQcgCEAAYt6Q274f3ljZDifMYn07lbooxaJnr3paabzWXQ7/+Hp/LWr4/PZ6nQXagEJIk0qSxr9rux2wHNWl2S2wkSkSE0rQ0pjbvzUd6qWn0mmWYx7E2C8a4Ou1QCQTnQefx2n+rXg4fzUPwXs28rDkUirgbNdz6S2NtNGKoacGRhrwvsdRcDwMSIV6r7zPuZz2vft6SK8kpmIIt9WdNIKQQl8UPM3Pwe/XLDpBGP759AQMtdSRz8VQAAiSArVEzp9BYAsg0sDdqaip0uA8W2KqXRshF/QEPLQFspbucjnQJ9+X2ZUjs6ZoZwtBStoC9+Ugi+prIpCVILbGQsFXmeY5hwPqYq/FNuld3102kcd4McyP/5/uVbLRte9n2fRqnGMqHvK6xec8PqAfKpn/N2O/p+sBAXQDQXuvlcvkHw94QAFuyULsAAAAASUVORK5CYII=",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAABG0lEQVR42n3PiZHTQBAF0P5/ejQjrY1rvRRHaKRCQsRGbRmXV5IlzdFNBPAyePj180dS0tq8rAFeSu3uLzmOgxICIoCBQlKJx7OMQ5xyFBcQjIMLPub5uR3qrdZ9t3qUo5Lo3WrvtCqWXsYk/0ZVBALh+uX7qZmibN0awCmn1nvvBrJ0L+v+eJbr5TQmhUYCRhky7o+1mZ/OpzhdREQYDKopaakNcAgE+LNWEXk8S46cxvx+X8ZxHDKDJoc4PDHcl3cDNe7H/lTS3AUSc+aBZAzGYOBt3kRkbzbvffrvS0S6eWmtmUFjE+r57fN0ubT1w1vPtyUM6aiLxvjp9Xrd2u/b/Pb1G3SQQKfTPY3TVnqczggOBoe2kJba/wJWPJsJpXpndAAAAABJRU5ErkJggg==",
+  },
+  "palm-fronds": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABbUlEQVR42lWR3U7cUAyEv7FP0kULd6Xc9f2fD1HY5MSeXmTRCsuS5dHY4x+9vDz/eXsby+iuSGLtvDifKlYL9xG1qafAufZ67fXZy5VxgaCKY2P/ZH7q+IrepXYEI1jX8bRe/r5e4/frq0JVhQEwxoD7DCd6N7e7wNicfEMXYMV3bgxV1b1v5RjL4Kcp3Y0bN+gnXnQxbw+wtrueQeMxTUYc5a99C0CSpLNX/LICWj4dlAZiaXCX+mD/YHsH2P8xb99LGqVZAFLh0jFd7QG+z2n6oHaRAkJ33KXa5L7vUhNgew8q24UbwDov1lN1i7xAGujyEBjL9xfUV4BjsUMKMjQPAXVLW7FUTSKUVwHrkjVVbTe2elN/hoKjXa0QVcQ29x+Xhp7hQz6EFRGPD8/wEb1L8eBnik45aPX2IHfTxdwrTa1jHTlAIITOcpEjl0W1u3dhgU45pcYiRWSoJl3hitrUu2iBRsrW18fRffsPRWYBDmr9oWwAAAAASUVORK5CYII=",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAAA9ElEQVR42n2PQU4DMRAEu2ds7yYKCSB4AV/g/x8iCgQEYe2daQ7hCnVuqbr49Hx3OOwfHu8B9r6IMIKUGekolXU2d9TJvMAri1upBpJgqRs3nF5e4zLKYX+7vZnPH28klQBBAlBrdfKKv4mM/vVO03Y35VxLnWrvy9UA6ncl9mXNFbUZ6JxtjDDzXBWSMuEMJQCTjRiteRnL6o3uhEQYRAlEKtFHriO9oEyMnrUWpZAZhBdP0JxKGHwdad9nKAiRMoDXOxlUEP+SIYNlGGF9Sb989tbmaVcAQCCQASWE39DabNoUAe4GQBJIMwPcaJnMNY7H0w+2Cn/3ZVPnbwAAAABJRU5ErkJggg==",
+  },
+  "white-frangipani": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABtUlEQVR42kWRwW4UQQxEX7m7Z2fJhgQkBAekwIGP4cD/X8MBRXAJSnazsz1tm0OywfLBKksulZ8+f/8xffk26PR9Wx9rfyjrHj9FZlCCYqm6jjJ6XXuNtSprzVpVmlQLraptrG1Lm1Wah9x97Uv2pf893P28q+Xm68JCRM0gE0gAJQK9DpkAmQRkvjSJUkEllZHFyPPW3ctsn24+VPd7y0xNnCsT1BCZJvLZECAikCLdVetZK5vIFlEUhoesPOtKzKb5cldbvwcBqe3LFZtffQAYMMoYeCbK1BpIuW143TkXBFAS64Ophgk/rdHlsC21lr5HBtCmmD8OzVruAZ3fYqdDHpZYh17yCRhLe1o32jXtDEhTBMDhVI+HpzelzSYg02rxjgrt2us1kJt3NiL8RAbphrQ8AY7MUyJDSpXWgNgvVcWnErKRq5d5tQYsUXN+25YHtanaYXD9PtrVKwOVWXVLhsJtefiPAGpKSK8SlDVAI3pifjlzJtY3VzYYh0drt3/a4ypNssnUTA2bNsejla2VSWvHgwg9E/ckTWAoPXwEmX5c8+RZZ4tADQ/UKNOxXPy+/fUPUv8Wv5ri+2cAAAAASUVORK5CYII=",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAABA0lEQVR42n3QSVLjQBAF0P8zs+SyG3WYIQI2bGDF/a/VARgHWCrlwII1/Y7weHOcHu5vX16emupYV5KmShAASZIGimgKCwWwyKhKoFA2NQj+nV8/Ps/2/Px4dz2fP05CqiiBUBNSzcwMv1uW9fJ+gqD/mea+s5vj1RgbqpKEwVQryzN889FUTU2aQlAoAMBw33yLTA8nhJBxCWvdlmUQFLIKI6RaLx8EExW+aYUZG40FgIn6Wn1d1sqkUI0KNt2pUF5Pl8jKYhYpBqBYVCYL/xWR4anEfDhc7Q76djr3vu99qmSmyzRFjC0igSxkFQBte5Hpp9+j3L0SBETk+Hee+z7X7Rt3GZBdiAwbTAAAAABJRU5ErkJggg==",
+  },
+  "distant-tower": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABXklEQVR42k2Sy24VQRBDj6t7RmQVAUIJLPj/X2MXQMrjTpfNYu5N8KpklUr2Uenbz++fH7+Ou+ksKRqqkTkyN4+RMaKylCiBiKRwZU1cSgmVsenOai9jEhhVfvHTr9/z/uELm9otQJBAkJM4VCBwnoZEhOTqASKGKFE4Bwhpd33Sw4/7ObaZGENxShUDIY5g3vyEmAQp8G6+l4uGWFd/TMZMq2YcpDMSFc0gEjnEtAm17+2ubp0BAsIwQiwDDhGMVHBThSo2+5aJb1kWvMkOdx9ngOfLeP27zb1r9w0MCcelx7SGruUCYDMBJQZYypRvQBOEX5WgPUgIQiGgL2VLIyhEKkFiktSUz1IHuVAbhQIOfVCXlzeFa4BTh3JUDmWJ6AN3l5e2mv+t4oWbND7ky8fyKHLJel4jaN/3OecV8MnFEJBUlYYIiyCpE4wXabEgSouWF9c/BIyjch9/nv4BUvEVMcZyB1gAAAAASUVORK5CYII=",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAABI0lEQVR42n3PS3bTQBAF0FfVLdmOHZxwDp8JA1gAm2QzHPbDiCmQSWKHSC2pu6vqsQK4O7jy7euXrT3kcYHQvDEQJINORiBCuhkg1rVbrLWZezjWzdwA5G1hfZmX5ylb+635T2+VIEkHGIyAaAIS/s2aedsUw9t395dRs+k1zEkFAQkggkIIgxaxNd9ac4vw5I5l20gKVFzRPEFOh303+/TxQ/YQMoF092upj/N6vtmdj7t5s5TGUtuy1tq6RALTVJacVEVfn14lT7fjfl6baL6UOdcuKg7y59NL9wDwXNpSTTSfj/+ZYerrsNPbu9PDpTxdl/T+85s0HEOl1FBRD1+be+jN4SBKEZSlz6X3poBMxfLIpJhKtc5hPDj2Q77//uPXX98L3UWFr4nVAAAAAElFTkSuQmCC",
+  },
+  "palms-in-the-breeze": {
+    dock: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAICAIAAAAX52r4AAABjklEQVR42k2Qy3LTQBRET1/NyLGdl6n8KjvWfGugCiohluKRpdsspBBm0Yuunn5cffv+9XS66XstzvTnSydpnGAZgYRACIFxepnmy9DOL8Pr7/Pb69Aus7o43B/uv9w9PD3sDsdhnMrprvYl08IWGATYnW1I2NxBEEjIGFgByHkRdBEflMHOpfN8u69l3+M0YtH2ITIjvWpnlB9OnVVAsMCyaZmGFqaTOqmv5ZqbeFdql77po3SLDR1Wp2uoLlkSEMZQ0SRm547oESBUzaSc8OVlzPepSEXqpMOutnkBHm+Px66QVKvE1pXaOJgUjnXotmjn2jlQWvnRm7rU42KrzBFArIeF+TK1P+N8eozjAYh0iRSghBSBrEit5lpjLCAcRshbtjF+uL8lGcf3TkF6GNt5uNRafjz/ejrdl76EieHcyM++AEgprdb/8bLkkEP5Se73N7VUKZb0MLZ//LVdlW5ji+efr29vky2DEzKcwnKKdZxXkJG3yA1FBNr1vdClXdNeMuclW5tCMc/8Obe/l38EMqFFchMAAAAASUVORK5CYII=",
+    search:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAGCAIAAABWyclEAAAAxklEQVR42nWQwU4DMRBD7UloyrJtVfG5lfgDfpRDD7Ar0W1mzGGTBSTwKYlkO8+8vL48jsPp+Uiju+O3COj7IKjfBUDJMkLT+zR/zPlwPpSx3O43cPMCQDIzGv6Xuy/LArEMxbLl3fBQayUBsVeLQLgLQVBS9wpqTYqIiPWx1ntKlr06WoggIESzIBCghI2oUbG1qanne66fNe3Sz1GaJTbKv0WCJAEJ8sjXt+vxNJanvaSWQwfYd17RNux169j+AsCXOk/TF/5Wd3jkVkKWAAAAAElFTkSuQmCC",
+  },
+};
