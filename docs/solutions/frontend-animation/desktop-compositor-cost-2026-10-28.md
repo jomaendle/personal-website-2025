@@ -44,9 +44,14 @@ clip alone was another 2ms.
    the wallpaper. Anything changing over or under a backdrop blur makes
    the browser blur it again, every frame. During a drag the home grid
    scales and the dim fades over them. They now drop the blur while the
-   scene moves, as the window's own glass already did, for an opaque tint
-   in the wallpaper's colour where the dock sits (`--wall-bottom`, from
-   the wallpaper's measured bottom edge).
+   scene moves, as the window's own glass already did, for an opaque fill.
+   The fill is the colour the glass shows at rest over that wallpaper,
+   measured once per wallpaper on the desktop phone and on a phone screen
+   (`glass` in `WALLPAPERS`), so nothing jumps as the blur goes and comes
+   back. A guess (the wallpaper's bottom edge lifted with white) was up to
+   76 levels off per channel: a visible pop on every animation. The flag
+   that swaps it sits on the home screen (`.home[data-moving]`), not the
+   whole screen, so switching it doesn't restyle an open app.
 2. **A rounded clip around moving layers.** On desktop `.screen` had
    `border-radius: 55px` with `overflow: hidden`, and the open window kept
    a 55px radius of its own. A rounded clip over composited layers (and
@@ -68,27 +73,39 @@ drawn on top, with no lag, so every mismatch shows.
   away sideways, and past halfway up it fell behind. The drag now keeps
   the point it took hold of under the pointer: with `s` the card's scale
   and `(lx, ly)` the grabbed point in the card's own pixels,
-  `dx = gx + Δx − w/2 − (lx − w/2)·s`, and the same for `dy`.
+  `dx = gx + Δx − w/2 − (lx − w/2)·s`, and the same for `dy`. Taken
+  mid-launch the card is still part icon, so the drag reads its centre
+  and scale from the scene's own frame (`scene.frame`), and the offset is
+  scaled up by how little of it the half-launched card draws. That factor
+  is held at a half or more: below it, the stored offset and the launch
+  spring home together on release and their product swings out past the
+  pointer.
 - A mouse flick is several times faster than a finger. The close spring
   carried it past the card's smallest size, where the pose is clamped, so
   the card hung there before turning home. The flick's speed is capped
-  at 3px/ms.
+  at 3px/ms, and a throw from the card's smallest size (or full size, to
+  cancel) puts no speed on the pull at all.
 - Letting go set state that re-renders the whole phone in the same task
   as the close's start. The animations were already timed from that
   moment, so their first frames were skipped and the card jumped. The
-  state now lands two frames later.
+  state now lands two frames later, and the window turns away a new grab
+  from the moment a close starts.
 - The moving flag flipped every time a wiggling drag crossed `p = 0`,
   restyling the app's glass each time. During a drag it now only turns
   on; the settle turns it off.
 - A release the page never hears (the button let go outside the window)
-  left the card mid-air. `lostpointercapture` now ends the drag too.
+  left the card mid-air. `lostpointercapture` now ends the drag too; a
+  cancelled gesture (the browser taking it) puts the card back, open.
 
 ## Guardrails
 
 - Don't put a rounded `overflow: hidden` around layers that move. Clip
   square and draw the corners on top.
 - Every `backdrop-filter` near an animation needs a still stand-in while
-  it moves.
+  it moves, and the stand-in's colour should be measured from the real
+  blur, not guessed.
+- Put a flag that restyles on the smallest element that holds what it
+  styles.
 - When something under a pointer scales, solve for the grabbed point,
   not for an edge.
 - Test drags with a mouse on desktop, not only with touch emulation.
