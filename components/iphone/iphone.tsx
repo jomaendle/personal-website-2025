@@ -827,10 +827,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               id="main-content"
               tabIndex={-1}
               className={styles.screen}
-              // The glass's stand-in while the scene moves takes its colour.
+              // The glass's stand-ins while the scene moves.
               style={
                 {
-                  "--wall-bottom": wallpaper.edges.bottom,
+                  "--glass-dock-phone": wallpaper.glass.phone.dock,
+                  "--glass-search-phone": wallpaper.glass.phone.search,
+                  "--glass-dock-desktop": wallpaper.glass.desktop.dock,
+                  "--glass-search-desktop": wallpaper.glass.desktop.search,
                 } as CSSProperties
               }
               aria-label={IPHONE_COPY.deviceName}

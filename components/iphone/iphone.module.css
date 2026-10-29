@@ -140,6 +140,9 @@
 .screen {
   /* The corner radius the app window opens to and closes from. */
   --screen-radius: 0px;
+  /* The glass's stand-ins while the scene moves (see WALLPAPERS). */
+  --glass-dock: var(--glass-dock-phone);
+  --glass-search: var(--glass-search-phone);
   position: relative;
   width: 100%;
   height: 100%;
@@ -220,12 +223,13 @@
 
   .device {
     --bezel: 12px;
+    --bezel-color: #050505;
     width: calc(402px + var(--bezel) * 2);
     height: calc(874px + var(--bezel) * 2);
     flex: none;
     padding: var(--bezel);
     border-radius: calc(55px + var(--bezel));
-    background: #050505;
+    background: var(--bezel-color);
     box-shadow:
       0 0 0 1.5px #3b3a38,
       0 0 0 3px #1a1a19,
@@ -244,6 +248,8 @@
      on desktop, the costliest thing the compositor did. */
   .screen {
     --screen-radius: 55px;
+    --glass-dock: var(--glass-dock-desktop);
+    --glass-search: var(--glass-search-desktop);
   }
 
   .screenCorners {
@@ -252,7 +258,7 @@
     inset: 0;
     z-index: 90;
     border-radius: var(--screen-radius);
-    box-shadow: 0 0 0 40px #050505;
+    box-shadow: 0 0 0 40px var(--bezel-color);
     pointer-events: none;
   }
 
@@ -2141,11 +2147,17 @@
 
 /* The home screen's glass under the window does the same while the scene
    moves: anything moving over or under a backdrop blur makes the browser
-   blur it again, every frame. The stand-in takes the wallpaper's colour
-   where the dock sits, lifted as the frosting lifts it. */
-.screen[data-moving] :is(.dock, .search) {
+   blur it again, every frame. The stand-in is the colour the glass shows
+   at rest over this wallpaper, measured (see WALLPAPERS), so it doesn't
+   jump as the blur goes and comes back. */
+.screen[data-moving] .dock {
   backdrop-filter: none;
-  background-color: color-mix(in srgb, var(--wall-bottom, #1c1c1e) 82%, #fff);
+  background-color: var(--glass-dock, #2c2c2e);
+}
+
+.screen[data-moving] .search {
+  backdrop-filter: none;
+  background-color: var(--glass-search, #2c2c2e);
 }
 
 .screen:not([data-moving]) :is(.dock, .search) {

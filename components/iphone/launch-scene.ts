@@ -227,7 +227,7 @@ type ElementKey = keyof SceneElements;
 type Styles = Partial<Record<ElementKey, Keyframe>>;
 
 /** How small a dragged card gets as it's pulled, `p` from 0 to 1. */
-export const cardScale = (p: number) => 1 - 0.45 * clamp(p, 0, 1);
+const cardScale = (p: number) => 1 - 0.45 * clamp(p, 0, 1);
 
 /** The window's frame for one state, in the app's pixels. */
 function frameOf(state: LaunchState, g: Geometry) {
@@ -452,6 +452,14 @@ export class LaunchScene {
     }
   }
 
+  /** Where a state draws the card, in the app's pixels: its centre before
+   * any drag offset, its scale (the app inside always scales evenly), and
+   * how much of a drag offset it applies (all of it once open). */
+  frame(state: LaunchState) {
+    const f = frameOf({ ...state, dx: 0, dy: 0 }, this.geometry());
+    return { x: f.cx, y: f.cy, scale: f.scale, offset: f.ac };
+  }
+
   /** Called with the final state whenever the scene comes to rest. */
   onSettle(listener: (state: LaunchState) => void) {
     this.settleListeners.add(listener);
@@ -543,7 +551,7 @@ export class LaunchScene {
         : this.next(key, undefined, now);
     }
     if (stillMoving) {
-      this.play(now);
+      this.play(now, held);
     } else {
       this.write(state, undefined, held ? "held" : true);
     }
@@ -637,7 +645,7 @@ export class LaunchScene {
   }
 
   /** Sample every motion from `now` until all rest, and run it. */
-  private play(now: number) {
+  private play(now: number, held = false) {
     const g = this.geometry();
     const reduced = this.reduced();
     const frames = this.sample(now);
@@ -645,7 +653,13 @@ export class LaunchScene {
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
-    this.flag(frames.some(moving), frames.some(stirring));
+    const windowMoves = frames.some(moving);
+    const stageMoves = frames.some(stirring);
+    // Under a drag the flags only turn on (see jump).
+    this.flag(
+      held ? windowMoves || null : windowMoves,
+      held ? stageMoves || null : stageMoves,
+    );
     const poses = frames.map((state) => pose(state, g, reduced));
     // Taking over from motion (an interruption, a finger's release), the new
     // animations start now, where the samples start. Left to start on their

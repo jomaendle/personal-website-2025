@@ -13,7 +13,7 @@ import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
-import { cardScale, type LaunchScene } from "./launch-scene";
+import type { LaunchScene } from "./launch-scene";
 import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
@@ -46,6 +46,26 @@ interface AppWindowProps {
   onSwitch: (id: IphoneAppId, launch?: AppLaunch) => void;
   /** The window is mounted and in the scene: the launch can start. */
   onMounted: (id: IphoneAppId) => void;
+}
+
+/**
+ * The card's own speed as it's let go, unscaled px per ms: the throw
+ * carries it on. It shrank about its centre while it rose, sliding sideways
+ * (and rising slower than the pointer) to keep the grabbed point under it;
+ * held at the bottom or at its smallest, it doesn't shrink. `v` is the
+ * pointer's upward speed, `pointerX` its rightward one.
+ */
+function cardThrow(
+  grab: { w: number; h: number; lx: number; ly: number },
+  p: number,
+  v: number,
+  pointerX: number,
+) {
+  const shrink = p > 0 && p < 1 ? (0.9 * v) / grab.h : 0;
+  return {
+    vx: clamp(pointerX + (grab.lx - grab.w / 2) * shrink, -3, 3),
+    vy: clamp(p > 0 ? -v + (grab.ly - grab.h / 2) * shrink : 0, -3, 3),
+  };
 }
 
 /** Inside the window's Suspense boundary, after the app: commits only once
@@ -222,7 +242,7 @@ export function AppWindow({
     // Take hold wherever it is, mid-launch or still springing back.
     scene.hold();
     const held = scene.get();
-    const s0 = cardScale(held.p);
+    const f = scene.frame(held);
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -235,8 +255,8 @@ export function AppWindow({
       gy,
       // Off the card (under a card still springing back) is fine: that
       // point follows the pointer just the same, so nothing jumps.
-      lx: w / 2 + (gx - w / 2 - held.dx) / s0,
-      ly: h / 2 + (gy - h / 2 - held.dy) / s0,
+      lx: w / 2 + (gx - f.x - held.dx * f.offset) / f.scale,
+      ly: h / 2 + (gy - f.y - held.dy * f.offset) / f.scale,
       baseRise: held.p * h * 0.5,
     };
     tracker.reset();
@@ -270,15 +290,17 @@ export function AppWindow({
     const { w, h, gx, gy, lx, ly, baseRise } = current;
     const rise = Math.max(0, baseRise + up);
     const p = clamp(rise / (h * 0.5), 0, 1);
-    const s = cardScale(p);
     // The card shrinks about its centre; offset it so the point it was
     // taken by stays under the pointer, as a finger would cover it. (The
-    // rise stops at the bottom, so the pointer's height does too.)
+    // rise stops at the bottom, so the pointer's height does too.) Taken
+    // mid-launch, the card is still part icon: its frame says where it is.
+    const f = scene.frame({ ...scene.get(), p });
+    const offset = Math.max(f.offset, 0.05);
     scene.jump(
       {
         p,
-        dx: gx + dx - w / 2 - (lx - w / 2) * s,
-        dy: gy - (rise - baseRise) - h / 2 - (ly - h / 2) * s,
+        dx: (gx + dx - f.x - (lx - w / 2) * f.scale) / offset,
+        dy: (gy - (rise - baseRise) - f.y - (ly - h / 2) * f.scale) / offset,
       },
       true,
     );
@@ -298,24 +320,27 @@ export function AppWindow({
     // the card past its smallest (or back past full size) and it hangs
     // there before turning.
     const v = clamp(tracker.velocity(), -3, 3);
-    // The card's own speed as it was let go: the throw carries it on. It
-    // shrank about its centre while it rose, sliding sideways (and rising
-    // slower than the pointer) to keep the grabbed point under it; held at
-    // the bottom or at its smallest, it doesn't shrink.
     const { p } = scene.get();
-    const shrink = p > 0 && p < 1 ? (0.9 * v) / current.h : 0;
     // The tracker reports toward smaller values as positive: leftward.
-    const vx = clamp(
-      -trackerX.velocity() + (current.lx - current.w / 2) * shrink,
-      -3,
-      3,
-    );
-    const vy = p > 0 ? -v + (current.ly - current.h / 2) * shrink : 0;
+    const { vx, vy } = cardThrow(current, p, v, -trackerX.velocity());
+    // The pull's own speed stops at its ends: thrown on from its smallest
+    // (or full size), it would only carry `p` past where the card can go,
+    // and the card would hang there before turning.
     if ((p > 0.16 || v > 0.35) && v > -0.2) {
-      onClose(v, vx, vy);
+      onClose(p >= 1 ? 0 : v, vx, vy);
     } else {
-      onCancelDrag(v, vx, vy);
+      onCancelDrag(p <= 0 ? 0 : v, vx, vy);
     }
+  };
+
+  // The browser took the gesture (a system swipe, a scroll): no release, so
+  // no tap and no throw. The card goes back to rest, open.
+  const onPointerCancel = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.id !== event.pointerId) {
+      return;
+    }
+    drag.current = null;
+    onCancelDrag(0, 0, 0);
   };
 
   // A release the page never hears (the button let go outside the window)
@@ -346,7 +371,7 @@ export function AppWindow({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
-      onPointerCancel={onPointerEnd}
+      onPointerCancel={onPointerCancel}
       onLostPointerCapture={onLostCapture}
       // Pointer input is handled above; this is Enter and Space.
       onClick={(event) => event.detail === 0 && onClose()}
