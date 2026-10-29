@@ -180,8 +180,8 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       g.w = screen.clientWidth;
       g.h = screen.clientHeight;
       g.scale = screen.getBoundingClientRect().height / g.h || 1;
-      // The screen's corners are drawn over it (see .screenCorners), not
-      // clipped, so their radius is a variable rather than its own.
+      // A variable, not its computed radius: the one stylesheet value the
+      // window's corners and the screen's clip both follow.
       g.radius =
         Number.parseFloat(
           getComputedStyle(screen).getPropertyValue("--screen-radius"),
@@ -984,7 +984,6 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   }
                 }}
               />
-              <div className={styles.screenCorners} aria-hidden />
             </main>
           </div>
         </div>

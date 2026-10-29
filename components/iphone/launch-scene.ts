@@ -427,6 +427,8 @@ export class LaunchScene {
     dim: null,
   };
   private stage: HTMLElement | null = null;
+  /** A finger is driving the scene: its moving flags only turn on. */
+  private held = false;
   private settleListeners = new Set<(state: LaunchState) => void>();
 
   constructor(
@@ -476,6 +478,7 @@ export class LaunchScene {
    * `held`: once the window has moved, it counts as moving until it rests,
    * so wiggling near the start doesn't swap its glass back and forth. */
   jump(values: Partial<LaunchState>, held = false) {
+    this.held = held;
     this.freeze(Object.keys(values) as Key[], values, held);
   }
 
@@ -566,6 +569,7 @@ export class LaunchScene {
    * true once everything rests, false if interrupted first.
    */
   animate(targets: Partial<Record<Key, Target>>): Promise<boolean> {
+    this.held = false;
     const now = performance.now();
     const keys = Object.keys(targets) as Key[];
     this.interrupt(keys);
@@ -733,7 +737,8 @@ export class LaunchScene {
       animation.cancel();
     }
     this.running = [];
-    this.write(final);
+    // Another motion coming to rest under a drag leaves its flags be.
+    this.write(final, undefined, this.held ? "held" : true);
     const waiters = this.waiters;
     this.waiters = [];
     for (const waiter of waiters) {

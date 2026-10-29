@@ -153,10 +153,6 @@
   outline: none;
 }
 
-.screenCorners {
-  display: none;
-}
-
 @media (min-width: 640px) and (min-height: 500px) {
   .root {
     --top-inset: 54px;
@@ -223,13 +219,12 @@
 
   .device {
     --bezel: 12px;
-    --bezel-color: #050505;
     width: calc(402px + var(--bezel) * 2);
     height: calc(874px + var(--bezel) * 2);
     flex: none;
     padding: var(--bezel);
     border-radius: calc(55px + var(--bezel));
-    background: var(--bezel-color);
+    background: #050505;
     box-shadow:
       0 0 0 1.5px #3b3a38,
       0 0 0 3px #1a1a19,
@@ -242,24 +237,15 @@
     scale: min(1, tan(atan2(100dvh - 48px, 946px)));
   }
 
-  /* The screen clips square, and its round corners are the bezel drawn
-     over it. A round clip on the screen itself would wrap every moving
-     layer inside it in a mask, redrawn on every frame of every animation:
-     on desktop, the costliest thing the compositor did. */
+  /* The screen has to clip round: square, its corners would stick out
+     past the frame's, which aren't concentric with them. The open window
+     keeps no radius of its own at rest (see pose), so moving layers sit
+     under this one rounded mask, not two. */
   .screen {
     --screen-radius: 55px;
     --glass-dock: var(--glass-dock-desktop);
     --glass-search: var(--glass-search-desktop);
-  }
-
-  .screenCorners {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: 90;
     border-radius: var(--screen-radius);
-    box-shadow: 0 0 0 40px var(--bezel-color);
-    pointer-events: none;
   }
 
   .sideButton {
@@ -2148,8 +2134,9 @@
 /* The home screen's glass under the window does the same while the scene
    moves: anything moving over or under a backdrop blur makes the browser
    blur it again, every frame. The stand-in is the colour the glass shows
-   at rest over this wallpaper, measured (see WALLPAPERS), so it doesn't
-   jump as the blur goes and comes back. */
+   at rest over this wallpaper, measured (see WALLPAPERS), so the swap
+   either way is invisible and needs no fade: a fade back would re-blur
+   the plates on every frame of it. */
 .home[data-moving] .dock {
   backdrop-filter: none;
   background-color: var(--glass-dock, #2c2c2e);
@@ -2158,13 +2145,6 @@
 .home[data-moving] .search {
   backdrop-filter: none;
   background-color: var(--glass-search, #2c2c2e);
-}
-
-.home:not([data-moving]) :is(.dock, .search) {
-  transition:
-    backdrop-filter 0.25s ease-out,
-    background-color 0.25s ease-out,
-    scale 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .appIconOverlay {
