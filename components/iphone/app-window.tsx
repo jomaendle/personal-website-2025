@@ -13,7 +13,7 @@ import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
-import type { LaunchScene } from "./launch-scene";
+import { CARD_SHRINK, type LaunchScene } from "./launch-scene";
 import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
@@ -49,6 +49,15 @@ interface AppWindowProps {
 }
 
 /**
+ * How much of a drag's offset the scene draws, given how far the launch
+ * is (all of it once open), held at no less than a half. Mid-launch the
+ * drag stores the offset scaled up by this, to keep the card under the
+ * pointer; let go, the offset and the launch spring home together, and
+ * below a half that product would swing out past where the card was.
+ */
+const dragOffset = (offset: number) => Math.max(offset, 0.5);
+
+/**
  * The card's own speed as it's let go, unscaled px per ms: the throw
  * carries it on. It shrank about its centre while it rose, sliding sideways
  * (and rising slower than the pointer) to keep the grabbed point under it;
@@ -61,7 +70,8 @@ function cardThrow(
   v: number,
   pointerX: number,
 ) {
-  const shrink = p > 0 && p < 1 ? (0.9 * v) / grab.h : 0;
+  // p rises 1 per half screen height, and the scale falls CARD_SHRINK per p.
+  const shrink = p > 0 && p < 1 ? (2 * CARD_SHRINK * v) / grab.h : 0;
   return {
     vx: clamp(pointerX + (grab.lx - grab.w / 2) * shrink, -3, 3),
     vy: clamp(p > 0 ? -v + (grab.ly - grab.h / 2) * shrink : 0, -3, 3),
@@ -293,9 +303,10 @@ export function AppWindow({
     // The card shrinks about its centre; offset it so the point it was
     // taken by stays under the pointer, as a finger would cover it. (The
     // rise stops at the bottom, so the pointer's height does too.) Taken
-    // mid-launch, the card is still part icon: its frame says where it is.
+    // mid-launch, the card is still part icon: its frame says where it is,
+    // and only part of a drag's offset shows (see dragOffset).
     const f = scene.frame({ ...scene.get(), p });
-    const offset = Math.max(f.offset, 0.05);
+    const offset = dragOffset(f.offset);
     scene.jump(
       {
         p,
@@ -320,16 +331,19 @@ export function AppWindow({
     // the card past its smallest (or back past full size) and it hangs
     // there before turning.
     const v = clamp(tracker.velocity(), -3, 3);
-    const { p } = scene.get();
+    const state = scene.get();
+    const { p } = state;
     // The tracker reports toward smaller values as positive: leftward.
     const { vx, vy } = cardThrow(current, p, v, -trackerX.velocity());
+    // In the scene's own units: mid-launch, only part of an offset shows.
+    const offset = dragOffset(scene.frame(state).offset);
     // The pull's own speed stops at its ends: thrown on from its smallest
     // (or full size), it would only carry `p` past where the card can go,
     // and the card would hang there before turning.
     if ((p > 0.16 || v > 0.35) && v > -0.2) {
-      onClose(p >= 1 ? 0 : v, vx, vy);
+      onClose(p >= 1 ? 0 : v, vx / offset, vy / offset);
     } else {
-      onCancelDrag(p <= 0 ? 0 : v, vx, vy);
+      onCancelDrag(p <= 0 ? 0 : v, vx / offset, vy / offset);
     }
   };
 
@@ -340,7 +354,10 @@ export function AppWindow({
       return;
     }
     drag.current = null;
-    onCancelDrag(0, 0, 0);
+    // On its way home already (Escape mid-hold): let it go.
+    if (!isClosing()) {
+      onCancelDrag(0, 0, 0);
+    }
   };
 
   // A release the page never hears (the button let go outside the window)
@@ -354,9 +371,11 @@ export function AppWindow({
       onPointerEnd(event);
     } else {
       // Taking hold stopped the card where it was: let it carry on to
-      // rest, open.
+      // rest, open (unless it's on its way home already).
       drag.current = null;
-      onCancelDrag(0, 0, 0);
+      if (!isClosing()) {
+        onCancelDrag(0, 0, 0);
+      }
     }
   };
 

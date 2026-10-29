@@ -226,8 +226,11 @@ export interface SceneElements {
 type ElementKey = keyof SceneElements;
 type Styles = Partial<Record<ElementKey, Keyframe>>;
 
+/** How much a dragged card shrinks over the whole pull. */
+export const CARD_SHRINK = 0.45;
+
 /** How small a dragged card gets as it's pulled, `p` from 0 to 1. */
-const cardScale = (p: number) => 1 - 0.45 * clamp(p, 0, 1);
+const cardScale = (p: number) => 1 - CARD_SHRINK * clamp(p, 0, 1);
 
 /** The window's frame for one state, in the app's pixels. */
 function frameOf(state: LaunchState, g: Geometry) {
@@ -382,9 +385,9 @@ const displaced = (s: LaunchState) =>
  * (Gone home, at `a` 0, it's no longer drawn.) */
 const moving = (s: LaunchState) => s.a < 0.999 || displaced(s);
 
-/** Whether anything on the screen is moving in this state: the home
- * screen's glass under the window drops its blur. At rest on the home
- * screen (`a` 0) or in an app (`a` 1), nothing is. */
+/** Whether the scene moves over the home screen in this state: its glass
+ * under the window drops its blur. At rest on the home screen (`a` 0) or
+ * in an app (`a` 1), nothing does. */
 const stirring = (s: LaunchState) =>
   (s.a > 0.001 && s.a < 0.999) || displaced(s);
 
@@ -476,8 +479,8 @@ export class LaunchScene {
     this.freeze(Object.keys(values) as Key[], values, held);
   }
 
-  /** The screen the scene plays on: it carries the moving flag too, for
-   * the home screen's glass under the window. */
+  /** The home screen the window opens over: it carries a moving flag too,
+   * for its glass under the window. */
   setStage(el: HTMLElement | null) {
     this.stage = el;
   }
@@ -773,8 +776,8 @@ export class LaunchScene {
     }
   }
 
-  /** Mark the window and the screen as moving or not (null: leave it):
-   * their glass drops its blur while they move. */
+  /** Mark the window and the home screen as moving or not (null: leave
+   * it): their glass drops its blur while they move. */
   private flag(window: boolean | null, stage: boolean | null) {
     if (window !== null) {
       this.elements.window?.toggleAttribute("data-moving", window);

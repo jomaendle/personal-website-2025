@@ -164,8 +164,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       ),
   );
 
-  useEffect(() => {
-    scene.setStage(screenRef.current);
+  // Before any effect can start the scene: a motion started first would
+  // leave the home screen's glass blurring under it.
+  useLayoutEffect(() => {
+    scene.setStage(homeRef.current);
     return () => scene.setStage(null);
   }, [scene]);
 
