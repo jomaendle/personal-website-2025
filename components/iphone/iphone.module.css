@@ -4814,30 +4814,16 @@ button.row:active {
     background: rgb(255 255 255 / 0.04);
   }
 
-  :is(.glassButton, .pill, .glassField, .tabBar):not(:disabled):hover {
+  /* Not while the scene moves: a closing card leaves the pointer over an
+     icon, and a filter appearing mid-animation repaints its layer. */
+  .screen:not([data-moving])
+    :is(.glassButton, .pill, .glassField, .tabBar):not(:disabled):hover {
     filter: brightness(1.15);
   }
 
-  :is(.cell, .shelfItem, .latest, .favorite, .photoTile, .calMini):hover {
+  .screen:not([data-moving])
+    :is(.cell, .shelfItem, .latest, .favorite, .photoTile, .calMini):hover {
     filter: brightness(1.08);
-  }
-
-  /* Not while the scene moves: a closing card leaves the pointer over an
-     icon, and a filter appearing mid-animation repaints its layer. */
-  .screen[data-moving]
-    :is(
-      .glassButton,
-      .pill,
-      .glassField,
-      .tabBar,
-      .cell,
-      .shelfItem,
-      .latest,
-      .favorite,
-      .photoTile,
-      .calMini
-    ):hover {
-    filter: none;
   }
 
   :is(.transportButton, .miniPlayerButton):not(:disabled):hover {

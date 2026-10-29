@@ -428,9 +428,10 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
    * which the springs carry on from; anything else (a click event, from a
    * button using this as its handler) counts as none. */
   const closeApp = useCallback(
-    (velocity?: unknown, velocityX?: number) => {
+    (velocity?: unknown, velocityX?: number, velocityY?: number) => {
       const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
       const vx = typeof velocityX === "number" ? velocityX : 0;
+      const vy = typeof velocityY === "number" ? velocityY : -v * 0.55;
       const id = appRef.current;
       if (!id || closing.current) {
         return;
@@ -465,7 +466,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
           // A sideways throw carries on into the way home.
           dx: { to: 0, transition: SPRING_CLOSE, velocity: vx * 1000 },
           // The card keeps rising a touch with the flick, then goes home.
-          dy: { to: 0, transition: SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
+          dy: { to: 0, transition: SPRING_CLOSE, velocity: vy * 1000 },
           ...(retargeted
             ? { k: { from: 0, to: 1, transition: SPRING_CLOSE } }
             : {}),
@@ -536,7 +537,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** Back to full screen, carrying the release speed (down is negative;
    * `velocityX` rightward). */
   const cancelDrag = useCallback(
-    (velocity = 0, velocityX = 0) => {
+    (velocity = 0, velocityX = 0, velocityY = -velocity * 0.55) => {
       const { h } = geometry.current;
       scene.animate({
         p: {
@@ -548,7 +549,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         dy: {
           to: 0,
           transition: SPRING_OPEN,
-          velocity: -velocity * 1000 * 0.55,
+          velocity: velocityY * 1000,
         },
         // A drag that caught a launch mid-way finishes the launch.
         a: { to: 1, transition: SPRING_OPEN },

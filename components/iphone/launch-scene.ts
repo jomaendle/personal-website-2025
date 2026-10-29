@@ -374,8 +374,19 @@ function changing(keyframes: Keyframe[]): boolean {
   );
 }
 
-/** Whether the window is moving in this state: its glass drops its blur. */
-const moving = (s: LaunchState) => s.a < 0.999 || s.p > 0.001;
+/** Whether the window is pulled or pushed off its place as a card. */
+const displaced = (s: LaunchState) =>
+  s.p > 0.001 || Math.abs(s.dx) > 0.5 || Math.abs(s.dy) > 0.5;
+
+/** Whether the window is moving in this state: its glass drops its blur.
+ * (Gone home, at `a` 0, it's no longer drawn.) */
+const moving = (s: LaunchState) => s.a < 0.999 || displaced(s);
+
+/** Whether anything on the screen is moving in this state: the home
+ * screen's glass under the window drops its blur. At rest on the home
+ * screen (`a` 0) or in an app (`a` 1), nothing is. */
+const stirring = (s: LaunchState) =>
+  (s.a > 0.001 && s.a < 0.999) || displaced(s);
 
 export interface Target {
   to: number;
@@ -431,11 +442,13 @@ export class LaunchScene {
   }
 
   /** Hand an element to the scene (or take it back with null); it's put
-   * in its current pose straight away. */
+   * in its current pose straight away. The moving flags are left to the
+   * motion: a ref handed over again on a re-render mid-drag mustn't undo
+   * them. */
   register(key: ElementKey, el: HTMLElement | null) {
     this.elements[key] = el;
     if (el) {
-      this.write(this.get(), key);
+      this.write(this.get(), key, false);
     }
   }
 
@@ -632,7 +645,7 @@ export class LaunchScene {
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
-    this.flag(frames.some(moving));
+    this.flag(frames.some(moving), frames.some(stirring));
     const poses = frames.map((state) => pose(state, g, reduced));
     // Taking over from motion (an interruption, a finger's release), the new
     // animations start now, where the samples start. Left to start on their
@@ -740,17 +753,20 @@ export class LaunchScene {
       Object.assign(el.style, styles[key]);
     }
     if (flagMoving === "held") {
-      if (moving(state)) {
-        this.flag(true);
-      }
+      this.flag(moving(state) || null, stirring(state) || null);
     } else if (flagMoving) {
-      this.flag(moving(state));
+      this.flag(moving(state), stirring(state));
     }
   }
 
-  /** Mark the window and the screen as moving: glass drops its blur. */
-  private flag(on: boolean) {
-    this.elements.window?.toggleAttribute("data-moving", on);
-    this.stage?.toggleAttribute("data-moving", on);
+  /** Mark the window and the screen as moving or not (null: leave it):
+   * their glass drops its blur while they move. */
+  private flag(window: boolean | null, stage: boolean | null) {
+    if (window !== null) {
+      this.elements.window?.toggleAttribute("data-moving", window);
+    }
+    if (stage !== null) {
+      this.stage?.toggleAttribute("data-moving", stage);
+    }
   }
 }

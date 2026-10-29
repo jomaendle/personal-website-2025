@@ -36,8 +36,12 @@ interface AppWindowProps {
   screen: HTMLElement | null;
   /** Close; a card flick passes its upward and rightward speeds, unscaled
    * px per ms. */
-  onClose: (velocity?: number, velocityX?: number) => void;
-  onCancelDrag: (velocity: number, velocityX: number) => void;
+  onClose: (velocity?: number, velocityX?: number, velocityY?: number) => void;
+  onCancelDrag: (
+    velocity: number,
+    velocityX: number,
+    velocityY: number,
+  ) => void;
   /** Leave for another app (AppProps.openApp). */
   onSwitch: (id: IphoneAppId, launch?: AppLaunch) => void;
   /** The window is mounted and in the scene: the launch can start. */
@@ -294,18 +298,23 @@ export function AppWindow({
     // the card past its smallest (or back past full size) and it hangs
     // there before turning.
     const v = clamp(tracker.velocity(), -3, 3);
-    // The tracker reports toward smaller values as positive: leftward. The
-    // card was also sliding sideways as it shrank about its centre, to
-    // keep the grabbed point under the pointer; the throw carries that on.
-    const shrinking = scene.get().p < 1;
-    const slide = shrinking
-      ? ((current.lx - current.w / 2) * 0.9 * v) / current.h
-      : 0;
-    const vx = clamp(-trackerX.velocity() + slide, -3, 3);
-    if ((scene.get().p > 0.16 || v > 0.35) && v > -0.2) {
-      onClose(v, vx);
+    // The card's own speed as it was let go: the throw carries it on. It
+    // shrank about its centre while it rose, sliding sideways (and rising
+    // slower than the pointer) to keep the grabbed point under it; held at
+    // the bottom or at its smallest, it doesn't shrink.
+    const { p } = scene.get();
+    const shrink = p > 0 && p < 1 ? (0.9 * v) / current.h : 0;
+    // The tracker reports toward smaller values as positive: leftward.
+    const vx = clamp(
+      -trackerX.velocity() + (current.lx - current.w / 2) * shrink,
+      -3,
+      3,
+    );
+    const vy = p > 0 ? -v + (current.ly - current.h / 2) * shrink : 0;
+    if ((p > 0.16 || v > 0.35) && v > -0.2) {
+      onClose(v, vx, vy);
     } else {
-      onCancelDrag(v, vx);
+      onCancelDrag(v, vx, vy);
     }
   };
 
@@ -319,7 +328,10 @@ export function AppWindow({
     if (drag.current.moved) {
       onPointerEnd(event);
     } else {
+      // Taking hold stopped the card where it was: let it carry on to
+      // rest, open.
       drag.current = null;
+      onCancelDrag(0, 0, 0);
     }
   };
 
