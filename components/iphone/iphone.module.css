@@ -252,12 +252,12 @@
      fade: a fade back would re-blur the plates on every frame of it. A
      phone's own screen crops the photo by its shape, so no one image fits
      there; it keeps the blur. */
-  .home[data-moving] .dock {
+  .screen[data-plates] .home[data-moving] .dock {
     backdrop-filter: none;
     background: var(--glass-dock) center / 100% 100% no-repeat;
   }
 
-  .home[data-moving] .search {
+  .screen[data-plates] .home[data-moving] .search {
     backdrop-filter: none;
     background: var(--glass-search) center / 100% 100% no-repeat;
   }
@@ -4932,7 +4932,8 @@ button.row:active {
   }
 
   /* The same fill while the scene moves: no stand-in colour to flash. */
-  .home[data-moving] :is(.dock, .search) {
+  .home[data-moving] :is(.dock, .search),
+  .screen[data-plates] .home[data-moving] :is(.dock, .search) {
     background: rgb(44 44 46 / 0.96);
   }
 }

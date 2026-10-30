@@ -13,7 +13,7 @@ import { IPHONE_COPY, type IphoneAppId } from "@/lib/state/iphone-copy";
 import { AppIcon, type CalendarFace } from "./app-icons";
 import { APPS, type AppLaunch, LAZY_APPS } from "./apps";
 import styles from "./iphone.module.css";
-import { CARD_SHRINK, type LaunchScene } from "./launch-scene";
+import type { LaunchScene } from "./launch-scene";
 import { clamp, useVelocityTracker } from "./motion";
 
 interface AppWindowProps {
@@ -65,9 +65,9 @@ const MAX_THROW = 3;
  * The card's own speed as it's let go, unscaled px per ms: the throw
  * carries it on. It shrank about its centre while it rose, sliding sideways
  * (and rising slower than the pointer) to keep the grabbed point under it;
- * held at the bottom or at its smallest, it doesn't shrink (and taken
- * mid-launch, not `open`, its shrink is the launch's). `v` is the
- * pointer's upward speed, `pointerX` its rightward one.
+ * held at the bottom or at its smallest, it doesn't shrink. `v` is the
+ * pointer's upward speed, `pointerX` its rightward one, and `shrink` the
+ * scale the card loses per unit of pull (see LaunchScene.frame).
  */
 function cardThrow(
   grab: { w: number; h: number; lx: number; ly: number },
@@ -75,19 +75,15 @@ function cardThrow(
     p,
     v,
     pointerX,
-    open,
-  }: { p: number; v: number; pointerX: number; open: boolean },
+    shrink,
+  }: { p: number; v: number; pointerX: number; shrink: number },
 ) {
-  // p rises 1 per half screen height, and the scale falls CARD_SHRINK per p.
-  const shrink = open && p > 0 && p < 1 ? (2 * CARD_SHRINK * v) / grab.h : 0;
+  // The pull rises 1 per half screen height.
+  const rate = p > 0 && p < 1 ? (shrink * 2 * v) / grab.h : 0;
   return {
-    vx: clamp(
-      pointerX + (grab.lx - grab.w / 2) * shrink,
-      -MAX_THROW,
-      MAX_THROW,
-    ),
+    vx: clamp(pointerX + (grab.lx - grab.w / 2) * rate, -MAX_THROW, MAX_THROW),
     vy: clamp(
-      p > 0 ? -v + (grab.ly - grab.h / 2) * shrink : 0,
+      p > 0 ? -v + (grab.ly - grab.h / 2) * rate : 0,
       -MAX_THROW,
       MAX_THROW,
     ),
@@ -385,7 +381,7 @@ export function AppWindow({
       p,
       v,
       pointerX: -trackerX.velocity(),
-      open: frame.offset >= 0.999,
+      shrink: frame.shrink,
     });
     // In the scene's own units: mid-launch, only part of an offset shows.
     const offset = dragOffset(frame.offset);

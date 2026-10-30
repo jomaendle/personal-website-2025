@@ -227,7 +227,7 @@ type ElementKey = keyof SceneElements;
 type Styles = Partial<Record<ElementKey, Keyframe>>;
 
 /** How much a dragged card shrinks over the whole pull. */
-export const CARD_SHRINK = 0.45;
+const CARD_SHRINK = 0.45;
 
 /** How small a dragged card gets as it's pulled, `p` from 0 to 1. */
 const cardScale = (p: number) => 1 - CARD_SHRINK * clamp(p, 0, 1);
@@ -458,11 +458,21 @@ export class LaunchScene {
   }
 
   /** Where a state draws the card, in the app's pixels: its centre before
-   * any drag offset, its scale (the app inside always scales evenly), and
-   * how much of a drag offset it applies (all of it once open). */
+   * any drag offset, its scale (the app inside always scales evenly), how
+   * much scale it loses per unit of pull, and how much of a drag offset it
+   * applies (all of it once open). */
   frame(state: LaunchState) {
-    const f = frameOf({ ...state, dx: 0, dy: 0 }, this.geometry());
-    return { x: f.cx, y: f.cy, scale: f.scale, offset: f.ac };
+    const g = this.geometry();
+    const f = frameOf({ ...state, dx: 0, dy: 0 }, g);
+    const s0 = Math.max(f.origin.size, 1) / g.w;
+    const launched = lerp(s0, 1, state.a);
+    return {
+      x: f.cx,
+      y: f.cy,
+      scale: f.scale,
+      shrink: launched * CARD_SHRINK * f.ac,
+      offset: f.ac,
+    };
   }
 
   /** Called with the final state whenever the scene comes to rest. */
@@ -479,7 +489,7 @@ export class LaunchScene {
    * so wiggling near the start doesn't swap its glass back and forth. */
   jump(values: Partial<LaunchState>, held = false) {
     this.held = held;
-    this.freeze(Object.keys(values) as Key[], values, held);
+    this.freeze(Object.keys(values) as Key[], values);
   }
 
   /** The home screen the window opens over: it carries a moving flag too,
@@ -544,7 +554,7 @@ export class LaunchScene {
     this.freeze(GRASPABLE, {});
   }
 
-  private freeze(keys: Key[], values: Partial<LaunchState>, held = false) {
+  private freeze(keys: Key[], values: Partial<LaunchState>) {
     const now = performance.now();
     const state = { ...this.get(), ...values };
     const stillMoving = KEYS.some(
@@ -557,9 +567,9 @@ export class LaunchScene {
         : this.next(key, undefined, now);
     }
     if (stillMoving) {
-      this.play(now, held);
+      this.play(now);
     } else {
-      this.write(state, undefined, held ? "held" : true);
+      this.write(state);
     }
   }
 
@@ -652,7 +662,7 @@ export class LaunchScene {
   }
 
   /** Sample every motion from `now` until all rest, and run it. */
-  private play(now: number, held = false) {
+  private play(now: number) {
     const g = this.geometry();
     const reduced = this.reduced();
     const frames = this.sample(now);
@@ -660,13 +670,7 @@ export class LaunchScene {
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
-    const windowMoves = frames.some(moving);
-    const stageMoves = frames.some(stirring);
-    // Under a drag the flags only turn on (see jump).
-    this.flag(
-      held ? windowMoves || null : windowMoves,
-      held ? stageMoves || null : stageMoves,
-    );
+    this.flag(frames.some(moving), frames.some(stirring));
     const poses = frames.map((state) => pose(state, g, reduced));
     // Taking over from motion (an interruption, a finger's release), the new
     // animations start now, where the samples start. Left to start on their
@@ -737,8 +741,7 @@ export class LaunchScene {
       animation.cancel();
     }
     this.running = [];
-    // Another motion coming to rest under a drag leaves its flags be.
-    this.write(final, undefined, this.held ? "held" : true);
+    this.write(final);
     const waiters = this.waiters;
     this.waiters = [];
     for (const waiter of waiters) {
@@ -761,11 +764,7 @@ export class LaunchScene {
   }
 
   /** Put elements in a state's pose as their own style. */
-  private write(
-    state: LaunchState,
-    only?: ElementKey,
-    flagMoving: boolean | "held" = true,
-  ) {
+  private write(state: LaunchState, only?: ElementKey, flagMoving = true) {
     const styles = pose(state, this.geometry(), this.reduced());
     for (const key of Object.keys(this.elements) as ElementKey[]) {
       const el = this.elements[key];
@@ -774,20 +773,19 @@ export class LaunchScene {
       }
       Object.assign(el.style, styles[key]);
     }
-    if (flagMoving === "held") {
-      this.flag(moving(state) || null, stirring(state) || null);
-    } else if (flagMoving) {
+    if (flagMoving) {
       this.flag(moving(state), stirring(state));
     }
   }
 
-  /** Mark the window and the home screen as moving or not (null: leave
-   * it): their glass drops its blur while they move. */
-  private flag(window: boolean | null, stage: boolean | null) {
-    if (window !== null) {
+  /** Mark the window and the home screen as moving or not: their glass
+   * drops its blur while they move. Under a drag the flags only turn on
+   * (see jump), whatever else comes to rest meanwhile. */
+  private flag(window: boolean, stage: boolean) {
+    if (window || !this.held) {
       this.elements.window?.toggleAttribute("data-moving", window);
     }
-    if (stage !== null) {
+    if (stage || !this.held) {
       this.stage?.toggleAttribute("data-moving", stage);
     }
   }

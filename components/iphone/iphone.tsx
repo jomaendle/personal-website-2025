@@ -15,6 +15,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import type { NoteSummary } from "@/lib/iphone-notes";
+import { GLASS_PLATES } from "@/lib/state/glass-plates";
 import {
   IPHONE_COPY,
   type IphoneAppId,
@@ -746,6 +747,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   }, []);
 
   const wallpaper = useWallpaper();
+  const plates = GLASS_PLATES[wallpaper.key];
   // The stylesheet hides the wallpaper while a stored choice is pending
   // (persist.ts); once the chosen one has rendered, show it.
   useEffect(() => {
@@ -834,12 +836,16 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               id="main-content"
               tabIndex={-1}
               className={styles.screen}
-              // The glass's stand-ins while the scene moves.
+              // The glass's stand-ins while the scene moves, where this
+              // wallpaper's plates have been measured; else it keeps its blur.
+              data-plates={plates ? "" : undefined}
               style={
-                {
-                  "--glass-dock": `url("${wallpaper.glass.dock}")`,
-                  "--glass-search": `url("${wallpaper.glass.search}")`,
-                } as CSSProperties
+                plates
+                  ? ({
+                      "--glass-dock": `url("${plates.dock}")`,
+                      "--glass-search": `url("${plates.search}")`,
+                    } as CSSProperties)
+                  : undefined
               }
               aria-label={IPHONE_COPY.deviceName}
               data-spotlight={

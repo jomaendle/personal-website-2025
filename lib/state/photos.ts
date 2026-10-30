@@ -1,5 +1,4 @@
 import type { StaticImageData } from "next/image";
-import { GLASS_PLATES } from "@/lib/state/glass-plates";
 import dsc00465 from "@/public/assets/DSC00465.webp";
 import dsc00483 from "@/public/assets/DSC00483-web.webp";
 import dsc00535 from "@/public/assets/DSC00535.webp";
@@ -523,12 +522,6 @@ export interface WallpaperChoice {
    * toolbar with one colour it reads off the page; these continue the photo
    * there, instead of black. */
   edges: { top: string; bottom: string };
-  /** The dock's and the search pill's frosted glass over it at rest, on
-   * the framed desktop phone, as small images (see GLASS_PLATES): what
-   * stands in for the blur there while the scene moves. (A phone's screen
-   * crops the photo by its own shape, so no one image fits there; it keeps
-   * the blur.) */
-  glass: { dock: string; search: string };
 }
 
 /** A wallpaper's caption, from what the library says about the photo, so
@@ -538,10 +531,6 @@ function wallpaper(
   image: StaticImageData,
   edges: WallpaperChoice["edges"],
 ): WallpaperChoice {
-  const glass = GLASS_PLATES[key];
-  if (!glass) {
-    throw new Error(`Wallpaper ${key} has no measured glass`);
-  }
   const about = PHOTO_LIBRARY.find((p) => p.image === image)?.about;
   if (!about) {
     throw new Error(`Wallpaper ${key} has no place in the library`);
@@ -552,7 +541,6 @@ function wallpaper(
     title: about.title,
     place: about.place.split(",")[0] ?? about.place,
     edges,
-    glass,
   };
 }
 
