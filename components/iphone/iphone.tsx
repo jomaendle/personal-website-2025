@@ -4,6 +4,7 @@ import { m, useMotionValue, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { Link } from "next-view-transitions";
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -14,6 +15,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import type { NoteSummary } from "@/lib/iphone-notes";
+import { GLASS_PLATES } from "@/lib/state/glass-plates";
 import {
   IPHONE_COPY,
   type IphoneAppId,
@@ -90,6 +92,9 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     fromWidget: false,
   });
   const closing = useRef(false);
+  /** The window was put away without a close (locking with an app open):
+   * until it unmounts, it's not to be grabbed either. */
+  const dropped = useRef(false);
   /** What opened the current app (an icon, a widget), to focus on close. */
   const opener = useRef<HTMLElement | null>(null);
   /** What the app zoomed out of (an icon, a widget), to zoom back into. */
@@ -163,6 +168,13 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       ),
   );
 
+  // Before any effect can start the scene: a motion started first would
+  // leave the home screen's glass blurring under it.
+  useLayoutEffect(() => {
+    scene.setStage(homeRef.current);
+    return () => scene.setStage(null);
+  }, [scene]);
+
   // ---- Geometry ----------------------------------------------------------
 
   const measure = useCallback(() => {
@@ -172,8 +184,12 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       g.w = screen.clientWidth;
       g.h = screen.clientHeight;
       g.scale = screen.getBoundingClientRect().height / g.h || 1;
+      // A variable, not its computed radius: the one stylesheet value the
+      // window's corners and the screen's clip both follow.
       g.radius =
-        Number.parseFloat(getComputedStyle(screen).borderTopLeftRadius) || 0;
+        Number.parseFloat(
+          getComputedStyle(screen).getPropertyValue("--screen-radius"),
+        ) || 0;
     }
     return g;
   }, []);
@@ -400,6 +416,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
       // The cover stays up until the window reports its app rendered.
       scene.jump({ a: instant ? 1 : 0, p: 0, dx: 0, dy: 0, k: 1, c: 1 });
       closing.current = false;
+      dropped.current = false;
       setClosingApp(false);
       store.set(APP_KEY, id);
       setLaunch(launch);
@@ -412,20 +429,34 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
     [measure, hideSource, scene],
   );
 
+  const isClosing = useCallback(() => closing.current || dropped.current, []);
+
   /** Home. `velocity` is a card flick's upward speed (unscaled px per ms),
    * which the springs carry on from; anything else (a click event, from a
    * button using this as its handler) counts as none. */
   const closeApp = useCallback(
-    (velocity?: unknown, velocityX?: number) => {
+    (velocity?: unknown, velocityX?: number, velocityY?: number) => {
       const v = typeof velocity === "number" ? Math.max(0, velocity) : 0;
       const vx = typeof velocityX === "number" ? velocityX : 0;
+      const vy = typeof velocityY === "number" ? velocityY : -v * 0.55;
       const id = appRef.current;
       if (!id || closing.current) {
         return;
       }
       closing.current = true;
-      setClosingApp(true);
       store.set(APP_KEY, null);
+      // The re-render this sets off (the home screen waking, the window
+      // going inert) is the heaviest of the gesture. Run in this task it
+      // holds back the close's first frames, which have already started:
+      // the card jumps on release. Two frames on, the compositor has it.
+      // (The window turns away a new grab meanwhile: see isClosing.)
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          if (closing.current && appRef.current === id) {
+            setClosingApp(true);
+          }
+        }),
+      );
       const retargeted = retarget(id);
       const { h } = geometry.current;
       // The flick's speed goes on what the finger was driving: the pull into a
@@ -442,7 +473,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
           // A sideways throw carries on into the way home.
           dx: { to: 0, transition: SPRING_CLOSE, velocity: vx * 1000 },
           // The card keeps rising a touch with the flick, then goes home.
-          dy: { to: 0, transition: SPRING_CLOSE, velocity: -v * 1000 * 0.55 },
+          dy: { to: 0, transition: SPRING_CLOSE, velocity: vy * 1000 },
           ...(retargeted
             ? { k: { from: 0, to: 1, transition: SPRING_CLOSE } }
             : {}),
@@ -513,7 +544,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   /** Back to full screen, carrying the release speed (down is negative;
    * `velocityX` rightward). */
   const cancelDrag = useCallback(
-    (velocity = 0, velocityX = 0) => {
+    (velocity = 0, velocityX = 0, velocityY = -velocity * 0.55) => {
       const { h } = geometry.current;
       scene.animate({
         p: {
@@ -525,7 +556,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
         dy: {
           to: 0,
           transition: SPRING_OPEN,
-          velocity: -velocity * 1000 * 0.55,
+          velocity: velocityY * 1000,
         },
         // A drag that caught a launch mid-way finishes the launch.
         a: { to: 1, transition: SPRING_OPEN },
@@ -716,6 +747,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
   }, []);
 
   const wallpaper = useWallpaper();
+  const plates = GLASS_PLATES[wallpaper.key];
   // The stylesheet hides the wallpaper while a stored choice is pending
   // (persist.ts); once the chosen one has rendered, show it.
   useEffect(() => {
@@ -775,6 +807,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                     lockTimer.current = undefined;
                     if (appRef.current) {
                       closing.current = false;
+                      dropped.current = true;
                       // Stops an opening spring, which would otherwise finish
                       // and leave the dim layer over the lock screen.
                       scene.jump({ a: 0, p: 0, dx: 0, dy: 0, k: 1, c: 0 });
@@ -803,6 +836,17 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
               id="main-content"
               tabIndex={-1}
               className={styles.screen}
+              // The glass's stand-ins while the scene moves, where this
+              // wallpaper's plates have been measured; else it keeps its blur.
+              data-plates={plates ? "" : undefined}
+              style={
+                plates
+                  ? ({
+                      "--glass-dock": `url("${plates.dock}")`,
+                      "--glass-search": `url("${plates.search}")`,
+                    } as CSSProperties)
+                  : undefined
+              }
               aria-label={IPHONE_COPY.deviceName}
               data-spotlight={
                 spotlight ? "open" : spotlightLeaving ? "leaving" : undefined
@@ -883,7 +927,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
 
               <div
                 ref={(el) => scene.register("dim", el)}
-                className={styles.dim}
+                className={cn(styles.dim, styles.sceneDim)}
                 style={{ zIndex: 25 }}
                 aria-hidden
               />
@@ -898,6 +942,7 @@ export function Iphone({ notes, photoBytes }: IphoneProps) {
                   scene={scene}
                   widget={geometry.current.fromWidget ? originEl.current : null}
                   measure={measure}
+                  isClosing={isClosing}
                   screen={screenRef.current}
                   onClose={closeApp}
                   onCancelDrag={cancelDrag}

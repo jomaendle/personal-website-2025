@@ -226,6 +226,12 @@ export interface SceneElements {
 type ElementKey = keyof SceneElements;
 type Styles = Partial<Record<ElementKey, Keyframe>>;
 
+/** How much a dragged card shrinks over the whole pull. */
+const CARD_SHRINK = 0.45;
+
+/** How small a dragged card gets as it's pulled, `p` from 0 to 1. */
+const cardScale = (p: number) => 1 - CARD_SHRINK * clamp(p, 0, 1);
+
 /** The window's frame for one state, in the app's pixels. */
 function frameOf(state: LaunchState, g: Geometry) {
   const { w, h, radius } = g;
@@ -236,7 +242,7 @@ function frameOf(state: LaunchState, g: Geometry) {
   const p = clamp(state.p, 0, 1) * ac;
   const origin = originAt(g, state.k);
   const s0 = Math.max(origin.size, 1) / w;
-  const scale = lerp(s0, 1, a) * (1 - 0.45 * p);
+  const scale = lerp(s0, 1, a) * cardScale(p);
   const cx = lerp(origin.x + origin.size / 2, w / 2, a) + state.dx * ac;
   const cy = lerp(origin.y + origin.height / 2, h / 2, a) + state.dy * ac;
   /** How far the window is clipped top and bottom at the start. */
@@ -245,10 +251,17 @@ function frameOf(state: LaunchState, g: Geometry) {
   const shown = Math.max(1, h - 2 * startInset * (1 - ac));
   // Radii in the app's pixels: the icon's radius at 0, the screen's at 1,
   // and a card's ~40pt while dragged.
-  const r = Math.max(
+  const round = Math.max(
     lerp(origin.radius / s0, radius, ac),
     (Math.min(1, p * 5) * 40) / Math.max(scale, 0.01),
   );
+  // Open, full size and in place, the window fills the screen, whose own
+  // corners are drawn over everything: a round clip there would only cost
+  // a masked pass on every frame of whatever moves inside the app. Pushed
+  // aside at full size, its corners show, and round.
+  const inPlace =
+    Math.abs(state.dx * ac) < 0.5 && Math.abs(state.dy * ac) < 0.5;
+  const r = ac >= 0.999 && p <= 0.001 && inPlace ? 0 : round;
   return { ac, p, origin, scale, cx, cy, shown, r };
 }
 
@@ -275,7 +288,11 @@ export function pose(
   if (reduced) {
     const ac = clamp(state.a, 0, 1);
     return {
-      window: { transform: "none", opacity: ac, borderRadius: `${radius}px` },
+      window: {
+        transform: "none",
+        opacity: ac,
+        borderRadius: `${ac >= 0.999 ? 0 : radius}px`,
+      },
       content: { transform: "none" },
       icon: { opacity: 0 },
       widget: { opacity: 0 },
@@ -360,8 +377,19 @@ function changing(keyframes: Keyframe[]): boolean {
   );
 }
 
-/** Whether the window is moving in this state: its glass drops its blur. */
-const moving = (s: LaunchState) => s.a < 0.999 || s.p > 0.001;
+/** Whether the window is pulled or pushed off its place as a card. */
+const displaced = (s: LaunchState) =>
+  s.p > 0.001 || Math.abs(s.dx) > 0.5 || Math.abs(s.dy) > 0.5;
+
+/** Whether the window is moving in this state: its glass drops its blur.
+ * (Gone home, at `a` 0, it's no longer drawn.) */
+const moving = (s: LaunchState) => s.a < 0.999 || displaced(s);
+
+/** Whether the scene moves over the home screen in this state: its glass
+ * under the window drops its blur. At rest on the home screen (`a` 0) or
+ * in an app (`a` 1), nothing does. */
+const stirring = (s: LaunchState) =>
+  (s.a > 0.001 && s.a < 0.999) || displaced(s);
 
 export interface Target {
   to: number;
@@ -398,6 +426,9 @@ export class LaunchScene {
     homeZoom: null,
     dim: null,
   };
+  private stage: HTMLElement | null = null;
+  /** A finger is driving the scene: its moving flags only turn on. */
+  private held = false;
   private settleListeners = new Set<(state: LaunchState) => void>();
 
   constructor(
@@ -416,12 +447,32 @@ export class LaunchScene {
   }
 
   /** Hand an element to the scene (or take it back with null); it's put
-   * in its current pose straight away. */
+   * in its current pose straight away. The moving flags are left to the
+   * motion: a ref handed over again on a re-render mid-drag mustn't undo
+   * them. */
   register(key: ElementKey, el: HTMLElement | null) {
     this.elements[key] = el;
     if (el) {
-      this.write(this.get(), key);
+      this.write(this.get(), key, false);
     }
+  }
+
+  /** Where a state draws the card, in the app's pixels: its centre before
+   * any drag offset, its scale (the app inside always scales evenly), how
+   * much scale it loses per unit of pull, and how much of a drag offset it
+   * applies (all of it once open). */
+  frame(state: LaunchState) {
+    const g = this.geometry();
+    const f = frameOf({ ...state, dx: 0, dy: 0 }, g);
+    const s0 = Math.max(f.origin.size, 1) / g.w;
+    const launched = lerp(s0, 1, state.a);
+    return {
+      x: f.cx,
+      y: f.cy,
+      scale: f.scale,
+      shrink: launched * CARD_SHRINK * f.ac,
+      offset: f.ac,
+    };
   }
 
   /** Called with the final state whenever the scene comes to rest. */
@@ -433,9 +484,18 @@ export class LaunchScene {
   }
 
   /** Set values outright, no motion: a finger's drag, a restore, a reset.
-   * The keys named stop there; any other motion carries on. */
-  jump(values: Partial<LaunchState>) {
+   * The keys named stop there; any other motion carries on. A drag passes
+   * `held`: once the window has moved, it counts as moving until it rests,
+   * so wiggling near the start doesn't swap its glass back and forth. */
+  jump(values: Partial<LaunchState>, held = false) {
+    this.held = held;
     this.freeze(Object.keys(values) as Key[], values);
+  }
+
+  /** The home screen the window opens over: it carries a moving flag too,
+   * for its glass under the window. */
+  setStage(el: HTMLElement | null) {
+    this.stage = el;
   }
 
   /**
@@ -519,6 +579,7 @@ export class LaunchScene {
    * true once everything rests, false if interrupted first.
    */
   animate(targets: Partial<Record<Key, Target>>): Promise<boolean> {
+    this.held = false;
     const now = performance.now();
     const keys = Object.keys(targets) as Key[];
     this.interrupt(keys);
@@ -609,7 +670,7 @@ export class LaunchScene {
     clearTimeout(this.timer);
     const final = frames.at(-1) as LaunchState;
     const duration = (frames.length - 1) * STEP;
-    this.elements.window?.toggleAttribute("data-moving", frames.some(moving));
+    this.flag(frames.some(moving), frames.some(stirring));
     const poses = frames.map((state) => pose(state, g, reduced));
     // Taking over from motion (an interruption, a finger's release), the new
     // animations start now, where the samples start. Left to start on their
@@ -713,7 +774,19 @@ export class LaunchScene {
       Object.assign(el.style, styles[key]);
     }
     if (flagMoving) {
-      this.elements.window?.toggleAttribute("data-moving", moving(state));
+      this.flag(moving(state), stirring(state));
+    }
+  }
+
+  /** Mark the window and the home screen as moving or not: their glass
+   * drops its blur while they move. Under a drag the flags only turn on
+   * (see jump), whatever else comes to rest meanwhile. */
+  private flag(window: boolean, stage: boolean) {
+    if (window || !this.held) {
+      this.elements.window?.toggleAttribute("data-moving", window);
+    }
+    if (stage || !this.held) {
+      this.stage?.toggleAttribute("data-moving", stage);
     }
   }
 }

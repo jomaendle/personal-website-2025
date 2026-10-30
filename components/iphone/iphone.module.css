@@ -138,6 +138,8 @@
 }
 
 .screen {
+  /* The corner radius the app window opens to and closes from. */
+  --screen-radius: 0px;
   position: relative;
   width: 100%;
   height: 100%;
@@ -232,8 +234,32 @@
     scale: min(1, tan(atan2(100dvh - 48px, 946px)));
   }
 
+  /* The screen has to clip round: square, its corners would stick out
+     past the frame's, which aren't concentric with them. The open window
+     keeps no radius of its own at rest (see pose), so moving layers sit
+     under this one rounded mask, not two. */
   .screen {
-    border-radius: 55px;
+    --screen-radius: 55px;
+    border-radius: var(--screen-radius);
+  }
+
+  /* The home screen's glass under the window does the same while the scene
+     moves: anything moving over or under a backdrop blur makes the browser
+     blur it again, every frame, and desktop Chrome pays for it most. The
+     stand-in is the glass as it looks at rest over this wallpaper on this
+     phone, measured into a small image stretched over the plate (see
+     GLASS_PLATES), so the swap either way is near invisible and needs no
+     fade: a fade back would re-blur the plates on every frame of it. A
+     phone's own screen crops the photo by its shape, so no one image fits
+     there; it keeps the blur. */
+  .screen[data-plates] .home[data-moving] .dock {
+    backdrop-filter: none;
+    background: var(--glass-dock) center / 100% 100% no-repeat;
+  }
+
+  .screen[data-plates] .home[data-moving] .search {
+    backdrop-filter: none;
+    background: var(--glass-search) center / 100% 100% no-repeat;
   }
 
   .sideButton {
@@ -362,6 +388,13 @@
   inset: 0;
   background: #000;
   pointer-events: none;
+}
+
+/* The black behind the app window gets its own layer while the scene
+   moves over the home screen: a drag sets its opacity on every move.
+   Only then: at rest it would hold a screen-sized layer for nothing. */
+.home[data-moving] ~ .sceneDim {
+  will-change: opacity;
 }
 
 /* ---- Status bar ------------------------------------------------------ */
@@ -2188,6 +2221,10 @@
   cursor: grab;
   transition: opacity 0.2s ease-out;
   animation: cal-fade 0.3s ease-out both;
+}
+
+.homeIndicatorHit:active {
+  cursor: grabbing;
 }
 
 .homeIndicatorHit:disabled {
@@ -4782,6 +4819,26 @@ button.row:active {
     filter: brightness(1.08);
   }
 
+  /* Not while the scene moves: a closing card leaves the pointer over an
+     icon, and a filter appearing mid-animation repaints its layer. Scoped
+     to what moves (the window, the home screen), so the flag's restyle
+     stays inside them. */
+  .app[data-moving]
+    :is(
+      .glassButton,
+      .pill,
+      .glassField,
+      .tabBar,
+      .shelfItem,
+      .latest,
+      .favorite,
+      .photoTile,
+      .calMini
+    ):hover,
+  .home[data-moving] .cell:hover {
+    filter: none;
+  }
+
   :is(.transportButton, .miniPlayerButton):not(:disabled):hover {
     background: rgb(255 255 255 / 0.08);
     border-radius: 999px;
@@ -4872,6 +4929,12 @@ button.row:active {
     ) {
     background: rgb(44 44 46 / 0.96);
     backdrop-filter: none;
+  }
+
+  /* The same fill while the scene moves: no stand-in colour to flash. */
+  .home[data-moving] :is(.dock, .search),
+  .screen[data-plates] .home[data-moving] :is(.dock, .search) {
+    background: rgb(44 44 46 / 0.96);
   }
 }
 

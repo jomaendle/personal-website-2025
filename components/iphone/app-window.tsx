@@ -28,18 +28,66 @@ interface AppWindowProps {
   /** The home-screen widget it opened out of, if it did: a snapshot of it
    * grows with the window and fades into the app. */
   widget: HTMLElement | null;
-  measure: () => { h: number; scale: number };
+  measure: () => { w: number; h: number; scale: number };
+  /** On its way home, before `leaving` has caught up: not to be grabbed. */
+  isClosing: () => boolean;
   /** The phone's screen: the home indicator lives there, not in the
    * window, so it can be swiped from the first frame of a launch. */
   screen: HTMLElement | null;
   /** Close; a card flick passes its upward and rightward speeds, unscaled
    * px per ms. */
-  onClose: (velocity?: number, velocityX?: number) => void;
-  onCancelDrag: (velocity: number, velocityX: number) => void;
+  onClose: (velocity?: number, velocityX?: number, velocityY?: number) => void;
+  onCancelDrag: (
+    velocity: number,
+    velocityX: number,
+    velocityY: number,
+  ) => void;
   /** Leave for another app (AppProps.openApp). */
   onSwitch: (id: IphoneAppId, launch?: AppLaunch) => void;
   /** The window is mounted and in the scene: the launch can start. */
   onMounted: (id: IphoneAppId) => void;
+}
+
+/**
+ * How much of a drag's offset the scene draws, given how far the launch
+ * is (all of it once open), held at no less than a half. Mid-launch the
+ * drag stores the offset scaled up by this, to keep the card under the
+ * pointer; let go, the offset and the launch spring home together, and
+ * below a half that product would swing out past where the card was.
+ */
+const dragOffset = (offset: number) => Math.max(offset, 0.5);
+
+/** The fastest a throw carries on, unscaled px per ms: a mouse flicks far
+ * faster than a finger. */
+const MAX_THROW = 3;
+
+/**
+ * The card's own speed as it's let go, unscaled px per ms: the throw
+ * carries it on. It shrank about its centre while it rose, sliding sideways
+ * (and rising slower than the pointer) to keep the grabbed point under it;
+ * held at the bottom or at its smallest, it doesn't shrink. `v` is the
+ * pointer's upward speed, `pointerX` its rightward one, and `shrink` the
+ * scale the card loses per unit of pull (see LaunchScene.frame).
+ */
+function cardThrow(
+  grab: { w: number; h: number; lx: number; ly: number },
+  {
+    p,
+    v,
+    pointerX,
+    shrink,
+  }: { p: number; v: number; pointerX: number; shrink: number },
+) {
+  // The pull rises 1 per half screen height.
+  const rate = p > 0 && p < 1 ? (shrink * 2 * v) / grab.h : 0;
+  return {
+    vx: clamp(pointerX + (grab.lx - grab.w / 2) * rate, -MAX_THROW, MAX_THROW),
+    vy: clamp(
+      p > 0 ? -v + (grab.ly - grab.h / 2) * rate : 0,
+      -MAX_THROW,
+      MAX_THROW,
+    ),
+  };
 }
 
 /** Inside the window's Suspense boundary, after the app: commits only once
@@ -63,6 +111,7 @@ export function AppWindow({
   scene,
   widget,
   measure,
+  isClosing,
   screen,
   onClose,
   onCancelDrag,
@@ -75,13 +124,27 @@ export function AppWindow({
     id: number;
     x: number;
     y: number;
+    w: number;
     h: number;
     scale: number;
     moved: boolean;
-    /** The card's pose when the finger landed, if it was still springing
-     * back from an earlier drag: the new drag carries on from there. */
+    /** Where the pointer landed on the screen, in the app's pixels. */
+    gx: number;
+    gy: number;
+    /** The point of the card it took hold of, in the card's own pixels:
+     * that point stays under the pointer as the card shrinks. */
+    lx: number;
+    ly: number;
+    /** How far the card had risen when the finger landed, if it was still
+     * springing back from an earlier drag: the new drag carries on from
+     * there. */
     baseRise: number;
+    /** Its offset then, as the scene holds it and as it's drawn (only part
+     * of it mid-launch): the drag moves it on from there. */
     baseX: number;
+    baseY: number;
+    drawnX: number;
+    drawnY: number;
   } | null>(null);
   const tracker = useVelocityTracker();
   const trackerX = useVelocityTracker();
@@ -196,23 +259,37 @@ export function AppWindow({
 
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     // One finger at a time: a second one must not take the drag over.
-    if (event.button !== 0 || drag.current) {
+    if (event.button !== 0 || drag.current || isClosing()) {
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
-    const { h, scale } = measure();
+    const { w, h, scale } = measure();
+    const rect = screen?.getBoundingClientRect();
+    const gx = rect ? (event.clientX - rect.left) / scale : w / 2;
+    const gy = rect ? (event.clientY - rect.top) / scale : h;
     // Take hold wherever it is, mid-launch or still springing back.
     scene.hold();
     const held = scene.get();
+    const f = scene.frame(held);
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      w,
       h,
       scale,
       moved: false,
+      gx,
+      gy,
+      // Off the card (under a card still springing back) is fine: that
+      // point follows the pointer just the same, so nothing jumps.
+      lx: w / 2 + (gx - f.x - held.dx * f.offset) / f.scale,
+      ly: h / 2 + (gy - f.y - held.dy * f.offset) / f.scale,
       baseRise: held.p * h * 0.5,
       baseX: held.dx,
+      baseY: held.dy,
+      drawnX: held.dx * f.offset,
+      drawnY: held.dy * f.offset,
     };
     tracker.reset();
     tracker.add(event.clientY / scale, event.timeStamp);
@@ -223,6 +300,11 @@ export function AppWindow({
   const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
     const current = drag.current;
     if (!current || current.id !== event.pointerId) {
+      return;
+    }
+    // Sent home mid-drag (Escape, the side button): the drag is over.
+    if (isClosing()) {
+      drag.current = null;
       return;
     }
     if (!current.moved) {
@@ -242,14 +324,29 @@ export function AppWindow({
     const up = (current.y - event.clientY) / current.scale;
     tracker.add(event.clientY / current.scale, event.timeStamp);
     trackerX.add(event.clientX / current.scale, event.timeStamp);
-    const rise = Math.max(0, current.baseRise + up);
-    scene.jump({
-      p: clamp(rise / (current.h * 0.5), 0, 1),
-      dx: current.baseX + dx,
-      // Rising a little slower than the finger keeps the card's bottom edge
-      // under it while the card shrinks.
-      dy: -rise * 0.55,
-    });
+    const { w, h, gx, gy, lx, ly, baseRise } = current;
+    const { baseX, baseY, drawnX, drawnY } = current;
+    const rise = Math.max(0, baseRise + up);
+    const p = clamp(rise / (h * 0.5), 0, 1);
+    // The card shrinks about its centre; offset it so the point it was
+    // taken by stays under the pointer, as a finger would cover it. (The
+    // rise stops at the bottom, so the pointer's height does too.) Taken
+    // mid-launch, the card is still part icon: its frame says where it is,
+    // and only part of a drag's offset shows (see dragOffset).
+    const f = scene.frame({ ...scene.get(), p });
+    const offset = dragOffset(f.offset);
+    // Where the grabbed point's offset should be drawn, moved on from
+    // where it was drawn when taken, so nothing jumps.
+    const toX = gx + dx - f.x - (lx - w / 2) * f.scale;
+    const toY = gy - (rise - baseRise) - f.y - (ly - h / 2) * f.scale;
+    scene.jump(
+      {
+        p,
+        dx: baseX + (toX - drawnX) / offset,
+        dy: baseY + (toY - drawnY) / offset,
+      },
+      true,
+    );
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -258,17 +355,75 @@ export function AppWindow({
       return;
     }
     drag.current = null;
-    if (!current.moved) {
-      onClose();
+    // Sent home mid-drag (Escape, the side button): the close has it.
+    if (isClosing()) {
       return;
     }
-    const v = tracker.velocity();
-    // The tracker reports toward smaller values as positive: leftward.
-    const vx = -trackerX.velocity();
-    if ((scene.get().p > 0.16 || v > 0.35) && v > -0.2) {
-      onClose(v, vx);
+    if (current.moved) {
+      throwCard(current);
     } else {
-      onCancelDrag(v, vx);
+      onClose();
+    }
+  };
+
+  /** Let a dragged card go: home if it was pulled far or flicked up, else
+   * back open, carrying on at its own speed either way. */
+  const throwCard = (grab: NonNullable<typeof drag.current>) => {
+    // A mouse flicks far faster than a finger; uncapped, the throw carries
+    // the card past its smallest (or back past full size) and it hangs
+    // there before turning.
+    const v = clamp(tracker.velocity(), -MAX_THROW, MAX_THROW);
+    const state = scene.get();
+    const { p } = state;
+    const frame = scene.frame(state);
+    // The tracker reports toward smaller values as positive: leftward.
+    const { vx, vy } = cardThrow(grab, {
+      p,
+      v,
+      pointerX: -trackerX.velocity(),
+      shrink: frame.shrink,
+    });
+    // In the scene's own units: mid-launch, only part of an offset shows.
+    const offset = dragOffset(frame.offset);
+    // The pull's own speed stops at its ends: thrown on from its smallest
+    // (or full size), it would only carry `p` past where the card can go,
+    // and the card would hang there before turning.
+    if ((p > 0.16 || v > 0.35) && v > -0.2) {
+      onClose(p >= 1 ? 0 : v, vx / offset, vy / offset);
+    } else {
+      onCancelDrag(p <= 0 ? 0 : v, vx / offset, vy / offset);
+    }
+  };
+
+  // The browser took the gesture (a system swipe, a scroll): no release, so
+  // no tap and no throw. The card goes back to rest, open.
+  const onPointerCancel = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.id === event.pointerId) {
+      letGo();
+    }
+  };
+
+  /** End a drag with no throw: the card goes on to rest, open, unless it's
+   * on its way home already (Escape mid-hold). */
+  const letGo = () => {
+    drag.current = null;
+    if (!isClosing()) {
+      onCancelDrag(0, 0, 0);
+    }
+  };
+
+  // A release the page never hears (the button let go outside the window)
+  // would leave a dragged card hanging mid-air: finish the drag. Before the
+  // drag has started, it's no tap either: just let go.
+  const onLostCapture = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.id !== event.pointerId) {
+      return;
+    }
+    if (drag.current.moved) {
+      onPointerEnd(event);
+    } else {
+      // Taking hold stopped the card where it was: let it carry on.
+      letGo();
     }
   };
 
@@ -283,7 +438,8 @@ export function AppWindow({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
-      onPointerCancel={onPointerEnd}
+      onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onLostCapture}
       // Pointer input is handled above; this is Enter and Space.
       onClick={(event) => event.detail === 0 && onClose()}
     >
